@@ -1,0 +1,132 @@
+version: '3.9'
+
+volumes:
+  mysql_data: {}
+  redis_data: {}
+  kong_data: {}
+  kong_prefix_vol:
+    driver_opts:
+     type: tmpfs
+     device: tmpfs
+  kong_tmp_vol:
+    driver_opts:
+     type: tmpfs
+     device: tmpfs
+
+networks:
+  kong-net:
+    external: false
+
+services:
+  kong-db:
+    image: postgres:9.5
+    environment:
+      POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
+      POSTGRES_USER: ${KONG_PG_USER:-kong}
+      POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
+    secrets:
+      - kong_postgres_password
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${KONG_PG_USER:-kong}"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: on-failure
+    stdin_open: true
+    tty: true
+    networks:
+      - kong-net
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+
+  kong:
+    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    user: "${KONG_USER:-kong}"
+    environment:
+      KONG_DATABASE: ${KONG_DATABASE:-off}
+      KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
+      KONG_PG_HOST: kong-db
+      KONG_PG_USER: ${KONG_PG_USER:-kong}
+      KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_PROXY_LISTEN: "${KONG_PROXY_LISTEN:-0.0.0.0:8000}"
+      KONG_ADMIN_LISTEN: "${KONG_ADMIN_LISTEN:-0.0.0.0:8001}"
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_PREFIX: ${KONG_PREFIX:-/var/run/kong}
+      KONG_UNTRUSTED_LUA_SANDBOX_ENVIRONMENT: setmetatable
+      KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: cjson
+    secrets:
+      - kong_postgres_password
+    networks:
+      - kong-net
+    ports:
+      - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8000:8000/tcp"
+      - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8443:8443/tcp"
+      - "127.0.0.1:8001:8001/tcp"
+      - "127.0.0.1:8444:8444/tcp"
+
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: on-failure:5
+    read_only: true
+    volumes:
+      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
+      - kong_tmp_vol:/tmp
+      - ./config:/opt/kong
+    security_opt:
+      - no-new-privileges
+
+  redis:
+    image: redis:latest
+    ports:
+      - ":6379"
+    volumes:
+      - redis_data:/var/lib/redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-my_database}
+      MYSQL_USER: ${MYSQL_USER:-user}
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
+    secrets:
+      - mysql_password
+      - mysql_root_password
+    ports:
+      - ":3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "sh", "-c", "mysql --user=root --password=$$(cat $$MYSQL_ROOT_PASSWORD_FILE) -e 'SELECT 1;'"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  web:
+    build: ./apps/web
+    ports:
+      - "3000:3000"
+
+  server:
+    build: ./apps/server
+    ports:
+      - "4000:4000"
+
+secrets:
+  kong_postgres_password:
+    file: ./config/KONG_POSTGRES_PASSWORD
+  mysql_root_password:
+    file: ./config/MYSQL_ROOT_PASSWORD
+  mysql_password:
+    file: ./config/MYSQL_PASSWORD
