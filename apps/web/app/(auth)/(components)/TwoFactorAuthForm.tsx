@@ -3,6 +3,7 @@
 import { post2FAVerification } from '@/actions/authActions';
 import { InputElement } from '@/components/forms';
 import { Button, LinkButton } from '@/components/globalComponents';
+import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
 // @ts-ignore
 import { experimental_useFormState as useFormState } from 'react-dom'
@@ -12,9 +13,11 @@ const TwoFactorAuthForm = () => {
   const [code, setCode] = useState('');
 
   const incorrect = code?.length !== 6;
+  const pathname = usePathname();
 
   const initialState = {
     message: null,
+    location: pathname
   }
 
   const [state, formAction] = useFormState(post2FAVerification, initialState);
@@ -43,7 +46,6 @@ const TwoFactorAuthForm = () => {
         />
 
         <LinkButton
-          type='button'
           title='Cancel'
           path='/signin'
           outlined

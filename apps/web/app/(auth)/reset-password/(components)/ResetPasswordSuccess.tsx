@@ -1,23 +1,9 @@
 'use client'
 
 import { LinkButton } from '@/components/globalComponents'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import React from 'react'
 
-const AccountSetupSuccess = () => {
-  const router = useRouter();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      router.push('/signin');
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-    }
-  }, []);
-
+const ResetPasswordSuccess = () => {
   return (
     <div className='w-full flex flex-col gap-[24px]'>
       <svg width="64" height="65" viewBox="0 0 64 65" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -35,24 +21,20 @@ const AccountSetupSuccess = () => {
 
       <div className='w-full flex flex-col gap-[16px]'>
         <h2 className='text-o-text-dark text-[28px] font-[600]'>
-          Account Setup Successful
+          Password Changed
         </h2>
 
         <div className='text-o-text-medium3 text-f14'>
-          You have successfully completed your profile and your account 
-          is all set up. You’ll be redirected to sign in with your credentials in&#160;
-          <span className='text-o-dark-green'>
-            5s
-          </span>
+          You’ve successfully changed your account password
         </div>
       </div>
 
       <LinkButton 
-        title='Submit'
+        title='Sign In'
         path='/signin'
       />
     </div>
   )
 }
 
-export default AccountSetupSuccess
+export default ResetPasswordSuccess

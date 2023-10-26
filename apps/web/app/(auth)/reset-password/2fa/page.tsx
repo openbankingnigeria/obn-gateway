@@ -5,7 +5,7 @@ const TwoFactorAuthPage = () => {
   return (
     <section className='w-full flex flex-col gap-[32px]'>
       <h2 className='text-o-text-dark text-f28 font-[600]'>
-        Sign In
+        Reset Your Password
       </h2>
       
       <div className='flex w-full flex-col gap-[24px]'>

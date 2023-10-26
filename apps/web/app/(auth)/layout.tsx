@@ -32,8 +32,8 @@ export default function RootLayout({
               </Link>
             </div>
 
-            <main className='w-full h-full flex flex-col items-center px-[22px] ms:px-6 lg:px-8 pt-[80px] ms:pt-[120px]'>
-              <div className='w-full mid:w-[480px] ms:w-full lg:w-[480px] my-auto h-fit flex flex-col mid:my-auto items-center'>
+            <main className='w-full h-full flex flex-col items-center px-[22px] ms:px-6 lg:px-8 pt-[100px] ms:pt-[170px]'>
+              <div className='w-full mid:w-[480px] ms:w-full lg:w-[480px] h-fit flex flex-col items-center'>
                 {children}
               </div>
             </main>
@@ -44,7 +44,7 @@ export default function RootLayout({
           </div>
         </section>
 
-        <section className={`w-[40%] right-0 hidden ms:flex z-[80] items-center justify-center absolute min-h-screen bg-o-blue`}>
+        <section className={`w-[40%] right-0 hidden ms:flex z-[80] items-center justify-center absolute min-h-screen bg-[#000034]`}>
           <div className='w-full min-h-screen relative flex items-center justify-center'>
             <Image 
               src='/icons/aperta_pattern2.svg'
