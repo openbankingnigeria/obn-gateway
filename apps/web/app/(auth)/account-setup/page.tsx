@@ -1,5 +1,5 @@
 import React from 'react'
-import { StatusSearchParamsProps } from '@/types/appTypes'
+import { StatusSearchParamsProps } from '@/types/webappTypes/appTypes'
 import { AccountSetUpForm, AccountSetupSuccess } from './(components)'
 
 const AccountSetUpPage = ({ searchParams }: StatusSearchParamsProps) => {

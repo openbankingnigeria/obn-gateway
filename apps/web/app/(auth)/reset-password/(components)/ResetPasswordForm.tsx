@@ -7,7 +7,7 @@ import { experimental_useFormState as useFormState } from 'react-dom'
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { postResetPassword } from '@/actions/authActions';
-import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/config/globalValidations';
+import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 
 const ResetPasswordForm = () => {
   const [password, setPassword] = useState(''); 

@@ -7,7 +7,7 @@ import { experimental_useFormState as useFormState } from 'react-dom'
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { postInitiatePasswordReset } from '@/actions/authActions';
-import { validateEmail } from '@/config/globalValidations';
+import { validateEmail } from '@/utils/globalValidations';
 
 const ForgetPasswordForm = () => {
   const [email, setEmail] = useState(''); 

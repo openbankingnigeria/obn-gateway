@@ -20,6 +20,7 @@ export interface MainButtonProps {
 export interface ButtonProps extends MainButtonProps {
   effect?: MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
+  loading?: boolean
 }
 
 export interface LinkButtonProps extends MainButtonProps {

@@ -1,6 +1,6 @@
 'use client'
 
-import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/config/globalValidations';
+import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 import { PASSWORD_DATA } from '@/data/passwordData';
 import { InputElementProps } from '@/types/componentsTypes/forms'
 import React, { ChangeEvent, useEffect, useState } from 'react'

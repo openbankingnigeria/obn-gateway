@@ -22,3 +22,8 @@ export interface InputElementProps {
   changeValue?: Dispatch<SetStateAction<string>>
   hint?: string;
 }
+
+export interface ToogleSwitchProps {
+  toggle: boolean;
+  setToggle: (value: boolean) => void
+}

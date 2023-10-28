@@ -49,7 +49,7 @@ export async function post2FAVerification(prevState: any, formData: FormData) {
 
     prevState?.location?.includes('reset-password') ?
       redirect(`/reset-password?status=successful`) :
-      redirect(`/app/dashboard`);
+      redirect(`/app/home/dashboard`);
 }
 
 /* INITIATE PASSWORD RESET ACTION */

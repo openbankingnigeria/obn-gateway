@@ -2,7 +2,7 @@
 
 import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
-import { validateEmail } from '@/config/globalValidations';
+import { validateEmail } from '@/utils/globalValidations';
 // @ts-ignore
 import { experimental_useFormState as useFormState } from 'react-dom'
 import Link from 'next/link';
@@ -62,7 +62,7 @@ const SigninForm = () => {
 
       <Button 
         type='submit'
-        title='Submit'
+        title='Sign In'
         disabled={incorrect}
       />
     </form>

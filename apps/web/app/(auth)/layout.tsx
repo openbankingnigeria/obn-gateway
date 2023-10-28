@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Aperta - Account setup',
+  title: 'Aperta - Auth',
 }
 
 export default function RootLayout({
@@ -36,6 +36,14 @@ export default function RootLayout({
               <div className='w-full mid:w-[480px] ms:w-full lg:w-[480px] h-fit flex flex-col items-center'>
                 {children}
               </div>
+
+              {/* <motion.div 
+                className='w-full mid:w-[480px] ms:w-full lg:w-[480px] h-fit flex flex-col items-center'
+                initial={{ opacity: 0, translateY: 20 }}
+                animate={{ opacity: 1, translateY: 0, transition: { stiffness: 700, damping: 30, duration: 0.2 } }}
+              >
+                {children}
+              </motion.div> */}
             </main>
             
             <footer className='mt-auto text-f14 text-o-text-medium px-[22px] ms:px-6 lg:px-8 py-5 ms:py-8'>

@@ -7,7 +7,7 @@ import { experimental_useFormState as useFormState } from 'react-dom'
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { postAccountSetUp } from '@/actions/authActions';
-import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/config/globalValidations';
+import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 
 const AccountSetUpForm = () => {
   const [first_name, setFirstName] = useState(''); 
