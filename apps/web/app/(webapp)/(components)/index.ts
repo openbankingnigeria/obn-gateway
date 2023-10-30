@@ -7,6 +7,12 @@ import AvatarMenu from "./AvatarMenu";
 import EmptyState from "./EmptyState";
 import NotificationBox from "./NotificationBox";
 import NotificationCard from "./NotificationCard";
+import TopPanel from "./TopPanel";
+import TableElement from "./TableElement";
+import StatusBox from "./StatusBox";
+import TablePagination from "./TablePagination";
+import TwoFactorAuthModal from "./TwoFactorAuthModal";
+import TwoFactorAuthForm from "./TwoFactorAuthForm";
 
 export {
   DatePicker,
@@ -17,5 +23,11 @@ export {
   EmptyState,
   NotificationBox,
   NotificationCard,
-  AppRightModal
+  AppRightModal,
+  TopPanel,
+  TableElement,
+  StatusBox,
+  TablePagination,
+  TwoFactorAuthModal,
+  TwoFactorAuthForm
 }

@@ -15,6 +15,7 @@ export interface MainButtonProps {
   containerStyle?: string;
   small?: boolean;
   outlined?: boolean;
+  titleStyle?: string;
 }
 
 export interface ButtonProps extends MainButtonProps {

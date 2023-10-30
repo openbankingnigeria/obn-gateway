@@ -16,7 +16,8 @@ const Button = ({
   loading,
   outlined,
   containerStyle,
-  small
+  small,
+  titleStyle
 }: ButtonProps) => {
   
   const { pending } = useFormStatus();
@@ -26,7 +27,7 @@ const Button = ({
       type={type || 'button'}
       onClick={effect}
       disabled={disabled || pending || loading}
-      className={`gap-[6px] flex items-center justify-center rounded-[6px]
+      className={`group gap-[6px] flex items-center justify-center rounded-[6px]
       ${small ? 'py-[6px] px-[12px]' : 'py-[12px] px-[20px]'} 
       ${outlined ? 'outlined-button' : 'default-button'}
       ${containerStyle}`}
@@ -37,7 +38,7 @@ const Button = ({
           <>
             {leftIcon}
 
-            <div className='whitespace-nowrap text-f14 font-[600]'>
+            <div className={`whitespace-nowrap text-f14 font-[600] ${titleStyle}`}>
               {title}
             </div>
 

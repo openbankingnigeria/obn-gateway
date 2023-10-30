@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { getElementAndBelow } from '@/utils/getElementAndBelow';
 import Link from 'next/link';
 import { ToggleSwitch } from '../../../components/forms';
@@ -16,6 +16,7 @@ const AppNavBar = () => {
   const [openNotification, setOpenNotification] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const unReadNotifications = NOTIFICATIONS_DATA;
   const notifications = NOTIFICATIONS_DATA?.slice(0, 5);
@@ -35,6 +36,7 @@ const AppNavBar = () => {
 
   const handleLogout = () => {
     setLoadingLogout(true);
+    router.push('/');
   }
 
   const handleToggle = (value: boolean) => {
@@ -79,34 +81,36 @@ const AppNavBar = () => {
                   title='Cancel'
                   effect={handleCloseModal}
                   outlined
-                  containerStyle='!py-[6px] !w-fit !px-[12px]'
+                  small
+                  containerStyle='!w-fit'
                 />
                 
                 <Button 
                   title={isLive ? 'Switch to Test Mode' : 'Switch to Live Mode'}
                   effect={() => handleSwitch(isLive ? 'Test' : 'Live')}
                   loading={loading}
-                  containerStyle='!py- [6px] !w-[165px] !px-[12px]'
+                  small
+                  containerStyle='!w-[165px]'
                 />
               </div>
             </div>
           </AppCenterModal>
       }
-      <nav className='bg-white z-[100] fixed top-0 left-[280px] right-0 px-[32px] py-[20px] flex items-center justify-between gap-[24px] border-b border-o-border'>
+      <nav className='bg-white z-[101] fixed top-0 left-[280px] right-0 px-[32px] py-[20px] flex items-center justify-between gap-[24px] border-b border-o-border'>
         <section className='w-full gap-[4px] flex items-center'>
           {
             sanitizedPaths?.map((path, index) => (
               path == 'app' ? null :
               <div 
                 key={index}
-                className='flex items-center gap-[4px]'
+                className='flex items-center gap-[4px] whitespace-nowrap'
               >
                 <Link
                   href={generatePath(path)}
                   className={`${(path == lastPath) ? 'text-o-text-dark' : 'text-o-text-muted2 hover:text-o-text-dark3 hover:bg-[#F3F6FB]'} 
-                  rounded-[4px] py-[2px] px-[6px] text-f14 capitalize cursor-pointer`}
+                  rounded-[4px] py-[2px] px-[6px] text-f14 capitalize cursor-pointer whitespace-nowrap`}
                 >
-                  {path}
+                  {path?.replace('api', 'API')?.replace(/-/g, ' ')}
                 </Link>
 
                 {
@@ -128,7 +132,7 @@ const AppNavBar = () => {
               setToggle={(value) => handleToggle(value)}
             />
 
-            <div className={`w-fit ${isLive ? 'text-o-green2' : 'text-o-red'} text-f14 font-[500]`}>
+            <div className={`w-fit ${isLive ? 'text-o-green2' : 'text-o-red'} whitespace-nowrap text-f14 font-[500]`}>
               {
                 isLive ? 'Live Mode' :
                   'Test Mode'

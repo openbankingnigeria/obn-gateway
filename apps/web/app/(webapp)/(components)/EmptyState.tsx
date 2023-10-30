@@ -13,7 +13,7 @@ const EmptyState = ({
 }: EmptyStateProps) => {
   return (
     <section className={`w-full h-full flex flex-col items-center ${parentStyle}`}>
-      <div className={`h-fit my-auto min-w-[393] flex flex-col items-center ${containerStyle}`}>
+      <div className={`h-fit my-auto w-[393px] flex flex-col items-center ${containerStyle}`}>
         <div className={`w-full mb-[24px] flex justify-center h-fit ${iconStyle}`}>
           {
             type == 'NOTIFICATIONS' ?
@@ -54,7 +54,14 @@ const EmptyState = ({
                 </defs>
               </svg>
               :
-              null
+              type == 'DEFAULT' ?
+                <svg width="90" height="64" viewBox="0 0 90 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M3.91877 0C2.14947 0 0.715173 1.4343 0.715173 3.20359V8.29985C0.715116 8.30772 0.715088 8.31561 0.715088 8.3235V60.3346C0.715088 62.1039 2.14939 63.5382 3.91869 63.5382H86.0813C87.8506 63.5382 89.2849 62.1039 89.2849 60.3346V8.3235C89.2849 6.5542 87.8506 5.1199 86.0813 5.1199H26.8032L25.337 1.88209C24.8181 0.73618 23.6766 0 22.4187 0H3.91877Z" fill="#999FAD"/>
+                  <rect x="5.72888" y="4.31641" width="82.0529" height="52.6557" rx="3.20359" transform="rotate(3.93205 5.72888 4.31641)" fill="#F6F8FA"/>
+                  <rect x="0.714966" y="13.3477" width="88.5698" height="50.6517" rx="3.20359" fill="#EEEFF1"/>
+                </svg>
+                :
+                null
           }
         </div>
 

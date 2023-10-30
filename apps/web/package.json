@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-table": "^8.10.7",
     "chart.js": "^4.4.0",
     "framer-motion": "^10.16.4",
     "moment": "^2.29.4",
