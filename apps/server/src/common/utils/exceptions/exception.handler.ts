@@ -30,9 +30,7 @@ export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
     errorResponse = {
       ...errorResponse,
       status: exception.getStatus(),
-      errors: (exception as any).response.errors,
       message: (exception as any).response.message || exception.message,
-      type: (exception as any).response.type,
     };
   }
 
