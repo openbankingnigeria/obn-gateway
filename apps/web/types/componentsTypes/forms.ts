@@ -26,10 +26,16 @@ export interface InputElementProps extends FieldsProps {
   showGuide?: boolean;
 }
 
+export interface TextareaElementProps extends FieldsProps {
+  rows: number
+}
+
 export interface OptionsProps {
   label: string;
-  value: string
+  value: string;
+  icon?: ReactNode;
 }
+
 export interface SelectElementProps extends FieldsProps {
   options: OptionsProps[];
   innerLabel?: string;
@@ -45,4 +51,12 @@ export interface SelectElementProps extends FieldsProps {
 export interface ToogleSwitchProps {
   toggle: boolean;
   setToggle: (value: boolean) => void
+}
+
+export interface SearchBarProps {
+  placeholder?: string
+  searchQuery?: string
+  name?: string
+  big?: boolean
+  containerStyle?: string
 }

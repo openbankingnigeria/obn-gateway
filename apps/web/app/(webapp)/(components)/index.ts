@@ -13,6 +13,11 @@ import StatusBox from "./StatusBox";
 import TablePagination from "./TablePagination";
 import TwoFactorAuthModal from "./TwoFactorAuthModal";
 import TwoFactorAuthForm from "./TwoFactorAuthForm";
+import MultipleSelectOptions from "./MultipleSelectOptions";
+import SelectedItem from "./SelectedItem";
+import ViewData from "./ViewData";
+import TransparentPanel from "./TransparentPanel";
+import ActionsSelector from "./ActionsSelector";
 
 export {
   DatePicker,
@@ -29,5 +34,10 @@ export {
   StatusBox,
   TablePagination,
   TwoFactorAuthModal,
-  TwoFactorAuthForm
+  TwoFactorAuthForm,
+  MultipleSelectOptions,
+  SelectedItem,
+  ViewData,
+  TransparentPanel,
+  ActionsSelector
 }

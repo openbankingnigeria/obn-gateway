@@ -2,21 +2,16 @@
 
 import { SelectElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents';
+import { TablePagination } from '@/types/webappTypes/componentsTypes';
 import { updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
 import React from 'react'
-
-interface TablePagination {
-  rows: number;
-  page: number;
-  totalElements?: number
-  totalPages: number
-}
 
 const TablePagination = ({
   rows, 
   page, 
   totalElements,
+  totalElementsInPage,
   totalPages
 }: TablePagination) => {
   const router = useRouter();
@@ -45,7 +40,7 @@ const TablePagination = ({
   return (
     <div className='w-full flex-wrap flex items-center justify-between gap-5'>
         <div className='text-o-text-darkest text-f14'>
-          Showing {rows} of {totalElements} entries
+          Showing {totalElementsInPage} of {totalElements} entries
         </div>
 
         <div className='w-fi gap-[10px] flex items-center'>

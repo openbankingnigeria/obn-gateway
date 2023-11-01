@@ -15,6 +15,7 @@ const LinkButton = ({
   outlined,
   titleStyle
 }: LinkButtonProps) => {
+  
   return (
     <Link 
       type={type || 'button'}

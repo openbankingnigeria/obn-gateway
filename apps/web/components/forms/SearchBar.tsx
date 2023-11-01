@@ -1,41 +1,41 @@
 'use client'
 
 import { InputElement } from '@/components/forms'
+import { SearchBarProps } from '@/types/componentsTypes/forms';
 import { deleteSearchParams, updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 
-interface SearchBarProps {
-  placeholder?: string
-  search_query?: string
-}
-
 const SearchBar = ({
   placeholder,
-  search_query,
+  searchQuery,
+  name,
+  big,
+  containerStyle
 }: SearchBarProps) => {
 
   const router = useRouter();
-  const [search, setSearch] = useState(search_query);
+  const [search, setSearch] = useState(searchQuery);
 
   const handleChange = (value: string) => {
     if (value) {
       setSearch(value);
-      const url = updateSearchParams('search_query', value);
+      const url = updateSearchParams((name || 'search_query'), value);
       router.push(url);
     } else {
       setSearch(value);
-      const url = deleteSearchParams('search_query');
+      const url = deleteSearchParams((name || 'search_query'));
       router.push(url)
     }
   };
 
   return (
-    <div className='w-fit'>
+    <div className='w-auto'>
       <InputElement 
         placeholder={placeholder || 'Search'}
-        small
+        small={!big}
         type='search'
+        autoComplete='nope'
         name='search'
         leftIcon={
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -49,7 +49,7 @@ const SearchBar = ({
             />
           </svg>
         }
-        containerStyle='!w-[305px]'
+        containerStyle={`w-[305px] ${containerStyle}`}
         value={search}
         changeValue={handleChange}
       />

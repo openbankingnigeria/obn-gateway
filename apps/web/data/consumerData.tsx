@@ -61,7 +61,7 @@ export const CONSUMER_ACTIONS_DATA = [
     name: 'approve',
     type: 'pending',
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g clip-path="url(#clip0_705_20563)">
+      <g clipPath="url(#clip0_705_20563)">
         <path d="M14.6666 7.39065V8.00398C14.6658 9.44159 14.2003 10.8404 13.3395 11.9919C12.4787 13.1433 11.2688 13.9856 9.89016 14.3932C8.51154 14.8009 7.03809 14.7519 5.68957 14.2537C4.34104 13.7555 3.18969 12.8347 2.40723 11.6287C1.62476 10.4227 1.25311 8.99602 1.3477 7.56152C1.44229 6.12702 1.99806 4.76153 2.93211 3.66869C3.86615 2.57586 5.12844 1.81423 6.53071 1.49741C7.93298 1.18059 9.4001 1.32554 10.7133 1.91065M14.6666 2.66683L7.99992 9.34016L5.99992 7.34016" fill="transparent" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </g>
       <defs>
@@ -78,7 +78,7 @@ export const CONSUMER_ACTIONS_DATA = [
     name: 'decline',
     type: 'pending',
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g clip-path="url(#clip0_705_4774)">
+      <g clipPath="url(#clip0_705_4774)">
         <path d="M9.99992 6.00016L5.99992 10.0002M5.99992 6.00016L9.99992 10.0002M14.6666 8.00016C14.6666 11.6821 11.6818 14.6668 7.99992 14.6668C4.31802 14.6668 1.33325 11.6821 1.33325 8.00016C1.33325 4.31826 4.31802 1.3335 7.99992 1.3335C11.6818 1.3335 14.6666 4.31826 14.6666 8.00016Z" fill="transparent" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </g>
       <defs>
@@ -108,7 +108,22 @@ export const CONSUMER_ACTIONS_DATA = [
   }
 ];
 
-export const CONSUMERS_HEADER_DATA = [
+export const CONSUMER_DETAILS_PANEL = [
+  {
+    id: 1,
+    label: 'API Activities',
+    value: '',
+    name: 'api_activities'
+  },
+  {
+    id: 2,
+    label: 'Consents',
+    value: 'consents',
+    name: 'consents'
+  },
+];
+
+export const CONSUMERS_TABLE_HEADERS = [
   {
     header: 'Name',
     accessor: 'name'
@@ -127,7 +142,139 @@ export const CONSUMERS_HEADER_DATA = [
   }
 ];
 
-export const CONSUMERS_DATA = [
+export const CONSUMER_API_ACTIVITIES_HEADERS = [
+  {
+    header: 'API Name',
+    accessor: 'api_name'
+  },
+  {
+    header: 'Endpoint URL',
+    accessor: 'endpoint_url'
+  },
+  {
+    header: 'Status',
+    accessor: 'status'
+  },
+  {
+    header: 'Timestamp',
+    accessor: 'timestamp'
+  },
+];
+
+export const CONSUMER_API_ACTIVITIES = [
+  {
+    id: 1,
+    api_name: 'Get Transactions',
+    endpoint_url: '{{base_url}}/accounts/:account_id/transactions',
+    status: 'success',
+    timestamp: '2023-09-23T12:30:54'
+  },
+  {
+    id: 2,
+    api_name: 'Get Transactions',
+    endpoint_url: '{{base_url}}/accounts/:account_id/transactions',
+    status: 'failed',
+    timestamp: '2023-09-23T12:30:54'
+  },
+];
+
+export const CONSUMER_API_ACTIVITIES_STATUS = [
+  {
+    id: 1,
+    label: 'All',
+    value: '',
+    name: 'all'
+  },
+  {
+    id: 2,
+    label: 'Success',
+    value: 'success',
+    name: 'success'
+  },
+  {
+    id: 3,
+    label: 'Failed',
+    value: 'failed',
+    name: 'failed'
+  },
+];
+
+export const CONSUMER_CONSENTS_HEADERS = [
+  {
+    header: 'Name',
+    accessor: 'name'
+  },
+  {
+    header: 'Email',
+    accessor: 'email'
+  },
+  {
+    header: 'Date Sent',
+    accessor: 'date_sent'
+  },
+  {
+    header: 'Status',
+    accessor: 'status'
+  },
+  {
+    header: 'Velocity',
+    accessor: 'velocity'
+  },
+  {
+    header: 'Amount',
+    accessor: 'amount'
+  },
+  {
+    header: 'Timeline',
+    accessor: 'timeline'
+  },
+];
+
+export const CONSUMER_CONSENTS = [
+  {
+    id: 1,
+    name: 'Consent name',
+    email: 'bob.julian@lendsqr.com',
+    date_sent: '2023-09-25',
+    status: 'Active',
+    velocity: '20s',
+    amount: '10',
+    timeline: '2023-09-23T12:30:54'
+  },
+  {
+    id: 2,
+    name: 'Consent name',
+    email: 'bob.julian@lendsqr.com',
+    date_sent: '2023-09-25',
+    status: 'Inactive',
+    velocity: '10s',
+    amount: '2',
+    timeline: '2023-09-23T12:30:54'
+  },
+];
+
+export const CONSUMER_CONSENTS_STATUS = [
+  {
+    id: 1,
+    label: 'All',
+    value: '',
+    name: 'all'
+  },
+  {
+    id: 2,
+    label: 'Active',
+    value: 'active',
+    name: 'active'
+  },
+  {
+    id: 3,
+    label: 'Inactive',
+    value: 'inactive',
+    name: 'inactive'
+  },
+];
+
+export const CONSUMERS_TABLE_DATA = [
   {
     id: 1,
     name: 'John Ajayi',

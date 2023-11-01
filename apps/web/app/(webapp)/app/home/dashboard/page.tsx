@@ -1,17 +1,17 @@
 import React from 'react'
 import { greetByTime } from '@/utils/greetByTime'
-import { DashboardPageProps } from '@/types/webappTypes/appTypes'
+import { SearchParamsProps } from '@/types/webappTypes/appTypes'
 import { DashboardMetricCard } from './(components)'
-import { API_CALLS_DATA, API_CONSUMERS_DATA } from '@/data/dashboardData'
+import { API_CALLS_DATA, API_CONSUMERS_TABLE_DATA } from '@/data/dashboardData'
 import { DatePicker } from '@/app/(webapp)/(components)'
 
-const DashboardPage = ({ searchParams }: DashboardPageProps) => {
-  const dateFilter = searchParams?.datefilter;
+const DashboardPage = ({ searchParams }: SearchParamsProps) => {
+  const dateFilter = searchParams?.date_filter;
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
-        {`${greetByTime()},John Ajayi!`}
+        {`${greetByTime()}, John Ajayi!`}
       </h2>
 
       <DatePicker 
@@ -44,7 +44,7 @@ const DashboardPage = ({ searchParams }: DashboardPageProps) => {
 
         <div className='w-full flex flex-wrap gap-[20px]'>
           {
-            API_CONSUMERS_DATA?.map(data => (
+            API_CONSUMERS_TABLE_DATA?.map(data => (
               <DashboardMetricCard 
                 key={data?.id}
                 title={data?.title}

@@ -29,7 +29,7 @@ const TwoFactoAuthEnabled = ({
   };
 
   const handleDownloadTXT = () => {
-    downloadTxtFile(stringifyBackupCodes)
+    downloadTxtFile(stringifyBackupCodes, 'aperta_backup_codes');
   };
 
   return (

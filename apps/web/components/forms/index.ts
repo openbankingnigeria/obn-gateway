@@ -1,6 +1,6 @@
 import InputElement from "./InputElement";
 import ToggleSwitch from "./ToggleSwitch";
-import SelectElement from './selectElement'
+import SelectElement from './SelectElement'
 import SearchBar from "./SearchBar";
 
 export {

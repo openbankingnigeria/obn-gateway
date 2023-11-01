@@ -11,20 +11,21 @@ import { TabelElmentProps } from '@/types/webappTypes/componentsTypes'
 import { StatusBox, TablePagination } from '.'
 
 const TableElement = ({
-  headerData,
+  tableHeaders,
   rawData,
   filters,
   rows,
   page,
   actionColumn,
   totalElements,
+  totalElementsInPage,
   totalPages,
   thStyle,
   tdStyle
 }: TabelElmentProps) => {
   const columnHelper = createColumnHelper<any>()
   
-  const rawColumns = headerData?.map(item => {
+  const rawColumns = tableHeaders?.map(item => {
     return (
       columnHelper.accessor(item?.accessor, {
         header: () => item?.header,
@@ -40,11 +41,11 @@ const TableElement = ({
   });
 
   const columns = useMemo(
-    () => [
+    () => actionColumn ? [
       ...rawColumns,
       actionColumn
-    ],
-    [...filters]
+    ] : [ ...rawColumns ],
+    [...filters, rawColumns]
   );
 
   const data = useMemo(
@@ -76,11 +77,13 @@ const TableElement = ({
                 {headerGroup.headers.map(header => (
                   <th 
                     key={header.id}
-                    className={`whitespace-nowrap min-w-[170px] text-left 
+                    className={`whitespace-nowrap min-w-[220px] w-fit max-w-[500px] text-left 
                     first-of-type:rounded-tl-[8px] last-of-type:rounded-tr-[8px] 
                     text-o-text-medium px-[16px] text-f12 font-[500] 
-                    ${header.id == 'actions' && '!w-[45px] !min-w-[0]'}
-                    ${header.id == 'status' && '!w-[100px] !min-w-[0]'}
+                    ${header.id == 'actions' && '!min-w-[65px] !max-w-0 !w-auto'}
+                    ${header.id == 'status' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'velocity' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'amount' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${thStyle}`}
                   >
                     {header.isPlaceholder
@@ -103,8 +106,8 @@ const TableElement = ({
                 {row.getVisibleCells().map(cell => (
                   <td 
                     key={cell.id}
-                    className={`bg-white border-b border-o-border px-[24px] py-[18px] 
-                    min-w-fit w-auto text-o-text-medium3 text-f14 ${tdStyle}`}
+                    className={`bg-white border-b border-o-border px-[12px] py-[18px] 
+                    text-o-text-medium3 text-f14 ${tdStyle}`}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -119,6 +122,7 @@ const TableElement = ({
         rows={rows}
         page={page}
         totalElements={totalElements}
+        totalElementsInPage={totalElementsInPage}
         totalPages={totalPages}
       />
     </div>

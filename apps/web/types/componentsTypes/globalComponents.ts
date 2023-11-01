@@ -27,3 +27,9 @@ export interface ButtonProps extends MainButtonProps {
 export interface LinkButtonProps extends MainButtonProps {
   path: string
 }
+
+export interface OustsideClickerProps { 
+  children: ReactNode, 
+  func: () => void, 
+  clickerStyle?: string 
+};

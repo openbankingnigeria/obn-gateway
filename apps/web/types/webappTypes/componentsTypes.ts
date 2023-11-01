@@ -1,11 +1,15 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { MouseEventHandler, ReactNode } from "react";
+import { Dispatch, MouseEventHandler, ReactNode } from "react";
 import { TableHeaderProps, TableProps } from "./appTypes";
 
 export interface DatePickerProps {
   containerStyle?: string;
   fieldStyle?: string;
-  showShortcuts?: boolean
+  showShortcuts?: boolean;
+  asSingle?: boolean;
+  name?: string;
+  innerLabel?: string;
+  popoverDirection?: '' | 'up' | 'down';
 }
 
 export interface AppModalProps {
@@ -59,14 +63,14 @@ export interface PanelProps {
   value: string
 }
 
-export interface TopPanelProps {
+export interface PanelContainerProps {
   panel: PanelProps[]
   currentValue: string
   containerStyle?: string
 }
 
 export interface TabelElmentProps extends TableProps {
-  actionColumn: ColumnDef<any, any>;
+  actionColumn?: ColumnDef<any, any>;
   thStyle?: string;
   tdStyle?: string;
 }
@@ -75,4 +79,32 @@ export interface TwoFactorAuthModalProps {
   close: () => void;
   loading?: boolean;
   next: () => void;
+}
+
+export interface MultipleSelectOptionsProps {
+  options: any[]
+  selected: any[]
+  searchQuery?: string
+  changeSelected: (value: any[]) => void
+  containerStyle?: string
+}
+
+export interface ActionsSelectorProps {
+  containerStyle?: string;
+  medium?: boolean;
+  small?: boolean;
+  fieldStyle?: string;
+  optionStyle?: string;
+  leftIcon?: ReactNode;
+  label: string;
+  rightIcon?: ReactNode;
+  options: ReactNode;
+}
+
+export interface TablePagination {
+  rows: number;
+  page: number;
+  totalElements?: number
+  totalElementsInPage?: number;
+  totalPages: number
 }

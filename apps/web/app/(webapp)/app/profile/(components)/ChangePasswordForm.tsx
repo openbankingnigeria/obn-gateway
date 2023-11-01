@@ -79,7 +79,7 @@ const ChangePasswordForm = ({
 
       <div className='px-[20px] w-full min-h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
         <Button 
-          title='Canel'
+          title='Cancel'
           effect={close}
           small
           outlined

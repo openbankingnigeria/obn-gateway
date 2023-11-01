@@ -1,10 +1,12 @@
 'use client'
 
+import { OustsideClickerProps } from '@/types/componentsTypes/globalComponents';
 import { useRef, useEffect, MutableRefObject, ReactNode } from 'react';
+
 
 function useOutsideClicker(
   ref: MutableRefObject<null>, 
-  func: () => void
+  func: () => void,
 ) {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -27,10 +29,11 @@ function useOutsideClicker(
 
 
 export default function OutsideClicker({ 
-  children, func
-}: { children: ReactNode, func: () => void }){
+  children, func, clickerStyle
+}: OustsideClickerProps){
+  
   const wrapperRef = useRef(null);
   useOutsideClicker(wrapperRef, func);
 
-  return <div className='w-full' ref={wrapperRef}>{children}</div>;
+  return <div className={`w-full ${clickerStyle}`} ref={wrapperRef}>{children}</div>;
 }

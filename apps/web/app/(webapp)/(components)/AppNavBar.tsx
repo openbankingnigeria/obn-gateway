@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { getElementAndBelow } from '@/utils/getElementAndBelow';
 import Link from 'next/link';
 import { ToggleSwitch } from '../../../components/forms';
@@ -17,6 +17,8 @@ const AppNavBar = () => {
   const [loadingLogout, setLoadingLogout] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { get } = useSearchParams();
+  const slug = get('slug');
 
   const unReadNotifications = NOTIFICATIONS_DATA;
   const notifications = NOTIFICATIONS_DATA?.slice(0, 5);
@@ -110,7 +112,11 @@ const AppNavBar = () => {
                   className={`${(path == lastPath) ? 'text-o-text-dark' : 'text-o-text-muted2 hover:text-o-text-dark3 hover:bg-[#F3F6FB]'} 
                   rounded-[4px] py-[2px] px-[6px] text-f14 capitalize cursor-pointer whitespace-nowrap`}
                 >
-                  {path?.replace('api', 'API')?.replace(/-/g, ' ')}
+                  {
+                    (slug && path == lastPath) ?
+                      slug :
+                      path?.replace('api', 'API')?.replace(/-/g, ' ')
+                  }
                 </Link>
 
                 {

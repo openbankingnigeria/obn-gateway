@@ -1,16 +1,18 @@
 import React from 'react'
-import { ConsumersPageProps } from '@/types/webappTypes/appTypes'
+import { SearchParamsProps } from '@/types/webappTypes/appTypes'
 import { TopPanel } from '@/app/(webapp)/(components)'
-import { CONSUMERS_DATA, CONSUMERS_HEADER_DATA, CONSUMERS_STATUS_DATA } from '@/data/consumerData'
+import { CONSUMERS_TABLE_DATA, CONSUMERS_TABLE_HEADERS, CONSUMERS_STATUS_DATA } from '@/data/consumerData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ConsumersTable } from './(components)'
+import { APIS_DATA } from '@/data/apisData'
 
-const ConsumersPage = ({ searchParams }: ConsumersPageProps) => {
+const ConsumersPage = ({ searchParams }: SearchParamsProps) => {
   const status = searchParams?.status || ''
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
   const totalElements = Number(searchParams?.total_elements) || 0
+  const search_apis = searchParams?.search_apis || ''
 
   const filters = [status, search_query]
   // ARRANGED HAS SEEN ON DESIGN
@@ -18,9 +20,11 @@ const ConsumersPage = ({ searchParams }: ConsumersPageProps) => {
     1290, 28, 920, 109, 112
   );
 
-  const headers = CONSUMERS_HEADER_DATA;
-  const consumers = CONSUMERS_DATA;
+  const headers = CONSUMERS_TABLE_HEADERS;
+  const consumers = CONSUMERS_TABLE_DATA;
   const total_pages = consumers?.length;
+  const total_elements_in_page = consumers?.length;
+  const data_list = APIS_DATA;
 
   const status_list = CONSUMERS_STATUS_DATA()?.map(data => {
     return({
@@ -46,7 +50,7 @@ const ConsumersPage = ({ searchParams }: ConsumersPageProps) => {
           <div className='w-full flex-wrap flex items-center gap-[12px]'>
             <SearchBar 
               placeholder='Search consumers'
-              search_query={search_query}
+              searchQuery={search_query}
             />
 
             <SelectElement 
@@ -64,13 +68,16 @@ const ConsumersPage = ({ searchParams }: ConsumersPageProps) => {
 
           <section className='w-full min-h-full flex flex-col items-center'>
             <ConsumersTable 
-              headerData={headers}
+              tableHeaders={headers}
               rawData={consumers}
               filters={filters}
               rows={rows}
+              totalElementsInPage={total_elements_in_page}
               page={page}
+              searchQuery={search_apis}
               totalElements={totalElements}
               totalPages={total_pages}
+              dataList={data_list}
             />
           </section>
         </section>

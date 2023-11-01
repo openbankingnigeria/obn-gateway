@@ -10,13 +10,16 @@ import { ActivateDeactivateConsumer, ApproveConsumer, DeclineConsumer } from '.'
 import { toast } from 'react-toastify'
 
 const ConsumersTable = ({
-  headerData,
+  tableHeaders,
   rawData,
   filters,
   rows,
   page,
+  searchQuery,
   totalElements,
+  totalElementsInPage,
   totalPages,
+  dataList,
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
   const router = useRouter();
@@ -34,26 +37,6 @@ const ConsumersTable = ({
       );
     });
   }
-
-  const viewConsumer = (id: string) => {
-    router.push(`/app/api-management/consumers/${id}`);
-  };
-
-  const approveConsumer = () => {
-    setOpenModal('approve')
-  };
-
-  const declineConsumer = () => {
-    setOpenModal('decline')
-  };
-
-  const deactivateConsumer = () => {
-    setOpenModal('deactivate')
-  };
-
-  const activateConsumer = () => {
-    setOpenModal('activate')
-  };
 
   const closeModal = () => {
     setOpenModal('');
@@ -92,7 +75,7 @@ const ConsumersTable = ({
             'You have successfully declined [api_consumer_name] access request.' :
             null
     )
-  }
+  };
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => 'Actions',
@@ -111,22 +94,19 @@ const ConsumersTable = ({
             getAction(row.original.status)?.map((action) => (
               <button
                 key={action.id}
-                className='cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
+                className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
                 onClick={() => {
                   setId(row.original.id);
-                  action.name == 'approve' ?
-                    approveConsumer() :
-                    action.name == 'decline' ?
-                      declineConsumer() :
-                      action.name == 'activate' ?
-                        activateConsumer() :
-                        action.name == 'deactivate' ?
-                          deactivateConsumer() :
-                          viewConsumer(row.original.id)
+                  action.name == 'view' ?
+                    router.push(`/app/api-management/consumers/${row.original.id}`) :
+                    setOpenModal(action.name);
                 }}
               >
                 {action.icon}
-                {action.label}
+                
+                <span className='whitespace-nowrap'>
+                  {action.label}
+                </span>
               </button>
             ))
           }
@@ -164,6 +144,8 @@ const ConsumersTable = ({
                   close={closeModal}
                   loading={loading}
                   next={handleApproveConsumer}
+                  searchQuery={searchQuery}
+                  dataList={dataList}
                 />
                 :
                 <DeclineConsumer 
@@ -192,10 +174,11 @@ const ConsumersTable = ({
       {
         (rawData && rawData?.length >= 1) ?
           <TableElement 
-            headerData={headerData}
+            tableHeaders={tableHeaders}
             rawData={rawData}
             actionColumn={actionColumn}
             filters={filters}
+            totalElementsInPage={totalElementsInPage}
             rows={rows}
             page={page}
             totalElements={totalElements}

@@ -49,7 +49,7 @@ const EnableTwoFactorAuth = ({
 
       <div className='w-full flex justify-between items-center gap-5'>
         <Button 
-          title='Canel'
+          title='Cancel'
           effect={close}
           outlined
         />

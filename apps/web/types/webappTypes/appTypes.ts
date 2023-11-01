@@ -1,13 +1,3 @@
-import { Dispatch, SetStateAction } from "react";
-
-export interface StatusSearchParamsProps {
-  searchParams: { status: 'successful' | 'failed' | 'pending' };
-}
-
-export interface DashboardPageProps {
-  searchParams: { datefilter?: string }
-}
-
 export interface DashboardMetricCardProps {
   title: string;
   amount: number;
@@ -20,13 +10,17 @@ export interface DashboardMetricCardProps {
 
 export interface FilterProps {
   status?: string;
+  path?: string
   search_query?: string;
-  rows: number;
-  page: number;
-  total_elements?: number ;
+  rows?: number;
+  page?: number;
+  total_elements?: number;
+  search_apis?: string;
+  date_sent?: string;
+  date_filter?: string;
 }
 
-export interface ConsumersPageProps {
+export interface SearchParamsProps {
   searchParams: FilterProps;
 }
 
@@ -36,18 +30,23 @@ export interface TableHeaderProps {
 }
 
 export interface TableProps {
-  headerData: TableHeaderProps[],
+  tableHeaders: TableHeaderProps[],
   rawData: any[],
   filters: any[];
   rows: number;
   page: number;
   totalElements?: number;
+  totalElementsInPage?: number;
   totalPages: number;
+  searchQuery?: string;
+  dataList?: any[];
 }
 
 export interface ConfirmActionProps {
   close: () => void;
   type?: string;
   loading?: boolean;
+  dataList?: any[];
+  searchQuery?: string;
   next: () => void;
 };
