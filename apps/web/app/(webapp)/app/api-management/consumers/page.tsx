@@ -1,17 +1,16 @@
 import React from 'react'
-import { SearchParamsProps } from '@/types/webappTypes/appTypes'
+import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { TopPanel } from '@/app/(webapp)/(components)'
 import { CONSUMERS_TABLE_DATA, CONSUMERS_TABLE_HEADERS, CONSUMERS_STATUS_DATA } from '@/data/consumerData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ConsumersTable } from './(components)'
 import { APIS_DATA } from '@/data/apisData'
 
-const ConsumersPage = ({ searchParams }: SearchParamsProps) => {
+const ConsumersPage = ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
-  const totalElements = Number(searchParams?.total_elements) || 0
   const search_apis = searchParams?.search_apis || ''
 
   const filters = [status, search_query]
@@ -24,6 +23,7 @@ const ConsumersPage = ({ searchParams }: SearchParamsProps) => {
   const consumers = CONSUMERS_TABLE_DATA;
   const total_pages = consumers?.length;
   const total_elements_in_page = consumers?.length;
+  const total_elements = consumers?.length;
   const data_list = APIS_DATA;
 
   const status_list = CONSUMERS_STATUS_DATA()?.map(data => {
@@ -75,7 +75,7 @@ const ConsumersPage = ({ searchParams }: SearchParamsProps) => {
               totalElementsInPage={total_elements_in_page}
               page={page}
               searchQuery={search_apis}
-              totalElements={totalElements}
+              totalElements={total_elements}
               totalPages={total_pages}
               dataList={data_list}
             />

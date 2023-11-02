@@ -1,17 +1,17 @@
 import React from 'react'
 import { ConsumerDetails, ConsumerSections } from '../(components)'
-import { SearchParamsProps } from '@/types/webappTypes/appTypes'
+import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { APIS_DATA } from '@/data/apisData';
 import { CONSUMER_API_ACTIVITIES, CONSUMER_API_ACTIVITIES_HEADERS, CONSUMER_API_ACTIVITIES_STATUS, CONSUMER_CONSENTS, CONSUMER_CONSENTS_HEADERS, CONSUMER_CONSENTS_STATUS } from '@/data/consumerData';
 
-const ConsumerPage = ({ searchParams }: SearchParamsProps) => {
+const ConsumerPage = ({ params, searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || '';
   const path = searchParams?.path || '';
+  const consumerId = params?.id;
   const search_query = searchParams?.search_query || ''
   const date_sent = searchParams?.date_sent || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
-  const totalElements = Number(searchParams?.total_elements) || 0
   const search_apis = searchParams?.search_apis || ''
 
   const apis_list = APIS_DATA;
@@ -39,24 +39,25 @@ const ConsumerPage = ({ searchParams }: SearchParamsProps) => {
 
   const total_pages = raw_data?.length;
   const total_elements_in_page = raw_data?.length;
+  const total_elements = raw_data?.length;
 
   return (
     <section className='w-full h-full flex flex-col gap-[20px]'>
       <ConsumerDetails 
         status={status}
-        data_list={apis_list}
-        search_query={search_apis}
+        dataList={apis_list}
+        searchQuery={search_apis}
       />
       <ConsumerSections 
         path={path}
         rawData={raw_data}
         tableHeaders={table_headers}
         rows={rows}
-        status_list={status_list}
+        statusList={status_list}
         page={page}
         totalElementsInPage={total_elements_in_page}
         filters={filters}
-        totalElements={totalElements}
+        totalElements={total_elements}
         totalPages={total_pages}
       />
     </section>

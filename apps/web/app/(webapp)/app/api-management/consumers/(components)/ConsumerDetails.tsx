@@ -3,16 +3,11 @@
 import { ActionsSelector, AppCenterModal, AppRightModal, StatusBox, TwoFactorAuthModal, ViewData } from '@/app/(webapp)/(components)'
 import { CONSUMER_ACTIONS_DATA } from '@/data/consumerData'
 import { updateSearchParams } from '@/utils/searchParams'
-import { useRouter, useParams, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { ActivateDeactivateConsumer, ApproveConsumer, DeclineConsumer } from '.'
-
-interface ConsumerDetailsProps {
-  status: string
-  dataList: any[]
-  searchQuery?: string
-}
+import { ConsumerDetailsProps } from '@/types/webappTypes/appTypes'
 
 const ConsumerDetails = ({
   status,
@@ -21,7 +16,6 @@ const ConsumerDetails = ({
 }: ConsumerDetailsProps) => {
 
   const router = useRouter();
-  const { consumerId } = useParams();
   const [loading, setLoading] = useState(false);
   const [open2FA, setOpen2FA] = useState(false);
   const [openModal, setOpenModal] = useState('');

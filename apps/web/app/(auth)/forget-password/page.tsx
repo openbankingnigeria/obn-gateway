@@ -1,8 +1,8 @@
 import React from 'react'
-import { SearchParamsProps } from '@/types/webappTypes/appTypes'
+import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { CheckEmailPage, ForgetPasswordForm } from './(components)';
 
-const ForgetPasswordPage = ({ searchParams }: SearchParamsProps) => {
+const ForgetPasswordPage = ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
 
   return (

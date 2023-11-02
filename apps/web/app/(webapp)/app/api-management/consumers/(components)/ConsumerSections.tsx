@@ -1,20 +1,8 @@
 import { DatePicker, EmptyState, TableElement, TransparentPanel } from '@/app/(webapp)/(components)'
 import { SearchBar, SelectElement } from '@/components/forms';
 import { CONSUMER_DETAILS_PANEL } from '@/data/consumerData'
+import { ConsumerSectionsProps } from '@/types/webappTypes/appTypes';
 import React from 'react'
-
-interface ConsumerDetailsProps {
-  path: string;
-  rawData: any[];
-  tableHeaders: any[];
-  filters: any[];
-  rows: number;
-  page: number;
-  totalElements?: number;
-  totalElementsInPage?: number;
-  totalPages: number;
-  statusList: any[];
-}
 
 const ConsumerSections = ({
   path,
@@ -27,7 +15,7 @@ const ConsumerSections = ({
   totalElements,
   totalElementsInPage,
   totalPages,
-}: ConsumerDetailsProps) => {
+}: ConsumerSectionsProps) => {
 
   return (
     <section className='w-full h-full flex flex-col gap-[20px]'>

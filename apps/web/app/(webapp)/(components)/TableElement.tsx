@@ -69,18 +69,20 @@ const TableElement = ({
       <div className="relative border overflow-y-hidden overflow-x-auto border-o-border rounded-[8px] w-full min-h-[150px]">
         <table className='min-w-fit w-full'>
           <thead>
-            {getHeaderGroups().map(headerGroup => (
+            {getHeaderGroups().map((headerGroup, index) => (
               <tr 
-                key={headerGroup.id}
+                key={index}
+                // key={headerGroup.id}
                 className='h-[40px] w-full bg-o-bg2 py-[10px]'
               >
-                {headerGroup.headers.map(header => (
+                {headerGroup.headers.map((header, index) => (
                   <th 
-                    key={header.id}
+                    key={index}
+                    // key={header.id}
                     className={`whitespace-nowrap min-w-[220px] w-fit max-w-[500px] text-left 
                     first-of-type:rounded-tl-[8px] last-of-type:rounded-tr-[8px] 
                     text-o-text-medium px-[16px] text-f12 font-[500] 
-                    ${header.id == 'actions' && '!min-w-[65px] !max-w-0 !w-auto'}
+                    ${header.id == 'actions' && '!min-w-[60px] !max-w-0 !w-auto'}
                     ${header.id == 'status' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'velocity' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'amount' && '!min-w-[100px] !max-w-0 !w-auto'}
@@ -98,14 +100,16 @@ const TableElement = ({
             ))}
           </thead>
           <tbody>
-            {getRowModel().rows.map(row => (
+            {getRowModel().rows.map((row, index) => (
               <tr 
-                key={row.id}
+                // key={row.id}
+                key={index}
                 className='bg-white'
               >
-                {row.getVisibleCells().map(cell => (
+                {row.getVisibleCells().map((cell, index) => (
                   <td 
-                    key={cell.id}
+                    // key={cell.id}
+                    key={index}
                     className={`bg-white border-b border-o-border px-[12px] py-[18px] 
                     text-o-text-medium3 text-f14 ${tdStyle}`}
                   >

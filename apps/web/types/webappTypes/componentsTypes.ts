@@ -108,3 +108,14 @@ export interface TablePagination {
   totalElementsInPage?: number;
   totalPages: number
 }
+
+export interface ExportButtonProps {
+  name?: string;
+  module: string;
+}
+
+export interface CodeSnippetProps {
+  rawCode: string;
+  codeElement?: string | TrustedHTML
+  containerStyle?: string;
+}

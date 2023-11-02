@@ -1,11 +1,11 @@
 import React from 'react'
 import { greetByTime } from '@/utils/greetByTime'
-import { SearchParamsProps } from '@/types/webappTypes/appTypes'
+import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { DashboardMetricCard } from './(components)'
 import { API_CALLS_DATA, API_CONSUMERS_TABLE_DATA } from '@/data/dashboardData'
 import { DatePicker } from '@/app/(webapp)/(components)'
 
-const DashboardPage = ({ searchParams }: SearchParamsProps) => {
+const DashboardPage = ({ searchParams }: UrlParamsProps) => {
   const dateFilter = searchParams?.date_filter;
 
   return (

@@ -1,8 +1,8 @@
 import React from 'react'
 import { PersonalDetails, SecurityDetails } from './(components)'
-import { SearchParamsProps } from '@/types/webappTypes/appTypes'
+import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 
-const ProfilePage = ({ searchParams }: SearchParamsProps) => {
+const ProfilePage = ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
 
   return (

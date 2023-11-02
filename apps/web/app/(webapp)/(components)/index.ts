@@ -18,6 +18,8 @@ import SelectedItem from "./SelectedItem";
 import ViewData from "./ViewData";
 import TransparentPanel from "./TransparentPanel";
 import ActionsSelector from "./ActionsSelector";
+import ExportButton from "./ExportButton";
+import CodeSnippet from "./CodeSnippet"; 
 
 export {
   DatePicker,
@@ -39,5 +41,7 @@ export {
   SelectedItem,
   ViewData,
   TransparentPanel,
-  ActionsSelector
+  ActionsSelector,
+  ExportButton,
+  CodeSnippet
 }

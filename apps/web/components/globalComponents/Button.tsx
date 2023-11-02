@@ -34,7 +34,7 @@ const Button = ({
     >
       {
         (pending || loading) ?
-          <Loader lightGreen /> :
+          <Loader lightGreen={!outlined} /> :
           <>
             {leftIcon}
 

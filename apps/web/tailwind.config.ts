@@ -68,6 +68,7 @@ const config: Config = {
       },
       fontFamily: {
         inter: ['Inter', 'sans-serif'],
+        robotoMono: ['Roboto Mono', 'monospace']
       },
       fontSize: {
         f48: ['48px', '56px'],

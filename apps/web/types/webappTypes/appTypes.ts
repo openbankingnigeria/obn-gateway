@@ -8,7 +8,7 @@ export interface DashboardMetricCardProps {
   data: number[];
 }
 
-export interface FilterProps {
+export interface searchParamsProps {
   status?: string;
   path?: string
   search_query?: string;
@@ -18,10 +18,16 @@ export interface FilterProps {
   search_apis?: string;
   date_sent?: string;
   date_filter?: string;
+  id?: string;
 }
 
-export interface SearchParamsProps {
-  searchParams: FilterProps;
+export interface ParamsProps {
+  id?: string;
+}
+
+export interface UrlParamsProps {
+  searchParams?: searchParamsProps;
+  params?: ParamsProps
 }
 
 export interface TableHeaderProps {
@@ -50,3 +56,27 @@ export interface ConfirmActionProps {
   searchQuery?: string;
   next: () => void;
 };
+
+export interface ConsumerDetailsProps {
+  status: string
+  dataList: any[]
+  searchQuery?: string
+}
+
+export interface ConsumerSectionsProps {
+  path: string;
+  rawData: any[];
+  tableHeaders: any[];
+  filters: any[];
+  rows: number;
+  page: number;
+  totalElements?: number;
+  totalElementsInPage?: number;
+  totalPages: number;
+  statusList: any[];
+}
+
+export interface ActivitySectionsProps {
+  path: string;
+  rawData: any;
+}

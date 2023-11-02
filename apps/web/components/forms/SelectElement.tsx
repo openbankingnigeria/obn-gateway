@@ -221,7 +221,7 @@ const SelectElement = ({
                   </li>
                 )) 
                 : 
-                <div className="flex justify-center text-b5 text-o-text-dark p-3 items-center h-full w-full">
+                <div className="flex whitespace-nowrap justify-center text-b5 text-o-text-dark p-3 items-center h-full w-full">
                   No { name?.replace(/_/g, ' ') || 'data' } at the moment
                 </div>
           }

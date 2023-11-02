@@ -5,7 +5,7 @@ interface StatusBoxProps {
 }
 
 const StatusBox = ({ status }: StatusBoxProps) => {
-  const sanitizedStatus = status.toLowerCase();
+  const sanitizedStatus = status?.toLowerCase();
 
   return (
     sanitizedStatus == 'active' ? (

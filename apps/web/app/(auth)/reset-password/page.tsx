@@ -1,8 +1,8 @@
 import React from 'react'
-import { SearchParamsProps } from '@/types/webappTypes/appTypes'
+import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { ResetPasswordSuccess, ResetPasswordForm } from './(components)'
 
-const ResetPasswordPage = ({ searchParams }: SearchParamsProps) => {
+const ResetPasswordPage = ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
 
   return (
