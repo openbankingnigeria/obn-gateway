@@ -1,4 +1,4 @@
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
@@ -9,6 +9,9 @@ import { validationSchema } from './common/config/validationSchema';
 import { globalConfig } from './common/config/config';
 import { GlobalExceptionFilter } from './common/utils/exceptions/exception.filter';
 import { getDatabaseConfig } from './common/database/database.config';
+import { AuthGuard } from './common/utils/authentication/auth.guard';
+import { Auth } from './common/utils/authentication/auth.helper';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -38,9 +41,15 @@ import { getDatabaseConfig } from './common/database/database.config';
   ],
   controllers: [AppController],
   providers: [
+    JwtService,
+    Auth,
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
     },
     AppService,
   ],
