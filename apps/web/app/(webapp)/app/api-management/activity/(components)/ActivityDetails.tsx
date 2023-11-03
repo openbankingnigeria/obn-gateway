@@ -3,6 +3,7 @@
 import { ExportButton, StatusBox, ViewData } from '@/app/(webapp)/(components)';
 import { ACTIVITY_DETAILS } from '@/data/activityData';
 import { updateSearchParams } from '@/utils/searchParams';
+import { timestampFormatter } from '@/utils/timestampFormatter';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
@@ -71,7 +72,7 @@ const ActivityDetails = () => {
 
             <ViewData 
               label='Timestamp'
-              value={activity_details?.timestamp}
+              value={timestampFormatter(activity_details?.timestamp)}
             />
 
             <ViewData 

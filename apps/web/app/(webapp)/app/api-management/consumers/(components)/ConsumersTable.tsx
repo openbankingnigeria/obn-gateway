@@ -188,7 +188,7 @@ const ConsumersTable = ({
           <EmptyState 
             title='Nothing to show'
             type='DEFAULT'
-            parentStyle='h-[calc(100vh-388px)]'
+            parentStyle='h-[calc(100vh-288px)]'
             body='There’s no information to show for this query. Please try another query or clear your filters.'
           />
       }

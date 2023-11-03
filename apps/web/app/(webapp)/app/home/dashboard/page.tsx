@@ -16,6 +16,8 @@ const DashboardPage = ({ searchParams }: UrlParamsProps) => {
 
       <DatePicker 
         showShortcuts={true}
+        name='date_filter'
+        dateFilter={dateFilter}
       />
 
       <section className='w-full flex-col flex gap-[12px]'>

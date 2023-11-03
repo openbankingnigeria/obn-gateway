@@ -2,7 +2,7 @@
 
 import { updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import moment from 'moment';
 import Datepicker, { DateType, DateValueType } from 'react-tailwindcss-datepicker';
 import { DatePickerProps } from '@/types/webappTypes/componentsTypes';
@@ -13,19 +13,22 @@ const DatePicker = ({
   showShortcuts,
   name,
   innerLabel,
+  dateFilter,
   popoverDirection,
   asSingle
 }: DatePickerProps) => {
+
+  const date_filter = dateFilter ? JSON.parse(dateFilter) : null;
 
   const router = useRouter();
   const [start_date, setStartDate] = useState<DateType | undefined>('');
   const [end_date, setEndDate] = useState<DateType | undefined>('');
   const [isOpen, setOpen] = useState(false);
 
-  let value = {
-    startDate: start_date,
-    endDate: end_date
-  };
+  useEffect(() => {
+    setStartDate(asSingle ? date_filter : date_filter?.start_date);
+    setEndDate(asSingle ? '' : date_filter?.end_date);
+  }, [date_filter, asSingle]);
 
   const handleUpdateParams = (value: DateValueType) => {
     setOpen(prev => !prev)
@@ -33,15 +36,20 @@ const DatePicker = ({
       JSON.stringify(value?.startDate)
       :
       JSON.stringify({
-        startdate: value?.startDate,
-        enddate: value?.endDate
+        start_date: value?.startDate,
+        end_date: value?.endDate
       });
 
     setStartDate(value?.startDate);
     setEndDate(asSingle ? '' : value?.endDate);
 
-    const newPathName = updateSearchParams((name || 'datefilter'), stringifiedValue);
+    const newPathName = updateSearchParams((name || 'date_filter'), stringifiedValue);
     router.push(newPathName);
+  };
+
+  let value = {
+    startDate: start_date,
+    endDate: end_date
   };
 
   return (

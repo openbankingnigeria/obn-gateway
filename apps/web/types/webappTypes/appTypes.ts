@@ -18,7 +18,7 @@ export interface searchParamsProps {
   search_apis?: string;
   date_sent?: string;
   date_filter?: string;
-  id?: string;
+  type?: string;
 }
 
 export interface ParamsProps {

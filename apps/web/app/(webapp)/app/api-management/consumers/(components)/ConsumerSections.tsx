@@ -22,6 +22,7 @@ const ConsumerSections = ({
       <TransparentPanel
         panel={CONSUMER_DETAILS_PANEL}
         currentValue={path}
+        removeSearchParam='date_sent'
       />
 
       <div className='w-full flex flex-col h-full'>
@@ -61,6 +62,7 @@ const ConsumerSections = ({
                     path == 'consents' &&
                     <DatePicker
                       showShortcuts={true}
+                      dateFilter={filters[2]}
                       name='date_sent'
                       innerLabel='Date Sent:'
                       asSingle

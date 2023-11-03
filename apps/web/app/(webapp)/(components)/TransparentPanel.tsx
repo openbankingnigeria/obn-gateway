@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { PanelContainerProps } from '@/types/webappTypes/componentsTypes'
 import { deleteSearchParams, updateSearchParams } from '@/utils/searchParams';
@@ -9,9 +9,14 @@ import { useRouter } from 'next/navigation';
 const TransparentPanel = ({
   panel,
   currentValue,
-  containerStyle
+  containerStyle,
+  removeSearchParam
 }: PanelContainerProps) => {
   const router = useRouter();
+
+  useEffect(() => {
+    removeSearchParam && router.push(deleteSearchParams(removeSearchParam))
+  }, [currentValue, removeSearchParam, router]);
   
   const handleClick = (value: string) => {
     if (value) {

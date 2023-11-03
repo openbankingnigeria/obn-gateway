@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-table'
 import { TabelElmentProps } from '@/types/webappTypes/componentsTypes'
 import { StatusBox, TablePagination } from '.'
+import { timestampFormatter } from '@/utils/timestampFormatter'
 
 const TableElement = ({
   tableHeaders,
@@ -113,7 +114,11 @@ const TableElement = ({
                     className={`bg-white border-b border-o-border px-[12px] py-[18px] 
                     text-o-text-medium3 text-f14 ${tdStyle}`}
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {
+                      cell.id?.includes('timestamp') ? 
+                        timestampFormatter(cell.getValue()) :
+                        flexRender(cell.column.columnDef.cell, cell.getContext())
+                    }
                   </td>
                 ))}
               </tr>

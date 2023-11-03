@@ -7,6 +7,7 @@ export interface DatePickerProps {
   fieldStyle?: string;
   showShortcuts?: boolean;
   asSingle?: boolean;
+  dateFilter?: string;
   name?: string;
   innerLabel?: string;
   popoverDirection?: '' | 'up' | 'down';
@@ -67,6 +68,7 @@ export interface PanelContainerProps {
   panel: PanelProps[]
   currentValue: string
   containerStyle?: string
+  removeSearchParam?: string
 }
 
 export interface TabelElmentProps extends TableProps {
