@@ -1,4 +1,4 @@
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { ChangeEvent, Dispatch, ReactNode, SetStateAction } from "react";
 
 export interface FieldsProps {
   placeholder?: string;
@@ -15,8 +15,9 @@ export interface FieldsProps {
   fieldStyle?: string;
   invalid?: boolean;
   hint?: string;
-  value?: string
+  value?: string;
   changeValue?: Dispatch<SetStateAction<string>> | ((value: string) => void)
+  changeEvent?: ((value: ChangeEvent<HTMLInputElement>) => void)
 }
 
 export interface InputElementProps extends FieldsProps {
@@ -41,6 +42,7 @@ export interface SelectElementProps extends FieldsProps {
   innerLabel?: string;
   removeSearch?: boolean;
   openUp?: boolean;
+  clickerStyle?: string;
   loading?: boolean;
   optionStyle?: string;
   searchPlaceholder?: string;

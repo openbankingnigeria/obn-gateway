@@ -13,11 +13,14 @@ const ConsumersPage = ({ searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const search_apis = searchParams?.search_apis || ''
 
-  const filters = [status, search_query]
-  // ARRANGED HAS SEEN ON DESIGN
-  const panel = CONSUMERS_STATUS_DATA(
-    1290, 28, 920, 109, 112
-  );
+  const filters = [status, search_query];
+  const panel = CONSUMERS_STATUS_DATA({
+    all: 1290, 
+    pending: 28, 
+    active: 920, 
+    inactive: 109, 
+    rejected: 112
+  });
 
   const headers = CONSUMERS_TABLE_HEADERS;
   const consumers = CONSUMERS_TABLE_DATA;
@@ -26,7 +29,7 @@ const ConsumersPage = ({ searchParams }: UrlParamsProps) => {
   const total_elements = consumers?.length;
   const data_list = APIS_DATA;
 
-  const status_list = CONSUMERS_STATUS_DATA()?.map(data => {
+  const status_list = CONSUMERS_STATUS_DATA({})?.map(data => {
     return({
       label: data?.name,
       value: data?.value
@@ -37,6 +40,7 @@ const ConsumersPage = ({ searchParams }: UrlParamsProps) => {
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
       <TopPanel 
+        name='status'
         panel={panel}
         currentValue={status}
       />

@@ -71,6 +71,10 @@ export interface PanelContainerProps {
   removeSearchParam?: string
 }
 
+export interface TopPanelContainerProps extends PanelContainerProps{
+  name: string;
+}
+
 export interface TabelElmentProps extends TableProps {
   actionColumn?: ColumnDef<any, any>;
   thStyle?: string;
@@ -120,4 +124,6 @@ export interface CodeSnippetProps {
   rawCode: string;
   codeElement?: string | TrustedHTML
   containerStyle?: string;
+  noCopy?: boolean;
+  codeContainerStyle?: string;
 }

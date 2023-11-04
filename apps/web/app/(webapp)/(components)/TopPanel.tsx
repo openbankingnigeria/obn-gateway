@@ -2,23 +2,24 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { PanelContainerProps } from '@/types/webappTypes/componentsTypes'
+import { TopPanelContainerProps } from '@/types/webappTypes/componentsTypes'
 import { deleteSearchParams, updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
 
 const TopPanel = ({
+  name,
   panel,
   currentValue,
   containerStyle
-}: PanelContainerProps) => {
+}: TopPanelContainerProps) => {
   const router = useRouter();
   
   const handleClick = (value: string) => {
     if (value) {
-      const url = updateSearchParams('status', value);
+      const url = updateSearchParams(name, value);
       router.push(url)
     } else {
-      const url = deleteSearchParams('status');
+      const url = deleteSearchParams(name);
       router.push(url)
     }
   };

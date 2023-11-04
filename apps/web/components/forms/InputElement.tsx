@@ -19,6 +19,7 @@ const InputElement = ({
   rightIcon,
   showGuide,
   disabled,
+  changeEvent,
   containerStyle,
   labelStyle,
   fieldStyle,
@@ -49,6 +50,7 @@ const InputElement = ({
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     changeValue && changeValue(e.target.value);
+    changeEvent && changeEvent(e);
   }
 
   return (

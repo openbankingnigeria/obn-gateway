@@ -23,6 +23,7 @@ const SelectElement = ({
   disabledValue,
   openUp,
   loading,
+  clickerStyle,
   forFilter,
   containerStyle,
   labelStyle,
@@ -62,7 +63,7 @@ const SelectElement = ({
   return (
     <OutsideClicker 
       func={() => setOpen(false)}
-      clickerStyle='!w-fit'
+      clickerStyle={`!w-fit ${clickerStyle}`}
     >
       <section className={`relative w-full flex flex-col ${containerStyle}`}>
         {

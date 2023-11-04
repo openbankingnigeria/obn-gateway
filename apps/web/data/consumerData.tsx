@@ -1,10 +1,12 @@
-export const CONSUMERS_STATUS_DATA = (
-  all?: number, 
-  pending?: number, 
-  active?: number, 
-  inactive?: number, 
-  rejected?: number,
-) => {
+import { ConsumerStatusDataProps } from "@/types/dataTypes";
+
+export const CONSUMERS_STATUS_DATA = ({
+  all, 
+  pending, 
+  active, 
+  inactive, 
+  rejected,
+}: ConsumerStatusDataProps) => {
   return ([
     {
       id: 1,
