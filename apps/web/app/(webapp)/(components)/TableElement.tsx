@@ -8,7 +8,7 @@ import {
   useReactTable, 
 } from '@tanstack/react-table'
 import { TabelElmentProps } from '@/types/webappTypes/componentsTypes'
-import { StatusBox, TablePagination } from '.'
+import { RequestMethodText, StatusBox, TablePagination } from '.'
 import { timestampFormatter } from '@/utils/timestampFormatter'
 
 const TableElement = ({
@@ -117,7 +117,11 @@ const TableElement = ({
                     {
                       cell.id?.includes('timestamp') ? 
                         timestampFormatter(cell.getValue()) :
-                        flexRender(cell.column.columnDef.cell, cell.getContext())
+                        cell.id?.includes('request_method') ?
+                          <RequestMethodText 
+                            method={cell.getValue()} 
+                          /> :
+                          flexRender(cell.column.columnDef.cell, cell.getContext())
                     }
                   </td>
                 ))}

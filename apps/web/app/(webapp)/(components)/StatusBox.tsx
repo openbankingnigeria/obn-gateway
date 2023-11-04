@@ -18,6 +18,11 @@ const StatusBox = ({ status }: StatusBoxProps) => {
         Success
       </span>
     ) 
+    : sanitizedStatus == 'approved' ? (
+      <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-white bg-o-status-green'>
+        Approved
+      </span>
+    ) 
     : sanitizedStatus === 'read' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-white bg-o-status-green'>
         Read
@@ -48,9 +53,19 @@ const StatusBox = ({ status }: StatusBoxProps) => {
         Payments
       </span>
     )
+    : sanitizedStatus === 'revoked' ? (
+      <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-white bg-o-status-orange'>
+        Revoked
+      </span>
+    )
     : sanitizedStatus === 'rejected' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-white bg-o-status-red'>
         Rejected
+      </span>
+    )
+    : sanitizedStatus === 'declined' ? (
+      <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-white bg-o-status-red'>
+        Declined
       </span>
     )
     : sanitizedStatus === 'failed' ? (

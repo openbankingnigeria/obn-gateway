@@ -1,12 +1,12 @@
 'use client'
 
-import { EmptyState, TableElement } from '@/app/(webapp)/(components)'
+import { AppCenterModal, AppRightModal, EmptyState, TableElement, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
 import { TableProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import Link from 'next/link'
 import React from 'react'
 
-const ActivityTable = ({
+const ConsentsTable = ({
   tableHeaders,
   rawData,
   filters,
@@ -14,7 +14,7 @@ const ActivityTable = ({
   page,
   totalElements,
   totalElementsInPage,
-  totalPages
+  totalPages,
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
 
@@ -22,7 +22,7 @@ const ActivityTable = ({
     header: () => '',
     cell: ({ row }) => (
       <Link 
-        href={`/app/api-management/activity/${row.original.id}`}
+        href={`/app/reporting/consents/${row.original.id}`}
         id={row.original.id} 
         className='text-f14 text-o-blue cursor-pointer capitalize'
       >
@@ -30,7 +30,7 @@ const ActivityTable = ({
       </Link>
     )
   })
-  
+
   return (
     <>
       {
@@ -51,11 +51,11 @@ const ActivityTable = ({
             title='Nothing to show'
             type='DEFAULT'
             parentStyle='h-[calc(100vh-288px)]'
-            body='There’s no information to show for this query. Please try another query or clear your filters.'
+            body='There’s no information to show yet. Consents made will appear here.'
           />
       }
     </>
   )
 }
 
-export default ActivityTable
+export default ConsentsTable

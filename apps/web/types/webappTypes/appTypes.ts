@@ -63,8 +63,7 @@ export interface ConsumerDetailsProps {
   searchQuery?: string
 }
 
-export interface ConsumerSectionsProps {
-  path: string;
+export interface SectionsProps {
   rawData: any[];
   tableHeaders: any[];
   filters: any[];
@@ -74,6 +73,10 @@ export interface ConsumerSectionsProps {
   totalElementsInPage?: number;
   totalPages: number;
   statusList: any[];
+}
+
+export interface ConsumerSectionsProps extends SectionsProps {
+  path: string;
 }
 
 export interface ActivitySectionsProps {

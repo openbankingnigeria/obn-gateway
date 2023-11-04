@@ -98,7 +98,8 @@ export const ACTIVITY_DETAILS = {
   status: 'success',
   endpoint_url: '{{base_url}}/accounts/:account_id/transactions',
   timestamp: '2023-09-23T12:30:54',
-  status_code: '200 OK'
+  status_code: '200 OK',
+  response_time: '1.5'
 };
 
 export const ACTIVITY_TABLE_DATA = [

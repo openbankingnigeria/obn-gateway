@@ -127,3 +127,7 @@ export interface CodeSnippetProps {
   noCopy?: boolean;
   codeContainerStyle?: string;
 }
+
+export interface RequestMethodTextProps {
+  method: any;
+}

@@ -127,16 +127,16 @@ export const CONSUMER_DETAILS_PANEL = [
 
 export const CONSUMERS_TABLE_HEADERS = [
   {
+    header: 'Company Name',
+    accessor: 'company_name'
+  },
+  {
     header: 'Name',
     accessor: 'name'
   },
   {
     header: 'Email Address',
     accessor: 'email_address'
-  },
-  {
-    header: 'Company Name',
-    accessor: 'company_name'
   },
   {
     header: 'Status',

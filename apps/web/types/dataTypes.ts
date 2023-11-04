@@ -6,6 +6,14 @@ export interface ConsumerStatusDataProps {
   rejected?: number;
 };
 
+export interface ConsentsStatusDataProps {
+  all?: number; 
+  approved?: number; 
+  pending?: number;  
+  revoked?: number;
+  declined?: number;
+}
+
 export interface GeneralSettingsDataProps {
   inactivity_timeout: string;
   request_timeout: string;

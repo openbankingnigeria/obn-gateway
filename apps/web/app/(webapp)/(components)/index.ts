@@ -20,6 +20,7 @@ import TransparentPanel from "./TransparentPanel";
 import ActionsSelector from "./ActionsSelector";
 import ExportButton from "./ExportButton";
 import CodeSnippet from "./CodeSnippet"; 
+import RequestMethodText from "./RequestMethodText";
 
 export {
   DatePicker,
@@ -43,5 +44,6 @@ export {
   TransparentPanel,
   ActionsSelector,
   ExportButton,
-  CodeSnippet
+  CodeSnippet,
+  RequestMethodText
 }
