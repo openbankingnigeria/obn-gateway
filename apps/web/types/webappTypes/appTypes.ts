@@ -19,6 +19,8 @@ export interface searchParamsProps {
   date_sent?: string;
   date_filter?: string;
   type?: string;
+  request_method?: string;
+  tier?: string;
 }
 
 export interface ParamsProps {
@@ -46,6 +48,7 @@ export interface TableProps {
   totalPages: number;
   searchQuery?: string;
   dataList?: any[];
+  removePagination?: boolean;
 }
 
 export interface ConfirmActionProps {
@@ -69,10 +72,13 @@ export interface SectionsProps {
   filters: any[];
   rows: number;
   page: number;
+  details?: any;
   totalElements?: number;
   totalElementsInPage?: number;
   totalPages: number;
   statusList: any[];
+  requestMethodList?: any[];
+  tierList?: any[];
 }
 
 export interface ConsumerSectionsProps extends SectionsProps {
@@ -83,3 +89,9 @@ export interface ActivitySectionsProps {
   path: string;
   rawData: any;
 }
+
+export interface ApiConfigurationProps {
+  close: () => void;
+  loading?: boolean;
+  next: () => void;
+};

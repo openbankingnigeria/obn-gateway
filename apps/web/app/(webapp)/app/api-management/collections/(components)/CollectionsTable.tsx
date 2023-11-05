@@ -6,7 +6,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import Link from 'next/link'
 import React from 'react'
 
-const ActivityTable = ({
+const CollectionsTable = ({
   tableHeaders,
   rawData,
   filters,
@@ -14,7 +14,7 @@ const ActivityTable = ({
   page,
   totalElements,
   totalElementsInPage,
-  totalPages
+  totalPages,
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
 
@@ -22,7 +22,7 @@ const ActivityTable = ({
     header: () => '',
     cell: ({ row }) => (
       <Link 
-        href={`/app/api-management/activity/${row.original.id}`}
+        href={`/app/api-management/collections/${row.original.collection_name}`}
         id={row.original.id} 
         className='text-f14 !text-[#5277C7] cursor-pointer capitalize'
       >
@@ -30,15 +30,16 @@ const ActivityTable = ({
       </Link>
     )
   })
-  
+
   return (
-    <>
+    <div className='w-full h-full'>
       {
         (rawData && rawData?.length >= 1) ?
           <TableElement 
             tableHeaders={tableHeaders}
             rawData={rawData}
             actionColumn={actionColumn}
+            removePagination
             filters={filters}
             totalElementsInPage={totalElementsInPage}
             rows={rows}
@@ -50,12 +51,12 @@ const ActivityTable = ({
           <EmptyState 
             title='Nothing to show'
             type='DEFAULT'
-            parentStyle='h-[calc(100vh-288px)]'
+            parentStyle='h-[calc(100vh-388px)]'
             body='There’s no information to show for this query. Please try another query or clear your filters.'
           />
       }
-    </>
+    </div>
   )
 }
 
-export default ActivityTable
+export default CollectionsTable

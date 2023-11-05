@@ -21,7 +21,12 @@ const RequestMethodText = ({
             {sanitizedMethod}
           </div>
           :
-          null
+          sanitizedMethod == 'DELETE' ?
+            <div className='text-[#FF0000]'>
+              {sanitizedMethod}
+            </div>
+            :
+            null
   )
 }
 

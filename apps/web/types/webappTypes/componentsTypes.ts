@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Dispatch, MouseEventHandler, ReactNode } from "react";
-import { TableHeaderProps, TableProps } from "./appTypes";
+import { MouseEventHandler, ReactNode } from "react";
+import { TableProps } from "./appTypes";
 
 export interface DatePickerProps {
   containerStyle?: string;
@@ -130,4 +130,17 @@ export interface CodeSnippetProps {
 
 export interface RequestMethodTextProps {
   method: any;
+}
+
+export interface ConfigurationBoxProps {
+  value: any;
+  noOfApis: any;
+}
+
+export interface BooleanBoxProps {
+  value: boolean;
+}
+
+export interface TierBoxProps {
+  value: any;
 }

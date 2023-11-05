@@ -1,6 +1,6 @@
 'use client'
 
-import { AppCenterModal, AppRightModal, EmptyState, TableElement, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
+import { EmptyState, TableElement } from '@/app/(webapp)/(components)'
 import { TableProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import Link from 'next/link'
@@ -24,7 +24,7 @@ const ConsentsTable = ({
       <Link 
         href={`/app/reporting/consents/${row.original.id}`}
         id={row.original.id} 
-        className='text-f14 text-o-blue cursor-pointer capitalize'
+        className='text-f14 !text-[#5277C7] cursor-pointer capitalize'
       >
         View
       </Link>

@@ -8,8 +8,9 @@ import {
   useReactTable, 
 } from '@tanstack/react-table'
 import { TabelElmentProps } from '@/types/webappTypes/componentsTypes'
-import { RequestMethodText, StatusBox, TablePagination } from '.'
+import { ConfigurationBox, RequestMethodText, StatusBox, TablePagination, TierBox } from '.'
 import { timestampFormatter } from '@/utils/timestampFormatter'
+import BooleanBox from './BooleanBox'
 
 const TableElement = ({
   tableHeaders,
@@ -20,6 +21,7 @@ const TableElement = ({
   actionColumn,
   totalElements,
   totalElementsInPage,
+  removePagination,
   totalPages,
   thStyle,
   tdStyle
@@ -87,6 +89,12 @@ const TableElement = ({
                     ${header.id == 'status' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'velocity' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'amount' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'no_of_apis' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'configuration' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'request_method' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'configured' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'tier' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'description' && '!min-w-[506px] !max-w-0 !w-auto'}
                     ${thStyle}`}
                   >
                     {header.isPlaceholder
@@ -111,7 +119,7 @@ const TableElement = ({
                   <td 
                     // key={cell.id}
                     key={index}
-                    className={`bg-white border-b border-o-border px-[12px] py-[18px] 
+                    className={`bg-white border-b border-o-border vertical-align-start px-[12px] py-[18px] 
                     text-o-text-medium3 text-f14 ${tdStyle}`}
                   >
                     {
@@ -121,7 +129,22 @@ const TableElement = ({
                           <RequestMethodText 
                             method={cell.getValue()} 
                           /> :
-                          flexRender(cell.column.columnDef.cell, cell.getContext())
+                          cell.id?.includes('configured') ?
+                            <BooleanBox 
+                              value={Boolean(cell.getValue())} 
+                            />
+                            :
+                            cell.id?.includes('tier') ?
+                              <TierBox 
+                                value={cell.getValue()} 
+                              />
+                              :
+                              cell.id?.includes('configuration') ? 
+                                <ConfigurationBox 
+                                  value={cell.getValue()}
+                                  noOfApis={row.original?.no_of_apis}
+                                /> :
+                                flexRender(cell.column.columnDef.cell, cell.getContext())
                     }
                   </td>
                 ))}
@@ -131,13 +154,16 @@ const TableElement = ({
         </table>
       </div>
 
-      <TablePagination 
-        rows={rows}
-        page={page}
-        totalElements={totalElements}
-        totalElementsInPage={totalElementsInPage}
-        totalPages={totalPages}
-      />
+      {
+        !removePagination &&
+        <TablePagination 
+          rows={rows}
+          page={page}
+          totalElements={totalElements}
+          totalElementsInPage={totalElementsInPage}
+          totalPages={totalPages}
+        />
+      }
     </div>
   )
 }

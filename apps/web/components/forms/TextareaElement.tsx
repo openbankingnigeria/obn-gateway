@@ -32,10 +32,6 @@ const TextareaElement = ({
         label &&
         <label className={`text-o-text-medium2 mb-[4px] text-f14 font-[500] ${labelStyle}`}>
           {label}
-          {
-            !required &&
-            <span>{' (optional)'}</span>
-          }
         </label>
       }
 
