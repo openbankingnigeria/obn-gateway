@@ -65,9 +65,11 @@ const config: Config = {
         'o-status-gray': '#6E757C',
         'o-status-red': '#CB444A',
         'o-status-blue': '#3579F6',
+        'o-status-orange': '#CF703B',
       },
       fontFamily: {
         inter: ['Inter', 'sans-serif'],
+        robotoMono: ['Roboto Mono', 'monospace']
       },
       fontSize: {
         f48: ['48px', '56px'],

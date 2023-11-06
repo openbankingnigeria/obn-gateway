@@ -12,8 +12,10 @@ const LinkButton = ({
   path,
   containerStyle,
   small,
-  outlined
+  outlined,
+  titleStyle
 }: LinkButtonProps) => {
+  
   return (
     <Link 
       type={type || 'button'}
@@ -25,7 +27,7 @@ const LinkButton = ({
     >
       {leftIcon}
 
-      <div className='text-f14 font-[600]'>
+      <div className={`whitespace-nowrap  text-f14 font-[600] ${titleStyle}`}>
         {title}
       </div>
 

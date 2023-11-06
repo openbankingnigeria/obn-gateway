@@ -1,5 +1,5 @@
-export const getElementAndBelow = (arr: string[], element: string | never) => {
-  const index: any = arr.indexOf(element);
+export const getElementAndBelow = (arr: string[], element: string) => {
+  const index: number = arr.indexOf(element);
 
   if (index !== -1) {
     const selectedElement = arr[index];

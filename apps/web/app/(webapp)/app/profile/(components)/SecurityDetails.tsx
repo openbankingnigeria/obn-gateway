@@ -56,6 +56,7 @@ const SecurityDetails = ({
         <AppRightModal
           title={'Change Password'}
           effect={handleCloseModal}
+          childrenStyle='!px-0'
         >
           <ChangePasswordForm 
             close={handleCloseModal}

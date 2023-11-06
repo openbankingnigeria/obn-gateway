@@ -2,7 +2,7 @@
 
 import { updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import moment from 'moment';
 import Datepicker, { DateType, DateValueType } from 'react-tailwindcss-datepicker';
 import { DatePickerProps } from '@/types/webappTypes/componentsTypes';
@@ -10,36 +10,59 @@ import { DatePickerProps } from '@/types/webappTypes/componentsTypes';
 const DatePicker = ({
   containerStyle,
   fieldStyle,
-  showShortcuts
+  showShortcuts,
+  name,
+  innerLabel,
+  dateFilter,
+  popoverDirection,
+  asSingle
 }: DatePickerProps) => {
+
+  const date_filter = dateFilter ? JSON.parse(dateFilter) : null;
 
   const router = useRouter();
   const [start_date, setStartDate] = useState<DateType | undefined>('');
   const [end_date, setEndDate] = useState<DateType | undefined>('');
   const [isOpen, setOpen] = useState(false);
 
+  useEffect(() => {
+    setStartDate(asSingle ? date_filter : date_filter?.start_date);
+    setEndDate(asSingle ? '' : date_filter?.end_date);
+  }, [date_filter, asSingle]);
+
+  const handleUpdateParams = (value: DateValueType) => {
+    setOpen(prev => !prev)
+    let stringifiedValue = asSingle ? 
+      JSON.stringify(value?.startDate)
+      :
+      JSON.stringify({
+        start_date: value?.startDate,
+        end_date: value?.endDate
+      });
+
+    setStartDate(value?.startDate);
+    setEndDate(asSingle ? '' : value?.endDate);
+
+    const newPathName = updateSearchParams((name || 'date_filter'), stringifiedValue);
+    router.push(newPathName);
+  };
+
   let value = {
     startDate: start_date,
     endDate: end_date
   };
 
-  const handleUpdateParams = (value: DateValueType) => {
-    setOpen(prev => !prev)
-    let stringifiedValue = JSON.stringify({
-      startdate: value?.startDate,
-      enddate: value?.endDate
-    });
-    setStartDate(value?.startDate);
-    setEndDate(value?.endDate);
-
-    const newPathName = updateSearchParams('datefilter', stringifiedValue);
-    router.push(newPathName);
-  };
-
   return (
     <section className={`flex flex-col relative w-fit gap-2 ${containerStyle}`}>
       <div className={`flex gap-[8px] items-center w-fit pr-[12px] pl-[8px] py-[6px] rounded-[6px] border border-o-border bg-white ${fieldStyle}`}>
-        <div className='text-o-text-dark2 text-f14 w-fit'>
+        <div className='text-o-text-dark2 flex items-center text-f14 w-fit'>
+          {
+            innerLabel &&
+            <div className='text-[#B3B7C2] text-f14'>
+              {innerLabel}&#160;
+            </div>
+          }
+
           {
             (start_date && end_date) ?
               `${moment(start_date).format('ll')} - ${moment(end_date).format('ll')}` :
@@ -47,7 +70,9 @@ const DatePicker = ({
                 moment(start_date).format('ll') :
                 end_date ? 
                   moment(end_date).format('ll') :
-                  'Date filter'
+                  asSingle ? 
+                    'All' :
+                    'Date filter'
           }
         </div>
 
@@ -74,10 +99,11 @@ const DatePicker = ({
           primaryColor={'green'} 
           useRange={false} 
           separator={'to'}
+          asSingle={asSingle} 
           placeholder={'YYYY-MM-DD to YYYY-MM-DD'}
           //@ts-ignore
           value={value}
-          popoverDirection={ 'down' }
+          popoverDirection={popoverDirection || 'down'}
           showShortcuts={showShortcuts || false}
           onChange={handleUpdateParams}
         />

@@ -1,8 +1,8 @@
 import React from 'react'
-import { StatusSearchParamsProps } from '@/types/webappTypes/appTypes'
+import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { AccountSetUpForm, AccountSetupSuccess } from './(components)'
 
-const AccountSetUpPage = ({ searchParams }: StatusSearchParamsProps) => {
+const AccountSetUpPage = ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
 
   return (

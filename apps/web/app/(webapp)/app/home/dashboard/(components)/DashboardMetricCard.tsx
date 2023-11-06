@@ -2,6 +2,7 @@ import { DashboardMetricCardProps } from '@/types/webappTypes/appTypes'
 import { addCommasToAmount } from '@/utils/addCommasToAmount'
 import React from 'react'
 import BarChart from './BarChart'
+import moment from 'moment'
 
 const DashboardMetricCard = ({
   title, 
@@ -38,10 +39,12 @@ const DashboardMetricCard = ({
       <div className='mt-[4px] w-full text-o-text-muted2 text-[10px] flex items-center justify-between gap-5'>
         <span>
           {labels[0]}
+          {/* {moment(labels[0]).format('lll')} */}
         </span>
 
         <span>
           {labels[labels.length - 1]}
+          {/* {moment(labels[labels.length - 1]).format('lll')} */}
         </span>
       </div>
     </div>

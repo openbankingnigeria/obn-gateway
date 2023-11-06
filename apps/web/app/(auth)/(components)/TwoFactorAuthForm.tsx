@@ -15,6 +15,12 @@ const TwoFactorAuthForm = () => {
   const incorrect = code?.length !== 6;
   const pathname = usePathname();
 
+  const handleCode = (value: string) => {
+    if (value?.length <= 6) {
+      setCode(value);
+    }
+  }
+
   const initialState = {
     message: null,
     location: pathname
@@ -33,7 +39,7 @@ const TwoFactorAuthForm = () => {
         type='text'
         placeholder='6-digit authentication code'
         value={code}
-        changeValue={setCode}
+        changeValue={(value: string) => handleCode(value)}
         label='Authentication Code'
         required
       />

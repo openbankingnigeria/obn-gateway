@@ -1,11 +1,11 @@
-export const API_CONSUMERS_DATA = [
+export const API_CONSUMERS_TABLE_DATA = [
   {
     id: 1,
     title: 'Total',
     amount: 1290,
     isGreen: false,
     amountUnit: '',
-    labels: ['Sep 23, 8pm', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l','m', 'n', 'o', 'Sep 23, 8pm'],
+    labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [10, 20, 15, 30,10, 20, 15, 30, 10, 20, 15, 30, 10, 20, 15, 30],
   },
   {
@@ -14,7 +14,7 @@ export const API_CONSUMERS_DATA = [
     amount: 920,
     isGreen: false,
     amountUnit: '',
-    labels: ['Sep 23, 8pm', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l','m', 'n', 'o', 'Sep 23, 8pm'],
+    labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [10, 20, 15, 30,10, 20, 15, 30, 10, 20, 15, 30, 10, 20, 15, 30],
   },
   {
@@ -23,7 +23,7 @@ export const API_CONSUMERS_DATA = [
     amount: 112,
     isGreen: false,
     amountUnit: '',
-    labels: ['Sep 23, 8pm', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l','m', 'n', 'o', 'Sep 23, 8pm'],
+    labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [10, 20, 15, 30,10, 20, 15, 30, 10, 20, 15, 30, 10, 20, 15, 30],
   },
   {
@@ -32,7 +32,7 @@ export const API_CONSUMERS_DATA = [
     amount: 109,
     isGreen: false,
     amountUnit: '',
-    labels: ['Sep 23, 8pm', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l','m', 'n', 'o', 'Sep 23, 8pm'],
+    labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [10, 20, 15, 30,10, 20, 15, 30, 10, 20, 15, 30, 10, 20, 15, 30],
   },
 ];
@@ -44,7 +44,7 @@ export const API_CALLS_DATA = [
     amount: 299190,
     isGreen: false,
     amountUnit: '',
-    labels: ['Sep 23, 8pm', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l','m', 'n', 'o', 'Sep 23, 8pm'],
+    labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [10, 20, 15, 30,10, 20, 15, 30, 10, 20, 15, 30, 10, 20, 15, 30],
   },
   {
@@ -53,7 +53,7 @@ export const API_CALLS_DATA = [
     amount: 35.9,
     isGreen: false,
     amountUnit: '%',
-    labels: ['Sep 23, 8pm', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l','m', 'n', 'o', 'Sep 23, 8pm'],
+    labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [10, 20, 15, 30,10, 20, 15, 30, 10, 20, 15, 30, 10, 20, 15, 30],
   },
   {
@@ -62,7 +62,7 @@ export const API_CALLS_DATA = [
     amount: 1.2,
     isGreen: true,
     amountUnit: 'ms',
-    labels: ['Sep 23, 8pm', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l','m', 'n', 'o', 'Sep 23, 8pm'],
+    labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [10, 20, 15, 30,10, 20, 15, 30, 10, 20, 15, 30, 10, 20, 15, 30],
   },
 ];

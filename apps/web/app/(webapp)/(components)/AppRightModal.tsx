@@ -9,7 +9,8 @@ const AppRightModal = ({
   effect,
   title,
   backgroundStyles,
-  modalStyles
+  modalStyles,
+  childrenStyle
 }: AppModalProps) => {
 
   return (
@@ -30,7 +31,7 @@ const AppRightModal = ({
           animate={{ x: 5 }}
           exit={{ x: 150 }}
           transition={{ duration: 0.3, type: 'spring', stiffness: 700, damping: 30 }}
-          className={`block w-[571px] relative h-full z-[75] overflow-x-hidden overflow-y-visible
+          className={`block w-[571px] relative h-full z-[75] overflow-x-hidden overflow-y-hidden
            rounded-[12px] bg-white ${title && 'pt-[52px]'} ${modalStyles}`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -59,7 +60,7 @@ const AppRightModal = ({
             </div>
           }
 
-          <div className='px-[20px] py-[20px] h-full w-full'>
+          <div className={`px-[20px] py-[20px] h-full w-full ${childrenStyle}`}>
             {children}
           </div>
         </motion.div>

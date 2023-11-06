@@ -15,10 +15,11 @@ export interface MainButtonProps {
   containerStyle?: string;
   small?: boolean;
   outlined?: boolean;
+  titleStyle?: string;
 }
 
 export interface ButtonProps extends MainButtonProps {
-  effect?: MouseEventHandler<HTMLButtonElement>;
+  effect?: MouseEventHandler<HTMLButtonElement> | (() => void);
   disabled?: boolean;
   loading?: boolean
 }
@@ -26,3 +27,9 @@ export interface ButtonProps extends MainButtonProps {
 export interface LinkButtonProps extends MainButtonProps {
   path: string
 }
+
+export interface OustsideClickerProps { 
+  children: ReactNode, 
+  func: () => void, 
+  clickerStyle?: string 
+};
