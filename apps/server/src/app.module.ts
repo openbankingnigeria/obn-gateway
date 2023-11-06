@@ -12,6 +12,8 @@ import { getDatabaseConfig } from './common/database/database.config';
 import { AuthGuard } from './common/utils/authentication/auth.guard';
 import { Auth } from './common/utils/authentication/auth.helper';
 import { JwtService } from '@nestjs/jwt';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -32,12 +34,15 @@ import { JwtService } from '@nestjs/jwt';
         },
       },
     }),
+    // Database setup
     TypeOrmModule.forRootAsync({
       useFactory: (config: ConfigService) => {
         return getDatabaseConfig(config);
       },
       inject: [ConfigService],
     }),
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [

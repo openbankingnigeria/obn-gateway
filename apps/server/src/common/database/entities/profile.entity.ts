@@ -1,0 +1,49 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { User } from './user.entity';
+import { CompanyRoles } from 'src/users/types';
+
+@Entity({ name: 'profiles' })
+export class Profile {
+  @PrimaryGeneratedColumn('uuid')
+  id?: string;
+
+  @Column({ name: 'first_name' })
+  firstName: string;
+
+  @Column({ name: 'last_name' })
+  lastName: string;
+
+  @Column({
+    type: 'enum',
+    enum: CompanyRoles,
+    name: 'company_role',
+  })
+  companyRole: CompanyRoles;
+
+  @Column({ nullable: true })
+  phone?: string;
+
+  @Column({ nullable: true })
+  country?: string;
+
+  @OneToOne(() => User, (user) => user.profile)
+  @JoinColumn({ name: 'user', referencedColumnName: 'id' })
+  user: Profile;
+
+  @Column({ name: 'user', nullable: true })
+  userId: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt?: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt?: Date;
+}

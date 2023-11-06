@@ -1,0 +1,183 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Company, Profile, User } from 'src/common/database/entities';
+import { Repository, MoreThan } from 'typeorm';
+import { LoginDto, ResetPasswordDto, SignupDto } from './dto/index.dto';
+import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
+import { userErrors } from 'src/common/constants/errors/user.errors';
+import { ResponseFormatter } from 'src/common/utils/common/response.util';
+import { compareSync, hashSync } from 'bcrypt';
+import { authErrors } from 'src/common/constants/errors/auth.errors';
+import { Auth } from 'src/common/utils/authentication/auth.helper';
+import * as moment from 'moment';
+import { createHash } from 'crypto';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
+    @InjectRepository(Profile)
+    private readonly profileRepository: Repository<Profile>,
+    private readonly auth: Auth,
+  ) {}
+
+  async signup(data: SignupDto) {
+    // Check if user with this email already exists
+    const userExists = await this.userRepository.count({
+      where: {
+        email: data.email.trim().toLowerCase(),
+      },
+    });
+
+    // TODO Add condition for when user is already added to another team?
+    // If the user already exists, throw an error.
+    if (userExists > 0) {
+      throw new IBadRequestException({
+        message: userErrors.userWithEmailAlreadyExists(data.email),
+      });
+    }
+
+    const {
+      companyName,
+      companyRole,
+      companyType,
+      country,
+      email,
+      firstName,
+      lastName,
+      password,
+      phone,
+    } = data;
+
+    // TODO Improve queries?
+    const company = await this.companyRepository.save(
+      this.companyRepository.create({
+        name: companyName,
+        type: companyType,
+      }),
+    );
+
+    const profile = await this.profileRepository.save(
+      this.profileRepository.create({
+        firstName,
+        lastName,
+        phone,
+        country,
+        companyRole,
+      }),
+    );
+
+    const userEntity = this.userRepository.create({
+      companyId: company.id,
+      email,
+      password,
+      profileId: profile.id,
+    });
+
+    const user = await this.userRepository.save(userEntity);
+
+    profile.userId = user.id as string;
+
+    await this.profileRepository.save(profile);
+
+    return ResponseFormatter.success('', user);
+  }
+
+  async login({ email, password }: LoginDto) {
+    const user = await this.userRepository.findOneBy({
+      email,
+    });
+
+    if (!user) {
+      throw new IBadRequestException({
+        message: userErrors.userWithEmailNotFound(email),
+      });
+    }
+
+    console.log({ user });
+
+    if (!compareSync(password, user.password)) {
+      throw new IBadRequestException({
+        message: authErrors.invalidCredentials,
+      });
+    }
+
+    const accessToken = await this.auth.sign({ id: user.id });
+
+    return ResponseFormatter.success('Successfully logged in.', {
+      accessToken,
+    });
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.userRepository.findOneBy({
+      email,
+    });
+
+    if (!user) {
+      throw new IBadRequestException({
+        message: userErrors.userWithEmailNotFound(email),
+      });
+    }
+
+    const { hashedResetToken, resetToken } =
+      await this.auth.getResetPasswordToken();
+
+    await this.userRepository.update(
+      { id: user.id },
+      {
+        resetPasswordToken: hashedResetToken,
+        resetPasswordExpires: moment().add(10, 'minutes').toDate(),
+      },
+    );
+
+    return ResponseFormatter.success(
+      `Reset password email sent to ${email}`,
+      resetToken,
+    );
+  }
+
+  async resetPassword(
+    resetToken: string,
+    { confirmPassword, password }: ResetPasswordDto,
+  ) {
+    console.log({ password });
+    const resetPasswordToken = createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    const user = await this.userRepository.findOneBy({
+      resetPasswordToken,
+      resetPasswordExpires: MoreThan(moment().toDate()),
+    });
+
+    if (!user) {
+      throw new IBadRequestException({
+        message: authErrors.resetPasswordInvalid,
+      });
+    }
+
+    if (password !== confirmPassword) {
+      throw new IBadRequestException({
+        message: authErrors.passwordMismatch,
+      });
+    }
+
+    await this.userRepository.update(
+      { id: user.id },
+      {
+        resetPasswordToken: null as any,
+        resetPasswordExpires: null as any,
+        password: hashSync(password, 12),
+        lastPasswordChange: moment().toDate(),
+      },
+    );
+
+    return ResponseFormatter.success(
+      'Password has been successfully reset. Please proceed to login.',
+    );
+  }
+}

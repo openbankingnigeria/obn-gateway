@@ -3,8 +3,8 @@ import { Reflector } from '@nestjs/core';
 import { SKIP_AUTH_METADATA_KEY } from './auth.decorator';
 import { IRequest } from './auth.types';
 import { IUnauthorizedException } from '../exceptions/exceptions';
-import { authErrors } from './auth.constants';
 import { Auth } from './auth.helper';
+import { authErrors } from 'src/common/constants/errors/auth.errors';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

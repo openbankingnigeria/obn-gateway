@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { createHash, randomBytes } from 'crypto';
 
 /**
  * This class provides authentication functionalities and can be injected into other services
@@ -37,5 +38,16 @@ export class Auth {
     const decoded = await this.jwtService.verifyAsync<T>(token);
 
     return decoded;
+  }
+
+  async getResetPasswordToken() {
+    // Generate token
+    const resetToken = randomBytes(20).toString('hex');
+
+    const hashedResetToken = createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    return { resetToken, hashedResetToken };
   }
 }

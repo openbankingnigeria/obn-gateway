@@ -11,4 +11,8 @@ export const globalConfig = () => ({
     password: process.env.DATABASE_PASSWORD,
     name: process.env.DATABASE_NAME,
   },
+  auth: {
+    jwtExpires: process.env.JWT_EXPIRES || '15m',
+    jwtSecret: process.env.JWT_SECRET,
+  },
 });
