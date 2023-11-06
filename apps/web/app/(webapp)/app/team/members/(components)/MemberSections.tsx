@@ -1,11 +1,10 @@
 import { DatePicker, EmptyState, TableElement, TransparentPanel } from '@/app/(webapp)/(components)'
 import { SearchBar, SelectElement } from '@/components/forms';
-import { CONSUMER_DETAILS_PANEL } from '@/data/consumerData'
-import { ConsumerSectionsProps } from '@/types/webappTypes/appTypes';
+import { MEMBER_DETAILS_PANEL } from '@/data/membersData';
+import { SectionsProps } from '@/types/webappTypes/appTypes';
 import React from 'react'
 
-const ConsumerSections = ({
-  path,
+const MemberSections = ({
   rawData,
   tableHeaders,
   filters,
@@ -15,14 +14,13 @@ const ConsumerSections = ({
   totalElements,
   totalElementsInPage,
   totalPages,
-}: ConsumerSectionsProps) => {
+}: SectionsProps) => {
 
   return (
     <section className='w-full h-full flex flex-col gap-[20px]'>
       <TransparentPanel
-        panel={CONSUMER_DETAILS_PANEL}
-        currentValue={path}
-        removeSearchParam='date_sent'
+        panel={MEMBER_DETAILS_PANEL}
+        currentValue={''}
       />
 
       <div className='w-full flex flex-col h-full'>
@@ -31,44 +29,25 @@ const ConsumerSections = ({
             <div className='w-full bg-white border border-o-border rounded-[10px] h-fit'>
               <h3 className='px-[20px] py-[16px] w-full border-b rounded-tr-[10px] rounded-tl-[10px] border-o-border bg-o-bg2'>
                 <div className='text-f16 font-[600] text-o-text-dark'>
-                  {
-                    path == 'consents' ?
-                      'Consents' :
-                      'API Activities'
-                  }
+                  API Activities
                 </div>
               </h3>
 
               <div className='w-full p-[20px] rounded-br-[10px] rounded-bl-[10px] flex flex-col gap-[12px] bg-white'>
                 <div className='w-full flex-wrap flex items-center gap-[12px]'>
                   <SearchBar 
-                    placeholder={`Search ${path || 'APIs'}`}
+                    placeholder={`Search recent activities`}
                     searchQuery={filters[0]}
                   />
 
-                  <SelectElement 
-                    name='status'
-                    options={statusList}
-                    value={filters[1]}
-                    innerLabel='Status:'
-                    containerStyle='!w-fit cursor-pointer'
-                    small
-                    removeSearch
-                    optionStyle='!top-[38px]'
-                    forFilter
+                  <DatePicker
+                    showShortcuts={true}
+                    dateFilter={filters[1]}
+                    name='date_filter'
+                    innerLabel='Date:'
+                    asSingle
+                    popoverDirection='up'
                   />
-
-                  {
-                    path == 'consents' &&
-                    <DatePicker
-                      showShortcuts={true}
-                      dateFilter={filters[2]}
-                      name='date_sent'
-                      innerLabel='Date Sent:'
-                      asSingle
-                      popoverDirection='up'
-                    />
-                  }
                 </div>
 
                 <TableElement 
@@ -88,7 +67,7 @@ const ConsumerSections = ({
               title='Nothing to show'
               type='DEFAULT'
               parentStyle='!h-[calc(100vh-600px)]'
-              body='There’s no information to show for this user yet.'
+              body='There’s no information to show yet.'
             />
         }
       </div>
@@ -96,4 +75,4 @@ const ConsumerSections = ({
   )
 }
 
-export default ConsumerSections
+export default MemberSections

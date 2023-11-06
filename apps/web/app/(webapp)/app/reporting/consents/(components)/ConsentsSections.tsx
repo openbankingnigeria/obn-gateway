@@ -20,7 +20,7 @@ const ConsentsSections = ({
       <div className='w-full bg-white border border-o-border rounded-[10px] h-fit'>
         <h3 className='px-[20px] py-[16px] w-full border-b rounded-tr-[10px] rounded-tl-[10px] border-o-border bg-o-bg2'>
           <div className='text-f16 font-[600] text-o-text-dark'>
-            API Activites
+            API Activities
           </div>
         </h3>
 

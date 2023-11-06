@@ -53,6 +53,11 @@ const StatusBox = ({ status }: StatusBoxProps) => {
         Payments
       </span>
     )
+    : sanitizedStatus === 'invited' ? (
+      <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-white bg-o-status-blue'>
+        Invited
+      </span>
+    )
     : sanitizedStatus === 'revoked' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-white bg-o-status-orange'>
         Revoked

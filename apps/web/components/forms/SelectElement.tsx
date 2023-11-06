@@ -51,7 +51,7 @@ const SelectElement = ({
   };
 
   const getLabel = options ? 
-    options?.find(x => x.value == value)?.label : null;
+    options?.find(x => x?.value == value)?.label : null;
 
   const handleClick = () => { 
     if (!disabled) {

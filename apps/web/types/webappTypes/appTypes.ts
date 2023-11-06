@@ -21,6 +21,7 @@ export interface searchParamsProps {
   type?: string;
   request_method?: string;
   tier?: string;
+  role?: string;
 }
 
 export interface ParamsProps {
@@ -48,6 +49,7 @@ export interface TableProps {
   totalPages: number;
   searchQuery?: string;
   dataList?: any[];
+  path?: string;
   removePagination?: boolean;
 }
 
@@ -95,3 +97,12 @@ export interface ApiConfigurationProps {
   loading?: boolean;
   next: () => void;
 };
+
+export interface InviteMembersProps {
+  roles: any[];
+  close: () => void;
+}
+
+export interface InviteMembersButtonProps {
+  roles: any[];
+}

@@ -42,3 +42,8 @@ export interface MockServicesProps {
   mock_url: string;
   mockUrlDescription?: string;
 }
+
+export interface MembersStatusProps {
+  active?: number;
+  invited?: number;
+}

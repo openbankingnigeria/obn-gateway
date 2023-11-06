@@ -95,6 +95,7 @@ const TableElement = ({
                     ${header.id == 'configured' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'tier' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'description' && '!min-w-[506px] !max-w-0 !w-auto'}
+                    ${header.id == 'two_fa' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${thStyle}`}
                   >
                     {header.isPlaceholder
@@ -129,7 +130,7 @@ const TableElement = ({
                           <RequestMethodText 
                             method={cell.getValue()} 
                           /> :
-                          cell.id?.includes('configured') ?
+                          (cell.id?.includes('configured') || cell.id?.includes('two_fa')) ?
                             <BooleanBox 
                               value={Boolean(cell.getValue())} 
                             />
