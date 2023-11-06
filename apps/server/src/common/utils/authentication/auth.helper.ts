@@ -13,6 +13,8 @@ export class Auth {
     private readonly jwtService: JwtService,
   ) {}
 
+  private readonly authSecret = this.config.get('auth.jwtSecret');
+
   /**
    *
    * @param payload The payload to be signed
@@ -22,7 +24,7 @@ export class Auth {
   async sign(payload: object, options?: JwtSignOptions) {
     const token = await this.jwtService.signAsync(payload, {
       expiresIn: this.config.get('auth.jwtExpires'),
-      secret: this.config.get('auth.jwtSecret'),
+      secret: this.authSecret,
       ...options,
     });
 
@@ -35,7 +37,9 @@ export class Auth {
    * @returns The decoded payload
    */
   async verify<T extends object>(token: string) {
-    const decoded = await this.jwtService.verifyAsync<T>(token);
+    const decoded = await this.jwtService.verifyAsync<T>(token, {
+      secret: this.authSecret,
+    });
 
     return decoded;
   }

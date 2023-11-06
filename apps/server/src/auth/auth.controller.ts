@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Param,
+  Patch,
   Post,
+  Req,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -14,6 +16,7 @@ import {
   SignupDto,
 } from './dto/index.dto';
 import { SkipAuthGuard } from 'src/common/utils/authentication/auth.decorator';
+import { IRequest } from 'src/common/utils/authentication/auth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -48,6 +51,13 @@ export class AuthController {
     @Body() data: ResetPasswordDto,
     @Param('resetToken') resetToken: string,
   ) {
-    return this.authService.resetPassword(resetToken, data);
+    return this.authService.resetPassword(data, resetToken);
+  }
+
+  @Patch('password/change')
+  @UsePipes(ValidationPipe)
+  changePassword(@Body() data: ResetPasswordDto, @Req() { user }: IRequest) {
+    console.log({ user });
+    return this.authService.resetPassword(data, user);
   }
 }

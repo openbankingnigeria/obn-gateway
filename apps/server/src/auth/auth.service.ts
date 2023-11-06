@@ -5,7 +5,10 @@ import { Repository, MoreThan } from 'typeorm';
 import { LoginDto, ResetPasswordDto, SignupDto } from './dto/index.dto';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { userErrors } from 'src/common/constants/errors/user.errors';
-import { ResponseFormatter } from 'src/common/utils/common/response.util';
+import {
+  ApiResponse,
+  ResponseFormatter,
+} from 'src/common/utils/common/response.util';
 import { compareSync, hashSync } from 'bcrypt';
 import { authErrors } from 'src/common/constants/errors/auth.errors';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
@@ -97,8 +100,6 @@ export class AuthService {
       });
     }
 
-    console.log({ user });
-
     if (!compareSync(password, user.password)) {
       throw new IBadRequestException({
         message: authErrors.invalidCredentials,
@@ -107,9 +108,7 @@ export class AuthService {
 
     const accessToken = await this.auth.sign({ id: user.id });
 
-    return ResponseFormatter.success('Successfully logged in.', {
-      accessToken,
-    });
+    return ResponseFormatter.success('Successfully logged in.', accessToken);
   }
 
   async forgotPassword(email: string) {
@@ -141,23 +140,35 @@ export class AuthService {
   }
 
   async resetPassword(
-    resetToken: string,
     { confirmPassword, password }: ResetPasswordDto,
-  ) {
-    console.log({ password });
-    const resetPasswordToken = createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
+    user: User,
+  ): Promise<ApiResponse<null>>;
+  async resetPassword(
+    { confirmPassword, password }: ResetPasswordDto,
+    resetToken: string,
+  ): Promise<ApiResponse<null>>;
+  async resetPassword(
+    { confirmPassword, password }: any,
+    userOrToken: any,
+  ): Promise<any> {
+    let userToUpdate: User | null =
+      userOrToken instanceof User ? userOrToken : null;
 
-    const user = await this.userRepository.findOneBy({
-      resetPasswordToken,
-      resetPasswordExpires: MoreThan(moment().toDate()),
-    });
+    if (!userToUpdate) {
+      const resetPasswordToken = createHash('sha256')
+        .update(userOrToken)
+        .digest('hex');
 
-    if (!user) {
-      throw new IBadRequestException({
-        message: authErrors.resetPasswordInvalid,
+      userToUpdate = await this.userRepository.findOneBy({
+        resetPasswordToken,
+        resetPasswordExpires: MoreThan(moment().toDate()),
       });
+
+      if (!userToUpdate) {
+        throw new IBadRequestException({
+          message: authErrors.resetPasswordInvalid,
+        });
+      }
     }
 
     if (password !== confirmPassword) {
@@ -167,7 +178,7 @@ export class AuthService {
     }
 
     await this.userRepository.update(
-      { id: user.id },
+      { id: userToUpdate?.id },
       {
         resetPasswordToken: null as any,
         resetPasswordExpires: null as any,
@@ -177,7 +188,9 @@ export class AuthService {
     );
 
     return ResponseFormatter.success(
-      'Password has been successfully reset. Please proceed to login.',
+      userOrToken instanceof User
+        ? 'Your password has been successfully changed.'
+        : 'Your password has been successfully reset. Please proceed to login.',
     );
   }
 }

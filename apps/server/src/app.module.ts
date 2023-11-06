@@ -14,6 +14,7 @@ import { Auth } from './common/utils/authentication/auth.helper';
 import { JwtService } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { User } from './common/database/entities';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { UsersModule } from './users/users.module';
       },
       inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([User]),
     AuthModule,
     UsersModule,
   ],
