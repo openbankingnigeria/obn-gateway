@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration1699265038397 implements MigrationInterface {
-  name = 'Migration1699265038397';
+export class Migration1699268232421 implements MigrationInterface {
+  name = 'Migration1699268232421';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -12,7 +12,7 @@ export class Migration1699265038397 implements MigrationInterface {
                 \`company_role\` enum ('SOFTWARE_ENGINEER', 'CEO') NOT NULL,
                 \`phone\` varchar(255) NULL,
                 \`country\` varchar(255) NULL,
-                \`user\` varchar(255) NULL,
+                \`user\` varchar(36) NOT NULL,
                 \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                 \`deleted_at\` datetime(6) NULL,
@@ -30,7 +30,6 @@ export class Migration1699265038397 implements MigrationInterface {
                 \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                 \`deleted_at\` datetime(6) NULL,
-                \`parent_id\` varchar(36) NULL,
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -39,9 +38,9 @@ export class Migration1699265038397 implements MigrationInterface {
                 \`id\` varchar(36) NOT NULL,
                 \`email\` varchar(255) NOT NULL,
                 \`password\` varchar(255) NOT NULL,
-                \`role\` varchar(255) NULL,
-                \`company\` varchar(255) NOT NULL,
-                \`profile\` varchar(255) NOT NULL,
+                \`role\` varchar(36) NOT NULL,
+                \`company\` varchar(36) NOT NULL,
+                \`profile\` varchar(36) NOT NULL,
                 \`reset_password_token\` varchar(255) NULL,
                 \`reset_password_expires\` datetime NULL,
                 \`last_password_change\` datetime NULL,
@@ -72,6 +71,7 @@ export class Migration1699265038397 implements MigrationInterface {
                 \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                 \`deleted_at\` datetime(6) NULL,
+                UNIQUE INDEX \`IDX_d090ad82a0e97ce764c06c7b31\` (\`slug\`),
                 PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
@@ -92,7 +92,7 @@ export class Migration1699265038397 implements MigrationInterface {
         `);
     await queryRunner.query(`
             ALTER TABLE \`roles\`
-            ADD CONSTRAINT \`FK_3e97eeaf865aeda0d20c0c5c509\` FOREIGN KEY (\`parent_id\`) REFERENCES \`roles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
+            ADD CONSTRAINT \`FK_c1e75fd0e8a4dc0543ec66aa691\` FOREIGN KEY (\`parent\`) REFERENCES \`roles\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE \`users\`
@@ -133,13 +133,16 @@ export class Migration1699265038397 implements MigrationInterface {
             ALTER TABLE \`users\` DROP FOREIGN KEY \`FK_ace513fa30d485cfd25c11a9e4a\`
         `);
     await queryRunner.query(`
-            ALTER TABLE \`roles\` DROP FOREIGN KEY \`FK_3e97eeaf865aeda0d20c0c5c509\`
+            ALTER TABLE \`roles\` DROP FOREIGN KEY \`FK_c1e75fd0e8a4dc0543ec66aa691\`
         `);
     await queryRunner.query(`
             ALTER TABLE \`profiles\` DROP FOREIGN KEY \`FK_495ce4b6a5f3319b1b4697f411d\`
         `);
     await queryRunner.query(`
             DROP TABLE \`role_permissions\`
+        `);
+    await queryRunner.query(`
+            DROP INDEX \`IDX_d090ad82a0e97ce764c06c7b31\` ON \`permissions\`
         `);
     await queryRunner.query(`
             DROP TABLE \`permissions\`

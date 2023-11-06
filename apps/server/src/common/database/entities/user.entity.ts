@@ -34,18 +34,18 @@ export class User {
     this.email = this.email.trim().toLowerCase();
   }
 
-  @JoinColumn({ name: 'role' })
-  @ManyToOne(() => Role, { nullable: true })
-  role: Role | null;
+  @JoinColumn({ name: 'role', referencedColumnName: 'id' })
+  @ManyToOne(() => Role, { nullable: false })
+  role: Role;
 
-  @Column({ name: 'role', nullable: true })
+  @Column({ name: 'role', nullable: false, default: null, length: 36 })
   roleId: string;
 
   @ManyToOne(() => Company, (company) => company.users)
   @JoinColumn({ name: 'company', referencedColumnName: 'id' })
   company: Company;
 
-  @Column({ name: 'company' })
+  @Column({ name: 'company', length: 36 })
   companyId: string;
 
   @OneToOne(() => Profile, (profile) => profile.user, {
@@ -54,7 +54,7 @@ export class User {
   @JoinColumn({ name: 'profile', referencedColumnName: 'id' })
   profile: Profile;
 
-  @Column({ name: 'profile' })
+  @Column({ name: 'profile', length: 36 })
   profileId: string;
 
   @Column({ name: 'reset_password_token', nullable: true })

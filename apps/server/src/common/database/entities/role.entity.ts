@@ -23,7 +23,7 @@ export class Role {
   @Column()
   status?: string;
 
-  @JoinColumn({ name: 'parent_id' })
+  @JoinColumn({ name: 'parent' })
   @ManyToOne(() => Role, { nullable: true })
   parent?: Role;
 

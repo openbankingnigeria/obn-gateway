@@ -35,11 +35,11 @@ export class Profile {
   @Column({ nullable: true })
   country?: string;
 
-  @OneToOne(() => User, (user) => user.profile)
+  @OneToOne(() => User, (user) => user.profile, { nullable: false })
   @JoinColumn({ name: 'user', referencedColumnName: 'id' })
   user: Profile;
 
-  @Column({ name: 'user', nullable: true })
+  @Column({ name: 'user', default: null, nullable: false, length: 36 })
   userId: string;
 
   @CreateDateColumn({ name: 'created_at' })
