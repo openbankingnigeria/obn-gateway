@@ -2,6 +2,7 @@ import {
   BeforeInsert,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -13,6 +14,7 @@ import {
 import { Company } from './company.entity';
 import { hash } from 'bcrypt';
 import { Profile } from './profile.entity';
+import { Role } from './role.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -32,8 +34,12 @@ export class User {
     this.email = this.email.trim().toLowerCase();
   }
 
-  // TODO This would be a relation to the role table
-  role: any;
+  @JoinColumn({ name: 'role' })
+  @ManyToOne(() => Role, { nullable: true })
+  role: Role | null;
+
+  @Column({ name: 'role', nullable: true })
+  roleId: string;
 
   @ManyToOne(() => Company, (company) => company.users)
   @JoinColumn({ name: 'company', referencedColumnName: 'id' })
@@ -65,4 +71,7 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt?: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
+  deletedAt?: Date | null;
 }

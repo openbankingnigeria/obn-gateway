@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
@@ -8,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { CompanyRoles } from 'src/users/types';
+import { CompanyRoles } from '../../../users/types';
 
 @Entity({ name: 'profiles' })
 export class Profile {
@@ -46,4 +47,7 @@ export class Profile {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt?: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
+  deletedAt?: Date | null;
 }
