@@ -48,6 +48,7 @@ export interface SelectElementProps extends FieldsProps {
   searchPlaceholder?: string;
   disabledValue?: string;
   forFilter?: boolean;
+  selected?: any[];
 }
 
 export interface ToogleSwitchProps {

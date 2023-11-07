@@ -45,7 +45,7 @@ const ApproveConsumer = ({
       action={incorrect ? '' : formAction}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
-      <div className='flex flex-col h-[80%] overflow-auto gap-[16px] w-full px-[20px]'>
+      <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
         <div className='w-full text-f14 text-o-text-medium3'>
           You are about to approve this API consumer’s access. 
           Select the APIs you want to grant this user access to.
@@ -94,7 +94,7 @@ const ApproveConsumer = ({
         </div>
       </div>
 
-      <div className='px-[20px] w-full min-h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
+      <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
         <Button 
           title='Cancel'
           effect={close}

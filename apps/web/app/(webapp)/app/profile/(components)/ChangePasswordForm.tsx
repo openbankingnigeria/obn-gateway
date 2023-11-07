@@ -42,7 +42,7 @@ const ChangePasswordForm = ({
       action={incorrect ? '' : formAction}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
-      <div className='px-[20px] w-full h-[80%] overflow-auto flex flex-col gap-[16px]'>
+      <div className='px-[20px] w-full h-[calc(100%-50px)] overflow-auto flex flex-col gap-[16px]'>
         <InputElement 
           name='old_password'
           type='password'
@@ -77,7 +77,7 @@ const ChangePasswordForm = ({
         />
       </div>
 
-      <div className='px-[20px] w-full min-h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
+      <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
         <Button 
           title='Cancel'
           effect={close}
