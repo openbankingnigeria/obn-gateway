@@ -7,17 +7,22 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { RolePermission } from './rolepermission.entity';
 
 @Entity({ name: 'roles' })
+@Unique(['slug', 'parent'])
 export class Role {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
   @Column()
   name?: string;
+
+  @Column()
+  slug?: string;
 
   @Column()
   description?: string;
