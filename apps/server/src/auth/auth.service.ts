@@ -14,9 +14,8 @@ import { authErrors } from 'src/common/constants/errors/auth.errors';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { createHash } from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
-// import { Role } from 'src/common/database/entities/role.entity';
-// import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
+import { Role } from 'src/common/database/entities/role.entity';
+import { ROLES } from 'src/roles/types';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +26,8 @@ export class AuthService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
-    @InjectRepository(Profile)
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
     private readonly auth: Auth,
   ) {}
 
@@ -56,42 +56,88 @@ export class AuthService {
       firstName,
       lastName,
       password,
+      confirmPassword,
       phone,
     } = data;
 
-    const company = await this.companyRepository.save(
-      this.companyRepository.create({
-        name: companyName,
-        type: companyType,
-      }),
-    );
+    if (password !== confirmPassword) {
+      throw new IBadRequestException({
+        message: authErrors.passwordMismatch,
+      });
+    }
 
-    const userId = uuidv4();
-    const profileId = uuidv4();
+    const apiConsumerRole = await this.roleRepository.findOne({
+      where: {
+        slug: ROLES.API_CONSUMER,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-    const user = await this.userRepository.save(
-      this.userRepository.create({
-        id: userId,
-        companyId: company.id,
-        email,
-        password,
-        profileId,
-      }),
-    );
+    let user: User | undefined;
+    let company: Company | undefined;
+    let profile: Profile | undefined;
 
-    await this.profileRepository.save(
-      this.profileRepository.create({
-        id: profileId,
-        firstName,
-        lastName,
-        phone,
-        country,
-        companyRole,
-        userId,
-      }),
-    );
+    if (apiConsumerRole) {
+      const result = await Promise.allSettled([
+        new Promise((res, rej) => {
+          this.companyRepository
+            .save({
+              name: companyName,
+              type: companyType,
+            })
+            .then((companyCreated) => {
+              if (companyCreated) {
+                company = companyCreated;
+                return this.userRepository.save({
+                  email: email.trim().toLowerCase(),
+                  password: hashSync(password, 12),
+                  roleId: apiConsumerRole.id,
+                  companyId: companyCreated.id,
+                });
+              }
+            })
+            .then((userCreated) => {
+              if (userCreated) {
+                user = userCreated;
+                return this.profileRepository.save({
+                  firstName,
+                  lastName,
+                  phone,
+                  country,
+                  companyRole,
+                  userId: userCreated.id,
+                });
+              }
+            })
+            .then((profileCreated) => {
+              if (profileCreated) {
+                profile = profileCreated;
+              }
+              res('');
+            })
+            .catch((err) => {
+              rej(err);
+            });
+        }),
+      ]);
 
-    return ResponseFormatter.success('', user);
+      if (result[0].status === 'rejected') {
+        throw new IBadRequestException({
+          message: authErrors.errorOccurredCreatingUser,
+          _meta: result[0].reason,
+        });
+      }
+
+      if (user) {
+        user.profileId = profile?.id;
+
+        await this.userRepository.save(user);
+      }
+    }
+
+    return ResponseFormatter.success('', { ...user, profile, company });
   }
 
   async login({ email, password }: LoginDto) {

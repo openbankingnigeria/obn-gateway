@@ -1,5 +1,4 @@
 import {
-  BeforeInsert,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -12,7 +11,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Company } from './company.entity';
-import { hash } from 'bcrypt';
 import { Profile } from './profile.entity';
 import { Role } from './role.entity';
 
@@ -26,12 +24,6 @@ export class User {
 
   @Column()
   password: string;
-
-  @BeforeInsert()
-  async beforeInsert() {
-    this.password = await hash(this.password, 12);
-    this.email = this.email.trim().toLowerCase();
-  }
 
   @JoinColumn({ name: 'role', referencedColumnName: 'id' })
   @ManyToOne(() => Role, { nullable: false })
@@ -53,8 +45,8 @@ export class User {
   @JoinColumn({ name: 'profile', referencedColumnName: 'id' })
   profile: Profile;
 
-  @Column({ name: 'profile', length: 36 })
-  profileId: string;
+  @Column({ name: 'profile', length: 36, nullable: true })
+  profileId?: string;
 
   @Column({ name: 'reset_password_token', nullable: true })
   resetPasswordToken?: string;

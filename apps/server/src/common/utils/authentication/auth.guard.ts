@@ -30,8 +30,6 @@ export class AuthGuard implements CanActivate {
       this.reflector.get(REQUIRED_PERMISSION_METADATA_KEY, context.getHandler())
     );
 
-    console.log({ requiredPermission });
-
     if (shouldSkipAuth) {
       return true;
     }
