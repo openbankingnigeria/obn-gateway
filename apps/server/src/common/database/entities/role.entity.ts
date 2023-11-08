@@ -33,7 +33,7 @@ export class Role {
   parentId: string;
 
   @OneToMany(() => RolePermission, (permission) => permission.role)
-  'permissions'?: RolePermission[];
+  permissions: RolePermission[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

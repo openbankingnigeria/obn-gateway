@@ -14,6 +14,9 @@ import { authErrors } from 'src/common/constants/errors/auth.errors';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { createHash } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
+// import { Role } from 'src/common/database/entities/role.entity';
+// import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +27,7 @@ export class AuthService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
+    @InjectRepository(Profile)
     private readonly auth: Auth,
   ) {}
 
@@ -55,7 +59,6 @@ export class AuthService {
       phone,
     } = data;
 
-    // TODO Improve queries?
     const company = await this.companyRepository.save(
       this.companyRepository.create({
         name: companyName,
@@ -63,29 +66,32 @@ export class AuthService {
       }),
     );
 
-    const userEntity = this.userRepository.create({
-      companyId: company.id,
-      email,
-      password,
-    });
-    // const user =
+    const userId = uuidv4();
+    const profileId = uuidv4();
 
-    const profile = await this.profileRepository.save(
+    const user = await this.userRepository.save(
+      this.userRepository.create({
+        id: userId,
+        companyId: company.id,
+        email,
+        password,
+        profileId,
+      }),
+    );
+
+    await this.profileRepository.save(
       this.profileRepository.create({
+        id: profileId,
         firstName,
         lastName,
         phone,
         country,
         companyRole,
-        user: await this.userRepository.save(userEntity),
+        userId,
       }),
     );
 
-    // profile.userId = user.id as string;
-
-    await this.profileRepository.save(profile);
-
-    return ResponseFormatter.success('');
+    return ResponseFormatter.success('', user);
   }
 
   async login({ email, password }: LoginDto) {
