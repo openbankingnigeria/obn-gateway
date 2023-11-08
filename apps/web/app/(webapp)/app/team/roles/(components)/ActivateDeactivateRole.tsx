@@ -4,7 +4,7 @@ import { Button } from '@/components/globalComponents';
 import { ConfirmActionProps } from '@/types/webappTypes/appTypes';
 import React from 'react'
 
-const ActivateDeactivateConsumer = ({
+const ActivateDeactivateRole = ({
   close,
   type,
   loading,
@@ -16,14 +16,13 @@ const ActivateDeactivateConsumer = ({
       <div className='text-o-text-medium3 text-f14'>
         {
           type == 'deactivate' ?
-            `Are you sure you want to deacvtivate this consumer? 
-            Deactivating will immediately revoke the consumer's access 
-            to all APIs and services.`
+            `Are you sure you want to deactivate this role? 
+            Once deactivated, all associated members tied to 
+            this role will lose access.`
             :
-            `Are you sure you want to activate this previously 
-            deactivated consumer? Activating will grant the 
-            consumer immediate access to all APIs and services 
-            they were previously authorized for.`
+            `Are you sure you want to activate this role? 
+            Once activated, all associated members tied to 
+            this role will gain access.`
         }
       </div>
 
@@ -52,4 +51,4 @@ const ActivateDeactivateConsumer = ({
   )
 }
 
-export default ActivateDeactivateConsumer
+export default ActivateDeactivateRole

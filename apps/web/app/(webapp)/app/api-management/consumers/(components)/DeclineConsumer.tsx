@@ -34,7 +34,7 @@ const DeclineConsumer = ({
       action={incorrect ? '' : formAction}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
-      <div className='flex flex-col h-[80%] overflow-auto gap-[16px] w-full px-[20px]'>
+      <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
         <div className='w-full text-f14 text-o-text-medium3'>
           Are you sure you want to decline this consumer&#39;s request 
           for access? Declining the request will deny the consumer 
@@ -55,7 +55,7 @@ const DeclineConsumer = ({
         </div>
       </div>
 
-      <div className='px-[20px] w-full min-h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
+      <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
         <Button 
           title='Cancel'
           effect={close}

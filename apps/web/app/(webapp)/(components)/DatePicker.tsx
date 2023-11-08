@@ -14,7 +14,14 @@ const DatePicker = ({
   name,
   innerLabel,
   dateFilter,
+  changeValue,
+  toggleStyle,
+  clearField,
+  labelStyle,
+  label,
   popoverDirection,
+  rightIcon,
+  placeholder,
   asSingle
 }: DatePickerProps) => {
 
@@ -26,9 +33,17 @@ const DatePicker = ({
   const [isOpen, setOpen] = useState(false);
 
   useEffect(() => {
-    setStartDate(asSingle ? date_filter : date_filter?.start_date);
-    setEndDate(asSingle ? '' : date_filter?.end_date);
-  }, [date_filter, asSingle]);
+    setStartDate( 
+      clearField ? '' :
+        asSingle ? date_filter : 
+          date_filter?.start_date
+    );
+    setEndDate( 
+      clearField ? '' :
+        asSingle ? '' : 
+          date_filter?.end_date
+    );
+  }, [date_filter, asSingle, clearField]);
 
   const handleUpdateParams = (value: DateValueType) => {
     setOpen(prev => !prev)
@@ -47,65 +62,93 @@ const DatePicker = ({
     router.push(newPathName);
   };
 
-  let value = {
+  const handleChangeValaue = (value: DateValueType) => {
+    // @ts-ignore
+    value?.startDate && changeValue(value?.startDate)
+    setStartDate(value?.startDate);
+  }
+
+  let date_value = {
     startDate: start_date,
     endDate: end_date
   };
 
   return (
     <section className={`flex flex-col relative w-fit gap-2 ${containerStyle}`}>
-      <div className={`flex gap-[8px] items-center w-fit pr-[12px] pl-[8px] py-[6px] rounded-[6px] border border-o-border bg-white ${fieldStyle}`}>
-        <div className='text-o-text-dark2 flex items-center text-f14 w-fit'>
-          {
-            innerLabel &&
-            <div className='text-[#B3B7C2] text-f14'>
-              {innerLabel}&#160;
-            </div>
-          }
+      <div className='w-full flex flex-col'>
+        {
+          label &&
+          <label className={`text-o-text-medium2 mb-[4px] text-f14 font-[500] ${labelStyle}`}>
+            {label}
+          </label>
+        }
+        
+        <div className={`flex gap-[8px] items-center w-fit pr-[12px] pl-[8px] py-[6px] rounded-[6px] border border-o-border bg-white ${fieldStyle}`}>
+          <div className='text-o-text-dark2 flex items-center text-f14 w-fit'>
+            {
+              innerLabel &&
+              <div className='text-[#B3B7C2] text-f14'>
+                {innerLabel}&#160;
+              </div>
+            }
+
+            {
+              (changeValue && start_date) ?
+                `${start_date}` :
+                  (start_date && end_date) ?
+                    `${moment(start_date).format('ll')} - ${moment(end_date).format('ll')}` :
+                    start_date ? 
+                      moment(start_date).format('ll') :
+                      end_date ? 
+                        moment(end_date).format('ll') :
+                        placeholder ?
+                          <div className='text-f14 text-o-text-muted'>
+                            {placeholder}
+                          </div> :
+                          asSingle ? 
+                            'All' :
+                            'Date filter'
+            }
+          </div>
 
           {
-            (start_date && end_date) ?
-              `${moment(start_date).format('ll')} - ${moment(end_date).format('ll')}` :
-              start_date ? 
-                moment(start_date).format('ll') :
-                end_date ? 
-                  moment(end_date).format('ll') :
-                  asSingle ? 
-                    'All' :
-                    'Date filter'
+            rightIcon ||
+            <svg 
+              className={`${isOpen && 'rotate-[180]'} transition-all`}
+              width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"
+            >
+              <path 
+                d="M5 7.5L10 12.5L15 7.5" 
+                stroke="#818898" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                fill='transparent'
+              />
+            </svg>
           }
         </div>
-
-        <svg 
-          className={`${isOpen && 'rotate-[180]'} transition-all`}
-          width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"
-        >
-          <path 
-            d="M5 7.5L10 12.5L15 7.5" 
-            stroke="#818898" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            fill='transparent'
-          />
-        </svg>
       </div>
 
       <div className='w-full h-full cursor-pointer right-0 absolute'>
         <Datepicker 
           inputClassName='cursor-pointer w-[80%] h-full opacity-0'
           containerClassName='w-full h-full'
-          toggleClassName='cursor-pointer opacity-0'
+          toggleClassName={`cursor-pointer mt-[7px] opacity-0 ${toggleStyle}`}
           primaryColor={'green'} 
           useRange={false} 
           separator={'to'}
           asSingle={asSingle} 
           placeholder={'YYYY-MM-DD to YYYY-MM-DD'}
           //@ts-ignore
-          value={value}
+          value={date_value}
           popoverDirection={popoverDirection || 'down'}
           showShortcuts={showShortcuts || false}
-          onChange={handleUpdateParams}
+          onChange={
+            changeValue ?
+              handleChangeValaue :
+              handleUpdateParams
+          }
         />
       </div>
     </section>

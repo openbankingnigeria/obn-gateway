@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from "react";
+
 export interface DashboardMetricCardProps {
   title: string;
   amount: number;
@@ -22,6 +24,7 @@ export interface searchParamsProps {
   request_method?: string;
   tier?: string;
   role?: string;
+  two_fa?: string;
 }
 
 export interface ParamsProps {
@@ -105,4 +108,52 @@ export interface InviteMembersProps {
 
 export interface InviteMembersButtonProps {
   roles: any[];
+}
+
+export interface CreateRolePageProps {
+  close: () => void;
+  next: () => void;
+}
+
+export interface PermissionOptionsProps {
+  label: string;
+  value: string;
+}
+
+export interface PermissionSelectorProps {
+  placeholder?: string;
+  parentIsSelected: boolean;
+  name: string;
+  options: any[];
+  clickerStyle?: string;
+  containerStyle?: string;
+  loading?: boolean;
+  fieldStyle?: string;
+  values: PermissionOptionsProps[];
+  optionStyle?: string;
+  changeValues: Dispatch<SetStateAction<PermissionOptionsProps[]>>
+}
+
+export interface PermissionValue {
+  permission: string;
+  options: PermissionOptionsProps[]
+}
+
+export interface PermissionCardProps {
+  label: string;
+  permissions: PermissionValue[];
+  value: string;
+  changePermissions: Dispatch<SetStateAction<PermissionValue[]>>;
+  options: PermissionOptionsProps[];
+}
+
+export interface MemberCardProps {
+  id: number;
+  name: string;
+  email: string;
+}
+export interface RolesMemberCardProps {
+  members?: MemberCardProps[];
+  member: MemberCardProps;
+  changeMembers?: Dispatch<SetStateAction<MemberCardProps[]>>;
 }

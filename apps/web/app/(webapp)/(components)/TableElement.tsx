@@ -94,8 +94,9 @@ const TableElement = ({
                     ${header.id == 'request_method' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'configured' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'tier' && '!min-w-[100px] !max-w-0 !w-auto'}
-                    ${header.id == 'description' && '!min-w-[506px] !max-w-0 !w-auto'}
+                    ${header.id == 'description' && '!min-w-[406px] !max-w-0 !w-auto'}
                     ${header.id == 'two_fa' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'members' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${thStyle}`}
                   >
                     {header.isPlaceholder

@@ -38,7 +38,7 @@ const ModifyApiConfiguration = ({
       action={incorrect ? '' : formAction}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
-      <div className='flex flex-col h-[80%] overflow-auto gap-[16px] w-full px-[20px]'>
+      <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
         <section className='p-[20px] w-full rounded-[6px] border border-[#EF859A] bg-[#FCE8EC] text-o-text-dark text-f14'>
           Please be aware that modifying this API mapping configuration will affect all 
           users and systems connected to this endpoint. Changes may result in altered 
@@ -102,7 +102,7 @@ const ModifyApiConfiguration = ({
         />
       </div>
 
-      <div className='px-[20px] w-full min-h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
+      <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
         <Button 
           title='Cancel'
           effect={close}

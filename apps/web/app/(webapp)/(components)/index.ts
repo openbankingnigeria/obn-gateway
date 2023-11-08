@@ -24,6 +24,7 @@ import RequestMethodText from "./RequestMethodText";
 import ConfigurationBox from "./ConfigurationBox";
 import BooleanBox from "./BooleanBox";
 import TierBox from "./TierBox";
+import DownloadButton from "./DownloadButton";
 
 export {
   DatePicker,
@@ -51,5 +52,6 @@ export {
   RequestMethodText,
   ConfigurationBox,
   BooleanBox,
-  TierBox
+  TierBox,
+  DownloadButton
 }

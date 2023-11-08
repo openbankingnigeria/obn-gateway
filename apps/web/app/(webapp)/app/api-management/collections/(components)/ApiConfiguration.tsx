@@ -38,7 +38,7 @@ const ApiConfiguration = ({
       action={incorrect ? '' : formAction}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
-      <div className='flex flex-col h-[80%] overflow-auto gap-[16px] w-full px-[20px]'>
+      <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
         <section className='w-full p-[20px] flex flex-col gap-[12px] rounded-[6px] border border-o-border bg-[#F8FAFB]'>
           {/* API NAME */}
           <div className='flex items-center justify-between gap-5'>
@@ -95,7 +95,7 @@ const ApiConfiguration = ({
         />
       </div>
 
-      <div className='px-[20px] w-full min-h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
+      <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
         <Button 
           title='Cancel'
           effect={close}

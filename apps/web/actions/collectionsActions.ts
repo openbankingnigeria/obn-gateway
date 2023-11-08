@@ -6,7 +6,7 @@ import { z } from 'zod';
 export async function postConfigureAPI(prevState: any, formData: FormData) {
   const schema = z.object({
     parameters: z.string(),
-    endpoints_url: z.any()
+    endpoint_url: z.any()
   })
 
   const parsed = schema.parse({
