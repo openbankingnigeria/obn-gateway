@@ -32,7 +32,7 @@ export default function RootLayout({
               </Link>
             </div>
 
-            <main className='w-full h-full flex flex-col items-center px-[22px] ms:px-6 lg:px-8 pt-[100px] ms:pt-[170px]'>
+            <main className='w-full h-auto flex flex-col items-center px-[22px] ms:px-6 lg:px-8 pt-[100px] ms:pt-[170px]'>
               <div className='w-full mid:w-[480px] ms:w-full lg:w-[480px] h-fit flex flex-col items-center'>
                 {children}
               </div>
