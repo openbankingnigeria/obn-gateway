@@ -16,9 +16,9 @@ const ActivateDeactivateConsumer = ({
       <div className='text-o-text-medium3 text-f14'>
         {
           type == 'deactivate' ?
-            `Deactivating will immediately revoke the consumer's 
-            access to all APIs and services. 
-            This action is irreversible.`
+            `Are you sure you want to deacvtivate this consumer? 
+            Deactivating will immediately revoke the consumer's access 
+            to all APIs and services.`
             :
             `Are you sure you want to activate this previously 
             deactivated consumer? Activating will grant the 

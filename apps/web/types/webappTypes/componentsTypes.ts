@@ -1,14 +1,21 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { MouseEventHandler, ReactNode } from "react";
+import { Dispatch, MouseEventHandler, ReactNode, SetStateAction } from "react";
 import { TableProps } from "./appTypes";
 
 export interface DatePickerProps {
   containerStyle?: string;
   fieldStyle?: string;
   showShortcuts?: boolean;
+  toggleStyle?: string;
   asSingle?: boolean;
   dateFilter?: string;
+  label?: string;
+  rightIcon?: ReactNode;
+  changeValue?: Dispatch<SetStateAction<string | undefined>>;
+  labelStyle?: string;
   name?: string;
+  placeholder?: string;
+  clearField?: boolean;
   innerLabel?: string;
   popoverDirection?: '' | 'up' | 'down';
 }
@@ -143,4 +150,9 @@ export interface BooleanBoxProps {
 
 export interface TierBoxProps {
   value: any;
+}
+
+export interface DownloadButtonProps {
+  containerStyle?: string;
+  data: any[];
 }

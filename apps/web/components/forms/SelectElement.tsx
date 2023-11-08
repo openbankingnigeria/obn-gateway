@@ -1,6 +1,6 @@
 'use client'
 
-import { SelectElementProps } from '@/types/componentsTypes/forms'
+import { OptionsProps, SelectElementProps } from '@/types/componentsTypes/forms'
 import React, { useState } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai';
 import { Loader, OutsideClicker } from '../globalComponents';
@@ -21,7 +21,6 @@ const SelectElement = ({
   removeSearch,
   searchPlaceholder,
   disabledValue,
-  openUp,
   loading,
   clickerStyle,
   forFilter,
@@ -31,6 +30,7 @@ const SelectElement = ({
   optionStyle,
   invalid,
   hint,
+  multiple,
   value,
   innerLabel,
   changeValue
@@ -50,13 +50,46 @@ const SelectElement = ({
     }
   };
 
-  const getLabel = options ? 
-    options?.find(x => x?.value == value)?.label : null;
+  const getLabel = (
+    (multiple && value?.length >= 1) ?
+      value?.map((item: OptionsProps) => item?.label) : 
+      options ? 
+        options?.find(x => x?.value == value)?.label : 
+        null
+  );
 
   const handleClick = () => { 
     if (!disabled) {
       setOpen(!open); 
       // setIsFocused(true)
+    }
+  }
+
+  const handleMultiple = (selected: OptionsProps) => {
+    if (value?.some((data: OptionsProps) => data?.value == selected?.value)) {
+      let newSelected = value?.filter((item: OptionsProps) => item?.value != selected?.value);
+      // @ts-ignore
+      changeValue([...newSelected]);
+    } else {
+      // @ts-ignore
+      changeValue([...value, selected])
+    }
+  }
+
+  const handleSingle = (selectedValue: string) => {
+    changeValue && changeValue(selectedValue);
+    forFilter && handleFilter(selectedValue);
+    setOpen(false);
+    setInputValue('');
+  }
+
+  const handleSelect = (selected: OptionsProps) => {
+    if (multiple) {
+      handleMultiple(selected);
+    } else if (selected?.value?.toString()?.toLowerCase() !== value?.toString()?.toLowerCase()) {
+      handleSingle(selected?.value);
+    } else {
+      null;
     }
   }
 
@@ -88,7 +121,7 @@ const SelectElement = ({
           {leftIcon}
 
           <div
-            className={`text-f14 w-full border-none flex items-center
+            className={`text-f14 w-full whitespace-nowrap overflow-x-auto border-none flex items-center
             ${disabled ? 'text-o-text-disabled' : 'text-o-text-dark2'} capitalize outline-none bg-transparent`}
           >
             {
@@ -102,7 +135,7 @@ const SelectElement = ({
               disabledValue ? 
                 disabledValue :
                 getLabel ?
-                  getLabel :
+                  getLabel?.toString()?.replace(/,/g, ', ') :
                   <span className='text-o-text-muted'>
                     {placeholder}
                   </span>
@@ -197,28 +230,41 @@ const SelectElement = ({
                   <li
                     key={index}
                     className={`cursor-pointer px-3 py-2 my-[2px] truncate rounded-md text-f14 text-o-text-dark hover:bg-o-bg2
-                    flex-row items-center capitalize gap-[12px] ${
-                  item?.value?.toString()?.toLowerCase() === value?.toString()?.toLowerCase() &&
+                    flex-row items-center justify-between capitalize gap-[12px] ${
+                      (
+                        (Array.isArray(value) && value?.some((data: OptionsProps) => data?.value == item?.value)) ||
+                        item?.value?.toString()?.toLowerCase() === value?.toString()?.toLowerCase()
+                      ) &&
                       'bg-o-bg2'
-                  }
-                      ${
-                  item?.label?.toLowerCase()?.includes(inputValue)
-                    ? 'flex'
-                    : 'hidden'
-                  }`}
-                    onClick={() => {
-                      if (item?.value?.toString()?.toLowerCase() !== value?.toString()?.toLowerCase()) {
-                        changeValue && changeValue(item?.value);
-                        forFilter && handleFilter(item?.value);
-                        setOpen(false);
-                        setInputValue('');
-                      }
-                    }}
+                    }
+                    ${
+                      item?.label?.toLowerCase()?.includes(inputValue)
+                        ? 'flex'
+                        : 'hidden'
+                    }`}
+                    onClick={() => handleSelect(item)}
                   >
-                    {item?.icon}
-                    <span className='capitalize'>
-                      {item?.label}
-                    </span>
+                    <div className='flex w-full items-center gap-[12px]'>
+                      {item?.icon}
+                      <span className='capitalize'>
+                        {item?.label}
+                      </span>
+                    </div>
+
+                    {
+                      multiple && (
+                        (Array.isArray(value) && value?.some((data: OptionsProps) => data?.value == item?.value)) ?
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 7C3 4.79086 4.79086 3 7 3H17C19.2091 3 21 4.79086 21 7V17C21 19.2091 19.2091 21 17 21H7C4.79086 21 3 19.2091 3 17V7Z" fill="#459572"/>
+                            <path d="M8.28033 11.7756C7.98744 11.4827 7.51256 11.4827 7.21967 11.7756C6.92678 12.0685 6.92678 12.5434 7.21967 12.8363L9.94202 15.5586C10.2349 15.8515 10.7098 15.8515 11.0027 15.5586L17.447 9.11431C17.7399 8.82142 17.7399 8.34655 17.447 8.05365C17.1541 7.76076 16.6792 7.76076 16.3863 8.05365L10.4724 13.9676L8.28033 11.7756Z" fill="white"/>
+                          </svg>
+                          :
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3.5 7C3.5 5.067 5.067 3.5 7 3.5H17C18.933 3.5 20.5 5.067 20.5 7V17C20.5 18.933 18.933 20.5 17 20.5H7C5.067 20.5 3.5 18.933 3.5 17V7Z" stroke="#E6E7EB" fill='transparent'/>
+                          </svg>
+                      )
+                    }
+                    
                   </li>
                 )) 
                 : 

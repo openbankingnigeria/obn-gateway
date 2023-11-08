@@ -41,8 +41,10 @@ export interface SelectElementProps extends FieldsProps {
   options: OptionsProps[];
   innerLabel?: string;
   removeSearch?: boolean;
-  openUp?: boolean;
   clickerStyle?: string;
+  value?: any;
+  changeValue?: Dispatch<SetStateAction<any>>
+  multiple?: boolean;
   loading?: boolean;
   optionStyle?: string;
   searchPlaceholder?: string;
