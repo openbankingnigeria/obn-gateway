@@ -5,4 +5,6 @@ export const authErrors = {
   resetPasswordInvalid: 'Reset token is invalid or has expired.',
   accessTokenNotProvided:
     'You must provide an access token to access this resource.',
+  errorOccurredCreatingUser:
+    'An error occurred while signing you up. Please try again.',
 };
