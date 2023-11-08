@@ -5,9 +5,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { RolePermission } from './rolepermission.entity';
 
 @Entity({ name: 'roles' })
 export class Role {
@@ -29,6 +31,9 @@ export class Role {
 
   @Column({ name: 'parent', nullable: true, length: 36 })
   parentId: string;
+
+  @OneToMany(() => RolePermission, (permission) => permission.role)
+  'permissions'?: RolePermission[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;
