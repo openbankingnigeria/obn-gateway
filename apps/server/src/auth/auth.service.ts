@@ -63,6 +63,13 @@ export class AuthService {
       }),
     );
 
+    const userEntity = this.userRepository.create({
+      companyId: company.id,
+      email,
+      password,
+    });
+    // const user =
+
     const profile = await this.profileRepository.save(
       this.profileRepository.create({
         firstName,
@@ -70,23 +77,15 @@ export class AuthService {
         phone,
         country,
         companyRole,
+        user: await this.userRepository.save(userEntity),
       }),
     );
 
-    const userEntity = this.userRepository.create({
-      companyId: company.id,
-      email,
-      password,
-      profileId: profile.id,
-    });
-
-    const user = await this.userRepository.save(userEntity);
-
-    profile.userId = user.id as string;
+    // profile.userId = user.id as string;
 
     await this.profileRepository.save(profile);
 
-    return ResponseFormatter.success('', user);
+    return ResponseFormatter.success('');
   }
 
   async login({ email, password }: LoginDto) {

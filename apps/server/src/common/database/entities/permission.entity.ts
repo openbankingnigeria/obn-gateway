@@ -1,31 +1,27 @@
-import { CompanyTypes } from '../../../users/types';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user.entity';
 
-@Entity({ name: 'companies' })
-export class Company {
+@Entity({ name: 'permissions' })
+@Unique(['slug'])
+export class Permission {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
   @Column()
   name?: string;
 
-  @Column({
-    type: 'enum',
-    enum: CompanyTypes,
-  })
-  type: CompanyTypes;
+  @Column()
+  slug?: string;
 
-  @OneToMany(() => User, (user) => user.company)
-  users?: User[];
+  @Column()
+  description?: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

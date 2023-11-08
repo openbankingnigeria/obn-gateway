@@ -2,6 +2,7 @@ import {
   BeforeInsert,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -13,6 +14,7 @@ import {
 import { Company } from './company.entity';
 import { hash } from 'bcrypt';
 import { Profile } from './profile.entity';
+import { Role } from './role.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -27,19 +29,22 @@ export class User {
 
   @BeforeInsert()
   async beforeInsert() {
-    console.log('HERe');
     this.password = await hash(this.password, 12);
     this.email = this.email.trim().toLowerCase();
   }
 
-  // TODO This would be a relation to the role table
-  role: any;
+  @JoinColumn({ name: 'role', referencedColumnName: 'id' })
+  @ManyToOne(() => Role, { nullable: false })
+  role: Role;
+
+  @Column({ name: 'role', nullable: false, default: null, length: 36 })
+  roleId: string;
 
   @ManyToOne(() => Company, (company) => company.users)
   @JoinColumn({ name: 'company', referencedColumnName: 'id' })
   company: Company;
 
-  @Column({ name: 'company' })
+  @Column({ name: 'company', length: 36 })
   companyId: string;
 
   @OneToOne(() => Profile, (profile) => profile.user, {
@@ -48,7 +53,7 @@ export class User {
   @JoinColumn({ name: 'profile', referencedColumnName: 'id' })
   profile: Profile;
 
-  @Column({ name: 'profile' })
+  @Column({ name: 'profile', length: 36 })
   profileId: string;
 
   @Column({ name: 'reset_password_token', nullable: true })
@@ -65,4 +70,7 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt?: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime', nullable: true })
+  deletedAt?: Date | null;
 }
