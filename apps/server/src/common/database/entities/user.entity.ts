@@ -29,7 +29,6 @@ export class User {
 
   @BeforeInsert()
   async beforeInsert() {
-    console.log('HERe');
     this.password = await hash(this.password, 12);
     this.email = this.email.trim().toLowerCase();
   }

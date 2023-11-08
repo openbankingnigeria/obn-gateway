@@ -1,6 +1,9 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { SKIP_AUTH_METADATA_KEY } from './auth.decorator';
+import {
+  REQUIRED_PERMISSION_METADATA_KEY,
+  SKIP_AUTH_METADATA_KEY,
+} from './auth.decorator';
 import { IRequest } from './auth.types';
 import { IUnauthorizedException } from '../exceptions/exceptions';
 import { Auth } from './auth.helper';
@@ -8,6 +11,7 @@ import { authErrors } from 'src/common/constants/errors/auth.errors';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
+import { PERMISSIONS } from 'src/permissions/types';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -18,15 +22,21 @@ export class AuthGuard implements CanActivate {
     private readonly userRepository: Repository<User>,
   ) {}
   async canActivate(context: ExecutionContext) {
-    const request = context.switchToHttp().getRequest<IRequest>();
-
     const shouldSkipAuth = <boolean>(
       this.reflector.get(SKIP_AUTH_METADATA_KEY, context.getHandler())
     );
 
+    const requiredPermission = <PERMISSIONS>(
+      this.reflector.get(REQUIRED_PERMISSION_METADATA_KEY, context.getHandler())
+    );
+
+    console.log({ requiredPermission });
+
     if (shouldSkipAuth) {
       return true;
     }
+
+    const request = context.switchToHttp().getRequest<IRequest>();
 
     const accessToken = request.headers.authorization?.replace(/^Bearer\s/, '');
 
@@ -40,7 +50,6 @@ export class AuthGuard implements CanActivate {
     try {
       decoded = await this.auth.verify(accessToken);
     } catch (err) {
-      console.log({ err: err.name, message: err.message });
       throw new IUnauthorizedException({
         message: authErrors.invalidCredentials,
         _meta: err,
@@ -53,13 +62,31 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    const user = await this.userRepository.findOneBy({
-      id: decoded.id,
+    const user = await this.userRepository.findOne({
+      where: {
+        id: decoded.id,
+      },
+      relations: {
+        role: {
+          permissions: true,
+        },
+      },
     });
 
     if (!user) {
       throw new IUnauthorizedException({
         message: authErrors.invalidCredentials,
+      });
+    }
+
+    if (
+      requiredPermission &&
+      !user.role.permissions.some(
+        (permission) => permission.permission?.slug === requiredPermission,
+      )
+    ) {
+      throw new IUnauthorizedException({
+        message: authErrors.inadequatePermissions,
       });
     }
 
