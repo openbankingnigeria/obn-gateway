@@ -32,7 +32,7 @@ export class User {
   @Column({ name: 'role', nullable: false, default: null, length: 36 })
   roleId: string;
 
-  @ManyToOne(() => Company, (company) => company.users)
+  @ManyToOne(() => Company, (company) => company.users, { cascade: ['insert'] })
   @JoinColumn({ name: 'company', referencedColumnName: 'id' })
   company: Company;
 
@@ -42,11 +42,7 @@ export class User {
   @OneToOne(() => Profile, (profile) => profile.user, {
     cascade: true,
   })
-  @JoinColumn({ name: 'profile', referencedColumnName: 'id' })
   profile: Profile;
-
-  @Column({ name: 'profile', length: 36, nullable: true })
-  profileId?: string;
 
   @Column({ name: 'reset_password_token', nullable: true })
   resetPasswordToken?: string;

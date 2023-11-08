@@ -129,12 +129,6 @@ export class AuthService {
           _meta: result[0].reason,
         });
       }
-
-      if (user) {
-        user.profileId = profile?.id;
-
-        await this.userRepository.save(user);
-      }
     }
 
     return ResponseFormatter.success('', { ...user, profile, company });
