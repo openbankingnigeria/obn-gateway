@@ -57,7 +57,6 @@ export class AuthController {
   @Patch('password/change')
   @UsePipes(ValidationPipe)
   changePassword(@Body() data: ResetPasswordDto, @Req() { user }: IRequest) {
-    console.log({ user });
-    return this.authService.resetPassword(data, user);
+    return this.authService.resetPassword(data, user!);
   }
 }

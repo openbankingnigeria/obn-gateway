@@ -15,6 +15,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './common/database/entities';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { User } from './common/database/entities';
     TypeOrmModule.forFeature([User]),
     AuthModule,
     UsersModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [
