@@ -36,7 +36,7 @@ export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
 
   if (nodeEnv !== 'production') {
     errorResponse.stack = (exception as any).stack;
-    errorResponse._meta = (exception as any)?.getResponse()?._meta;
+    errorResponse._meta = (exception as any)?.getResponse?.()?._meta;
   }
 
   return errorResponse;

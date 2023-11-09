@@ -18,9 +18,9 @@ import { RolePermission } from 'src/common/database/entities/rolepermission.enti
 @Injectable()
 export class RolesService {
   constructor(
+    private readonly requestContext: RequestContextService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
-    private readonly requestContext: RequestContextService,
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
     @InjectRepository(RolePermission)
