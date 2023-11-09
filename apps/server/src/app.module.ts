@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './common/database/entities';
 import { RolesModule } from './roles/roles.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { RolesModule } from './roles/roles.module';
     AuthModule,
     UsersModule,
     RolesModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [
