@@ -97,8 +97,8 @@ services:
     image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-my_database}
-      MYSQL_USER: ${MYSQL_USER:-user}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-obn}
+      MYSQL_USER: ${MYSQL_USER:-obn}
       MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
     secrets:
       - mysql_password
@@ -120,8 +120,23 @@ services:
 
   server:
     build: ./apps/server
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-mysql}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-obn}
+      DATABASE_PASSWORD_FILE: /run/secrets/mysql_password
+      DATABASE_NAME: ${DATABASE_NAME:-obn}
+      DATABASE_PORT: 3306
+      DATABASE_TYPE: mysql
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      NODE_ENV: ${NODE_ENV:-production}
+    secrets:
+      - mysql_password
+      - jwt_secret
     ports:
       - "4000:4000"
+    depends_on:
+      mysql:
+        condition: service_healthy
 
 secrets:
   kong_postgres_password:
@@ -130,3 +145,5 @@ secrets:
     file: ./config/MYSQL_ROOT_PASSWORD
   mysql_password:
     file: ./config/MYSQL_PASSWORD
+  jwt_secret:
+    file: ./config/JWT_SECRET
