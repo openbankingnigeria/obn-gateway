@@ -5,10 +5,14 @@ export const globalConfig = () => ({
   },
   database: {
     type: process.env.DATABASE_TYPE || 'mysql',
-    host: parseInt(process.env.DATABASE_HOST as string, 10) || 3306,
-    port: process.env.DATABASE_PORT,
+    host: process.env.DATABASE_HOST,
+    port: parseInt(process.env.DATABASE_PORT as string, 10) || 3306,
     username: process.env.DATABASE_USERNAME,
     password: process.env.DATABASE_PASSWORD,
     name: process.env.DATABASE_NAME,
+  },
+  auth: {
+    jwtExpires: process.env.JWT_EXPIRES || '15m',
+    jwtSecret: process.env.JWT_SECRET,
   },
 });

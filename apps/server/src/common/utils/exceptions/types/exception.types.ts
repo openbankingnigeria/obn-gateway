@@ -5,4 +5,5 @@ export interface ErrorResponse {
   name?: string;
   stack?: any;
   message?: string;
+  _meta?: any;
 }

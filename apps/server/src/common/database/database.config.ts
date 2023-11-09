@@ -11,8 +11,11 @@ export const getDatabaseConfig: (
     username: config.get('database.username') as string,
     password: config.get('database.password') as string,
     database: config.get('database.name') as string,
-    entities: [],
+    entities: [__dirname + '/**/*.entity{.ts,.js}'],
     synchronize:
+      config.get<'development' | 'production'>('server.nodeEnv') ===
+      'development',
+    logging:
       config.get<'development' | 'production'>('server.nodeEnv') ===
       'development',
   };
