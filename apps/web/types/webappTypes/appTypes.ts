@@ -157,3 +157,26 @@ export interface RolesMemberCardProps {
   member: MemberCardProps;
   changeMembers?: Dispatch<SetStateAction<MemberCardProps[]>>;
 }
+
+export interface HeadersProps {
+  id: number;
+  name: string;
+  value: string;
+}
+
+export interface HostsProps {
+  id: number;
+  value: string;
+}
+
+export interface SnisProps {
+  id: number;
+  value: string;
+}
+
+export interface APIConfigurationContainerProps {
+  data: any[];
+  handleInputChange: (value: string, obj: any, key: any, type: string) => void;
+  handleRemove: (type: string, value: string | number) => void;
+  handleAdd: (type: string) => void;
+}

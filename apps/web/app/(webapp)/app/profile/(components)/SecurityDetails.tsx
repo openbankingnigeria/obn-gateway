@@ -113,7 +113,7 @@ const SecurityDetails = ({
           </div>
 
           <Button 
-            title='Saves changes'
+            title='Save changes'
             disabled
             small
           />

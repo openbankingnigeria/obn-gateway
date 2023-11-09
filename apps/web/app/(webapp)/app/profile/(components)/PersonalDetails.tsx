@@ -20,7 +20,7 @@ const PersonalDetails = () => {
         </div>
 
         <Button 
-          title='Saves changes'
+          title='Save changes'
           type='submit'
           disabled
           small

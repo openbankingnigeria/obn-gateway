@@ -5,11 +5,12 @@ import { RequestMethodText } from '@/app/(webapp)/(components)'
 import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
-import { ApiConfigurationProps } from '@/types/webappTypes/appTypes'
+import { ApiConfigurationProps, HeadersProps, HostsProps, SnisProps } from '@/types/webappTypes/appTypes'
 import React, { useState } from 'react'
 // @ts-ignore
 import { experimental_useFormState as useFormState } from 'react-dom'
 import { toast } from 'react-toastify'
+import { HeadersContainer, HostsContainer, SnisContainer } from '.'
 
 const ModifyApiConfiguration = ({
   close,
@@ -18,6 +19,9 @@ const ModifyApiConfiguration = ({
 }: ApiConfigurationProps) => {
   const [endpoint_url, setEndpointUrl] = useState('https://api.lendsqr.com/account_balance');
   const [parameters, setParameters] = useState('user_id, account_id');
+  const [snis, setSnis] = useState<SnisProps[]>([]);
+  const [hosts, setHost] = useState<HostsProps[]>([]);
+  const [headers, setHeaders] = useState<HeadersProps[]>([]);
 
   const incorrect = !endpoint_url;
 
@@ -32,6 +36,69 @@ const ModifyApiConfiguration = ({
   } else {
     toast.error(state?.message);
   }
+
+  const handleRemove = (type: string, value: string | number) => {
+    type == 'hosts' ?
+      setHost([...hosts].filter((item) => item.id !== value)) :
+      type == 'snis' ?
+        setSnis([...snis].filter((item) => item.id !== value)) :
+        setHeaders([...headers].filter((item) => item.id !== value));
+  };
+
+  const handleInputChange = (value: string, obj: any, key: any, type: string) => {
+    if (type == 'hosts') {
+      const [oldHosts] = hosts.filter((host) => host == obj);
+      // @ts-ignore
+      oldHosts[key] = value;
+  
+      const newHosts = hosts;
+      newHosts[hosts.indexOf(obj)] = oldHosts;
+      setHost([...newHosts]);
+    } else if (type == 'snis') {
+      const [oldSnis] = snis.filter((sni) => sni == obj);
+      // @ts-ignore
+      oldSnis[key] = value;
+  
+      const newSnis = snis;
+      newSnis[snis.indexOf(obj)] = oldSnis;
+      setSnis([...newSnis]);
+    } else {
+      const [oldHeaders] = headers.filter((host) => host == obj);
+      // @ts-ignore
+      oldHeaders[key] = value;
+  
+      const newHeaders = headers;
+      newHeaders[headers.indexOf(obj)] = oldHeaders;
+      setHeaders([...newHeaders]);
+    }
+  }
+
+  const handleAdd = (type: string) => {
+    type == 'hosts' ?
+      setHost(prev => [
+        ...prev,
+        {
+          id: prev?.length,
+          value: ''
+        } 
+      ]) :
+      type == 'snis' ?
+        setSnis(prev => [
+          ...prev,
+          {
+            id: prev?.length,
+            value: ''
+          } 
+        ]) :
+        setHeaders(prev => [
+          ...prev, 
+          {
+            id: prev?.length,
+            name: '',
+            value: ''
+          }
+        ])
+  };
 
   return (
     <form
@@ -83,23 +150,54 @@ const ModifyApiConfiguration = ({
           </div>
         </section>
 
-        <InputElement 
-          name='endpoint_url'
-          placeholder='https://api.example.com/api_name'
-          label='Endpoint URL'
-          value={endpoint_url}
-          changeValue={setEndpointUrl}
-          required
-        />
+        <div className='w-full border-b border-o-border pb-[16px]'>
+          <InputElement 
+            name='endpoint_url'
+            placeholder='https://api.example.com/api_name'
+            label='Endpoint URL'
+            value={endpoint_url}
+            changeValue={setEndpointUrl}
+            required
+          />
+        </div>
 
-        <TextareaElement
-          name='parameters'
-          rows={3}
-          value={parameters}
-          changeValue={setParameters}
-          placeholder=''
-          label='Parameters (if any)'
-        />
+        <div className='w-full border-b border-o-border pb-[16px]'>
+          <TextareaElement
+            name='parameters'
+            rows={3}
+            value={parameters}
+            changeValue={setParameters}
+            placeholder=''
+            label='Parameters (if any)'
+          />
+        </div>
+
+        <div className='w-full border-b border-o-border flex flex-col gap-[12px] pb-[16px]'>
+          <SnisContainer 
+            data={snis}
+            handleInputChange={handleInputChange}
+            handleRemove={handleRemove}
+            handleAdd={handleAdd}
+          />
+        </div>
+
+        <div className='w-full border-b border-o-border flex flex-col gap-[12px] pb-[16px]'>
+          <HostsContainer 
+            data={hosts}
+            handleInputChange={handleInputChange}
+            handleRemove={handleRemove}
+            handleAdd={handleAdd}
+          />
+        </div>
+
+        <div className='w-full pb-[16px] flex flex-col gap-[12px]'>
+          <HeadersContainer 
+            data={headers}
+            handleInputChange={handleInputChange}
+            handleRemove={handleRemove}
+            handleAdd={handleAdd}
+          />
+        </div>
       </div>
 
       <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
