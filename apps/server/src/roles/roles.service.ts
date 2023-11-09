@@ -1,7 +1,8 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from 'src/common/database/entities';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
+import slugify from 'slugify';
 import {
   CreateRoleDto,
   SetRolePermissionsDto,
@@ -11,13 +12,19 @@ import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { roleErrors } from 'src/common/constants/errors/role.errors';
 import { ResponseFormatter } from 'src/common/utils/common/response.util';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
+import { Permission } from 'src/common/database/entities/permission.entity';
+import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class RolesService {
   constructor(
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly requestContext: RequestContextService,
+    @InjectRepository(Permission)
+    private readonly permissionRepository: Repository<Permission>,
+    @InjectRepository(RolePermission)
+    private readonly rolePermissionRepository: Repository<RolePermission>,
   ) {}
 
   async createRole(data: CreateRoleDto) {
@@ -38,8 +45,10 @@ export class RolesService {
     const role = await this.roleRepository.save(
       this.roleRepository.create({
         name,
+        slug: slugify(name, { lower: true, strict: true }),
         description,
         status,
+        parentId: this.requestContext.user!.role.parentId,
       }),
     );
 
@@ -47,13 +56,15 @@ export class RolesService {
   }
 
   async listRoles() {
-    const roles = await this.roleRepository.find({});
+    const roles = await this.roleRepository.find({
+      where: { parentId: this.requestContext.user!.role.parentId },
+    });
     return ResponseFormatter.success('', roles);
   }
 
   async getRole(id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id },
+      where: { id, parentId: this.requestContext.user!.role.parentId },
     });
 
     if (!role) {
@@ -67,7 +78,7 @@ export class RolesService {
 
   async updateRole(id: string, data: UpdateRoleDto) {
     const role = await this.roleRepository.findOne({
-      where: { id },
+      where: { id, parentId: this.requestContext.user!.role.parentId },
       // TODO update role by company
     });
 
@@ -92,7 +103,7 @@ export class RolesService {
 
   async deleteRole(id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id },
+      where: { id, parentId: this.requestContext.user!.role.parentId },
       // TODO delete role by company
     });
 
@@ -109,8 +120,8 @@ export class RolesService {
 
   async getRolePermissions(id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id },
-      relations: { permissions: true },
+      where: { id, parentId: this.requestContext.user!.role.parentId },
+      relations: { permissions: { permission: true } },
     });
 
     if (!role) {
@@ -126,6 +137,37 @@ export class RolesService {
     id: string,
     permissions: SetRolePermissionsDto['permissions'],
   ) {
-    console.log({ id, permissions }, this.requestContext.user);
+    const role = await this.roleRepository.findOne({
+      where: { id, parentId: this.requestContext.user!.role.parentId },
+      relations: { permissions: true },
+    });
+
+    if (!role) {
+      throw new IBadRequestException({
+        message: roleErrors.roleNotFound,
+      });
+    }
+
+    await this.rolePermissionRepository.softDelete({
+      permissionId: Not(In(permissions)),
+      roleId: role.id,
+    });
+
+    const newPermissions = permissions.filter((permission) => {
+      return !role.permissions.find(
+        (rolePermission) => rolePermission.permissionId === permission,
+      );
+    });
+
+    await this.rolePermissionRepository.insert(
+      newPermissions.map((permissionId) => ({ roleId: role.id, permissionId })),
+    );
+
+    return ResponseFormatter.success('');
+  }
+
+  async getPermissions() {
+    const permissions = await this.permissionRepository.find({});
+    return ResponseFormatter.success('', permissions);
   }
 }

@@ -10,7 +10,7 @@ import { Auth } from './auth.helper';
 import { authErrors } from 'src/common/constants/errors/auth.errors';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/common/database/entities';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { PERMISSIONS } from 'src/permissions/types';
 
 @Injectable()
@@ -63,6 +63,7 @@ export class AuthGuard implements CanActivate {
     const user = await this.userRepository.findOne({
       where: {
         id: decoded.id,
+        role: { parentId: Not(IsNull()) },
       },
       relations: {
         role: {

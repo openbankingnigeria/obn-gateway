@@ -15,6 +15,9 @@ export const getDatabaseConfig: (
     synchronize:
       config.get<'development' | 'production'>('server.nodeEnv') ===
       'development',
+    logging:
+      config.get<'development' | 'production'>('server.nodeEnv') ===
+      'development',
   };
 
   return options;

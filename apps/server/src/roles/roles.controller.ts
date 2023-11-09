@@ -29,6 +29,12 @@ export class RolesController {
     return this.rolesService.listRoles();
   }
 
+  @Get('permissions')
+  @UsePipes(ValidationPipe)
+  getPermissions() {
+    return this.rolesService.getPermissions();
+  }
+
   @Get(':id')
   @UsePipes(ValidationPipe)
   getRole(@Param('id') id: string) {

@@ -68,7 +68,8 @@ export class AuthService {
 
     const apiConsumerRole = await this.roleRepository.findOne({
       where: {
-        slug: ROLES.API_CONSUMER,
+        slug: ROLES.ADMIN,
+        parent: { slug: ROLES.API_CONSUMER },
       },
       select: {
         id: true,

@@ -27,6 +27,5 @@ export class UpdateRoleDto {
 export class SetRolePermissionsDto {
   @IsArray()
   @IsString({ each: true })
-  @ArrayMinSize(1)
   permissions: string[];
 }
