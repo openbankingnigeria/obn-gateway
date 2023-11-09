@@ -125,15 +125,16 @@ services:
       DATABASE_USERNAME: ${DATABASE_USERNAME:-obn}
       DATABASE_PASSWORD_FILE: /run/secrets/mysql_password
       DATABASE_NAME: ${DATABASE_NAME:-obn}
-      DATABASE_PORT: 3306
+      DATABASE_PORT: ${DATABASE_PORT:-3306}
       DATABASE_TYPE: mysql
       JWT_SECRET_FILE: /run/secrets/jwt_secret
       NODE_ENV: ${NODE_ENV:-production}
+      SERVER_PORT: ${SERVER_PORT:-4000}
     secrets:
       - mysql_password
       - jwt_secret
     ports:
-      - "4000:4000"
+      - ${SERVER_PORT:-4000}:${SERVER_PORT:-4000}
     depends_on:
       mysql:
         condition: service_healthy
