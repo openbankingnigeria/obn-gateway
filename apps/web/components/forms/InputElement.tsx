@@ -20,6 +20,7 @@ const InputElement = ({
   showGuide,
   disabled,
   changeEvent,
+  autoFocus,
   containerStyle,
   labelStyle,
   fieldStyle,
@@ -80,6 +81,7 @@ const InputElement = ({
           type={type ? (!showPass ? 'text' : type) : 'text'}
           maxLength={maxLength || 100}
           name={name}
+          autoFocus={autoFocus}
           value={value}
           onChange={(e) => handleChange(e)}
           onFocus={() => setIsFocused(true)}

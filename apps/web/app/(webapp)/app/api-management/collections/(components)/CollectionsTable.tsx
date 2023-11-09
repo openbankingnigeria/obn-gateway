@@ -31,6 +31,10 @@ const CollectionsTable = ({
     )
   })
 
+  const handleRedirect = (id: string) => {
+    return `/app/api-management/collections/${id}`;
+  }
+
   return (
     <div className='w-full h-full'>
       {
@@ -41,6 +45,8 @@ const CollectionsTable = ({
             actionColumn={actionColumn}
             removePagination
             filters={filters}
+            redirect={(value: string) => handleRedirect(value)}
+            module='collections'
             totalElementsInPage={totalElementsInPage}
             rows={rows}
             page={page}

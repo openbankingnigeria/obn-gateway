@@ -16,7 +16,7 @@ export default function RootLayout({
       <div className='max-w-full ms:w-[calc(100%-9px)] flex h-full overflow-x-hidden bg-white overflow-y-auto flex-row items-start'>
         <section className='w-full ms:w-[60%] h-screen bg-white'>
           <div className='w-full h-full flex flex-col'>
-            <div className='block px-[22px] ms:px-6 lg:px-8 w-[calc(100%-7px)] py-5 left-0 ms:py-8 bg-white top-0 z-[70] absolute'>
+            <div className='block px-[22px] ms:px-6 lg:px-8 w-[calc(100%-7px)] py-5 left-0 ms:py-8 ms:!pb-4 bg-white top-0 z-[70] absolute'>
               <Link
                 className='inline cursor-pointer'
                 href='/'
@@ -32,7 +32,7 @@ export default function RootLayout({
               </Link>
             </div>
 
-            <main className='w-full h-auto flex flex-col items-center px-[22px] ms:px-6 lg:px-8 pt-[100px] ms:pt-[170px]'>
+            <main className='w-full h-auto flex flex-col items-center px-[22px] ms:px-6 lg:px-8 pt-[100px] ms:pt-[130px]'>
               <div className='w-full mid:w-[480px] ms:w-full lg:w-[480px] h-fit flex flex-col items-center'>
                 {children}
               </div>

@@ -31,6 +31,10 @@ const ConsentsTable = ({
     )
   })
 
+  const handleRedirect = (id: string) => {
+    return `/app/reporting/consents/${id}`;
+  }
+
   return (
     <>
       {
@@ -40,6 +44,8 @@ const ConsentsTable = ({
             rawData={rawData}
             actionColumn={actionColumn}
             filters={filters}
+            redirect={(value: string) => handleRedirect(value)}
+            module='consents'
             totalElementsInPage={totalElementsInPage}
             rows={rows}
             page={page}
