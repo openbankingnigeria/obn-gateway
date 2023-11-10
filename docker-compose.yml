@@ -136,6 +136,9 @@ services:
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_SECURE: ${EMAIL_SECURE}
       EMAIL_FROM: ${EMAIL_FROM}
+      COMPANY_EMAIL: ${COMPANY_EMAIL:?COMPANY_EMAIL is required}
+      COMPANY_NAME: ${COMPANY_NAME:?COMPANY_NAME is required}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD is required}
     secrets:
       - mysql_password
       - jwt_secret
