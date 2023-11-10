@@ -13,6 +13,7 @@ import {
   ForgotPasswordDto,
   LoginDto,
   ResetPasswordDto,
+  SetupDto,
   SignupDto,
 } from './dto/index.dto';
 import { SkipAuthGuard } from 'src/common/utils/authentication/auth.decorator';
@@ -58,5 +59,12 @@ export class AuthController {
   @UsePipes(ValidationPipe)
   changePassword(@Body() data: ResetPasswordDto, @Req() { user }: IRequest) {
     return this.authService.resetPassword(data, user!);
+  }
+
+  @Post('setup/:token')
+  @SkipAuthGuard()
+  @UsePipes(ValidationPipe)
+  setup(@Body() data: SetupDto, @Param('token') token: string) {
+    return this.authService.setup(data, token);
   }
 }

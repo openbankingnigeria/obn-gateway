@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company, Profile, User } from 'src/common/database/entities';
 import { Repository, MoreThan } from 'typeorm';
-import { LoginDto, ResetPasswordDto, SignupDto } from './dto/index.dto';
+import {
+  LoginDto,
+  ResetPasswordDto,
+  SetupDto,
+  SignupDto,
+} from './dto/index.dto';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { userErrors } from 'src/common/constants/errors/user.errors';
 import {
@@ -13,7 +18,6 @@ import { compareSync, hashSync } from 'bcrypt';
 import { authErrors } from 'src/common/constants/errors/auth.errors';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
-import { createHash } from 'crypto';
 import { Role } from 'src/common/database/entities/role.entity';
 import { ROLES } from 'src/roles/types';
 
@@ -168,8 +172,8 @@ export class AuthService {
       });
     }
 
-    const { hashedResetToken, resetToken } =
-      await this.auth.getResetPasswordToken();
+    const resetToken = await this.auth.getToken();
+    const hashedResetToken = await this.auth.hashToken(resetToken);
 
     await this.userRepository.update(
       { id: user.id },
@@ -179,10 +183,7 @@ export class AuthService {
       },
     );
 
-    return ResponseFormatter.success(
-      `Reset password email sent to ${email}`,
-      resetToken,
-    );
+    return ResponseFormatter.success(`Reset password email sent to ${email}`);
   }
 
   async resetPassword(
@@ -201,12 +202,8 @@ export class AuthService {
       userOrToken instanceof User ? userOrToken : null;
 
     if (!userToUpdate) {
-      const resetPasswordToken = createHash('sha256')
-        .update(userOrToken)
-        .digest('hex');
-
       userToUpdate = await this.userRepository.findOneBy({
-        resetPasswordToken,
+        resetPasswordToken: await this.auth.hashToken(userOrToken),
         resetPasswordExpires: MoreThan(moment().toDate()),
       });
 
@@ -238,5 +235,48 @@ export class AuthService {
         ? 'Your password has been successfully changed.'
         : 'Your password has been successfully reset. Please proceed to login.',
     );
+  }
+
+  async setup(data: SetupDto, token: string) {
+    const { firstName, lastName, password, confirmPassword } = data;
+
+    if (password !== confirmPassword) {
+      throw new IBadRequestException({
+        message: authErrors.passwordMismatch,
+      });
+    }
+
+    const user = await this.userRepository.findOneBy({
+      resetPasswordToken: await this.auth.hashToken(token),
+      resetPasswordExpires: MoreThan(moment().toDate()),
+    });
+
+    if (!user) {
+      throw new IBadRequestException({
+        message: userErrors.userNotFound,
+      });
+    }
+
+    await this.userRepository.update(
+      { id: user.id },
+      {
+        resetPasswordToken: null as any,
+        resetPasswordExpires: null as any,
+        password: hashSync(password, 12),
+        lastPasswordChange: moment().toDate(),
+      },
+    );
+
+    await this.profileRepository.update(
+      {
+        userId: user.id,
+      },
+      {
+        firstName,
+        lastName,
+      },
+    );
+
+    return ResponseFormatter.success('');
   }
 }

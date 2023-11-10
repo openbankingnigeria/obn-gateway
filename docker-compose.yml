@@ -135,6 +135,7 @@ services:
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_SECURE: ${EMAIL_SECURE}
+      EMAIL_FROM: ${EMAIL_FROM}
     secrets:
       - mysql_password
       - jwt_secret

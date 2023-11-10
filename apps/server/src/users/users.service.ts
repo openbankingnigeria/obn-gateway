@@ -15,6 +15,8 @@ import {
   UserDeletedEvent,
   UserUpdatedEvent,
 } from 'src/shared/events/user.event';
+import { Auth } from 'src/common/utils/authentication/auth.helper';
+import * as moment from 'moment';
 
 @Injectable()
 export class UsersService {
@@ -25,6 +27,7 @@ export class UsersService {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly auth: Auth,
   ) {}
 
   async createUser(data: CreateUserDto) {
@@ -51,12 +54,17 @@ export class UsersService {
       });
     }
 
+    const resetToken = await this.auth.getToken();
+    const hashedResetToken = await this.auth.hashToken(resetToken);
+
     const user = await this.userRepository.save(
       this.userRepository.create({
         email,
         roleId,
         password: '',
         companyId: this.requestContext.user!.companyId,
+        resetPasswordToken: hashedResetToken,
+        resetPasswordExpires: moment().add(24, 'hours').toDate(),
         profile: {
           firstName,
           lastName,
@@ -66,7 +74,7 @@ export class UsersService {
 
     this.eventEmitter.emit(
       USER_EVENTS.USER_CREATED,
-      new UserCreatedEvent(user),
+      new UserCreatedEvent(user, resetToken),
     );
 
     return ResponseFormatter.success('', user);

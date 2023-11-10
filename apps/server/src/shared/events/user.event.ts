@@ -7,7 +7,10 @@ export enum USER_EVENTS {
 }
 
 export class UserCreatedEvent {
-  constructor(public readonly user: User) {}
+  constructor(
+    public readonly user: User,
+    public readonly token: string,
+  ) {}
 }
 
 export class UserUpdatedEvent {

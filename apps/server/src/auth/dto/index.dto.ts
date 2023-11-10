@@ -1,4 +1,10 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  IsStrongPassword,
+} from 'class-validator';
 import { CompanyRoles, CompanyTypes } from 'src/users/types';
 
 export class ForgotPasswordDto {
@@ -10,10 +16,12 @@ export class ForgotPasswordDto {
 
 export class ResetPasswordDto {
   @IsNotEmpty()
+  @IsStrongPassword()
   @IsString()
   password: string;
 
   @IsNotEmpty()
+  @IsStrongPassword()
   @IsString()
   confirmPassword: string;
 }
@@ -30,6 +38,7 @@ export class SignupDto extends LoginDto {
   firstName: string;
 
   @IsNotEmpty()
+  @IsStrongPassword()
   @IsString()
   confirmPassword: string;
 
@@ -58,4 +67,24 @@ export class SignupDto extends LoginDto {
   @IsString()
   @IsEnum(CompanyRoles)
   companyRole: CompanyRoles;
+}
+
+export class SetupDto {
+  @IsNotEmpty()
+  @IsString()
+  firstName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  lastName: string;
+
+  @IsNotEmpty()
+  @IsStrongPassword()
+  @IsString()
+  password: string;
+
+  @IsNotEmpty()
+  @IsStrongPassword()
+  @IsString()
+  confirmPassword: string;
 }

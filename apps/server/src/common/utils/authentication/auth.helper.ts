@@ -44,14 +44,11 @@ export class Auth {
     return decoded;
   }
 
-  async getResetPasswordToken() {
-    // Generate token
-    const resetToken = randomBytes(20).toString('hex');
+  async getToken() {
+    return randomBytes(20).toString('hex');
+  }
 
-    const hashedResetToken = createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
-
-    return { resetToken, hashedResetToken };
+  async hashToken(token: string) {
+    return createHash('sha256').update(token).digest('hex');
   }
 }

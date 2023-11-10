@@ -1,6 +1,10 @@
 import * as fs from 'fs';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
-export const globalConfig = () => ({
+export const globalConfig = (): {
+  [k: string]: any;
+  email: SMTPTransport.Options;
+} => ({
   server: {
     port: parseInt(process.env.SERVER_PORT as string, 10) || 8080,
     nodeEnv: process.env.NODE_ENV || 'development',
@@ -22,5 +26,15 @@ export const globalConfig = () => ({
       (process.env.JWT_SECRET_FILE
         ? fs.readFileSync(process.env.JWT_SECRET_FILE)
         : undefined) || process.env.JWT_SECRET,
+  },
+  email: {
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT!),
+    secure: process.env.EMAIL_SECURE === 'true',
+    from: process.env.EMAIL_FROM,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
   },
 });
