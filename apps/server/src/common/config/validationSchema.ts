@@ -13,6 +13,12 @@ export const validationSchema = Joi.object({
   JWT_EXPIRES: Joi.string().optional(),
   JWT_SECRET: Joi.string().optional(),
   JWT_SECRET_FILE: Joi.string().optional(),
+  EMAIL_HOST: Joi.string().domain(),
+  EMAIL_PORT: Joi.number(),
+  EMAIL_PASSWORD: Joi.string(),
+  EMAIL_USER: Joi.string(),
+  EMAIL_SECURE: Joi.boolean(),
+  EMAIL_FROM: Joi.string(),
 })
   .xor('DATABASE_PASSWORD', 'DATABASE_PASSWORD_FILE')
   .xor('JWT_SECRET', 'JWT_SECRET_FILE');

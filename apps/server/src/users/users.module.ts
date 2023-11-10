@@ -4,10 +4,12 @@ import { UsersController } from './users.controller';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Role, User } from 'src/common/database/entities';
+import { Auth } from 'src/common/utils/authentication/auth.helper';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [UsersController],
-  providers: [UsersService, RequestContextService],
+  providers: [UsersService, RequestContextService, Auth, JwtService],
   imports: [TypeOrmModule.forFeature([User, Role])],
 })
 export class UsersModule {}

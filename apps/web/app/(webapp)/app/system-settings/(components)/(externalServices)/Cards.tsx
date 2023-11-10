@@ -60,7 +60,7 @@ const Cards = () => {
         </div>
 
         <Button 
-          title='Saves changes'
+          title='Save changes'
           type='submit'
           containerStyle='!w-[120px]'
           disabled={incorrect || !isChanged}

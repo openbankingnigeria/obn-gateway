@@ -86,6 +86,8 @@ export interface TabelElmentProps extends TableProps {
   actionColumn?: ColumnDef<any, any>;
   thStyle?: string;
   tdStyle?: string;
+  module?: string;
+  redirect?: (value: string) => string;
 }
 
 export interface TwoFactorAuthModalProps {

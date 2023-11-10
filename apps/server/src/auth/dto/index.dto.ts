@@ -4,6 +4,7 @@ import {
   IsMobilePhone,
   IsNotEmpty,
   IsString,
+  IsStrongPassword,
   Matches,
   MinLength,
 } from 'class-validator';
@@ -12,6 +13,14 @@ import {
   authValidationErrors,
 } from 'src/common/constants/auth/auth.config';
 import { CompanyRoles, CompanyTypes } from 'src/users/types';
+
+const passwordConfig = {
+  minLength: authConfig.minPasswordLength,
+  minLowercase: authConfig.minPasswordLowercase,
+  minNumbers: authConfig.minPasswordNumber,
+  minSymbols: authConfig.minPasswordSpecialCharacter,
+  minUppercase: authConfig.minPasswordUppercase,
+};
 
 export class ForgotPasswordDto {
   @IsNotEmpty({
@@ -26,21 +35,21 @@ export class ResetPasswordDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
-  @IsString()
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+  @IsStrongPassword(passwordConfig, {
     message: ({ property }) =>
-      authValidationErrors.dto.passwordStructureMismatch(property),
+      authValidationErrors.dto.passwordStrengthMismatch(property),
   })
+  @IsString()
   password: string;
 
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: ({ property }) =>
-      authValidationErrors.dto.passwordStructureMismatch(property),
-  })
   @IsString()
+  @IsStrongPassword(passwordConfig, {
+    message: ({ property }) =>
+      authValidationErrors.dto.passwordStrengthMismatch(property),
+  })
   confirmPassword: string;
 }
 
@@ -49,9 +58,9 @@ export class LoginDto extends ForgotPasswordDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+  @IsStrongPassword(passwordConfig, {
     message: ({ property }) =>
-      authValidationErrors.dto.passwordStructureMismatch(property),
+      authValidationErrors.dto.passwordStrengthMismatch(property),
   })
   password: string;
 }
@@ -77,11 +86,11 @@ export class SignupDto extends LoginDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
-  @IsString()
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+  @IsStrongPassword(passwordConfig, {
     message: ({ property }) =>
-      authValidationErrors.dto.passwordStructureMismatch(property),
+      authValidationErrors.dto.passwordStrengthMismatch(property),
   })
+  @IsString()
   confirmPassword: string;
 
   @IsNotEmpty({
@@ -135,4 +144,38 @@ export class SignupDto extends LoginDto {
   @IsString()
   @IsEnum(CompanyRoles)
   companyRole: CompanyRoles;
+}
+
+export class SetupDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  firstName: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  lastName: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsStrongPassword(passwordConfig, {
+    message: ({ property }) =>
+      authValidationErrors.dto.passwordStrengthMismatch(property),
+  })
+  @IsString()
+  password: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsStrongPassword(passwordConfig, {
+    message: ({ property }) =>
+      authValidationErrors.dto.passwordStrengthMismatch(property),
+  })
+  @IsString()
+  confirmPassword: string;
 }

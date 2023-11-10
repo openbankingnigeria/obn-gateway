@@ -23,6 +23,7 @@ export interface FieldsProps {
 export interface InputElementProps extends FieldsProps {
   type?: string;
   maxLength?: number;
+  autoFocus?: boolean;
   autoComplete?: string;
   showGuide?: boolean;
 }

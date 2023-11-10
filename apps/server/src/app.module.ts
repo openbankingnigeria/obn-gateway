@@ -3,6 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { JwtService } from '@nestjs/jwt';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validationSchema } from './common/config/validationSchema';
@@ -11,12 +14,12 @@ import { GlobalExceptionFilter } from './common/utils/exceptions/exception.filte
 import { getDatabaseConfig } from './common/database/database.config';
 import { AuthGuard } from './common/utils/authentication/auth.guard';
 import { Auth } from './common/utils/authentication/auth.helper';
-import { JwtService } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './common/database/entities';
 import { RolesModule } from './roles/roles.module';
 import { ProfileModule } from './profile/profile.module';
+import { EmailService } from './shared/email/email.service';
 
 @Module({
   imports: [
@@ -45,6 +48,7 @@ import { ProfileModule } from './profile/profile.module';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User]),
+    EventEmitterModule.forRoot(),
     AuthModule,
     UsersModule,
     RolesModule,
@@ -63,6 +67,7 @@ import { ProfileModule } from './profile/profile.module';
       useClass: AuthGuard,
     },
     AppService,
+    EmailService,
   ],
 })
 export class AppModule {}

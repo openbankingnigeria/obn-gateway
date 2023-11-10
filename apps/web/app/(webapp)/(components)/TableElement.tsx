@@ -11,6 +11,7 @@ import { TabelElmentProps } from '@/types/webappTypes/componentsTypes'
 import { ConfigurationBox, RequestMethodText, StatusBox, TablePagination, TierBox } from '.'
 import { timestampFormatter } from '@/utils/timestampFormatter'
 import BooleanBox from './BooleanBox'
+import { useRouter } from 'next/navigation'
 
 const TableElement = ({
   tableHeaders,
@@ -23,9 +24,12 @@ const TableElement = ({
   totalElementsInPage,
   removePagination,
   totalPages,
+  redirect,
+  module,
   thStyle,
   tdStyle
 }: TabelElmentProps) => {
+  const router = useRouter();
   const columnHelper = createColumnHelper<any>()
   
   const rawColumns = tableHeaders?.map(item => {
@@ -115,14 +119,19 @@ const TableElement = ({
               <tr 
                 // key={row.id}
                 key={index}
-                className='bg-white'
+                onClick={() => redirect && router.push(redirect(
+                  module == 'collections' ? 
+                    row.original.collection_name :
+                    row.original.id
+                ))}
+                className={`bg-white group`}
               >
                 {row.getVisibleCells().map((cell, index) => (
                   <td 
                     // key={cell.id}
                     key={index}
                     className={`bg-white border-b border-o-border vertical-align-start px-[12px] py-[18px] 
-                    text-o-text-medium3 text-f14 ${tdStyle}`}
+                    text-o-text-medium3 text-f14 ${redirect && 'cursor-pointer group-hover:bg-[#FCFDFD]'} ${tdStyle}`}
                   >
                     {
                       cell.id?.includes('timestamp') ? 

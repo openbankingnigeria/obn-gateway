@@ -30,6 +30,10 @@ const ActivityTable = ({
       </Link>
     )
   })
+
+  const handleRedirect = (id: string) => {
+    return `/app/api-management/activity/${id}`;
+  }
   
   return (
     <>
@@ -41,6 +45,8 @@ const ActivityTable = ({
             actionColumn={actionColumn}
             filters={filters}
             totalElementsInPage={totalElementsInPage}
+            redirect={(value: string) => handleRedirect(value)}
+            module='activity'
             rows={rows}
             page={page}
             totalElements={totalElements}
