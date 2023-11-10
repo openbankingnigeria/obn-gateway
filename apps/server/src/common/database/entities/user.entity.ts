@@ -25,7 +25,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ default: 'pending' })
   status?: string;
 
   @JoinColumn({ name: 'role', referencedColumnName: 'id' })

@@ -8,6 +8,13 @@ import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { ResponseFormatter } from 'src/common/utils/common/response.util';
 import { userErrors } from 'src/common/constants/errors/user.errors';
 import { roleErrors } from 'src/common/constants/errors/role.errors';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  USER_EVENTS,
+  UserCreatedEvent,
+  UserDeletedEvent,
+  UserUpdatedEvent,
+} from 'src/shared/events/user.event';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +24,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createUser(data: CreateUserDto) {
@@ -54,6 +62,11 @@ export class UsersService {
           lastName,
         },
       }),
+    );
+
+    this.eventEmitter.emit(
+      USER_EVENTS.USER_CREATED,
+      new UserCreatedEvent(user),
     );
 
     return ResponseFormatter.success('', user);
@@ -107,6 +120,11 @@ export class UsersService {
       }),
     );
 
+    this.eventEmitter.emit(
+      USER_EVENTS.USER_UPDATED,
+      new UserUpdatedEvent(user),
+    );
+
     return ResponseFormatter.success('', user);
   }
 
@@ -122,6 +140,11 @@ export class UsersService {
     }
 
     await this.userRepository.softDelete({ id: user.id });
+
+    this.eventEmitter.emit(
+      USER_EVENTS.USER_DELETED,
+      new UserDeletedEvent(user),
+    );
 
     return ResponseFormatter.success('', null);
   }

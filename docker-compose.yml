@@ -130,6 +130,11 @@ services:
       JWT_SECRET_FILE: /run/secrets/jwt_secret
       NODE_ENV: ${NODE_ENV:-production}
       SERVER_PORT: ${SERVER_PORT:-4000}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_SECURE: ${EMAIL_SECURE}
     secrets:
       - mysql_password
       - jwt_secret
