@@ -25,6 +25,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column()
+  status?: string;
+
   @JoinColumn({ name: 'role', referencedColumnName: 'id' })
   @ManyToOne(() => Role, { nullable: false })
   role: Role;

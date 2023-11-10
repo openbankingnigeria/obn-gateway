@@ -11,7 +11,11 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
-import { CreateRoleDto, SetRolePermissionsDto } from './dto/index.dto';
+import {
+  CreateRoleDto,
+  SetRolePermissionsDto,
+  UpdateRoleDto,
+} from './dto/index.dto';
 
 @Controller('roles')
 export class RolesController {
@@ -43,7 +47,7 @@ export class RolesController {
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
-  updateRole(@Param('id') id: string, @Body() data: CreateRoleDto) {
+  updateRole(@Param('id') id: string, @Body() data: UpdateRoleDto) {
     return this.rolesService.updateRole(id, data);
   }
 
