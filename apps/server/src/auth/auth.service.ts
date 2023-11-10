@@ -20,6 +20,7 @@ import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { Role } from 'src/common/database/entities/role.entity';
 import { ROLES } from 'src/roles/types';
+import { authSuccessMessages } from 'src/common/constants/auth/auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -136,12 +137,18 @@ export class AuthService {
       }
     }
 
-    return ResponseFormatter.success('', { ...user, profile, company });
+    return ResponseFormatter.success(authSuccessMessages.signup, {
+      ...user,
+      profile,
+      company,
+    });
   }
 
   async login({ email, password }: LoginDto) {
-    const user = await this.userRepository.findOneBy({
-      email,
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
     });
 
     if (!user) {
@@ -156,9 +163,17 @@ export class AuthService {
       });
     }
 
+    const isFirstLogin = !user.lastLogin;
+
+    user.lastLogin = moment().toDate();
+
+    await this.userRepository.save(user);
     const accessToken = await this.auth.sign({ id: user.id });
 
-    return ResponseFormatter.success('Successfully logged in.', accessToken);
+    return ResponseFormatter.success(
+      authSuccessMessages.login(isFirstLogin),
+      accessToken,
+    );
   }
 
   async forgotPassword(email: string) {
@@ -183,7 +198,10 @@ export class AuthService {
       },
     );
 
-    return ResponseFormatter.success(`Reset password email sent to ${email}`);
+    return ResponseFormatter.success(
+      authSuccessMessages.forgotPassword(email),
+      resetToken,
+    );
   }
 
   async resetPassword(
@@ -232,8 +250,8 @@ export class AuthService {
 
     return ResponseFormatter.success(
       userOrToken instanceof User
-        ? 'Your password has been successfully changed.'
-        : 'Your password has been successfully reset. Please proceed to login.',
+        ? authSuccessMessages.changePassword
+        : authSuccessMessages.resetPassword,
     );
   }
 

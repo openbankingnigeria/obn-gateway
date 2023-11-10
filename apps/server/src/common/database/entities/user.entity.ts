@@ -56,6 +56,9 @@ export class User {
   @Column({ name: 'last_password_change', nullable: true })
   lastPasswordChange?: Date;
 
+  @Column({ name: 'last_login', nullable: true })
+  lastLogin?: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;
 
