@@ -1,6 +1,6 @@
 import { hashSync } from 'bcrypt';
 import { ROLES } from '../../../roles/types';
-import { CompanyTypes } from '../../../users/types';
+import { CompanyRoles, CompanyTypes } from '../../../users/types';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -11,11 +11,16 @@ export class Migration1699629644913 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `INSERT INTO companies (id, name, type) VALUES (?, ?, ?)`,
-      [this.companyId, process.env.COMPANY_NAME, CompanyTypes.BANK],
+      `INSERT INTO companies (id, name, type, company_role) VALUES (?, ?, ?)`,
+      [
+        this.companyId,
+        process.env.COMPANY_NAME,
+        CompanyTypes.API_PROVIDER,
+        CompanyRoles.API_PROVIDER,
+      ],
     );
     const role = await queryRunner.query(
-      `SELECT child.* FROM roles child INNER JOIN roles parent ON child.parent = parent.id WHERE parent.slug = ? AND child.slug = ?;`,
+      `SELECT child.* FROM roles child INNER JOIN roles parent ON child.parent = parent.id WHERE parent.slug = ? AND child.slug = ? AND deleted_at IS NULL;`,
       [ROLES.API_PROVIDER, ROLES.ADMIN],
     );
     await queryRunner.query(
