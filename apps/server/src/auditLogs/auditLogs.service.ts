@@ -1,19 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  AUDIT_LOG_EVENT,
-  auditLogsSuccessMessages,
-} from 'src/common/constants/auditLogs/auditLogs.constants';
+import { auditLogsSuccessMessages } from 'src/common/constants/auditLogs/auditLogs.constants';
 import { AuditLog } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
-import { AuditLogEventPayload } from './types';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { ResponseFormatter } from '@common/utils/common/response.util';
 import { ROLES } from '@roles/types';
 import { INotFoundException } from '@common/utils/exceptions/exceptions';
 import { auditLogErrors } from '@common/constants/errors/auditLogs.errors';
+import { BaseEvent } from '@shared/events/base.event';
 
 @Injectable()
 export class AuditLogsService {
@@ -23,14 +20,17 @@ export class AuditLogsService {
     private readonly auditLogRepository: Repository<AuditLog>,
   ) {}
 
-  @OnEvent(AUDIT_LOG_EVENT)
-  async logEvent({ companyId, metadata, event, userId }: AuditLogEventPayload) {
-    await this.auditLogRepository.save({
-      companyId,
-      userId,
-      details: JSON.stringify(metadata),
-      event,
-    });
+  @OnEvent('**')
+  async logEvent(event: BaseEvent) {
+    await this.auditLogRepository.save(
+      {
+        companyId: event.author?.companyId,
+        userId: event.author?.id,
+        details: event.metadata,
+        event: event.name,
+      },
+      { reload: false },
+    );
   }
 
   async getLogs({ limit, page }: PaginationParameters, filters?: any) {

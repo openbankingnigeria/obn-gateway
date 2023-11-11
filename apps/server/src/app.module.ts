@@ -48,7 +48,7 @@ import { AuditLogsModule } from './auditLogs/auditLogs.module';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User]),
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({ wildcard: true }),
     AuthModule,
     UsersModule,
     RolesModule,

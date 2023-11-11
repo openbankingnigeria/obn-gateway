@@ -22,8 +22,7 @@ import { Role } from 'src/common/database/entities/role.entity';
 import { ROLES } from 'src/roles/types';
 import { authSuccessMessages } from 'src/common/constants/auth/auth.constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AUDIT_LOG_EVENT } from '@common/constants/auditLogs/auditLogs.constants';
-import { AuthEvents } from '@shared/events/auth.event';
+import { AuthLoginEvent, AuthSignupEvent } from '@shared/events/auth.event';
 
 @Injectable()
 export class AuthService {
@@ -104,11 +103,8 @@ export class AuthService {
         },
       });
 
-      this.eventEmitter.emit(AUDIT_LOG_EVENT, {
-        userId: user.id,
-        companyId: user.companyId,
-        event: AuthEvents.SIGN_UP,
-      });
+      const event = new AuthSignupEvent(user);
+      this.eventEmitter.emit(event.name, event);
 
       return ResponseFormatter.success(authSuccessMessages.signup, {
         ...user,
@@ -147,11 +143,8 @@ export class AuthService {
     await this.userRepository.save(user);
     const accessToken = await this.auth.sign({ id: user.id });
 
-    this.eventEmitter.emit(AUDIT_LOG_EVENT, {
-      userId: user.id,
-      companyId: user.companyId,
-      event: AuthEvents.LOGIN,
-    });
+    const event = new AuthLoginEvent(user);
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       authSuccessMessages.login(isFirstLogin),
