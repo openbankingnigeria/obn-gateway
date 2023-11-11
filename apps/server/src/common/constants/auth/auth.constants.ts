@@ -1,7 +1,9 @@
 export const authSuccessMessages = {
   signup: 'You have successfully signed up.',
   login: (isFirstLogin: boolean) =>
-    `Welcome${isFirstLogin ? '' : ' back'}.You have successfully signed up.`,
+    `Welcome${
+      isFirstLogin ? '' : ' back'
+    }. You have been successfully signed in.`,
   forgotPassword: (email: string) =>
     `An email with instructions to reset your password has been sent to ${email}`,
   resetPassword:

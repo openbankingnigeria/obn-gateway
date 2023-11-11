@@ -5,6 +5,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryColumn,
   PrimaryGeneratedColumn,
@@ -13,6 +14,13 @@ import {
 import { Company } from './company.entity';
 import { Profile } from './profile.entity';
 import { Role } from './role.entity';
+import { AuditLog } from './auditlog.entity';
+
+export enum UserStatuses {
+  ACTIVE = 'active',
+  PENDING = 'pending',
+  INACTIVE = 'inactive',
+}
 
 @Entity({ name: 'users' })
 export class User {
@@ -25,8 +33,8 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: 'pending' })
-  status?: string;
+  @Column({ default: UserStatuses.PENDING, type: 'enum', enum: UserStatuses })
+  status?: UserStatuses;
 
   @JoinColumn({ name: 'role', referencedColumnName: 'id' })
   @ManyToOne(() => Role, { nullable: false })
@@ -46,6 +54,9 @@ export class User {
     cascade: true,
   })
   profile: Profile;
+
+  @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
+  auditLogs?: AuditLog[];
 
   @Column({ name: 'reset_password_token', nullable: true })
   resetPasswordToken?: string;

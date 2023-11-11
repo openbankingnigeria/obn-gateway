@@ -17,6 +17,7 @@ import {
 } from 'src/shared/events/user.event';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
+import { AUDIT_LOG_EVENT } from 'src/common/constants/auditLogs/auditLogs.constants';
 
 @Injectable()
 export class UsersService {
@@ -29,6 +30,11 @@ export class UsersService {
     private readonly eventEmitter: EventEmitter2,
     private readonly auth: Auth,
   ) {}
+
+  private readonly auditLogPayload = {
+    userId: this.requestContext.user!.id,
+    companyId: this.requestContext.user!.companyId,
+  };
 
   async createUser(data: CreateUserDto) {
     const { email, firstName, lastName, roleId } = data;
@@ -72,10 +78,15 @@ export class UsersService {
       }),
     );
 
-    this.eventEmitter.emit(
-      USER_EVENTS.USER_CREATED,
-      new UserCreatedEvent(user, resetToken),
-    );
+    const event = new UserCreatedEvent(user, resetToken);
+
+    this.eventEmitter.emit(USER_EVENTS.USER_CREATED, event);
+
+    this.eventEmitter.emit(AUDIT_LOG_EVENT, {
+      metadata: { pre: null, post: event.user },
+      ...this.auditLogPayload,
+      event: USER_EVENTS.USER_CREATED,
+    });
 
     return ResponseFormatter.success('', user);
   }
@@ -116,22 +127,26 @@ export class UsersService {
       });
     }
 
-    await this.userRepository.update(
-      { id: user.id },
-      this.userRepository.create({
-        roleId,
-        status,
-        profile: {
-          firstName,
-          lastName,
-        },
-      }),
-    );
+    const updatedUserEntity = this.userRepository.create({
+      roleId,
+      status,
+      profile: {
+        firstName,
+        lastName,
+      },
+    });
 
-    this.eventEmitter.emit(
-      USER_EVENTS.USER_UPDATED,
-      new UserUpdatedEvent(user),
-    );
+    await this.userRepository.update({ id: user.id }, updatedUserEntity);
+
+    const event = new UserUpdatedEvent(user);
+
+    this.eventEmitter.emit(USER_EVENTS.USER_UPDATED, event);
+
+    this.eventEmitter.emit(AUDIT_LOG_EVENT, {
+      metadata: { pre: user, post: updatedUserEntity },
+      ...this.auditLogPayload,
+      event: USER_EVENTS.USER_UPDATED,
+    });
 
     return ResponseFormatter.success('', user);
   }
@@ -149,10 +164,15 @@ export class UsersService {
 
     await this.userRepository.softDelete({ id: user.id });
 
-    this.eventEmitter.emit(
-      USER_EVENTS.USER_DELETED,
-      new UserDeletedEvent(user),
-    );
+    const event = new UserDeletedEvent(user);
+
+    this.eventEmitter.emit(USER_EVENTS.USER_DELETED, event);
+
+    this.eventEmitter.emit(AUDIT_LOG_EVENT, {
+      metadata: { pre: user, post: null },
+      ...this.auditLogPayload,
+      event: USER_EVENTS.USER_DELETED,
+    });
 
     return ResponseFormatter.success('', null);
   }
