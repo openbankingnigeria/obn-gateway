@@ -68,11 +68,10 @@ export class AuthGuard implements CanActivate {
       relations: {
         role: {
           permissions: true,
+          parent: true,
         },
       },
     });
-
-    console.log({ user });
 
     if (!user) {
       throw new IUnauthorizedException({
@@ -81,6 +80,7 @@ export class AuthGuard implements CanActivate {
     }
 
     if (
+      user.role.slug !== 'admin' &&
       requiredPermission &&
       !user.role.permissions.some(
         (permission) => permission.permission?.slug === requiredPermission,

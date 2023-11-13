@@ -16,6 +16,16 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@auditLogs/*": ["src/auditLogs/*"],
+      "@auth/*": ["src/auth/*"],
+      "@common/*": ["src/common/*"],
+      "@permissions/*": ["src/permissions/*"],
+      "@profile/*": ["src/profile/*"],
+      "@roles/*": ["src/roles/*"],
+      "@shared/*": ["src/shared/*"],
+      "@users/*": ["src/users/*"]
+    }
   }
 }

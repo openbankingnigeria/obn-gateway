@@ -5,7 +5,6 @@ import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validationSchema } from './common/config/validationSchema';
@@ -20,6 +19,7 @@ import { User } from './common/database/entities';
 import { RolesModule } from './roles/roles.module';
 import { ProfileModule } from './profile/profile.module';
 import { EmailService } from './shared/email/email.service';
+import { AuditLogsModule } from './auditLogs/auditLogs.module';
 
 @Module({
   imports: [
@@ -48,11 +48,12 @@ import { EmailService } from './shared/email/email.service';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User]),
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({ wildcard: true }),
     AuthModule,
     UsersModule,
     RolesModule,
     ProfileModule,
+    AuditLogsModule,
   ],
   controllers: [AppController],
   providers: [
