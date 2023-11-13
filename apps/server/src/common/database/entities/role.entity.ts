@@ -30,11 +30,11 @@ export class Role {
   @Column()
   status?: string;
 
-  @JoinColumn({ name: 'parent' })
+  @JoinColumn({ name: 'parent_id' })
   @ManyToOne(() => Role, { nullable: true })
   parent?: Role;
 
-  @Column({ name: 'parent', nullable: true, length: 36 })
+  @Column({ name: 'parent_id', nullable: true, length: 36 })
   parentId: string;
 
   @OneToMany(() => RolePermission, (permission) => permission.role)

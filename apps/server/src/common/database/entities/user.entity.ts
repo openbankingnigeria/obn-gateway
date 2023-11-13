@@ -36,18 +36,18 @@ export class User {
   @Column({ default: UserStatuses.PENDING, type: 'enum', enum: UserStatuses })
   status?: UserStatuses;
 
-  @JoinColumn({ name: 'role', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
   @ManyToOne(() => Role, { nullable: false })
   role: Role;
 
-  @Column({ name: 'role', nullable: false, default: null, length: 36 })
+  @Column({ name: 'role_id', nullable: false, default: null, length: 36 })
   roleId: string;
 
   @ManyToOne(() => Company, (company) => company.users, { cascade: ['insert'] })
-  @JoinColumn({ name: 'company', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
   company: Company;
 
-  @Column({ name: 'company', length: 36 })
+  @Column({ name: 'company_id', length: 36 })
   companyId: string;
 
   @OneToOne(() => Profile, (profile) => profile.user, {
