@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UsePipes,
-} from '@nestjs/common';
+import { Body, Controller, Param, Post, UsePipes } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordDto,
@@ -16,7 +8,6 @@ import {
   SignupDto,
 } from './dto/index.dto';
 import { SkipAuthGuard } from 'src/common/utils/authentication/auth.decorator';
-import { IRequest } from 'src/common/utils/authentication/auth.types';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 
 @Controller('auth')
@@ -53,12 +44,6 @@ export class AuthController {
     @Param('resetToken') resetToken: string,
   ) {
     return this.authService.resetPassword(data, resetToken);
-  }
-
-  @Patch('password/change')
-  @UsePipes(IValidationPipe)
-  changePassword(@Body() data: ResetPasswordDto, @Req() { user }: IRequest) {
-    return this.authService.resetPassword(data, user!);
   }
 
   @Post('setup/:token')
