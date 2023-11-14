@@ -23,7 +23,7 @@ export const authValidationErrors = {
     ) => `${propertyName} value must contain only ${propertyType}.`,
     valueMustBeOfLength: (propertyName: string, propertyLength: number) =>
       `${propertyName} value should have at least ${propertyLength} characters.`,
-    isRequired: (propertyName: string) => `${propertyName} value is empty.`,
+    isRequired: (propertyName: string) => `${propertyName} is required.`,
     passwordStrengthMismatch: (propertyName: string) =>
       `${propertyName} value must contain at least ${minPasswordNumber} number, ${minPasswordSpecialCharacter} special character, ${minPasswordUppercase} uppercase and ${minPasswordLowercase} lowercase letter and be at least ${minPasswordLength} characters in length.`,
     invalidPhone: 'phone value must be a valid phone number.',
