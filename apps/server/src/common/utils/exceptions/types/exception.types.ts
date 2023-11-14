@@ -6,4 +6,5 @@ export interface ErrorResponse {
   stack?: any;
   message?: string;
   _meta?: any;
+  data?: any;
 }
