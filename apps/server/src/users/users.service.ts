@@ -10,7 +10,6 @@ import { userErrors } from 'src/common/constants/errors/user.errors';
 import { roleErrors } from 'src/common/constants/errors/role.errors';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
-  USER_EVENTS,
   UserCreatedEvent,
   UserDeletedEvent,
   UserUpdatedEvent,
@@ -72,10 +71,17 @@ export class UsersService {
       }),
     );
 
-    this.eventEmitter.emit(
-      USER_EVENTS.USER_CREATED,
-      new UserCreatedEvent(user, resetToken),
+    const event = new UserCreatedEvent(
+      this.requestContext.user!,
+      user,
+      resetToken,
+      {
+        pre: null,
+        post: user,
+      },
     );
+
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success('', user);
   }
@@ -116,22 +122,23 @@ export class UsersService {
       });
     }
 
-    await this.userRepository.update(
-      { id: user.id },
-      this.userRepository.create({
-        roleId,
-        status,
-        profile: {
-          firstName,
-          lastName,
-        },
-      }),
-    );
+    const updatedUserEntity = this.userRepository.create({
+      roleId,
+      status,
+      profile: {
+        firstName,
+        lastName,
+      },
+    });
 
-    this.eventEmitter.emit(
-      USER_EVENTS.USER_UPDATED,
-      new UserUpdatedEvent(user),
-    );
+    await this.userRepository.update({ id: user.id }, updatedUserEntity);
+
+    const event = new UserUpdatedEvent(this.requestContext.user!, user, {
+      pre: user,
+      post: updatedUserEntity,
+    });
+
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success('', user);
   }
@@ -149,10 +156,12 @@ export class UsersService {
 
     await this.userRepository.softDelete({ id: user.id });
 
-    this.eventEmitter.emit(
-      USER_EVENTS.USER_DELETED,
-      new UserDeletedEvent(user),
-    );
+    const event = new UserDeletedEvent(this.requestContext.user!, user, {
+      pre: user,
+      post: null,
+    });
+
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success('', null);
   }

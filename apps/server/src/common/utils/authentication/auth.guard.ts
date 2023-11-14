@@ -68,6 +68,7 @@ export class AuthGuard implements CanActivate {
       relations: {
         role: {
           permissions: true,
+          parent: true,
         },
       },
     });
@@ -79,6 +80,7 @@ export class AuthGuard implements CanActivate {
     }
 
     if (
+      user.role.slug !== 'admin' &&
       requiredPermission &&
       !user.role.permissions.some(
         (permission) => permission.permission?.slug === requiredPermission,

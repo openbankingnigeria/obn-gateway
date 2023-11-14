@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { UserStatuses } from 'src/common/database/entities';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -34,5 +41,6 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  status: string;
+  @IsEnum(UserStatuses)
+  status: UserStatuses;
 }

@@ -27,10 +27,15 @@ export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
     exception instanceof NotFoundException ||
     exception instanceof UnauthorizedException
   ) {
+    const exceptionResponse = exception.getResponse() as {
+      message: string;
+      data: any;
+    };
     errorResponse = {
       ...errorResponse,
       status: exception.getStatus(),
-      message: (exception as any).response.message || exception.message,
+      message: exceptionResponse.message || exception.message,
+      data: exceptionResponse.data,
     };
   }
 

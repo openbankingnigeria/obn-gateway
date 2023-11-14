@@ -20,6 +20,9 @@ import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { Role } from 'src/common/database/entities/role.entity';
 import { ROLES } from 'src/roles/types';
+import { authSuccessMessages } from 'src/common/constants/auth/auth.constants';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { AuthLoginEvent, AuthSignupEvent } from '@shared/events/auth.event';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +36,7 @@ export class AuthService {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly auth: Auth,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async signup(data: SignupDto) {
@@ -80,68 +84,44 @@ export class AuthService {
       },
     });
 
-    let user: User | undefined;
-    let company: Company | undefined;
-    let profile: Profile | undefined;
-
     if (apiConsumerRole) {
-      const result = await Promise.allSettled([
-        new Promise((res, rej) => {
-          this.companyRepository
-            .save({
-              name: companyName,
-              type: companyType,
-            })
-            .then((companyCreated) => {
-              if (companyCreated) {
-                company = companyCreated;
-                return this.userRepository.save({
-                  email: email.trim().toLowerCase(),
-                  password: hashSync(password, 12),
-                  roleId: apiConsumerRole.id,
-                  companyId: companyCreated.id,
-                });
-              }
-            })
-            .then((userCreated) => {
-              if (userCreated) {
-                user = userCreated;
-                return this.profileRepository.save({
-                  firstName,
-                  lastName,
-                  phone,
-                  country,
-                  companyRole,
-                  userId: userCreated.id,
-                });
-              }
-            })
-            .then((profileCreated) => {
-              if (profileCreated) {
-                profile = profileCreated;
-              }
-              res('');
-            })
-            .catch((err) => {
-              rej(err);
-            });
-        }),
-      ]);
+      const companyCreated = await this.companyRepository.save({
+        name: companyName,
+        type: companyType,
+      });
+      const user = await this.userRepository.save({
+        email: email.trim().toLowerCase(),
+        password: hashSync(password, 12),
+        roleId: apiConsumerRole.id,
+        companyId: companyCreated.id,
+        profile: {
+          firstName,
+          lastName,
+          phone,
+          country,
+          companyRole,
+        },
+      });
 
-      if (result[0].status === 'rejected') {
-        throw new IBadRequestException({
-          message: authErrors.errorOccurredCreatingUser,
-          _meta: result[0].reason,
-        });
-      }
+      const event = new AuthSignupEvent(user);
+      this.eventEmitter.emit(event.name, event);
+
+      return ResponseFormatter.success(authSuccessMessages.signup, {
+        ...user,
+        company: companyCreated,
+      });
+    } else {
+      throw new IBadRequestException({
+        message: authErrors.errorOccurredCreatingUser,
+      });
     }
-
-    return ResponseFormatter.success('', { ...user, profile, company });
   }
 
   async login({ email, password }: LoginDto) {
-    const user = await this.userRepository.findOneBy({
-      email,
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
     });
 
     if (!user) {
@@ -156,9 +136,20 @@ export class AuthService {
       });
     }
 
+    const isFirstLogin = !user.lastLogin;
+
+    user.lastLogin = moment().toDate();
+
+    await this.userRepository.save(user);
     const accessToken = await this.auth.sign({ id: user.id });
 
-    return ResponseFormatter.success('Successfully logged in.', accessToken);
+    const event = new AuthLoginEvent(user);
+    this.eventEmitter.emit(event.name, event);
+
+    return ResponseFormatter.success(
+      authSuccessMessages.login(isFirstLogin),
+      accessToken,
+    );
   }
 
   async forgotPassword(email: string) {
@@ -183,7 +174,10 @@ export class AuthService {
       },
     );
 
-    return ResponseFormatter.success(`Reset password email sent to ${email}`);
+    return ResponseFormatter.success(
+      authSuccessMessages.forgotPassword(email),
+      resetToken,
+    );
   }
 
   async resetPassword(
@@ -232,8 +226,8 @@ export class AuthService {
 
     return ResponseFormatter.success(
       userOrToken instanceof User
-        ? 'Your password has been successfully changed.'
-        : 'Your password has been successfully reset. Please proceed to login.',
+        ? authSuccessMessages.changePassword
+        : authSuccessMessages.resetPassword,
     );
   }
 
