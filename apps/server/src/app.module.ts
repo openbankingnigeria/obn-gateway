@@ -20,6 +20,7 @@ import { RolesModule } from './roles/roles.module';
 import { ProfileModule } from './profile/profile.module';
 import { EmailService } from './shared/email/email.service';
 import { AuditLogsModule } from './auditLogs/auditLogs.module';
+import { CollectionsModule } from './collections/collections.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { AuditLogsModule } from './auditLogs/auditLogs.module';
     RolesModule,
     ProfileModule,
     AuditLogsModule,
+    CollectionsModule,
   ],
   controllers: [AppController],
   providers: [

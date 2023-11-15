@@ -37,4 +37,7 @@ export const globalConfig = (): {
       pass: process.env.EMAIL_PASSWORD,
     },
   },
+  kong: {
+    adminUrl: process.env.KONG_ADMIN_URL,
+  },
 });
