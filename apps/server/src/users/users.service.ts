@@ -16,6 +16,7 @@ import {
 } from 'src/shared/events/user.event';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
+import { userSuccessMessages } from '@common/constants/user/user.constants';
 
 @Injectable()
 export class UsersService {
@@ -83,7 +84,7 @@ export class UsersService {
 
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success('', user);
+    return ResponseFormatter.success(userSuccessMessages.createdUser, user);
   }
 
   async listUsers() {
@@ -91,7 +92,7 @@ export class UsersService {
       where: { companyId: this.requestContext.user!.companyId },
       relations: { profile: true },
     });
-    return ResponseFormatter.success('', users);
+    return ResponseFormatter.success(userSuccessMessages.fetchedUsers, users);
   }
 
   async getUser(id: string) {
@@ -106,7 +107,7 @@ export class UsersService {
       });
     }
 
-    return ResponseFormatter.success('', user);
+    return ResponseFormatter.success(userSuccessMessages.fetchedUser, user);
   }
 
   async updateUser(id: string, data: UpdateUserDto) {
@@ -140,7 +141,7 @@ export class UsersService {
 
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success('', user);
+    return ResponseFormatter.success(userSuccessMessages.updatedUser, user);
   }
 
   async deleteUser(id: string) {
@@ -163,6 +164,6 @@ export class UsersService {
 
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success('', null);
+    return ResponseFormatter.success(userSuccessMessages.deletedUser, null);
   }
 }

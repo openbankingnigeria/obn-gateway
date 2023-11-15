@@ -14,6 +14,10 @@ import { ResponseFormatter } from 'src/common/utils/common/response.util';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { Permission } from 'src/common/database/entities/permission.entity';
 import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
+import {
+  roleErrorMessages,
+  roleSuccessMessages,
+} from '@common/constants/roles/role.constants';
 
 @Injectable()
 export class RolesService {
@@ -52,14 +56,14 @@ export class RolesService {
       }),
     );
 
-    return ResponseFormatter.success('', role);
+    return ResponseFormatter.success(roleSuccessMessages.createdRole, role);
   }
 
   async listRoles() {
     const roles = await this.roleRepository.find({
       where: { parentId: this.requestContext.user!.role.parentId },
     });
-    return ResponseFormatter.success('', roles);
+    return ResponseFormatter.success(roleSuccessMessages.fetchedRole, roles);
   }
 
   async getRole(id: string) {
@@ -73,7 +77,7 @@ export class RolesService {
       });
     }
 
-    return ResponseFormatter.success('', role);
+    return ResponseFormatter.success(roleSuccessMessages.fetchedRole, role);
   }
 
   async updateRole(id: string, data: UpdateRoleDto) {
@@ -98,7 +102,7 @@ export class RolesService {
       }),
     );
 
-    return ResponseFormatter.success('', role);
+    return ResponseFormatter.success(roleSuccessMessages.updatedRole, role);
   }
 
   async deleteRole(id: string) {
@@ -115,7 +119,7 @@ export class RolesService {
 
     await this.roleRepository.softDelete({ id: role.id });
 
-    return ResponseFormatter.success('', null);
+    return ResponseFormatter.success(roleSuccessMessages.deletedRole, null);
   }
 
   async getRolePermissions(id: string) {
@@ -130,7 +134,10 @@ export class RolesService {
       });
     }
 
-    return ResponseFormatter.success('', role.permissions);
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRole,
+      role.permissions,
+    );
   }
 
   async setRolePermissions(
@@ -148,26 +155,44 @@ export class RolesService {
       });
     }
 
-    await this.rolePermissionRepository.softDelete({
-      permissionId: Not(In(permissions)),
-      roleId: role.id,
-    });
-
     const newPermissions = permissions.filter((permission) => {
       return !role.permissions.find(
         (rolePermission) => rolePermission.permissionId === permission,
       );
     });
 
+    const newPermissionsData = await this.permissionRepository.find({
+      where: { id: In(newPermissions) },
+    });
+
+    for (const newPermission of newPermissions) {
+      const permissionExists = newPermissionsData.find(
+        ({ id }) => id === newPermission,
+      );
+      if (!permissionExists) {
+        throw new IBadRequestException({
+          message: roleErrorMessages.permissionNotFound(newPermission),
+        });
+      }
+    }
+
+    await this.rolePermissionRepository.softDelete({
+      permissionId: Not(In(permissions)),
+      roleId: role.id,
+    });
+
     await this.rolePermissionRepository.insert(
       newPermissions.map((permissionId) => ({ roleId: role.id, permissionId })),
     );
 
-    return ResponseFormatter.success('');
+    return ResponseFormatter.success(roleSuccessMessages.updatedRole);
   }
 
   async getPermissions() {
     const permissions = await this.permissionRepository.find({});
-    return ResponseFormatter.success('', permissions);
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedPermissions,
+      permissions,
+    );
   }
 }

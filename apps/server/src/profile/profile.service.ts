@@ -10,6 +10,10 @@ import { userErrors } from 'src/common/constants/errors/user.errors';
 import { compareSync, hashSync } from 'bcrypt';
 import moment from 'moment';
 import { authErrors } from 'src/common/constants/errors/auth.errors';
+import {
+  profileErrorMessages,
+  profileSuccessMessages,
+} from '@common/constants/profile/profile.constants';
 
 @Injectable()
 export class ProfileService {
@@ -32,7 +36,10 @@ export class ProfileService {
       });
     }
 
-    return ResponseFormatter.success('', profile);
+    return ResponseFormatter.success(
+      profileSuccessMessages.fetchedProfile,
+      profile,
+    );
   }
 
   async updateProfile(data: UpdateProfileDto) {
@@ -56,11 +63,20 @@ export class ProfileService {
       }),
     );
 
-    return ResponseFormatter.success('', profile);
+    return ResponseFormatter.success(
+      profileSuccessMessages.updatedProfile,
+      profile,
+    );
   }
 
   async updatePassword(data: UpdatePasswordDto) {
     const { oldPassword, newPassword } = data;
+
+    if (oldPassword === newPassword) {
+      throw new IBadRequestException({
+        message: profileErrorMessages.sameOldPassword,
+      });
+    }
 
     if (!compareSync(oldPassword, this.requestContext.user!.password)) {
       throw new IBadRequestException({
@@ -78,6 +94,6 @@ export class ProfileService {
       },
     );
 
-    return ResponseFormatter.success('');
+    return ResponseFormatter.success(profileSuccessMessages.updatedPassword);
   }
 }

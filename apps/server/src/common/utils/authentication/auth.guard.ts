@@ -91,10 +91,6 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    if (user.password) {
-      delete (user as any).password;
-    }
-
     request.user = user;
 
     return true;

@@ -271,6 +271,6 @@ export class AuthService {
       },
     );
 
-    return ResponseFormatter.success('');
+    return ResponseFormatter.success(authSuccessMessages.signup);
   }
 }
