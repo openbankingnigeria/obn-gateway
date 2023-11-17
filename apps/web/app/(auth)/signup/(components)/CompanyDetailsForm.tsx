@@ -2,27 +2,24 @@
 
 import { InputElement, SelectElement } from '@/components/forms';
 import { Button, LinkButton } from '@/components/globalComponents';
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import { postCompanyDetails } from '@/actions/authActions';
+import { postSignup } from '@/actions/authActions';
 import { COMPANY_TYPES, CONSUMER_ROLES } from '@/data/authData';
+import { useServerAction } from '@/hooks';
 
 const CompanyDetailsForm = () => {
   const [company_name, setCompanyName] = useState(''); 
   const [company_type, setCompanyType] = useState(''); 
   const [role, setRole] = useState(''); 
 
+  const signupDetails = sessionStorage.getItem('sd') && JSON.parse(sessionStorage.getItem('sd') || '');
+  const personalDetails = sessionStorage.getItem('pd') && JSON.parse(sessionStorage.getItem('pd') || '');
+
   const incorrect = (
     !company_name ||
     !company_type ||
     !role
   );
-
-  const initialState = {
-    message: null,
-  }
 
   const company_type_list = COMPANY_TYPES?.map(type => {
     return ({
@@ -38,14 +35,24 @@ const CompanyDetailsForm = () => {
     });
   })
 
-  const [state, formAction] = useFormState(postCompanyDetails, initialState);
-  state?.message && toast.error(state?.message);
+  const initialState = {}
+  const [state, formAction] = useServerAction(postSignup, initialState);
 
   return (
     <form
       action={incorrect ? '' : formAction}
       className='gap-[32px] flex flex-col w-full'
     >
+      <>
+        <input name='email' value={signupDetails?.email} readOnly className='hidden opacity-0' />
+        <input name='password' value={signupDetails?.password} readOnly className='hidden opacity-0' />
+        <input name='confirm_password' value={signupDetails?.confirm_password} readOnly className='hidden opacity-0' />
+        <input name='first_name' value={personalDetails?.first_name} readOnly className='hidden opacity-0' />
+        <input name='last_name' value={personalDetails?.last_name} readOnly className='hidden opacity-0' />
+        <input name='country' value={personalDetails?.country} readOnly className='hidden opacity-0' />
+        <input name='phone_number' value={personalDetails?.phone_number} readOnly className='hidden opacity-0' />
+      </>
+      
       <div className='w-full flex flex-col gap-[16px]'>
         <InputElement 
           name='company_name'
@@ -91,7 +98,7 @@ const CompanyDetailsForm = () => {
             label='What is your role?'
             placeholder='Select'
             required
-            optionStyle='top-[70px]'
+            optionStyle='bottom-[50px]'
             clickerStyle='!w-full'
             value={role}
             changeValue={setRole}

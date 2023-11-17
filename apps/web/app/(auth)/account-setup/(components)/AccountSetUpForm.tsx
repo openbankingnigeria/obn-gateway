@@ -2,12 +2,10 @@
 
 import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
 import { postAccountSetUp } from '@/actions/authActions';
 import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
+import { useServerAction } from '@/hooks';
 
 const AccountSetUpForm = () => {
   const [first_name, setFirstName] = useState(''); 
@@ -30,12 +28,23 @@ const AccountSetUpForm = () => {
     !passwordMatch
   );
 
-  const initialState = {
-    message: null,
-  }
+  const handleFirstName = (value: string) => {
+    const inputValue = value;
+    const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
+    setFirstName(capitalizedValue);
+  };
 
-  const [state, formAction] = useFormState(postAccountSetUp, initialState);
-  state?.message && toast.error(state?.message);
+  const handleLastName = (value: string) => {
+    const inputValue = value;
+    const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
+    setLastName(capitalizedValue);
+  };
+
+  // TODO: ADD SETUP TOKEN HERE
+  const initialState = {
+    setupToken: '37c8c0cadbbf5a1ce54ecc80f7d2b053152eba27',
+  }
+  const [state, formAction] = useServerAction(postAccountSetUp, initialState);
 
   return (
     <form
@@ -49,7 +58,7 @@ const AccountSetUpForm = () => {
             placeholder='First name'
             label='What is your name?'
             value={first_name}
-            changeValue={setFirstName}
+            changeValue={(value: string) => handleFirstName(value)}
             required
           />
 
@@ -57,7 +66,7 @@ const AccountSetUpForm = () => {
             name='last_name'
             placeholder='Last name'
             value={last_name}
-            changeValue={setLastName}
+            changeValue={(value: string) => handleLastName(value)}
             required
           />
         </div>

@@ -12,7 +12,7 @@ const Report = () => {
         Report here
       </div>
 
-      <div className='absolute bottom-[20px] right-[20px]'>
+      <div className='absolute bottom-[20px] cursor-pointer right-[20px]'>
         <DownloadButton data={data} />
       </div>
     </section>

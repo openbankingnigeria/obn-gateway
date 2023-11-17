@@ -2,29 +2,28 @@
 
 import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
 import { postInitiatePasswordReset } from '@/actions/authActions';
 import { validateEmail } from '@/utils/globalValidations';
+import { useServerAction } from '@/hooks';
 
 const ForgetPasswordForm = () => {
   const [email, setEmail] = useState(''); 
 
   const incorrect = !validateEmail(email);
 
-  const initialState = {
-    message: null,
-  }
-
   const storeEmailLocally = () => {
     sessionStorage.setItem('aperta-user-email', email);
   }
 
-  const [state, formAction] = useFormState(postInitiatePasswordReset, initialState);
-  state?.message && toast.error(state?.message);
-
+  const initialState = {}
+  const [state, formAction] = useServerAction(postInitiatePasswordReset, initialState);
+  state?.response?.data && 
+    localStorage?.setItem(
+      'aperta-user-resetToken', 
+      state?.response?.data
+    );
+    
   return (
     <form
       action={incorrect ? '' : formAction}
