@@ -70,11 +70,17 @@ export class ProfileService {
   }
 
   async updatePassword(data: UpdatePasswordDto) {
-    const { oldPassword, newPassword } = data;
+    const { oldPassword, newPassword, confirmPassword } = data;
 
     if (oldPassword === newPassword) {
       throw new IBadRequestException({
         message: profileErrorMessages.sameOldPassword,
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw new IBadRequestException({
+        message: profileErrorMessages.passwordMismatch,
       });
     }
 

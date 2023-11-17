@@ -151,6 +151,17 @@ export class SetupDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
+  @MinLength(authConfig.minNameLength, {
+    message: ({ property }) =>
+      authValidationErrors.dto.valueMustBeOfLength(
+        property,
+        authConfig.minNameLength,
+      ),
+  })
+  @Matches(/^[A-Za-z]+$/gi, {
+    message: ({ property }) =>
+      authValidationErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
+  })
   firstName: string;
 
   @IsNotEmpty({

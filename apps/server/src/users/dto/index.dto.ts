@@ -1,9 +1,15 @@
 import {
+  userConfig,
+  userErrors,
+} from 'src/common/constants/errors/user.errors';
+import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
+  MinLength,
 } from 'class-validator';
 import { UserStatuses } from 'src/common/database/entities';
 
@@ -13,12 +19,32 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: ({ property }) => userErrors.dto.isRequired(property),
+  })
   @IsString()
+  @MinLength(userConfig.minNameLength, {
+    message: ({ property }) =>
+      userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
+  })
+  @Matches(/^[A-Za-z]+$/gi, {
+    message: ({ property }) =>
+      userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
+  })
   firstName: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: ({ property }) => userErrors.dto.isRequired(property),
+  })
   @IsString()
+  @MinLength(userConfig.minNameLength, {
+    message: ({ property }) =>
+      userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
+  })
+  @Matches(/^[A-Za-z]+$/gi, {
+    message: ({ property }) =>
+      userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
+  })
   lastName: string;
 
   @IsNotEmpty()
@@ -27,12 +53,32 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
-  @IsOptional()
+  @IsNotEmpty({
+    message: ({ property }) => userErrors.dto.isRequired(property),
+  })
   @IsString()
+  @MinLength(userConfig.minNameLength, {
+    message: ({ property }) =>
+      userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
+  })
+  @Matches(/^[A-Za-z]+$/gi, {
+    message: ({ property }) =>
+      userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
+  })
   firstName: string;
 
-  @IsOptional()
+  @IsNotEmpty({
+    message: ({ property }) => userErrors.dto.isRequired(property),
+  })
   @IsString()
+  @MinLength(userConfig.minNameLength, {
+    message: ({ property }) =>
+      userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
+  })
+  @Matches(/^[A-Za-z]+$/gi, {
+    message: ({ property }) =>
+      userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
+  })
   lastName: string;
 
   @IsOptional()

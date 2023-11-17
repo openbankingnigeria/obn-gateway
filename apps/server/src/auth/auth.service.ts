@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Company, Profile, User } from 'src/common/database/entities';
+import {
+  Company,
+  Profile,
+  User,
+  UserStatuses,
+} from 'src/common/database/entities';
 import { Repository, MoreThan } from 'typeorm';
 import {
   LoginDto,
@@ -258,6 +263,7 @@ export class AuthService {
         resetPasswordExpires: null as any,
         password: hashSync(password, 12),
         lastPasswordChange: moment().toDate(),
+        status: UserStatuses.ACTIVE,
       },
     );
 

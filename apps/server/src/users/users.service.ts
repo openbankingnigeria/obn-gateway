@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Role, User } from 'src/common/database/entities';
+import { Profile, Role, User } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
@@ -28,6 +28,8 @@ export class UsersService {
     private readonly roleRepository: Repository<Role>,
     private readonly eventEmitter: EventEmitter2,
     private readonly auth: Auth,
+    @InjectRepository(Profile)
+    private readonly profileRepository: Repository<Profile>,
   ) {}
 
   async createUser(data: CreateUserDto) {
@@ -115,6 +117,7 @@ export class UsersService {
 
     const user = await this.userRepository.findOne({
       where: { id, companyId: this.requestContext.user!.companyId },
+      relations: { profile: true },
     });
 
     if (!user) {
@@ -123,25 +126,34 @@ export class UsersService {
       });
     }
 
-    const updatedUserEntity = this.userRepository.create({
+    const updatedUser = this.userRepository.create({
       roleId,
       status,
-      profile: {
-        firstName,
-        lastName,
-      },
     });
 
-    await this.userRepository.update({ id: user.id }, updatedUserEntity);
+    const updatedProfile = this.profileRepository.create({
+      firstName,
+      lastName,
+    });
+
+    await this.userRepository.update({ id: user.id }, updatedUser);
+    await this.profileRepository.update(
+      { id: user.profile.id },
+      updatedProfile,
+    );
+    updatedUser.profile = updatedProfile;
 
     const event = new UserUpdatedEvent(this.requestContext.user!, user, {
       pre: user,
-      post: updatedUserEntity,
+      post: updatedUser,
     });
 
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success(userSuccessMessages.updatedUser, user);
+    return ResponseFormatter.success(
+      userSuccessMessages.updatedUser,
+      updatedUser,
+    );
   }
 
   async deleteUser(id: string) {
