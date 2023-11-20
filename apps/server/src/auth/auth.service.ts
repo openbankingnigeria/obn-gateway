@@ -219,6 +219,12 @@ export class AuthService {
       });
     }
 
+    if (compareSync(password, userToUpdate!.password)) {
+      throw new IBadRequestException({
+        message: authErrors.sameOldPassword,
+      });
+    }
+
     await this.userRepository.update(
       { id: userToUpdate?.id },
       {

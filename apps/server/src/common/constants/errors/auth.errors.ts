@@ -7,4 +7,5 @@ export const authErrors = {
     'You must provide an access token to access this resource.',
   errorOccurredCreatingUser:
     'An error occurred while signing you up. Please try again.',
+  sameOldPassword: 'Password should not be same as existing one',
 };

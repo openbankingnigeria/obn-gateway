@@ -7,4 +7,5 @@ export const profileSuccessMessages = {
 export const profileErrorMessages = {
   sameOldPassword: 'New password cannot be the same as old password.',
   passwordMismatch: 'Passwords do not match.',
+  invalidCredentials: 'Invalid credentials.',
 };

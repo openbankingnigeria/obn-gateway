@@ -8,8 +8,7 @@ import { ResponseFormatter } from 'src/common/utils/common/response.util';
 import { UpdatePasswordDto, UpdateProfileDto } from './dto/index.dto';
 import { userErrors } from 'src/common/constants/errors/user.errors';
 import { compareSync, hashSync } from 'bcrypt';
-import moment from 'moment';
-import { authErrors } from 'src/common/constants/errors/auth.errors';
+import * as moment from 'moment';
 import {
   profileErrorMessages,
   profileSuccessMessages,
@@ -86,7 +85,7 @@ export class ProfileService {
 
     if (!compareSync(oldPassword, this.requestContext.user!.password)) {
       throw new IBadRequestException({
-        message: authErrors.invalidCredentials,
+        message: profileErrorMessages.invalidCredentials,
       });
     }
 
