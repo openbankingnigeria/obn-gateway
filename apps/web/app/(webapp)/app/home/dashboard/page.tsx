@@ -11,16 +11,16 @@ const DashboardPage = ({ searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
 
   return (
-    <APIProviderDashboardPage
-      date_filter={date_filter}
-    />
-    // <APIConsumerDashboardPage 
-    //   search_query={search_query}
-    //   request_method={request_method}
-    //   tier={tier}
-    //   rows={rows}
-    //   page={page}
+    // <APIProviderDashboardPage
+    //   date_filter={date_filter}
     // />
+    <APIConsumerDashboardPage 
+      search_query={search_query}
+      request_method={request_method}
+      tier={tier}
+      rows={rows}
+      page={page}
+    />
   )
 }
 

@@ -12,6 +12,8 @@ import { ConfirmCancel } from '.'
 
 const AddBusinessInformation = ({
   close,
+  openModal,
+  setOpenModal,
   next
 }: AddBusinessInformationProps) => {
   const [cac, setCac] = useState('');
@@ -19,15 +21,24 @@ const AddBusinessInformation = ({
   const [certificate_of_incorporation, setCertificationOfIncorporation] = useState('');
   const [tin, setTin] = useState('');
   const [company_status_report, setCompanyStatusReport] = useState('');
-  const [openModal, setOpenModal] = useState(false);
 
   const incorrect = (
     !cac ||
     !regulator_license ||
     !certificate_of_incorporation ||
-    !tin ||
+    !tin?.match(/^\d{9}$/) ||
     !company_status_report
   );
+
+  const handleCac = (value: string) => {
+    setCac(value?.toString()?.replace(/[^0-9.]/g, ''));
+  }
+
+  const handleTin = (value: string) => {
+    if (value?.length <= 9){
+      setTin(value?.toString()?.replace(/[^0-9.]/g, ''));
+    }
+  }
 
   const initialState = {
     message: null,
@@ -41,10 +52,10 @@ const AddBusinessInformation = ({
   return (
     <>
       {
-        openModal && 
+        (openModal == 'cancel') && 
           <ConfirmCancel 
-            close={() => setOpenModal(false)}
-            next={() => close()}
+            close={() => setOpenModal('add')}
+            next={() => next()}
           />
       }
 
@@ -60,7 +71,7 @@ const AddBusinessInformation = ({
               placeholder=''
               label='CAC Registration Number'
               value={cac}
-              changeValue={setCac}
+              changeValue={(value: string) => handleCac(value)}
               required
             />
             <div className='w-full'>
@@ -107,7 +118,7 @@ const AddBusinessInformation = ({
               placeholder=''
               label='Tax Identification Number (TIN)'
               value={tin}
-              changeValue={setTin}
+              changeValue={(value: string) => handleTin(value)}
               required
             />
             <div className='w-full'>
@@ -136,7 +147,7 @@ const AddBusinessInformation = ({
         <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
           <Button 
             title='Cancel'
-            effect={() => setOpenModal(true)}
+            effect={() => close()}
             small
             outlined
           />

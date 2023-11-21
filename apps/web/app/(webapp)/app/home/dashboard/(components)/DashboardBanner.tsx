@@ -7,12 +7,16 @@ import React, { useState } from 'react'
 import { AddBusinessInformation } from '.';
 
 const DashboardBanner = () => {
-  const [openModal, setOpenModal] = useState(false);
+  const [openModal, setOpenModal] = useState('');
   const close_modal = Boolean(localStorage.getItem('close-dashboard-modal'));
   const [closeDashboardModal, setCloseDashboardModal] = useState(close_modal);
 
+  const cancelModal = () => {
+    setOpenModal('cancel');
+  }
+
   const closeModal = () => {
-    setOpenModal(false);
+    setOpenModal('');
   }
 
   return (
@@ -21,12 +25,14 @@ const DashboardBanner = () => {
         openModal &&
           <AppRightModal
             title={'Add Business Information'}
-            effect={closeModal}
-            childrenStyle='!px-0'
+            effect={cancelModal}
+            childrenStyle='relative !px-0'
           >
             <AddBusinessInformation 
-              close={closeModal}
+              close={cancelModal}
               next={closeModal}
+              setOpenModal={setOpenModal}
+              openModal={openModal}
             />
           </AppRightModal>
       }
@@ -70,7 +76,7 @@ const DashboardBanner = () => {
 
               <Button 
                 title={'Add business information'}
-                effect={() => setOpenModal(true)}
+                effect={() => setOpenModal('add')}
                 small
                 containerStyle='!w-[200px]'
               />

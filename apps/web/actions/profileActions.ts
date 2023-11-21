@@ -13,6 +13,7 @@ export async function postChangePassword(prevState: any, formData: FormData) {
   redirect(`/app/profile?status=successful`);
 }
 
+/* ADD BUSINESS INFORMATION ACTION */
 export async function postAddBusinessInfo(prevState: any, formData: FormData) {
   const fullData = {
     cac: formData.get('cac'),
@@ -21,4 +22,6 @@ export async function postAddBusinessInfo(prevState: any, formData: FormData) {
     tin: formData.get('tin'),
     company_status_report: formData.get('company_status_report'),
   };
+
+  return { message: 'success' }
 }
