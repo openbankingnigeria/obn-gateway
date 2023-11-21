@@ -20,7 +20,7 @@ export class Permission {
   @Column()
   slug?: string;
 
-  @Column()
+  @Column({ type: 'text' })
   description?: string;
 
   @CreateDateColumn({ name: 'created_at' })
