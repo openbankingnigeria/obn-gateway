@@ -1,71 +1,230 @@
 import { PipeTransform } from '@nestjs/common';
-import { LessThan, Like, MoreThan } from 'typeorm';
+import {
+  isBooleanString,
+  isDateString,
+  isNumberString,
+  isObject,
+  isString,
+} from 'class-validator';
+import {
+  AllowedFieldOptions,
+  FilterRules,
+  ValueTypes,
+} from './types/filter.types';
+import {
+  Between,
+  LessThan,
+  LessThanOrEqual,
+  Like,
+  MoreThan,
+  MoreThanOrEqual,
+} from 'typeorm';
+// import { LessThan, Like, MoreThan } from 'typeorm';
 
-export enum FilterTypes {
-  RANGE = 'range',
-  VALUE = 'value',
+export interface Filtering {
+  property: string;
+  rule: string;
+  value: string;
 }
 
 export class FilterPipe implements PipeTransform<any, any> {
-  constructor(
-    private readonly allowedFields: {
-      key: string;
-      type: FilterTypes;
-      mapsTo?: string;
-      valueType?: 'date' | 'string' | 'number' | 'boolean';
-    }[],
-  ) {}
+  constructor(private readonly allowedFields: AllowedFieldOptions[]) {}
 
-  transform(query: any) {
+  private validateValueType(
+    value: any,
+    valueType: ValueTypes,
+    returnParsedValue = false,
+  ) {
+    switch (valueType) {
+      case ValueTypes.string:
+        return returnParsedValue ? value : isString(value);
+      case ValueTypes.number:
+        return returnParsedValue ? Number(value) : isNumberString(value);
+      case ValueTypes.boolean:
+        return returnParsedValue ? value === 'true' : isBooleanString(value);
+      case ValueTypes.date:
+        return returnParsedValue ? new Date(value) : isDateString(value);
+      default:
+        return false;
+    }
+  }
+
+  private generateEachQuery(
+    query: any,
+    key: string,
+    allowedFieldType: ValueTypes,
+  ) {
+    const result: any = {};
+    if (typeof query === 'string') {
+      result[key] = Like(this.validateValueType(query, allowedFieldType, true));
+    } else {
+      const subQueryKeys: any[] = Object.keys(
+        query as Record<FilterRules, string>,
+      );
+
+      if (subQueryKeys.length <= 0 || subQueryKeys.length > 2) return;
+
+      if (subQueryKeys.length === 2) {
+        if (
+          subQueryKeys.includes(FilterRules.GREATER_THAN_OR_EQUALS) &&
+          subQueryKeys.includes(FilterRules.LESS_THAN_OR_EQUALS)
+        ) {
+          result[key] = Between(
+            this.validateValueType(
+              query[FilterRules.GREATER_THAN_OR_EQUALS],
+              allowedFieldType,
+              true,
+            ),
+            this.validateValueType(
+              query[FilterRules.LESS_THAN_OR_EQUALS],
+              allowedFieldType,
+              true,
+            ),
+          );
+        } else if (
+          subQueryKeys.includes(FilterRules.GREATER_THAN) &&
+          subQueryKeys.includes(FilterRules.LESS_THAN)
+        ) {
+          result[key] = Between(
+            this.validateValueType(
+              query[FilterRules.GREATER_THAN],
+              allowedFieldType,
+              true,
+            ),
+            this.validateValueType(
+              query[FilterRules.LESS_THAN],
+              allowedFieldType,
+              true,
+            ),
+          );
+        }
+      } else if (subQueryKeys.length === 1) {
+        subQueryKeys.forEach((subKey: FilterRules) => {
+          switch (subKey) {
+            case FilterRules.GREATER_THAN:
+              result[key] = MoreThan(
+                this.validateValueType(query[subKey], allowedFieldType, true),
+              );
+              break;
+            case FilterRules.LESS_THAN:
+              result[key] = LessThan(
+                this.validateValueType(query[subKey], allowedFieldType, true),
+              );
+              break;
+            case FilterRules.GREATER_THAN_OR_EQUALS:
+              result[key] = MoreThanOrEqual(
+                this.validateValueType(query[subKey], allowedFieldType, true),
+              );
+              break;
+            case FilterRules.LESS_THAN_OR_EQUALS:
+              result[key] = LessThanOrEqual(
+                this.validateValueType(query[subKey], allowedFieldType, true),
+              );
+              break;
+          }
+        });
+      }
+    }
+
+    return result;
+  }
+
+  private convertToQuery(
+    query: Record<string, string | Record<FilterRules, string>>,
+  ) {
     let result: any = {};
 
-    // Structure the query to match the type orm query
-    this.allowedFields.forEach((field) => {
-      // If the field exists in the query object proceed
-      if (query[field.key]) {
-        switch (field.type) {
-          // For ranges the key structure would be [field]-gt|lt e.g., createdAt-gt. Any field not matching this structure would be omitted.
-          case FilterTypes.RANGE:
-            const splitKey = field.key.split('-');
-            result[splitKey[0]] =
-              splitKey[1] === 'gt'
-                ? MoreThan(
-                    field.valueType === 'date'
-                      ? new Date(query[field.key])
-                      : query[field.key],
-                  )
-                : LessThan(
-                    field.valueType === 'date'
-                      ? new Date(query[field.key])
-                      : query[field.key],
-                  );
+    Object.keys(query).forEach((key) => {
+      const allowedFieldType = this.allowedFields.find(
+        (allowedField) => allowedField.key === key,
+      )!.valueType;
 
-            break;
-          case FilterTypes.VALUE:
-            const resultFragment: any = {};
-            // this handles for nested filtering.
-            if (field.mapsTo) {
-              const mapArray = field.mapsTo?.split('.');
+      const fieldMapsTo = this.allowedFields.find(
+        (allowedField) => allowedField.key === key,
+      )!.mapsTo;
 
-              mapArray.forEach((mapValue, index) => {
-                const resultFragmentKeys = Object.keys(resultFragment);
-                const value =
-                  index === mapArray.length - 1 ? Like(query[field.key]) : {};
-                if (resultFragmentKeys.length > 0) {
-                  resultFragment[resultFragmentKeys[0]][mapValue] = value;
+      if (fieldMapsTo) {
+        const obj: any = {};
+        fieldMapsTo.forEach((fieldMap) => {
+          const set = (path: string, value: any, isOr = false) => {
+            let schema = obj; // a moving reference to internal objects within obj
+            const pList = path.split('.');
+            const len = pList.length;
+            for (let i = 0; i < len - 1; i++) {
+              const elem = pList[i];
+              if (isOr) {
+                if (i === len - 2) {
+                  if (!schema[elem]) schema[elem] = [];
+                  schema[elem].push({ [pList[i + 1]]: value });
+                  i += 10;
                 } else {
-                  resultFragment[mapValue] = value;
+                  if (!schema[elem]) schema[elem] = {};
+                  schema = schema[elem];
                 }
-              });
-            } else {
-              resultFragment[field.key] = Like(query[field.key]);
+              } else {
+                if (!schema[elem]) schema[elem] = {};
+                schema = schema[elem];
+                schema[pList[len - 1]] = value;
+              }
             }
+          };
 
-            result = { ...result, ...resultFragment };
-            break;
-        }
+          set(
+            fieldMap,
+            this.generateEachQuery(query[key], key, allowedFieldType)[key],
+            fieldMapsTo.length > 1,
+          );
+        });
+        result = { ...result, ...obj };
+      } else {
+        const subQuery = this.generateEachQuery(
+          query[key],
+          key,
+          allowedFieldType,
+        );
+        result = { ...result, ...subQuery };
       }
     });
+
     return result;
+  }
+
+  transform(query: any) {
+    // 1. Check if the filter is present in the request query
+    if (!query.filter) return;
+
+    const { filter } = query;
+
+    // 2. Check if any of the allowed fields for this query are present in the request query filter
+    if (
+      !this.allowedFields.some(({ key }) => Object.keys(filter).includes(key))
+    )
+      return;
+
+    // 3. Remove unwanted and invalid fields from the request query filter. Invalid fields are those whose type is not consistent with the expected type
+    const parsedFilter = Object.fromEntries(
+      Object.entries(filter).filter(([key, filterValue]) => {
+        if (isObject(filterValue)) {
+          const allowedFieldType = this.allowedFields.find(
+            (allowedField) => allowedField.key === key,
+          )!.valueType;
+          return (
+            Object.keys(filterValue).every((key: FilterRules) =>
+              Object.values(FilterRules).includes(key),
+            ) &&
+            Object.values(filterValue).every((filterValue: any) =>
+              this.validateValueType(filterValue, allowedFieldType),
+            )
+          );
+        } else {
+          return this.allowedFields.some((field) => field.key === key);
+        }
+      }),
+    );
+
+    // 4. Convert the parsed query to a typeorm compatible query
+    const finalQuery = this.convertToQuery(parsedFilter as any);
+
+    return finalQuery;
   }
 }

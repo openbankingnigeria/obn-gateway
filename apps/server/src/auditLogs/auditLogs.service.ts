@@ -35,9 +35,13 @@ export class AuditLogsService {
 
   async getLogs({ limit, page }: PaginationParameters, filters?: any) {
     const companyFilter: any = {};
+
     if (this.requestContext.user!.role.parent?.slug === ROLES.API_CONSUMER) {
       companyFilter.companyId = this.requestContext.user?.companyId;
     }
+
+    console.log({ filters: filters?.user?.profile[0] });
+
     const totalLogs = await this.auditLogRepository.count({
       where: {
         ...filters,

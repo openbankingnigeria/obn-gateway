@@ -4,9 +4,10 @@ import {
   PaginationParameters,
   PaginationPipe,
 } from '@common/utils/pipes/query/pagination.pipe';
-import { FilterPipe, FilterTypes } from '@common/utils/pipes/query/filter.pipe';
+import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
+import { AuditLogFilters } from '@common/constants/auditLogs/filter.constants';
 
 @Controller('audit-trail')
 export class AuditLogsController {
@@ -16,13 +17,7 @@ export class AuditLogsController {
   @RequiredPermission(PERMISSIONS.LIST_AUDIT_LOGS)
   getLogs(
     @Query(PaginationPipe) pagination: PaginationParameters,
-    @Query(
-      new FilterPipe([
-        { key: 'event', type: FilterTypes.VALUE },
-        { key: 'createdAt-gt', type: FilterTypes.RANGE, valueType: 'date' },
-        { key: 'createdAt-lt', type: FilterTypes.RANGE, valueType: 'date' },
-      ]),
-    )
+    @Query(new FilterPipe(AuditLogFilters.getLogs))
     filters: any,
   ) {
     return this.auditLogsService.getLogs(pagination, filters);
