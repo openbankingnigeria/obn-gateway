@@ -40,6 +40,8 @@ export class AuditLogsService {
       companyFilter.companyId = this.requestContext.user?.companyId;
     }
 
+    console.log({ filters: filters?.user?.profile[0] });
+
     const totalLogs = await this.auditLogRepository.count({
       where: {
         ...filters,
