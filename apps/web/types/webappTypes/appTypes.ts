@@ -117,6 +117,13 @@ export interface CreateRolePageProps {
 
 export interface AddBusinessInformationProps {
   close: () => void;
+  openModal: string;
+  setOpenModal: Dispatch<SetStateAction<string>>;
+  next: () => void;
+}
+
+export interface confirmCancelProps {
+  close: () => void;
   next: () => void;
 }
 
