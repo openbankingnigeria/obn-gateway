@@ -1,8 +1,8 @@
 import { DashboardMetricCardProps } from '@/types/webappTypes/appTypes'
 import { addCommasToAmount } from '@/utils/addCommasToAmount'
 import React from 'react'
-import BarChart from './BarChart'
 import moment from 'moment'
+import { BarChart } from '.'
 
 const DashboardMetricCard = ({
   title, 

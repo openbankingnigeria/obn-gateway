@@ -115,6 +115,11 @@ export interface CreateRolePageProps {
   next: () => void;
 }
 
+export interface AddBusinessInformationProps {
+  close: () => void;
+  next: () => void;
+}
+
 export interface PermissionOptionsProps {
   label: string;
   value: string;

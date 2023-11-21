@@ -74,7 +74,7 @@ const MembersTable = ({
         <button 
           id={row.original.id} 
           onClick={() => handleReInvite(row.original.id)}
-          className='text-f14 !text-[#5277C7] cursor-pointer capitalize'
+          className='text-f14 whitespace-nowrap !text-[#5277C7] cursor-pointer capitalize'
         >
           Reinvite
         </button>

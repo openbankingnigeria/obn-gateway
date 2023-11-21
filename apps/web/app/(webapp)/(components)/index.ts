@@ -25,6 +25,7 @@ import ConfigurationBox from "./ConfigurationBox";
 import BooleanBox from "./BooleanBox";
 import TierBox from "./TierBox";
 import DownloadButton from "./DownloadButton";
+import DragAndUploadFile from "./DragAndUploadFile";
 
 export {
   DatePicker,
@@ -53,5 +54,6 @@ export {
   ConfigurationBox,
   BooleanBox,
   TierBox,
-  DownloadButton
+  DownloadButton,
+  DragAndUploadFile
 }

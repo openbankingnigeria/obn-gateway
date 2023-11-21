@@ -1,7 +1,7 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { DatePicker, TopPanel } from '@/app/(webapp)/(components)'
-import { CONSENTS_TABLE_DATA, CONSENTS_TABLE_HEADERS, CONSENTS_STATUS_DATA } from '@/data/consentsData'
+import { CONSENTS_TABLE_DATA, CONSENTS_TABLE_HEADERS, CONSENTS_STATUS_DATA } from '@/data/consentData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ConsentsTable } from './(components)'
 

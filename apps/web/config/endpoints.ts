@@ -7,4 +7,8 @@ export const postInitiatePasswordReset = () => `${BASE_URL}/auth/password/forgot
 export const postResetPassword = ({ resetToken }: {resetToken: string}) => 
   `${BASE_URL}/auth/password/reset/${resetToken}`;
 export const postAccountSetUp = ({ setupToken }: {setupToken: string}) => 
-`${BASE_URL}/auth/setup/${setupToken}`;
+  `${BASE_URL}/auth/setup/${setupToken}`;
+
+// TEAMS AND ROLES
+export const postRoles = () =>
+  `${BASE_URL}/roles`;

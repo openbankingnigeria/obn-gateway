@@ -17,6 +17,25 @@ export const COLLECTIONS_TABLE_HEADERS = [
   }
 ];
 
+export const DASHBOARD_API_HEADERS = [
+  {
+    header: 'API Name',
+    accessor: 'api_name'
+  },
+  {
+    header: 'Request Method',
+    accessor: 'request_method'
+  },
+  {
+    header: 'Endpoint URL',
+    accessor: 'endpoint_url'
+  },
+  {
+    header: 'Tier',
+    accessor: 'tier'
+  },
+];
+
 export const COLLECTIONS_API_HEADERS = [
   {
     header: 'API Name',

@@ -1,7 +1,7 @@
 import React from 'react'
 import { ConsentsDetails, ConsentsSections } from '../(components)'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
-import { CONSENTS_API_ACTIVITIES, CONSENTS_API_ACTIVITIES_STATUS, CONSENTS_API_ACTIVITIES_HEADERS } from '@/data/consentsData';
+import { CONSENTS_API_ACTIVITIES, CONSENTS_API_ACTIVITIES_STATUS, CONSENTS_API_ACTIVITIES_HEADERS } from '@/data/consentData';
 
 const ConsentsPage = ({ params, searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || '';

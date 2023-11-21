@@ -1,35 +1,54 @@
-import { EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, MockServicesProps } from "@/types/dataTypes";
+import { EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, TestModeConfigurationProps } from "@/types/dataTypes";
 
 export const SYSTEM_SETTINGS_PATHS = [
   {
     id: 1,
     label: 'General Settings',
     value: '',
-    name: 'general_settings'
+    name: 'general_settings',
+    type: 'API_PROVIDERS'
   },
   {
     id: 2,
     label: 'Email Service',
     value: 'email_service',
-    name: 'email_service'
+    name: 'email_service',
+    type: 'API_PROVIDERS'
   },
   {
     id: 3,
     label: 'Email Template',
     value: 'email_template',
-    name: 'email_template'
+    name: 'email_template',
+    type: 'API_PROVIDERS'
   },
   {
     id: 4,
     label: 'External Services',
     value: 'external_services',
-    name: 'external_services'
+    name: 'external_services',
+    type: 'API_PROVIDERS'
   },
   {
     id: 5,
     label: 'Mock Services',
     value: 'mock_services',
-    name: 'mock_services'
+    name: 'mock_services',
+    type: 'API_PROVIDERS'
+  },
+  {
+    id: 6,
+    label: 'Test Mode Configuration',
+    value: 'test_mode_configuration',
+    name: 'test_mode_configuration',
+    type: 'API_CONSUMERS'
+  },
+  {
+    id: 7,
+    label: 'Live Mode Configuration',
+    value: 'live_mode_configuration',
+    name: 'live_mode_configuration',
+    type: 'API_CONSUMERS'
   },
 ];
 
@@ -108,6 +127,183 @@ export const MOCK_SERVICES_DATA = ({
     type: 'text',
     value: mock_url
   }
+];
+
+export const TEST_MODE_CONFIGURATION_DATA = ({
+  test_secret_key,
+  name,
+  description,
+  test_api_key,
+  webhook_url,
+  callback_url,
+  ip_whitelist,
+  timeout
+}: TestModeConfigurationProps) => [
+  {
+    id: 1,
+    label: 'Test Secret Key',
+    description: 'A confidential key used for authenticating API requests in a test environment. Keep this key secure.',
+    name: 'test_secret_key',
+    type: 'text',
+    value: test_secret_key,
+    rightLabel: 'copy',
+    role: 'Super AC'
+  },
+  {
+    id: 2,
+    label: 'Name',
+    description: 'The name assigned to this API configuration, used for identification and reference within the system.',
+    name: 'name',
+    type: 'text',
+    value: name,
+    role: 'Super AC'
+  },
+  {
+    id: 3,
+    label: 'Description',
+    description: 'A brief summary that outlines the purpose or functionality of this API configuration.',
+    name: 'description',
+    type: 'text',
+    value: description,
+    role: 'Super AC'
+  },
+  {
+    id: 4,
+    label: 'Test API Key',
+    description: 'A public key used for client-side operations in a test environment.',
+    name: 'test_api_key',
+    type: 'text',
+    value: test_api_key,
+    rightLabel: 'copy',
+    role: 'Super AC'
+  },
+  {
+    id: 5,
+    label: 'Webhook URL',
+    description: 'The URL endpoint where the system will send automated messages or events related to the API.',
+    name: 'webhook_url',
+    type: 'text',
+    value: webhook_url,
+    role: 'Other AC'
+  },
+  {
+    id: 6,
+    label: 'Callback URL',
+    description: 'The URL to which the API will redirect the user after a successful or failed request.',
+    name: 'callback_url',
+    type: 'text',
+    value: callback_url,
+    role: 'Other AC'
+  },
+  {
+    id: 7,
+    label: 'IP Whitelist',
+    description: 'A list of IP addresses that are allowed to access this API. Requests from IPs not on this list will be denied.',
+    name: 'ip_whitelist',
+    type: 'text',
+    value: ip_whitelist,
+    rightLabel: '',
+    role: 'Other AC'
+  },
+  {
+    id: 8,
+    label: 'Timeout',
+    description: 'The maximum duration the system will wait for a response from the API before terminating the request.',
+    name: 'timeout',
+    type: 'number',
+    value: timeout,
+    rightLabel: 'secs',
+    role: 'Other AC'
+  },
+];
+
+
+export const LIVE_MODE_CONFIGURATION_DATA = ({
+  secret_key,
+  name,
+  description,
+  api_key,
+  webhook_url,
+  callback_url,
+  ip_whitelist,
+  timeout
+}: LiveModeConfigurationProps) => [
+  {
+    id: 1,
+    label: 'Secret Key',
+    description: 'A confidential key used for authenticating API requests in a test environment. Keep this key secure.',
+    name: 'secret_key',
+    type: 'text',
+    value: secret_key,
+    rightLabel: 'copy',
+    role: 'Super AC'
+  },
+  {
+    id: 2,
+    label: 'Name',
+    description: 'The name assigned to this API configuration, used for identification and reference within the system.',
+    name: 'name',
+    type: 'text',
+    value: name,
+    role: 'Super AC'
+  },
+  {
+    id: 3,
+    label: 'Description',
+    description: 'A brief summary that outlines the purpose or functionality of this API configuration.',
+    name: 'description',
+    type: 'text',
+    value: description,
+    role: 'Super AC'
+  },
+  {
+    id: 4,
+    label: 'API Key',
+    description: 'A public key used for client-side operations in a test environment.',
+    name: 'api_key',
+    type: 'text',
+    value: api_key,
+    rightLabel: 'copy',
+    role: 'Super AC'
+  },
+  {
+    id: 5,
+    label: 'Webhook URL',
+    description: 'The URL endpoint where the system will send automated messages or events related to the API.',
+    name: 'webhook_url',
+    type: 'text',
+    value: webhook_url,
+    role: 'Other AC'
+  },
+  {
+    id: 6,
+    label: 'Callback URL',
+    description: 'The URL to which the API will redirect the user after a successful or failed request.',
+    name: 'callback_url',
+    type: 'text',
+    value: callback_url,
+    role: 'Other AC'
+  },
+  {
+    id: 7,
+    label: 'IP Whitelist',
+    description: 'A list of IP addresses that are allowed to access this API. Requests from IPs not on this list will be denied.',
+    name: 'ip_whitelist',
+    type: 'text',
+    value: ip_whitelist,
+    rightLabel: '',
+    role: 'Other AC'
+  },
+  {
+    id: 8,
+    label: 'Timeout',
+    description: 'The maximum duration the system will wait for a response from the API before terminating the request.',
+    name: 'timeout',
+    type: 'number',
+    value: timeout,
+    rightLabel: 'secs',
+    role: 'Other AC'
+  },
 ];
 
 export const EXTERNAL_SERVICES_DATA = ({

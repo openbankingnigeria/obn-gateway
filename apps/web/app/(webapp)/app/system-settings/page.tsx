@@ -2,7 +2,7 @@ import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
 import { TopPanel } from '../../(components)';
 import { SYSTEM_SETTINGS_PATHS } from '@/data/systemSettingsData';
-import { EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, MockServicesPage } from './(components)';
+import { EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, TestModeConfigurationPage } from './(components)';
 
 const SystemSettingsPage = ({ searchParams }: UrlParamsProps) => {
   const path = searchParams?.path || ''
@@ -26,7 +26,14 @@ const SystemSettingsPage = ({ searchParams }: UrlParamsProps) => {
                 <ExternalServicesPage /> :
                 path == 'mock_services' ? 
                   <MockServicesPage /> :
-                  <GeneralSettingsPage />
+                  path == '' ? 
+                    <GeneralSettingsPage /> :
+                    /** API CONSUMER */
+                    path == 'test_mode_configuration' ? 
+                      <TestModeConfigurationPage /> :
+                        path == 'live_mode_configuration' ? 
+                        <LiveModeConfigurationPage /> :
+                        null
         }
       </div>
     </section>

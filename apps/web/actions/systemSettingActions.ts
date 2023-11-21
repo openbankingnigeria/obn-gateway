@@ -57,3 +57,31 @@ export async function updateMockServices(prevState: any, formData: FormData) {
 
   return { message: 'Settings saved successfully' };
 }
+
+/* TEST MODE CONFIGURATION */
+export async function updateTestModeConfig(prevState: any, formData: FormData) {
+  const fullData = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+    webhook_url: formData.get('webhook_url'),
+    callback_url: formData.get('callback_url'),
+    ip_whitelist: formData.get('ip_whitelist'),
+    timeout: formData.get('timeout'),
+  };
+
+  return { message: 'Settings saved successfully' };
+}
+
+/* LIVE MODE CONFIGURATION */
+export async function updateLiveModeConfig(prevState: any, formData: FormData) {
+  const fullData = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+    webhook_url: formData.get('webhook_url'),
+    callback_url: formData.get('callback_url'),
+    ip_whitelist: formData.get('ip_whitelist'),
+    timeout: formData.get('timeout'),
+  };
+
+  return { message: 'Settings saved successfully' };
+}

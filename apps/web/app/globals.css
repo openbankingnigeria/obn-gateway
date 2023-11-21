@@ -18,6 +18,12 @@
 .vertical-align-start {
   vertical-align: top;
 }
+
+.transparent-white {
+  background: rgb(255, 255, 255);
+}
+
+
 /* PANE UNDERLINE STYLE */
 .pane-underline {
   @apply h-[2px] bg-[#459572] bottom-[1px] absolute w-full left-0 right-0;

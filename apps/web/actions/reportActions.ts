@@ -1,7 +1,5 @@
 'use server'
 
-import { z } from 'zod';
-
 /* GENERATE REPORT */
 export async function postGenerateReport(prevState: any, formData: FormData) {
   const fullData = {
