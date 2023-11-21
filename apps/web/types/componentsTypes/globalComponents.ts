@@ -13,6 +13,7 @@ export interface MainButtonProps {
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   containerStyle?: string;
+  danger?: boolean;
   small?: boolean;
   outlined?: boolean;
   titleStyle?: string;

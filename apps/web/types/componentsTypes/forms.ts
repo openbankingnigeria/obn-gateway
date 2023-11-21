@@ -28,6 +28,10 @@ export interface InputElementProps extends FieldsProps {
   showGuide?: boolean;
 }
 
+export interface DragAndUploadElementProps extends FieldsProps {
+  changeValue?: any;
+}
+
 export interface TextareaElementProps extends FieldsProps {
   rows: number
 }

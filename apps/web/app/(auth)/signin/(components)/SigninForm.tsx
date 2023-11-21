@@ -3,12 +3,10 @@
 import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
 import { validateEmail } from '@/utils/globalValidations';
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
 import { postSignIn } from '@/actions/authActions';
+import { useServerAction } from '@/hooks';
 
 const SigninForm = () => {
   const [email, setEmail] = useState(''); 
@@ -19,12 +17,13 @@ const SigninForm = () => {
     !password
   )
 
-  const initialState = {
-    message: null,
-  }
-
-  const [state, formAction] = useFormState(postSignIn, initialState);
-  state?.message && toast.error(state?.message);
+  const initialState = {}
+  const [state, formAction] = useServerAction(postSignIn, initialState);
+  state?.response?.data && 
+    localStorage?.setItem(
+      'aperta-user-accessToken', 
+      state?.response?.data
+    );
 
   return (
     <form

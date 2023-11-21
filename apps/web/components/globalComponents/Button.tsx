@@ -17,6 +17,7 @@ const Button = ({
   outlined,
   containerStyle,
   small,
+  danger,
   titleStyle
 }: ButtonProps) => {
   
@@ -29,7 +30,7 @@ const Button = ({
       disabled={disabled || pending || loading}
       className={`group gap-[6px] flex items-center justify-center rounded-[6px]
       ${small ? 'py-[6px] px-[12px]' : 'py-[12px] px-[20px]'} 
-      ${outlined ? 'outlined-button' : 'default-button'}
+      ${outlined ? 'outlined-button' : danger ? 'bg-[#DF1C41] text-white' : 'default-button'}
       ${containerStyle}`}
     >
       {

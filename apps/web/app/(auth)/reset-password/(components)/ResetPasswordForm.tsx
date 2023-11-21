@@ -2,12 +2,10 @@
 
 import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
 import { postResetPassword } from '@/actions/authActions';
 import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
+import { useServerAction } from '@/hooks';
 
 const ResetPasswordForm = () => {
   const [password, setPassword] = useState(''); 
@@ -27,11 +25,9 @@ const ResetPasswordForm = () => {
   );
 
   const initialState = {
-    message: null,
+    resetToken: localStorage?.getItem('aperta-user-resetToken')
   }
-
-  const [state, formAction] = useFormState(postResetPassword, initialState);
-  state?.message && toast.error(state?.message);
+  const [state, formAction] = useServerAction(postResetPassword, initialState);
 
   return (
     <form

@@ -9,6 +9,9 @@ const SignupSuccess = () => {
   const router = useRouter();
 
   useEffect(() => {
+    sessionStorage.removeItem('sd');
+    sessionStorage.removeItem('pd');
+
     const interval = setInterval(() => {
       router.push('/signin');
     }, 5000);

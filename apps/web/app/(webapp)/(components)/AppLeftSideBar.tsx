@@ -17,6 +17,11 @@ const AppLeftSideBar = () => {
     <aside className='fixed w-[280px] z-[100] left-0 h-screen border-r border-o-border bg-white flex flex-col gap-[24px] py-[24px]'>
       <div className='w-full px-[16px]'>
         <div className='w-full p-[12px] flex flex-row gap-[8px] items-center rounded-[8px] bg-[#182749]'>
+          {/* API CONSUMER */}
+          <div className='min-w-[32px] h-[32px] text-[#459572] rounded-full bg-[#EDF8EF] flex items-center justify-center text-f14 font-[500]'>
+            JC
+          </div>
+
           <div className='flex flex-col w-full gap-[2px]'>
             <h3 className='capitalize w-full text-white text-f14 font-[500]'>
               John Ajayi

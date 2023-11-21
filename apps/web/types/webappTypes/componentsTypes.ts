@@ -87,7 +87,7 @@ export interface TabelElmentProps extends TableProps {
   thStyle?: string;
   tdStyle?: string;
   module?: string;
-  redirect?: (value: string) => string;
+  redirect?: null | ((value: string) => string);
 }
 
 export interface TwoFactorAuthModalProps {
@@ -143,7 +143,7 @@ export interface RequestMethodTextProps {
 
 export interface ConfigurationBoxProps {
   value: any;
-  noOfApis: any;
+  noOfApis?: any;
 }
 
 export interface BooleanBoxProps {
@@ -157,4 +157,10 @@ export interface TierBoxProps {
 export interface DownloadButtonProps {
   containerStyle?: string;
   data: any[];
+}
+
+export interface DragAndUploadFileProps {
+  name: string
+  selectedFile: any
+  setSelectedFile: Dispatch<SetStateAction<any>>;
 }

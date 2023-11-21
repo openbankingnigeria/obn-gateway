@@ -2,13 +2,11 @@
 
 import { Button } from '@/components/globalComponents'
 import Image from 'next/image'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import Link from 'next/link'
 import React from 'react'
 import { postReInitiatePasswordReset } from '@/actions/authActions'
-import { toast } from 'react-toastify'
 import { InputElement } from '@/components/forms'
+import { useServerAction } from '@/hooks'
 
 const CheckEmailPage = () => {
   const email = sessionStorage.getItem('aperta-user-email') || '';
@@ -18,12 +16,14 @@ const CheckEmailPage = () => {
     window.location.href = mailtoLink;
   };
 
-  const initialState = {
-    message: null,
-  }
-
-  const [state, formAction] = useFormState(postReInitiatePasswordReset, initialState);
-  state?.message && toast.error(state?.message);
+  const initialState = {}
+  const [state, formAction] = useServerAction(postReInitiatePasswordReset, initialState);
+  state?.response?.data && 
+    localStorage?.setItem(
+      'aperta-user-resetToken', 
+      state?.response?.data
+    );
+   
 
   return (
     <form 
@@ -62,14 +62,12 @@ const CheckEmailPage = () => {
         </div>
       </div>
 
-        <InputElement
-          name='email'
-          placeholder='johndoe@openbanking.com'
-          label='Email Address'
-          value={email}
-          containerStyle='hidden'
-          required
-        /> 
+      <input 
+        name='email' 
+        value={email} 
+        readOnly 
+        className='hidden opacity-0' 
+      />
 
       <div className='w-full flex-col flex gap-[12px]'>
         <Button 

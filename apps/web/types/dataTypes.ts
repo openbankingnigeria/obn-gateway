@@ -47,3 +47,25 @@ export interface MembersStatusProps {
   active?: number;
   invited?: number;
 }
+
+export interface TestModeConfigurationProps {
+  test_secret_key: string;
+  name: string;
+  description: string;
+  test_api_key: string;
+  webhook_url: string;
+  callback_url: string;
+  ip_whitelist: string;
+  timeout: string;
+}
+
+export interface LiveModeConfigurationProps {
+  secret_key: string;
+  name: string;
+  description: string;
+  api_key: string;
+  webhook_url: string;
+  callback_url: string;
+  ip_whitelist: string;
+  timeout: string;
+}

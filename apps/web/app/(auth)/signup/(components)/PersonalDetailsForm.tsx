@@ -2,29 +2,32 @@
 
 import { InputElement, SelectElement } from '@/components/forms';
 import { Button, LinkButton } from '@/components/globalComponents';
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import { postPersonalDetails } from '@/actions/authActions';
+import React, { MouseEvent, useEffect, useState } from 'react';
 import { COUNTRIES_DATA } from '@/data/countriesData';
+import { useRouter } from 'next/navigation';
 
 const PersonalDetailsForm = () => {
   const [first_name, setFirstName] = useState(''); 
   const [last_name, setLastName] = useState(''); 
   const [country, setCountry] = useState(''); 
   const [phone_number, setPhoneNumber] = useState(''); 
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const getData = sessionStorage.getItem('pd') && JSON.parse(sessionStorage.getItem('pd') || '');
+
+  useEffect(() => {
+    setFirstName(getData?.first_name);
+    setLastName(getData?.last_name);
+    setCountry(getData?.country);
+    setPhoneNumber(getData?.phone_number);
+  }, []);
 
   const incorrect = (
     !first_name ||
     !last_name ||
     !country ||
-    !phone_number
+    phone_number?.length !== 11
   );
-
-  const initialState = {
-    message: null,
-  }
 
   const countries_list = COUNTRIES_DATA?.map(country => {
     return ({
@@ -33,12 +36,37 @@ const PersonalDetailsForm = () => {
     });
   })
 
-  const [state, formAction] = useFormState(postPersonalDetails, initialState);
-  state?.message && toast.error(state?.message);
+  const handleSubmit = (e: MouseEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    sessionStorage.setItem('pd', JSON.stringify(
+      { first_name, last_name, country, phone_number}
+    ))
+    router.push('/signup/company-details');
+    // setLoading(false);
+  };
+
+  const handlePhoneNumber = (value: string) => {
+    if (value?.length <= 11){
+      setPhoneNumber(value?.toString()?.replace(/[^0-9.]/g, ''));
+    }
+  }
+
+  const handleFirstName = (value: string) => {
+    const inputValue = value;
+    const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
+    setFirstName(capitalizedValue);
+  };
+
+  const handleLastName = (value: string) => {
+    const inputValue = value;
+    const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
+    setLastName(capitalizedValue);
+  };
 
   return (
     <form
-      action={incorrect ? '' : formAction}
+      action={''}
       className='gap-[32px] flex flex-col w-full'
     >
       <div className='w-full flex flex-col gap-[16px]'>
@@ -48,7 +76,7 @@ const PersonalDetailsForm = () => {
             placeholder='First name'
             label='What is your name?'
             value={first_name}
-            changeValue={setFirstName}
+            changeValue={(value: string) => handleFirstName(value)}
             required
           />
 
@@ -56,7 +84,7 @@ const PersonalDetailsForm = () => {
             name='last_name'
             placeholder='Last name'
             value={last_name}
-            changeValue={setLastName}
+            changeValue={(value: string) => handleLastName(value)}
             required
           />
         </div>
@@ -86,7 +114,7 @@ const PersonalDetailsForm = () => {
           name='phone_number'
           type='tel'
           value={phone_number}
-          changeValue={setPhoneNumber}
+          changeValue={(value: string) => handlePhoneNumber(value)}
           label='Phone Number'
           required
         />
@@ -94,9 +122,11 @@ const PersonalDetailsForm = () => {
 
       <div className='w-full flex-col flex gap-[12px]'>
         <Button 
-          type='submit'
+          type='button'
+          effect={(e) => handleSubmit(e)}
           title='Next'
-          disabled={incorrect}
+          loading={loading}
+          disabled={loading || incorrect}
         />
 
         <LinkButton
