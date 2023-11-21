@@ -177,7 +177,12 @@ export class FilterPipe implements PipeTransform<any, any> {
         });
         result = { ...result, ...obj };
       } else {
-        result[key] = this.generateEachQuery(query[key], key, allowedFieldType);
+        const subQuery = this.generateEachQuery(
+          query[key],
+          key,
+          allowedFieldType,
+        );
+        result = { ...result, ...subQuery };
       }
     });
 
