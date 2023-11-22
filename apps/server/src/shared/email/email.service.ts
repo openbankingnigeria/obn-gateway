@@ -21,7 +21,9 @@ export class EmailService {
       from: this.config.get('email.from'),
       to: email,
       subject: 'OBN Invite',
-      html: token,
+      html: `${this.config.get(
+        'server.managementUrl',
+      )}/account-setup?token=${token}`,
     });
     console.log('Message sent: %s', info.messageId);
   }

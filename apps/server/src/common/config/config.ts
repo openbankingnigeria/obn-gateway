@@ -1,23 +1,26 @@
 import * as fs from 'fs';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { DataSourceOptions } from 'typeorm';
 
 export const globalConfig = (): {
   [k: string]: any;
   email: SMTPTransport.Options;
+  database: DataSourceOptions;
 } => ({
   server: {
     port: parseInt(process.env.SERVER_PORT as string, 10) || 8080,
     nodeEnv: process.env.NODE_ENV || 'development',
+    managementUrl: process.env.MANAGEMENT_URL,
   },
   database: {
-    type: process.env.DATABASE_TYPE || 'mysql',
+    type: 'mysql',
     host: process.env.DATABASE_HOST,
     port: parseInt(process.env.DATABASE_PORT as string, 10) || 3306,
     username: process.env.DATABASE_USERNAME,
     password:
       (process.env.DATABASE_PASSWORD_FILE
-        ? fs.readFileSync(process.env.DATABASE_PASSWORD_FILE)
-        : undefined) || process.env.DATABASE_PASSWORD,
+        ? fs.readFileSync(process.env.DATABASE_PASSWORD_FILE).toString()
+        : '') || process.env.DATABASE_PASSWORD,
     name: process.env.DATABASE_NAME,
   },
   auth: {
@@ -38,6 +41,6 @@ export const globalConfig = (): {
     },
   },
   kong: {
-    adminUrl: process.env.KONG_ADMIN_URL,
+    adminUrl: process.env.KONG_ADMIN_API_URL,
   },
 });

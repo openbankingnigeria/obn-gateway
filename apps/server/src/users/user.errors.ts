@@ -21,6 +21,8 @@ export const userErrors = {
   userWithEmailAlreadyExists: (email: string) =>
     `A user with email '${email}' already exists.`,
   userNotFound: `User not found.`,
+  cannotUpdateSelf: `You cannot update your user.`,
+  cannotDeleteSelf: `You cannot deleted your user.`,
   dto: {
     valueMustContainOnlyType: (
       propertyName: string,

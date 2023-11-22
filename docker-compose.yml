@@ -186,7 +186,8 @@ services:
       COMPANY_EMAIL: ${COMPANY_EMAIL:?COMPANY_EMAIL is required}
       COMPANY_NAME: ${COMPANY_NAME:?COMPANY_NAME is required}
       DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD is required}
-      KONG_ADMIN_URL: ${KONG_ADMIN_URL:-http://kong:8001}
+      KONG_ADMIN_API_URL: ${KONG_ADMIN_API_URL:-http://kong:8001}
+      MANAGEMENT_URL: ${MANAGEMENT_URL:-http://localhost:3000}
     secrets:
       - mysql_password
       - jwt_secret

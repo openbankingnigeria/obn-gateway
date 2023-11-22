@@ -126,6 +126,12 @@ export class UsersService {
       });
     }
 
+    if (user.id === this.requestContext.user!.id) {
+      throw new IBadRequestException({
+        message: userErrors.cannotUpdateSelf,
+      });
+    }
+
     const updatedUser = this.userRepository.create({
       roleId,
       status,
@@ -164,6 +170,12 @@ export class UsersService {
     if (!user) {
       throw new IBadRequestException({
         message: userErrors.userNotFound,
+      });
+    }
+
+    if (user.id === this.requestContext.user!.id) {
+      throw new IBadRequestException({
+        message: userErrors.cannotDeleteSelf,
       });
     }
 
