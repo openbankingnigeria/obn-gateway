@@ -1,5 +1,6 @@
 'use client'
 
+import { getStorage, removeStorage } from '@/config/webStorage';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 // @ts-ignore
@@ -11,7 +12,7 @@ const useServerAction = (
   initialState: any,
 ) => {
 
-  const token = localStorage.getItem('aperta-user-accessToken');
+  const token = getStorage('aperta-user-accessToken');
   const initial_state = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -27,7 +28,8 @@ const useServerAction = (
       state?.redirect && redirect(state?.redirect);
     } else if ([403, 401]?.includes(state?.response?.status)) {
       toast.error(state?.response?.message);
-      localStorage.removeItem('aperta-user-accessToken');
+      (typeof window !== 'undefined') && 
+      removeStorage('aperta-user-accessToken');
       redirect('/');
     } else {
       toast.error(state?.response?.message);

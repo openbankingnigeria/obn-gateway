@@ -3,6 +3,8 @@ import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ROLES_2FA_DATA, ROLES_STATUS_DATA, ROLES_TABLE_DATA, ROLES_TABLE_HEADERS } from '@/data/rolesData'
 import { CreateRoleButton, RolesTable } from './(components)'
+// import useAxiosRequest from '@/hooks/useAxiosRequest';
+// import * as API from '@/config/endpoints';
 
 const RolesPage = ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -11,6 +13,15 @@ const RolesPage = ({ searchParams }: UrlParamsProps) => {
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
   const role = searchParams?.role || ''
+
+  // const roless = useAxiosRequest({
+  //   headers: {},
+  //   apiEndpoint: API.getRoles(),
+  //   method: 'GET',
+  //   data: null
+  // })
+
+  // console.log(roless);
 
   const filters = [search_query, status, role];
 

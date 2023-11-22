@@ -1,12 +1,13 @@
 'use client'
 
 import { LinkButton } from '@/components/globalComponents'
+import { removeStorage } from '@/config/webStorage';
 import React, { useEffect } from 'react'
 
 const ResetPasswordSuccess = () => {
 
   useEffect(() => {
-    localStorage.removeItem('aperta-user-resetToken');
+    removeStorage('aperta-user-resetToken')
   }, []);
 
   return (
