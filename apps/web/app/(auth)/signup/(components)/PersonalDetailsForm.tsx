@@ -5,6 +5,7 @@ import { Button, LinkButton } from '@/components/globalComponents';
 import React, { MouseEvent, useEffect, useState } from 'react';
 import { COUNTRIES_DATA } from '@/data/countriesData';
 import { useRouter } from 'next/navigation';
+import { getStorage, setStorage } from '@/config/webStorage';
 
 const PersonalDetailsForm = () => {
   const [first_name, setFirstName] = useState(''); 
@@ -13,7 +14,7 @@ const PersonalDetailsForm = () => {
   const [phone_number, setPhoneNumber] = useState(''); 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const getData = sessionStorage.getItem('pd') && JSON.parse(sessionStorage.getItem('pd') || '');
+  const getData = getStorage('pd', true, 'session');
 
   useEffect(() => {
     setFirstName(getData?.first_name);
@@ -39,9 +40,11 @@ const PersonalDetailsForm = () => {
   const handleSubmit = (e: MouseEvent) => {
     e.preventDefault();
     setLoading(true);
-    sessionStorage.setItem('pd', JSON.stringify(
-      { first_name, last_name, country, phone_number}
-    ))
+    setStorage(
+      'pd', 
+      { first_name, last_name, country, phone_number }, 
+      'session'
+    );
     router.push('/signup/company-details');
     // setLoading(false);
   };

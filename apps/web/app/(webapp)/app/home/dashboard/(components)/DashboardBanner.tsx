@@ -5,10 +5,11 @@ import { Button } from '@/components/globalComponents'
 import Image from 'next/image';
 import React, { useState } from 'react'
 import { AddBusinessInformation } from '.';
+import { getStorage, setStorage } from '@/config/webStorage';
 
 const DashboardBanner = () => {
   const [openModal, setOpenModal] = useState('');
-  const close_modal = Boolean(localStorage.getItem('close-dashboard-modal'));
+  const close_modal = Boolean(getStorage('close-dashboard-modal'));
   const [closeDashboardModal, setCloseDashboardModal] = useState(close_modal);
 
   const cancelModal = () => {
@@ -47,10 +48,7 @@ const DashboardBanner = () => {
               fill="none" 
               xmlns="http://www.w3.org/2000/svg"
               className='absolute cursor-pointer top-[14px] right-[14px]'
-              onClick={() => {
-                localStorage.setItem('close-dashboard-modal', 'yes');
-                setCloseDashboardModal(true);
-              }}
+              onClick={() => setStorage('close-dashboard-modal', 'yes')}
             >
               <path 
                 d="M15 5L5 15M5 5L15 15" 

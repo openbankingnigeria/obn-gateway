@@ -6,14 +6,15 @@ import React, { useState } from 'react';
 import { postSignup } from '@/actions/authActions';
 import { COMPANY_TYPES, CONSUMER_ROLES } from '@/data/authData';
 import { useServerAction } from '@/hooks';
+import { getStorage } from '@/config/webStorage';
 
 const CompanyDetailsForm = () => {
   const [company_name, setCompanyName] = useState(''); 
   const [company_type, setCompanyType] = useState(''); 
   const [role, setRole] = useState(''); 
 
-  const signupDetails = sessionStorage.getItem('sd') && JSON.parse(sessionStorage.getItem('sd') || '');
-  const personalDetails = sessionStorage.getItem('pd') && JSON.parse(sessionStorage.getItem('pd') || '');
+  const signupDetails = getStorage('sd', true, 'session');
+  const personalDetails = getStorage('pd', true, 'session');
 
   const incorrect = (
     !company_name ||

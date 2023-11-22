@@ -10,5 +10,7 @@ export const postAccountSetUp = ({ setupToken }: {setupToken: string}) =>
   `${BASE_URL}/auth/setup/${setupToken}`;
 
 // TEAMS AND ROLES
-export const postRoles = () =>
-  `${BASE_URL}/roles`;
+export const getRoles = () => `${BASE_URL}/roles`;
+export const postRoles = () => `${BASE_URL}/roles`;
+export const putRolePermission = ({ role_id }: { role_id: string }) => 
+  `${BASE_URL}/roles/${role_id}/permissions`;

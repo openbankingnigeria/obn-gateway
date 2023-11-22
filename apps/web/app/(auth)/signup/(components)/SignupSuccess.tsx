@@ -4,13 +4,14 @@ import { LinkButton } from '@/components/globalComponents'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import React from 'react'
+import { removeStorage } from '@/config/webStorage'
 
 const SignupSuccess = () => {
   const router = useRouter();
 
   useEffect(() => {
-    sessionStorage.removeItem('sd');
-    sessionStorage.removeItem('pd');
+    removeStorage('pd', 'session');
+    removeStorage('sd', 'session');
 
     const interval = setInterval(() => {
       router.push('/signin');
