@@ -8,10 +8,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import {
-  authConfig,
-  authValidationErrors,
-} from 'src/common/constants/auth/auth.config';
+import { authConfig, authValidationErrors } from '@auth/auth.config';
 import { CompanyRoles, CompanyTypes } from 'src/users/types';
 
 const passwordConfig = {

@@ -14,18 +14,18 @@ import {
   SignupDto,
 } from './dto/index.dto';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
-import { userErrors } from 'src/common/constants/errors/user.errors';
+import { userErrors } from '@users/user.errors';
 import {
   ApiResponse,
   ResponseFormatter,
-} from 'src/common/utils/common/response.util';
+} from '@common/utils/response/response.formatter';
 import { compareSync, hashSync } from 'bcrypt';
-import { authErrors } from 'src/common/constants/errors/auth.errors';
+import { authErrors } from '@auth/auth.errors';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { Role } from 'src/common/database/entities/role.entity';
 import { ROLES } from 'src/roles/types';
-import { authSuccessMessages } from 'src/common/constants/auth/auth.constants';
+import { authSuccessMessages } from '@auth/auth.constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthLoginEvent, AuthSignupEvent } from '@shared/events/auth.event';
 

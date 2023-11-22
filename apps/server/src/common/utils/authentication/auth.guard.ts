@@ -7,7 +7,7 @@ import {
 import { IRequest } from './auth.types';
 import { IUnauthorizedException } from '../exceptions/exceptions';
 import { Auth } from './auth.helper';
-import { authErrors } from 'src/common/constants/errors/auth.errors';
+import { authErrors } from '@auth/auth.errors';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/common/database/entities';
 import { IsNull, Not, Repository } from 'typeorm';

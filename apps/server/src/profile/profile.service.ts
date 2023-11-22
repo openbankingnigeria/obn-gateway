@@ -4,15 +4,15 @@ import { Profile, User } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
-import { ResponseFormatter } from 'src/common/utils/common/response.util';
+import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { UpdatePasswordDto, UpdateProfileDto } from './dto/index.dto';
-import { userErrors } from 'src/common/constants/errors/user.errors';
+import { userErrors } from '@users/user.errors';
 import { compareSync, hashSync } from 'bcrypt';
 import * as moment from 'moment';
 import {
   profileErrorMessages,
   profileSuccessMessages,
-} from '@common/constants/profile/profile.constants';
+} from '@profile/profile.constants';
 
 @Injectable()
 export class ProfileService {

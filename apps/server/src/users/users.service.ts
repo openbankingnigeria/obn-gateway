@@ -5,9 +5,9 @@ import { Profile, Role, User } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
-import { ResponseFormatter } from 'src/common/utils/common/response.util';
-import { userErrors } from 'src/common/constants/errors/user.errors';
-import { roleErrors } from 'src/common/constants/errors/role.errors';
+import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import { userErrors } from '@users/user.errors';
+import { roleErrors } from '@roles/role.errors';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   UserCreatedEvent,
@@ -16,7 +16,7 @@ import {
 } from 'src/shared/events/user.event';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
-import { userSuccessMessages } from '@common/constants/user/user.constants';
+import { userSuccessMessages } from '@users/user.constants';
 
 @Injectable()
 export class UsersService {

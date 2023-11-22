@@ -9,15 +9,12 @@ import {
   UpdateRoleDto,
 } from './dto/index.dto';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
-import { roleErrors } from 'src/common/constants/errors/role.errors';
-import { ResponseFormatter } from 'src/common/utils/common/response.util';
+import { roleErrors } from '@roles/role.errors';
+import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { Permission } from 'src/common/database/entities/permission.entity';
 import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
-import {
-  roleErrorMessages,
-  roleSuccessMessages,
-} from '@common/constants/roles/role.constants';
+import { roleErrorMessages, roleSuccessMessages } from '@roles/role.constants';
 
 @Injectable()
 export class RolesService {

@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { auditLogsSuccessMessages } from 'src/common/constants/auditLogs/auditLogs.constants';
+import { auditLogsSuccessMessages } from './auditLogs.constants';
 import { AuditLog } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
-import { ResponseFormatter } from '@common/utils/common/response.util';
+import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { ROLES } from '@roles/types';
 import { INotFoundException } from '@common/utils/exceptions/exceptions';
-import { auditLogErrors } from '@common/constants/errors/auditLogs.errors';
+import { auditLogErrors } from '@auditLogs/auditLogs.errors';
 import { BaseEvent } from '@shared/events/base.event';
 
 @Injectable()

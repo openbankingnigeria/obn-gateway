@@ -1,7 +1,7 @@
 import {
   userConfig,
   userErrors,
-} from 'src/common/constants/errors/user.errors';
+} from '@users/user.errors';
 import {
   IsNotEmpty,
   IsString,

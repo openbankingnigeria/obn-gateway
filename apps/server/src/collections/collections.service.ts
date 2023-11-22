@@ -1,5 +1,5 @@
 import { Collection } from '@common/database/entities/collection.entity';
-import { ResponseFormatter } from '@common/utils/common/response.util';
+import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import {
   IBadRequestException,
   INotFoundException,

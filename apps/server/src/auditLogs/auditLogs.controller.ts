@@ -7,7 +7,7 @@ import {
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
-import { AuditLogFilters } from '@common/constants/auditLogs/filter.constants';
+import { AuditLogFilters } from '@auditLogs/auditLogs.filter';
 
 @Controller('audit-trail')
 export class AuditLogsController {
