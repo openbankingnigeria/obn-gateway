@@ -7,8 +7,7 @@ import { Button } from '@/components/globalComponents'
 import { ROLES_PERMISSIONS } from '@/data/rolesData'
 import { CreateRolePageProps, PermissionValue } from '@/types/webappTypes/appTypes'
 import React, { useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
+import { useServerAction } from '@/hooks';
 import { PermissionCard } from '.'
 
 const CreateRolePage = ({
@@ -24,14 +23,8 @@ const CreateRolePage = ({
     !description
   );
 
-  const initialState = {
-    message: null,
-  }
-
-  const [state, formAction] = useFormState(postCreateRole, initialState);
-  if(state?.message) {
-    next();
-  }
+  const initialState = {}
+  const [state, formAction] = useServerAction(postCreateRole, initialState);
 
   return (
     <form

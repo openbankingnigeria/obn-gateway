@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { postInitiatePasswordReset } from '@/actions/authActions';
 import { validateEmail } from '@/utils/globalValidations';
 import { useServerAction } from '@/hooks';
+import { setStorage } from '@/config/webStorage';
 
 const ForgetPasswordForm = () => {
   const [email, setEmail] = useState(''); 
@@ -13,16 +14,14 @@ const ForgetPasswordForm = () => {
   const incorrect = !validateEmail(email);
 
   const storeEmailLocally = () => {
-    sessionStorage.setItem('aperta-user-email', email);
+    setStorage('aperta-user-email', email, 'session');
   }
 
   const initialState = {}
   const [state, formAction] = useServerAction(postInitiatePasswordReset, initialState);
-  state?.response?.data && 
-    localStorage?.setItem(
-      'aperta-user-resetToken', 
-      state?.response?.data
-    );
+  if(state?.response?.data) {
+    setStorage('aperta-user-resetToken', state?.response?.data);
+  }
     
   return (
     <form

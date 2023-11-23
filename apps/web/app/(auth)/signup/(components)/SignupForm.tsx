@@ -5,6 +5,7 @@ import { Button } from '@/components/globalComponents';
 import React, { MouseEvent, useEffect, useState } from 'react';
 import { greaterThan8, validateEmail, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 import { useRouter } from 'next/navigation';
+import { getStorage, setStorage } from '@/config/webStorage';
 
 const SignupForm = () => {
   const [email, setEmail] = useState(''); 
@@ -12,7 +13,7 @@ const SignupForm = () => {
   const [confirm_password, setConfirmPassword] = useState(''); 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const getData = sessionStorage.getItem('sd') && JSON.parse(sessionStorage.getItem('sd') || '');
+  const getData = getStorage('sd', true, 'session');
 
   useEffect(() => {
     setEmail(getData?.email);
@@ -35,9 +36,11 @@ const SignupForm = () => {
   const handleSubmit = (e: MouseEvent) => {
     e.preventDefault();
     setLoading(true);
-    sessionStorage.setItem('sd', JSON.stringify(
-      { email, password, confirm_password}
-    ))
+    setStorage(
+      'sd', 
+      { email, password, confirm_password },
+      'session'
+    );
     router.push('/signup/personal-details')
     // setLoading(false);
   };
