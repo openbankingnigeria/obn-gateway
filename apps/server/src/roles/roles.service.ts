@@ -15,6 +15,7 @@ import { RequestContextService } from 'src/common/utils/request/request-context.
 import { Permission } from 'src/common/database/entities/permission.entity';
 import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
 import { roleErrorMessages, roleSuccessMessages } from '@roles/role.constants';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 
 @Injectable()
 export class RolesService {
@@ -56,11 +57,23 @@ export class RolesService {
     return ResponseFormatter.success(roleSuccessMessages.createdRole, role);
   }
 
-  async listRoles() {
-    const roles = await this.roleRepository.find({
-      where: { parentId: this.requestContext.user!.role.parentId },
+  async listRoles({ limit, page }: PaginationParameters, filters?: any) {
+    const totalRoles = await this.roleRepository.count({
+      where: { parentId: this.requestContext.user!.role.parentId, ...filters },
     });
-    return ResponseFormatter.success(roleSuccessMessages.fetchedRole, roles);
+
+    const roles = await this.roleRepository.find({
+      where: { parentId: this.requestContext.user!.role.parentId, ...filters },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return ResponseFormatter.success(roleSuccessMessages.fetchedRole, roles, {
+      totalNumberOfRecords: totalRoles,
+      totalNumberOfPages: Math.ceil(totalRoles / limit),
+      pageNumber: page,
+      pageSize: limit,
+    });
   }
 
   async getRole(id: string) {

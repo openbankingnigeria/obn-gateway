@@ -7,10 +7,19 @@ import {
   Patch,
   Post,
   UsePipes,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/index.dto';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
+import {
+  PaginationParameters,
+  PaginationPipe,
+} from '@common/utils/pipes/query/pagination.pipe';
+import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
+import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
+import { PERMISSIONS } from '@permissions/types';
+import { UserFilters } from './users.filter';
 
 @Controller('users')
 export class UsersController {
@@ -24,8 +33,13 @@ export class UsersController {
 
   @Get()
   @UsePipes(IValidationPipe)
-  listUsers() {
-    return this.usersService.listUsers();
+  @RequiredPermission(PERMISSIONS.LIST_TEAM_MEMBERS)
+  listUsers(
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query(new FilterPipe(UserFilters.listUsers))
+    filters: any,
+  ) {
+    return this.usersService.listUsers(pagination, filters);
   }
 
   @Get(':id')
