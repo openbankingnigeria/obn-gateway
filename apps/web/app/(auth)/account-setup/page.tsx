@@ -4,6 +4,7 @@ import { AccountSetUpForm, AccountSetupSuccess } from './(components)'
 
 const AccountSetUpPage = ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
+  const token = searchParams?.token;
 
   return (
     <section className='w-full flex flex-col'>
@@ -22,7 +23,9 @@ const AccountSetUpPage = ({ searchParams }: UrlParamsProps) => {
               </div>
             </div>
             
-            <AccountSetUpForm />
+            <AccountSetUpForm 
+              token={token}
+            />
           </div>
       }
     </section>

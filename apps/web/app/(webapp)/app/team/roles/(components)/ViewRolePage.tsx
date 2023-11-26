@@ -3,16 +3,38 @@
 import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
-import { ROLES_MEMBERS, ROLES_VIEW_PERMISSIONS } from '@/data/rolesData'
+import { ROLES_MEMBERS } from '@/data/rolesData'
 import { CreateRolePageProps } from '@/types/webappTypes/appTypes'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { RolesMemberCard } from '.'
+import * as API from '@/config/endpoints';
+import { dataToPermissions } from '@/utils/dataToPermissions'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 
 const ViewRolePage = ({
   close,
+  data,
   next
 }: CreateRolePageProps) => {
   const members = ROLES_MEMBERS;
+  const [permission, setPermissions] = useState<any[]>([]);
+
+  async function FetchData() {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getRolePermission({ role_id: data?.id }),
+      method: 'GET',
+      data: null,
+      noToast: true,
+    });
+
+    let permits = dataToPermissions(result?.data?.map((data: any) => data?.permission), 'string');
+    setPermissions(permits);
+  }
+
+  useEffect(() => {
+    FetchData();
+  }, [data])
 
   return (
     <section
@@ -24,7 +46,7 @@ const ViewRolePage = ({
           type='role_name'
           label='Role Name'
           disabled
-          value={'Admin'}
+          value={data?.name}
           required
         />
 
@@ -32,7 +54,7 @@ const ViewRolePage = ({
           name='description'
           rows={3}
           disabled
-          value={'Administrators have full control over the API management platform.'}
+          value={data?.description}
           required
           label='Description'
         />
@@ -44,12 +66,12 @@ const ViewRolePage = ({
 
           <ul className='list-inside list-disc w-full'>
             {
-              ROLES_VIEW_PERMISSIONS?.map((data) => (
+              permission?.map((data) => (
                 <li
-                  key={data?.id}
-                  className='text-f14 text-o-text-medium3'
+                  key={data}
+                  className='text-f14 capitalize text-o-text-medium3'
                 >
-                  {data?.label}
+                  {data}
                 </li>
               ))
             }

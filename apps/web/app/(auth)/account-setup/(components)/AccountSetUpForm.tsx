@@ -7,7 +7,9 @@ import { postAccountSetUp } from '@/actions/authActions';
 import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 import { useServerAction } from '@/hooks';
 
-const AccountSetUpForm = () => {
+const AccountSetUpForm = ({
+  token
+}: { token: string | undefined }) => {
   const [first_name, setFirstName] = useState(''); 
   const [last_name, setLastName] = useState(''); 
   const [password, setPassword] = useState(''); 
@@ -40,9 +42,8 @@ const AccountSetUpForm = () => {
     setLastName(capitalizedValue);
   };
 
-  // TODO: ADD SETUP TOKEN HERE
   const initialState = {
-    setupToken: '37c8c0cadbbf5a1ce54ecc80f7d2b053152eba27',
+    setupToken: token,
   }
   const [state, formAction] = useServerAction(postAccountSetUp, initialState);
 

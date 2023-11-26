@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   UsePipes,
+  Query,
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import {
@@ -16,6 +17,14 @@ import {
   UpdateRoleDto,
 } from './dto/index.dto';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
+import {
+  PaginationParameters,
+  PaginationPipe,
+} from '@common/utils/pipes/query/pagination.pipe';
+import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
+import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
+import { PERMISSIONS } from '@permissions/types';
+import { RoleFilters } from './roles.filter';
 
 @Controller('roles')
 export class RolesController {
@@ -29,8 +38,13 @@ export class RolesController {
 
   @Get()
   @UsePipes(IValidationPipe)
-  listRoles() {
-    return this.rolesService.listRoles();
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
+  listRoles(
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query(new FilterPipe(RoleFilters.listRoles))
+    filters: any,
+  ) {
+    return this.rolesService.listRoles(pagination, filters);
   }
 
   @Get('permissions')

@@ -1,11 +1,14 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { TopPanel } from '@/app/(webapp)/(components)'
-import { MEMBERS_TABLE_DATA, MEMBERS_TABLE_HEADERS, MEMBERS_STATUS_DATA, MEMBERS_ROLES, INVITED_MEMBERS_TABLE_HEADERS, INVITED_MEMBERS_TABLE_DATA } from '@/data/membersData'
+import { MEMBERS_TABLE_HEADERS, MEMBERS_STATUS_DATA, INVITED_MEMBERS_TABLE_HEADERS, INVITED_MEMBERS_TABLE_DATA } from '@/data/membersData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { InviteMembersButton, MembersTable } from './(components)'
+import Logout from '@/components/globalComponents/Logout'
+import { applyAxiosRequest } from '@/hooks'
+import * as API from '@/config/endpoints';
 
-const MembersPage = ({ searchParams }: UrlParamsProps) => {
+const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
@@ -14,13 +17,61 @@ const MembersPage = ({ searchParams }: UrlParamsProps) => {
 
   const filters = [search_query, status, role];
 
+  const fetchedMembers = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getTeams(),
+    method: 'GET',
+    data: null
+  });
+
+  const fetchedRoles = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getRoles(),
+    method: 'GET',
+    data: null
+  });
+
+  if (fetchedMembers?.status == 401 || fetchedRoles?.status == 401) {
+    return <Logout />
+  }
+
+  let roles = fetchedRoles?.data;
+  let teams = fetchedMembers?.data;
+
   const panel = MEMBERS_STATUS_DATA({
     active: 29,
     invited: 5
   });
 
+  const invited_members = teams?.map((data: any) => {
+    if (data?.status == 'pending') {
+      return({
+        ...data,
+        email_address: data?.email,
+        date_invited: data?.createdAt,
+        status: 'invited',
+        role: '',
+        invited_by: ''
+      });
+    }
+  });
+
+  const active_memebers = teams?.map((data: any) => {
+    if (data?.status != 'pending') {
+      return({
+        ...data,
+        email_address: data?.email,
+        member_name: `${data?.profile?.firstName} ${data?.profile?.lastName}`,
+        role: '',
+        two_fa: false,
+      });
+    }
+  });
+
   const headers = status == 'invited' ? INVITED_MEMBERS_TABLE_HEADERS : MEMBERS_TABLE_HEADERS;
-  const members = status == 'invited' ? INVITED_MEMBERS_TABLE_DATA : MEMBERS_TABLE_DATA;
+  const members = status == 'invited' ? 
+    invited_members?.filter((x: any) => x) : 
+    active_memebers?.filter((x: any) => x);
   const total_pages = members?.length;
   const total_elements_in_page = members?.length;
   const total_elements = members?.length;
@@ -32,14 +83,17 @@ const MembersPage = ({ searchParams }: UrlParamsProps) => {
     })
   });
 
-  const roles = MEMBERS_ROLES;
-
-  const role_list = roles?.map(data => {
+  const roleList = roles?.map((data: any) => {
     return({
       label: data?.name,
-      value: data?.value
+      value: data?.id
     })
   });
+
+  const role_list = [
+    { label: 'All', value: '' },
+    ...roleList
+  ]
 
 
   return (

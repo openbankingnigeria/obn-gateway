@@ -25,6 +25,7 @@ export interface searchParamsProps {
   tier?: string;
   role?: string;
   two_fa?: string;
+  token?: string;
 }
 
 export interface ParamsProps {
@@ -45,6 +46,7 @@ export interface TableProps {
   tableHeaders: TableHeaderProps[],
   rawData: any[],
   filters: any[];
+  altData?: any[];
   rows: number;
   page: number;
   totalElements?: number;
@@ -112,6 +114,8 @@ export interface InviteMembersButtonProps {
 
 export interface CreateRolePageProps {
   close: () => void;
+  data?: any;
+  list?: any;
   next: () => void;
 }
 
@@ -128,6 +132,7 @@ export interface confirmCancelProps {
 }
 
 export interface PermissionOptionsProps {
+  id: string;
   label: string;
   value: string;
 }
@@ -191,4 +196,8 @@ export interface APIConfigurationContainerProps {
   handleInputChange: (value: string, obj: any, key: any, type: string) => void;
   handleRemove: (type: string, value: string | number) => void;
   handleAdd: (type: string) => void;
+}
+
+export interface CreateRoleButtonProps {
+  permissions_list: any;
 }
