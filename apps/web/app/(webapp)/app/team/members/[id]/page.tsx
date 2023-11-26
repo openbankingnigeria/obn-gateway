@@ -2,8 +2,11 @@ import React from 'react'
 import { MemberDetails, MemberSections } from '../(components)'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { MEMBER_RECENT_ACTIVITIES, MEMBER_RECENT_ACTIVITIES_HEADER } from '@/data/membersData';
+import { applyAxiosRequest } from '@/hooks';
+import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout';
 
-const MemberPage = ({ params, searchParams }: UrlParamsProps) => {
+const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
   const memberId = params?.id;
   const search_query = searchParams?.search_query || ''
   const date_filter = searchParams?.date_filter || ''
@@ -11,6 +14,28 @@ const MemberPage = ({ params, searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
 
   const filters = [search_query, date_filter]
+  const fetchedRoles = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getRoles(),
+    method: 'GET',
+    data: null
+  });
+
+  const fetchedMember = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getTeam({
+      member_id: memberId || ''
+    }),
+    method: 'GET',
+    data: null
+  });
+
+  if (fetchedMember?.status == 401 || fetchedRoles?.status == 401) {
+    return <Logout />
+  }
+
+  let member = fetchedMember?.data;
+  let roles = fetchedRoles?.data;
 
   let raw_data = MEMBER_RECENT_ACTIVITIES;
 
@@ -22,7 +47,10 @@ const MemberPage = ({ params, searchParams }: UrlParamsProps) => {
 
   return (
     <section className='w-full h-full flex flex-col gap-[20px]'>
-      <MemberDetails  />
+      <MemberDetails 
+        member={member} 
+        roles={roles}
+      />
       
       <MemberSections 
         rawData={raw_data}

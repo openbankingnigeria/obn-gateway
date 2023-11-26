@@ -1,6 +1,7 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { APIConsumerDashboardPage, APIProviderDashboardPage } from './(components)'
+import { getCookies } from '@/config/cookies';
 
 const DashboardPage = ({ searchParams }: UrlParamsProps) => {
   const date_filter = searchParams?.date_filter || '';
@@ -9,7 +10,7 @@ const DashboardPage = ({ searchParams }: UrlParamsProps) => {
   const tier = searchParams?.tier || '';
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
-
+  
   return (
     // <APIProviderDashboardPage
     //   date_filter={date_filter}

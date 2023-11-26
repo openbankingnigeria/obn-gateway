@@ -25,7 +25,7 @@ const PermissionSelector = ({
     setOpen(!open); 
   }
 
-  const handleSelect = (value: { label: string, value: string }) => {
+  const handleSelect = (value: { id: string, label: string, value: string }) => {
     if (values?.some(obj => obj?.value == value?.value)) {
       const filteredValue = values?.filter(permit => permit?.value != value?.value);
       changeValues(filteredValue);
@@ -97,15 +97,16 @@ const PermissionSelector = ({
                       key={index}
                       className={`cursor-pointer px-4 py-2 truncate w-full text-f14 text-o-text-dark hover:bg-o-bg2
                       flex-row flex items-center capitalize gap-[12px] ${
-                      values?.includes(item?.value) && 'bg-o-bg2'
+                      values?.includes(item?.id) && 'bg-o-bg2'
                     }`}
                       onClick={() => handleSelect({
+                        id: item?.id,
                         label: item?.label,
                         value: item?.value
                       })}
                     >
                       {
-                        values?.some(obj => obj?.value == item?.value) ?
+                        values?.some(obj => obj?.id == item?.id) ?
                           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M0 4C0 1.79086 1.79086 0 4 0H14C16.2091 0 18 1.79086 18 4V14C18 16.2091 16.2091 18 14 18H4C1.79086 18 0 16.2091 0 14V4Z" fill="#459572"/>
                             <path d="M6.51957 8.85041C6.32431 8.65515 6.00772 8.65515 5.81246 8.85041C5.6172 9.04567 5.6172 9.36225 5.81246 9.55752L7.62736 11.3724C7.82263 11.5677 8.13921 11.5677 8.33447 11.3724L12.6307 7.07621C12.8259 6.88095 12.8259 6.56436 12.6307 6.3691C12.4354 6.17384 12.1188 6.17384 11.9236 6.3691L7.98092 10.3118L6.51957 8.85041Z" fill="white"/>

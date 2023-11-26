@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { postResetPassword } from '@/actions/authActions';
 import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 import { useServerAction } from '@/hooks';
-import { getStorage } from '@/config/webStorage';
+import { getCookies } from '@/config/cookies';
 
 const ResetPasswordForm = () => {
   const [password, setPassword] = useState(''); 
@@ -26,7 +26,7 @@ const ResetPasswordForm = () => {
   );
 
   const initialState = {
-    resetToken: getStorage('aperta-user-resetToken'),
+    resetToken: getCookies('aperta-user-resetToken'),
   }
   const [state, formAction] = useServerAction(postResetPassword, initialState);
 

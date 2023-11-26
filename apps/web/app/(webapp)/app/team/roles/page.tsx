@@ -1,12 +1,13 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { SearchBar, SelectElement } from '@/components/forms'
-import { ROLES_2FA_DATA, ROLES_STATUS_DATA, ROLES_TABLE_DATA, ROLES_TABLE_HEADERS } from '@/data/rolesData'
-import { CreateRoleButton, RolesTable } from './(components)'
-// import useAxiosRequest from '@/hooks/useAxiosRequest';
-// import * as API from '@/config/endpoints';
+import { ROLES_2FA_DATA, ROLES_STATUS_DATA, ROLES_TABLE_HEADERS } from '@/data/rolesData'
+import { CreateRoleButton, RolesTable } from './(components)';
+import * as API from '@/config/endpoints';
+import { applyAxiosRequest } from '@/hooks';
+import Logout from '@/components/globalComponents/Logout';
 
-const RolesPage = ({ searchParams }: UrlParamsProps) => {
+const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
   const search_query = searchParams?.search_query || ''
   const two_fa = searchParams?.two_fa || ''
@@ -14,24 +15,39 @@ const RolesPage = ({ searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const role = searchParams?.role || ''
 
-  // const roless = useAxiosRequest({
-  //   headers: {},
-  //   apiEndpoint: API.getRoles(),
-  //   method: 'GET',
-  //   data: null
-  // })
+  const roles = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getRoles(),
+    method: 'GET',
+    data: null
+  })
 
-  // console.log(roless);
+  const permissions = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getPermissions(),
+    method: 'GET',
+    data: null
+  });
 
+  if (permissions?.status == 401 || roles?.status == 401) {
+    return <Logout />
+  }
+
+  let permission_list = permissions?.data;
+  let role_list = roles?.data?.map((role: any) => {
+    return ({
+      ...role,
+      role_name: role?.name,
+      date_created: role?.createdAt
+    })
+  });
+ 
   const filters = [search_query, status, role];
 
-  const panel = ROLES_STATUS_DATA;
-
   const headers = ROLES_TABLE_HEADERS;
-  const roles = ROLES_TABLE_DATA;
-  const total_pages = roles?.length;
-  const total_elements_in_page = roles?.length;
-  const total_elements = roles?.length;
+  const total_pages = role_list?.length;
+  const total_elements_in_page = role_list?.length;
+  const total_elements = role_list?.length;
 
   const status_list = ROLES_STATUS_DATA?.map(data => {
     return({
@@ -88,13 +104,16 @@ const RolesPage = ({ searchParams }: UrlParamsProps) => {
               />
             </div>
 
-            <CreateRoleButton />
+            <CreateRoleButton 
+              permissions_list={permission_list}
+            />
           </div>
 
           <section className='w-full min-h-full flex flex-col items-center'>
             <RolesTable
               tableHeaders={headers}
-              rawData={roles}
+              rawData={role_list}
+              altData={permission_list}
               filters={filters}
               rows={rows}
               totalElementsInPage={total_elements_in_page}

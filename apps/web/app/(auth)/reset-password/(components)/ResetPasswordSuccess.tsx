@@ -1,15 +1,9 @@
 'use client'
 
 import { LinkButton } from '@/components/globalComponents'
-import { removeStorage } from '@/config/webStorage';
-import React, { useEffect } from 'react'
+import React from 'react'
 
 const ResetPasswordSuccess = () => {
-
-  useEffect(() => {
-    removeStorage('aperta-user-resetToken')
-  }, []);
-
   return (
     <div className='w-full flex flex-col gap-[24px]'>
       <svg width="64" height="65" viewBox="0 0 64 65" fill="none" xmlns="http://www.w3.org/2000/svg">

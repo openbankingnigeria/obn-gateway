@@ -7,7 +7,9 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { toast } from 'react-toastify'
+import * as API from '@/config/endpoints';
 import { ActivateDeactivateMember } from '.'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 
 const MembersTable = ({
   tableHeaders,
@@ -24,12 +26,12 @@ const MembersTable = ({
   const router = useRouter();
   const [openModal, setOpenModal] = useState('');
   const [id, setId] = useState('');
+  const [member, setMember] = useState<any>(null);
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const actions = MEMBERS_ACTIONS_DATA;
 
   const handleReInvite = (id: number) => {
-    console.log('reinvite', id);
     toast.success('You resent an Invite to [email_address]')
   };
 
@@ -51,9 +53,25 @@ const MembersTable = ({
     setOpenModal('');
   }
 
-  const handleActivateDeactivateMember = () => {
-    // setLoading(true);
-    setOpen2FA(true);
+  const handleActivateDeactivateMember = async () => {
+    setLoading(true);
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.updateTeam({ member_id: member?.id }),
+      method: 'PATCH',
+      data: {
+        email: member?.email,
+        firstName: member?.profile?.firstName,
+        lastName: member?.profile?.lastName,
+        roleId: member?.roleId,
+        status: openModal == 'deactivate' ? 'inactive' : 'active'
+      }
+    });
+
+    if (result?.message) {
+      setOpenModal('');
+      // setOpen2FA(true);
+    }
   }
 
   const handle2FA = () => {
@@ -96,6 +114,7 @@ const MembersTable = ({
                   className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
                   onClick={() => {
                     setId(row.original.id);
+                    setMember(rawData?.find(data => data?.id == row.original.id));
                     action.name == 'view' ?
                       router.push(`/app/team/members/${row.original.id}`) :
                       setOpenModal(action.name);

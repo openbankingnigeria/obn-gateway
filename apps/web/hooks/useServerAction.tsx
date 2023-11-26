@@ -1,6 +1,5 @@
 'use client'
 
-import { getStorage, removeStorage } from '@/config/webStorage';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 // @ts-ignore
@@ -12,25 +11,17 @@ const useServerAction = (
   initialState: any,
 ) => {
 
-  const token = getStorage('aperta-user-accessToken');
   const initial_state = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     ...initialState
   }
 
   const [state, formAction] = useFormState(serverAction, initial_state);
+  /**NB: state = { response: { data, status, message, request_date } }**/
 
   useEffect(() => {
     if (state?.response?.status == 200 || state?.response?.status == 201) {
       toast.success(state?.response?.message);
       state?.redirect && redirect(state?.redirect);
-    } else if ([403, 401]?.includes(state?.response?.status)) {
-      toast.error(state?.response?.message);
-      (typeof window !== 'undefined') && 
-      removeStorage('aperta-user-accessToken');
-      redirect('/');
     } else {
       toast.error(state?.response?.message);
     }

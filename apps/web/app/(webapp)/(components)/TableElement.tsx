@@ -12,6 +12,7 @@ import { ConfigurationBox, RequestMethodText, StatusBox, TablePagination, TierBo
 import { timestampFormatter } from '@/utils/timestampFormatter'
 import BooleanBox from './BooleanBox'
 import { useRouter } from 'next/navigation'
+import moment from 'moment'
 
 const TableElement = ({
   tableHeaders,
@@ -98,7 +99,7 @@ const TableElement = ({
                     ${header.id == 'request_method' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'configured' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'tier' && '!min-w-[100px] !max-w-0 !w-auto'}
-                    ${header.id == 'description' && '!min-w-[406px] !max-w-0 !w-auto'}
+                    ${header.id == 'description' && '!min-w-[206px] !max-w-[406px] !w-auto'}
                     ${header.id == 'two_fa' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'members' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${thStyle}`}
@@ -134,28 +135,30 @@ const TableElement = ({
                     text-o-text-medium3 text-f14 ${redirect && 'cursor-pointer group-hover:bg-[#FCFDFD]'} ${tdStyle}`}
                   >
                     {
-                      cell.id?.includes('timestamp') ? 
-                        timestampFormatter(cell.getValue()) :
-                        cell.id?.includes('request_method') ?
-                          <RequestMethodText 
-                            method={cell.getValue()} 
-                          /> :
-                          (cell.id?.includes('configured') || cell.id?.includes('two_fa')) ?
-                            <BooleanBox 
-                              value={Boolean(cell.getValue())} 
-                            />
-                            :
-                            cell.id?.includes('tier') ?
-                              <TierBox 
-                                value={cell.getValue()} 
+                      (cell.id?.includes('date_created') || cell.id?.includes('date_invited')) ? 
+                        moment(cell.getValue() || '').format('LLL') :
+                        cell.id?.includes('timestamp') ? 
+                          timestampFormatter(cell.getValue()) :
+                          cell.id?.includes('request_method') ?
+                            <RequestMethodText 
+                              method={cell.getValue()} 
+                            /> :
+                            (cell.id?.includes('configured') || cell.id?.includes('two_fa')) ?
+                              <BooleanBox 
+                                value={Boolean(cell.getValue())} 
                               />
                               :
-                              cell.id?.includes('configuration') ? 
-                                <ConfigurationBox 
-                                  value={cell.getValue()}
-                                  noOfApis={row.original?.no_of_apis}
-                                /> :
-                                flexRender(cell.column.columnDef.cell, cell.getContext())
+                              cell.id?.includes('tier') ?
+                                <TierBox 
+                                  value={cell.getValue()} 
+                                />
+                                :
+                                cell.id?.includes('configuration') ? 
+                                  <ConfigurationBox 
+                                    value={cell.getValue()}
+                                    noOfApis={row.original?.no_of_apis}
+                                  /> :
+                                  flexRender(cell.column.columnDef.cell, cell.getContext())
                     }
                   </td>
                 ))}

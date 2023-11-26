@@ -6,19 +6,28 @@ import { updateSearchParams } from '@/utils/searchParams'
 import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
+import * as API from '@/config/endpoints';
 import { ActivateDeactivateMember } from '.'
-import { ConsumerDetailsProps } from '@/types/webappTypes/appTypes'
 import { SelectElement } from '@/components/forms'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 
-const MemberDetails = () => {
+const MemberDetails = ({
+  member,
+  roles
+}: { 
+  member: any;
+  roles: any;
+}) => {
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [open2FA, setOpen2FA] = useState(false);
   const [openModal, setOpenModal] = useState('');
-  const [role, setRole] = useState('admin_1');
+  const [role, setRole] = useState(member?.roleId);
   const actions = MEMBERS_ACTIONS_DATA;
-  const memberStatus: 'pending' | 'active' | 'inactive' = 'active';
+  const memberName = `${member?.profile?.firstName} ${member?.profile?.lastName}`;
+  const memberStatus: 'pending' | 'active' | 'inactive' | 'invited' = member?.status == 'pending' ? 
+    'invited' : member?.status;
 
   const getAction = (status: string) => {
     return actions.filter(action => 
@@ -26,17 +35,15 @@ const MemberDetails = () => {
       );
   };
 
-  const roleList = MEMBERS_ROLES?.map(role => {
-    if (role?.value) {
-      return ({
-        label: role?.name,
-        value: role?.value
-      })
-    }
+  const roleList = roles?.map((role: any) => {
+    return ({
+      label: role?.name,
+      value: role?.id
+    })
   });
 
   useEffect(() => {
-    const slug = updateSearchParams('slug', 'John Ajayi');
+    const slug = updateSearchParams('slug', memberName);
     router.push(slug);
   }, [router]);
 
@@ -49,25 +56,41 @@ const MemberDetails = () => {
     setOpenModal('');
   }
 
-  const handleActivateDeactivateMember = () => {
-    // setLoading(true);
-    setOpen2FA(true);
+  const handleActivateDeactivateMember = async () => {
+    setLoading(true);
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.updateTeam({ member_id: member?.id }),
+      method: 'PATCH',
+      data: {
+        email: member?.email,
+        firstName: member?.profile?.firstName,
+        lastName: member?.profile?.lastName,
+        roleId: member?.roleId,
+        status: openModal == 'deactivate' ? 'inactive' : 'active'
+      }
+    });
+
+    if (result?.message) {
+      setOpenModal('');
+      // setOpen2FA(true);
+    }
   }
 
   const handle2FA = () => {
     close2FAModal();
     toast.success(
       openModal == 'deactivate' ?
-        '[member_name] has been deactivated and access revoked.' :
+        '[memberName] has been deactivated and access revoked.' :
         openModal == 'activate' ?
-          '[member_name] has been activated and access restored.' :
+          '[memberName] has been activated and access restored.' :
           null
     )
   };
 
   const changeRole = (value: string) => {
     setRole(value);
-    toast.success('You have successfully change John Ajayi role');
+    toast.success(`You have successfully change ${memberName} role`);
   }
 
   return (
@@ -105,13 +128,14 @@ const MemberDetails = () => {
         <header className='w-full flex items-start justify-between gap-5'>
           <div className='w-full flex flex-col gap-[4px]'>
             <h2 className='w-full text-f18 text-o-text-dark font-[500]'>
-              John Ajayi
+              {memberName}
             </h2>
 
             <StatusBox status={memberStatus} />
           </div>
 
           {
+            (memberStatus == 'active' || memberStatus == 'inactive') &&
             <ActionsSelector
               label='Actions'
               optionStyle='!min-w-[153px] !top-[38px]'
@@ -145,12 +169,12 @@ const MemberDetails = () => {
           <div className='w-full p-[20px] rounded-bl-[10px] rounded-br-[10px] grid grid-cols-2 ms:grid-cols-3 lgg:grid-cols-4 gap-[16px] bg-white'>
             <ViewData 
               label='Name'
-              value='John Ajayi'
+              value={memberName}
             />
 
             <ViewData 
               label='Email Address'
-              value='john.ajayi@lendsqr.com'
+              value={member?.email}
             />
 
             <ViewData 
