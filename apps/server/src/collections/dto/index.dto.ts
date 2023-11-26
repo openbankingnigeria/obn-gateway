@@ -2,10 +2,12 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
+  IsEnum,
   IsNotEmpty,
   IsString,
   IsUrl,
 } from 'class-validator';
+import { HTTP_METHODS } from '../types';
 
 export class CreateCollectionDto {
   @IsNotEmpty()
@@ -41,11 +43,14 @@ export class CreateAPIDto {
 class CreateRouteDTO {
   @IsArray()
   @IsString({ each: true })
+  @IsNotEmpty({ each: true })
   @ArrayNotEmpty()
   paths: string[];
 
   @IsArray()
   @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  @IsEnum(HTTP_METHODS, { each: true })
   @ArrayNotEmpty()
   methods: string[];
 }
@@ -68,11 +73,14 @@ export class UpdateAPIDto {
 class UpdateRouteDTO {
   @IsArray()
   @IsString({ each: true })
+  @IsNotEmpty({ each: true })
   @ArrayNotEmpty()
   paths: string[];
 
   @IsArray()
   @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  @IsEnum(HTTP_METHODS, { each: true })
   @ArrayNotEmpty()
   methods: string[];
 }

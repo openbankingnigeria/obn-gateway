@@ -1,3 +1,14 @@
+export interface ListRequest {
+  size?: number;
+  offset?: number;
+  tags?: string;
+}
+
+export interface ListResponse<T> {
+  data: T[];
+  next: string;
+}
+
 export interface Route {
   hosts: string[];
   id: string;
@@ -7,6 +18,19 @@ export interface Route {
   service: {
     id: string;
   };
+}
+
+export interface Plugin {
+  id: string;
+  name: string;
+  created_at: number;
+  updated_at: number;
+  instance_name: string;
+  config: any;
+  protocols: string[];
+  enabled: boolean;
+  tags: string[];
+  route: { id: string } | null;
 }
 
 export interface CreateRouteRequest {
@@ -30,20 +54,20 @@ export interface CreateRouteRequest {
     id: string;
   };
 }
-
 export interface CreateRouteResponse extends Route {}
 
 export interface UpdateRouteRequest extends CreateRouteRequest {}
-
 export interface UpdateRouteResponse extends CreateRouteResponse {}
 
-export interface ListRoutesRequest {
-  size?: number;
-  offset?: number;
-  tags?: string;
-}
+export interface ListRoutesRequest extends ListRequest {}
+export interface ListRoutesResponse extends ListResponse<Route> {}
 
-export interface ListRoutesResponse {
-  data: Route[];
-  next: string;
+export interface CreatePluginRequest {
+  name: string;
+  enabled: boolean;
+  route?: { id: string };
 }
+export interface CreatePluginResponse extends Plugin {}
+
+export interface ListPluginsRequest extends ListRequest {}
+export interface ListPluginsResponse extends ListResponse<Plugin> {}

@@ -33,4 +33,6 @@ export enum PERMISSIONS {
   UPDATE_SYSTEM_SETTING = 'update-system-setting',
 
   LIST_AUDIT_LOGS = 'list-audit-logs',
+
+  LIST_API_COLLECTIONS = 'list-api-collections',
 }

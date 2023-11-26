@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from 'src/common/database/entities';
-import { In, Not, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import slugify from 'slugify';
 import {
   CreateRoleDto,
@@ -32,6 +32,7 @@ export class RolesService {
     const roleExists = await this.roleRepository.count({
       where: {
         name: data.name,
+        companyId: this.requestContext.user!.companyId,
       },
     });
 
@@ -50,6 +51,7 @@ export class RolesService {
         description,
         status,
         parentId: this.requestContext.user!.role.parentId,
+        companyId: this.requestContext.user!.companyId,
       }),
     );
 
@@ -58,14 +60,34 @@ export class RolesService {
 
   async listRoles() {
     const roles = await this.roleRepository.find({
-      where: { parentId: this.requestContext.user!.role.parentId },
+      where: [
+        {
+          parentId: this.requestContext.user!.role.parentId,
+          companyId: this.requestContext.user!.companyId,
+        },
+        {
+          parentId: this.requestContext.user!.role.parentId,
+          companyId: IsNull(),
+        },
+      ],
     });
     return ResponseFormatter.success(roleSuccessMessages.fetchedRole, roles);
   }
 
   async getRole(id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
+      where: [
+        {
+          id,
+          parentId: this.requestContext.user!.role.parentId,
+          companyId: this.requestContext.user!.companyId,
+        },
+        {
+          id,
+          parentId: this.requestContext.user!.role.parentId,
+          companyId: IsNull(),
+        },
+      ],
     });
 
     if (!role) {
@@ -79,8 +101,11 @@ export class RolesService {
 
   async updateRole(id: string, data: UpdateRoleDto) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
-      // TODO update role by company
+      where: {
+        id,
+        parentId: this.requestContext.user!.role.parentId,
+        companyId: this.requestContext.user!.companyId,
+      },
     });
 
     if (!role) {
@@ -91,7 +116,7 @@ export class RolesService {
 
     const { description, status } = data;
 
-    await this.roleRepository.update(
+    const updatedRole = await this.roleRepository.update(
       { id: role.id },
       this.roleRepository.create({
         description,
@@ -99,13 +124,19 @@ export class RolesService {
       }),
     );
 
-    return ResponseFormatter.success(roleSuccessMessages.updatedRole, role);
+    return ResponseFormatter.success(
+      roleSuccessMessages.updatedRole,
+      updatedRole,
+    );
   }
 
   async deleteRole(id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
-      // TODO delete role by company
+      where: {
+        id,
+        parentId: this.requestContext.user!.role.parentId,
+        companyId: this.requestContext.user!.companyId,
+      },
     });
 
     if (!role) {
@@ -121,7 +152,18 @@ export class RolesService {
 
   async getRolePermissions(id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
+      where: [
+        {
+          id,
+          parentId: this.requestContext.user!.role.parentId,
+          companyId: this.requestContext.user!.companyId,
+        },
+        {
+          id,
+          parentId: this.requestContext.user!.role.parentId,
+          companyId: IsNull(),
+        },
+      ],
       relations: { permissions: { permission: true } },
     });
 
@@ -142,7 +184,11 @@ export class RolesService {
     permissions: SetRolePermissionsDto['permissions'],
   ) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
+      where: {
+        id,
+        parentId: this.requestContext.user!.role.parentId,
+        companyId: this.requestContext.user!.companyId,
+      },
       relations: { permissions: true },
     });
 

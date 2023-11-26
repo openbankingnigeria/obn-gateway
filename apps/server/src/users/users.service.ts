@@ -46,7 +46,11 @@ export class UsersService {
     }
 
     const role = await this.roleRepository.findOne({
-      where: { id: roleId, parentId: this.requestContext.user!.role.parentId },
+      where: {
+        id: roleId,
+        parentId: this.requestContext.user!.role.parentId,
+        companyId: this.requestContext.user!.companyId,
+      },
       relations: { permissions: true },
     });
 

@@ -5,8 +5,6 @@ import {
   GetServiceResponse,
   ListServicesRequest,
   ListServicesResponse,
-  UpdateServiceRequest,
-  UpdateServiceResponse,
 } from './service.kong.interface';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
@@ -79,30 +77,11 @@ export class KongServiceService {
     return response.data;
   }
 
-  async updateService(id: string, data: Partial<UpdateServiceRequest>) {
+  async updateOrCreateService(data: Partial<CreateServiceRequest>) {
     const response = await firstValueFrom(
       this.httpService
-        .patch<UpdateServiceResponse>(
-          `${this.config.get('kong.adminUrl')}/services/${id}`,
-          data,
-        )
-        .pipe(
-          catchError((error: AxiosError) => {
-            this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({
-              message: '',
-            });
-          }),
-        ),
-    );
-    return response.data;
-  }
-
-  async createService(data: Partial<CreateServiceRequest>) {
-    const response = await firstValueFrom(
-      this.httpService
-        .post<CreateServiceResponse>(
-          `${this.config.get('kong.adminUrl')}/services`,
+        .put<CreateServiceResponse>(
+          `${this.config.get('kong.adminUrl')}/services/${data.name}`,
           data,
         )
         .pipe(

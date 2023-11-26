@@ -1,11 +1,17 @@
-export enum COLLECTIONS {
-  CUSTOMERS = 'customers',
-  ACCOUNTS = 'accounts',
-  TRANSACTIONS = 'transactions',
-  KYC = 'kyc',
-  VIRTUAL_ACCOUNTS = 'virtual-accounts',
-  FRAUDS = 'frauds',
-  BILLS_PAYMENT = 'bills-payment',
-  DIRECT_DEBIT = 'direct-debit',
-  CARDS = 'cards',
-}
+export const collectionsSuccessMessages = {
+  fetchedCollections: 'Successfully fetched collections',
+  fetchedCollection: 'Successfully fetched collection',
+  updatedCollection: 'Successfully updated collection',
+  deletedCollection: 'Successfully deleted collection',
+  createdCollection: 'Successfully created collection',
+
+  fetchedAPIs: 'Successfully fetched APIs',
+  fetchedAPI: 'Successfully fetched API',
+  updatedAPI: 'Successfully updated API',
+  deletedAPI: 'Successfully deleted API',
+  createdAPI: 'Successfully created API',
+};
+
+export const collectionErrorMessages = {
+  collectionNotFound: (id: string) => `Collection '${id}' does not exist`,
+};

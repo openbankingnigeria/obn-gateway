@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { RolePermission } from './rolepermission.entity';
+import { Company } from './company.entity';
 
 @Entity({ name: 'roles' })
 @Unique(['slug', 'parent'])
@@ -36,6 +37,13 @@ export class Role {
 
   @Column({ name: 'parent_id', nullable: true, length: 36 })
   parentId: string;
+
+  @JoinColumn({ name: 'company_id' })
+  @ManyToOne(() => Company, { nullable: true })
+  company: Company;
+
+  @Column({ name: 'company_id', nullable: true, length: 36 })
+  companyId: string;
 
   @OneToMany(() => RolePermission, (permission) => permission.role)
   permissions: RolePermission[];

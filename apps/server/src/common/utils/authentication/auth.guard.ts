@@ -79,6 +79,7 @@ export class AuthGuard implements CanActivate {
       });
     }
 
+    // TODO remove.
     if (
       user.role.slug !== 'admin' &&
       requiredPermission &&
