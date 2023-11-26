@@ -17,6 +17,7 @@ import {
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { userSuccessMessages } from '@users/user.constants';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 
 @Injectable()
 export class UsersService {
@@ -89,12 +90,24 @@ export class UsersService {
     return ResponseFormatter.success(userSuccessMessages.createdUser, user);
   }
 
-  async listUsers() {
-    const users = await this.userRepository.find({
-      where: { companyId: this.requestContext.user!.companyId },
-      relations: { profile: true },
+  async listUsers({ limit, page }: PaginationParameters, filters?: any) {
+    const totalUsers = await this.userRepository.count({
+      where: { companyId: this.requestContext.user!.companyId, ...filters },
     });
-    return ResponseFormatter.success(userSuccessMessages.fetchedUsers, users);
+
+    const users = await this.userRepository.find({
+      where: { companyId: this.requestContext.user!.companyId, ...filters },
+      relations: { profile: true },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return ResponseFormatter.success(userSuccessMessages.fetchedUsers, users, {
+      totalNumberOfRecords: totalUsers,
+      totalNumberOfPages: Math.ceil(totalUsers / limit),
+      pageNumber: page,
+      pageSize: limit,
+    });
   }
 
   async getUser(id: string) {
