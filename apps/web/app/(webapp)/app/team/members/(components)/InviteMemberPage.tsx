@@ -3,43 +3,55 @@
 import { postInviteMember } from '@/actions/teamActions'
 import { InputElement, SelectElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import { InviteMembersProps } from '@/types/webappTypes/appTypes'
-import React, { useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
-import { toast } from 'react-toastify'
+import { dataToPermissions } from '@/utils/dataToPermissions'
+import React, { useEffect, useState } from 'react'
+import { useServerAction } from '@/hooks';
+import * as API from '@/config/endpoints';
 
 const InviteMemberPage = ({
   roles,
   close
 }: InviteMembersProps) => {
   const [role, setRole] = useState('');
+  const [permissions, setPermissions] = useState<any[]>([]);
   const [email, setEmail] = useState('');
   const [show_role, setShowRole] = useState(false);
+
+  async function FetchData(id: string) {
+    const result: any = id && await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getRolePermission({ role_id: id }),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    let permits = dataToPermissions(result?.data?.map((data: any) => data?.permission), 'string');
+    // console.log(result, permits)
+    setPermissions(permits);
+  }
+
+  useEffect(() => {
+    let role_details = roles?.find(data => data?.id == role);
+    FetchData(role_details?.id);
+  }, [role])
 
   const incorrect = (
     !role ||
     !email
   );
 
-  const initialState = {
-    message: null,
-  }
-
   const roles_list = roles.map(data => {
-    if (data?.value) {
-      return ({
-        label: data?.name,
-        value: data?.value
-      })
-    }
+    return ({
+      label: data?.name,
+      value: data?.id
+    })
   })
 
-  const [state, formAction] = useFormState(postInviteMember, initialState);
-  if(state?.message) {
-    toast.success(state?.message);
-    close();
-  }
+  const initialState = {}
+  const [state, formAction] = useServerAction(postInviteMember, initialState);
 
   const handleShowRole = () => {
     setShowRole(prev => !prev);
@@ -104,15 +116,12 @@ const InviteMemberPage = ({
               </h3>
 
               <ul className='list-disc pl-[26px] text-o-text-medium3 text-f14'>
-                <li>
-                  API Management: Create, Edit, Delete
-                </li>
-                <li>
-                  User Management: Invite, Deactivate, Activate, Assign roles
-                </li>
-                <li>
-                  Monitoring and Analytics: Generate Analytics, View API Usage reports
-                </li>
+                {
+                  permissions?.map(permit => (
+                  <li key={permit}>
+                    {permit}
+                  </li>
+                ))}
               </ul>
             </div>
         }

@@ -1,9 +1,15 @@
 import { getFirstValueOfObject } from '@/utils/getFistValueOfObject';
 import axios from 'axios';
+import { getCookies } from './cookies';
 
 // INTERCEPT ALL REQUEST
 axios.interceptors.request.use(
   async (request) => {
+    const token = getCookies('aperta-user-accessToken');
+  
+    if (!request.headers.Authorization) {
+      request.headers.Authorization = `Bearer ${token}`;
+    }
     return request;
   },
   (error) => {
@@ -17,12 +23,12 @@ axios.interceptors.response.use(
   // @ts-ignore
   async (response) => {
     if (response && response.status) {
-      console.log(response);
       return ({
         // @ts-ignore
         message: response?.data?.message || response?.message,
         status: response?.status,
         data: response?.data?.data,
+        meta_data: response?.data,
         request_date: new Date()
       });
     } else {
@@ -33,7 +39,7 @@ axios.interceptors.response.use(
   async (error) => {
     console.warn(error?.response?.data);
     if (!(error?.response?.status)) {
-      error.message = 'No internet connection';
+      error.message = 'Network error. Please try again later';
       return ({ 
         message: error.message,
         request_date: new Date(), 

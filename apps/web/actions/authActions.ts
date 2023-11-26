@@ -1,8 +1,10 @@
+// @ts-nocheck
 'use server'
 
 import { axiosRequest } from '@/config/axiosRequest';
 import * as API from '../config/endpoints';
 import { redirect } from 'next/navigation';
+import { deleteCookies, setCookies } from '@/config/cookies';
 
 /* SIGNIN ACTION */
 export async function postSignIn(prevState: any, formData: FormData) {
@@ -14,9 +16,13 @@ export async function postSignIn(prevState: any, formData: FormData) {
   let response = await axiosRequest({
     apiEndpoint: API.postLogin(),
     method: 'POST',
-    headers: { ...prevState?.headers },
+    headers: { },
     data: fullData
   });
+
+  if (response?.data) {
+    setCookies('aperta-user-accessToken', response?.data);
+  }
 
   return {
     response,
@@ -39,7 +45,7 @@ export async function postAccountSetUp(prevState: any, formData: FormData) {
       setupToken: prevState?.setupToken
     }),
     method: 'POST',
-    headers: { ...prevState?.headers },
+    headers: { },
     data: fullData
   });
 
@@ -67,7 +73,7 @@ export async function postSignup(prevState: any, formData: FormData) {
   let response = await axiosRequest({
     apiEndpoint: API.postSignup(),
     method: 'POST',
-    headers: { ...prevState?.headers },
+    headers: { },
     data: fullData
   });
 
@@ -86,9 +92,12 @@ export async function postInitiatePasswordReset(prevState: any, formData: FormDa
   let response = await axiosRequest({
     apiEndpoint: API.postInitiatePasswordReset(),
     method: 'POST',
-    headers: { ...prevState?.headers },
+    headers: { },
     data: fullData
   });
+
+  response?.data && 
+  setCookies('aperta-user-resetToken', response?.data);
 
   return {
     response,
@@ -105,9 +114,12 @@ export async function postReInitiatePasswordReset(prevState: any, formData: Form
   let response = await axiosRequest({
     apiEndpoint: API.postInitiatePasswordReset(),
     method: 'POST',
-    headers: { ...prevState?.headers },
+    headers: { },
     data: fullData
   });
+
+  response?.data && 
+  setCookies('aperta-user-resetToken', response?.data);
 
   return { response };
 }
@@ -124,15 +136,23 @@ export async function postResetPassword(prevState: any, formData: FormData) {
       resetToken: prevState?.resetToken
     }),
     method: 'POST',
-    headers: { ...prevState?.headers },
+    headers: { },
     data: fullData
   });
+
+  deleteCookies('aperta-user-resetToken');
 
   return { 
     response,
     redirect: `/reset-password?status=successful`,
     // redirect: `/reset-password/2fa`,
   };
+}
+
+/* LOGOUT ACTION */
+export async function logOutAction(prevState: any, formData: FormData) {
+  deleteCookies('aperta-user-accessToken');
+  redirect('/');
 }
 
 /* 2FA VERIFICATION ACTION */

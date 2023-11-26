@@ -19,9 +19,6 @@ const ForgetPasswordForm = () => {
 
   const initialState = {}
   const [state, formAction] = useServerAction(postInitiatePasswordReset, initialState);
-  if(state?.response?.data) {
-    setStorage('aperta-user-resetToken', state?.response?.data);
-  }
     
   return (
     <form

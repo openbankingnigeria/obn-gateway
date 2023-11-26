@@ -6,36 +6,51 @@ import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
 import { EDIT_ROLE_DETAILS, ROLES_PERMISSIONS } from '@/data/rolesData'
 import { CreateRolePageProps, MemberCardProps, PermissionValue } from '@/types/webappTypes/appTypes'
-import React, { useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
+import React, { useEffect, useState } from 'react'
 import { PermissionCard, RolesMemberCard } from '.'
+import * as API from '@/config/endpoints';
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import { dataToPermissions } from '@/utils/dataToPermissions'
+import { useServerAction } from '@/hooks'
 
 const EditRolePage = ({
   close,
+  data,
+  list,
   next
 }: CreateRolePageProps) => {
   const details = EDIT_ROLE_DETAILS;
+  const ROLES_PERMISSIONS = dataToPermissions(list);
 
-  const [role_name, setRoleName] = useState(details?.role_name);
-  const [description, setDescription] = useState(details?.description);
-  const [permissions, setPermissions] = useState<PermissionValue[]>(details?.permissions);
+  const [role_name, setRoleName] = useState(data?.name);
+  const [description, setDescription] = useState(data?.description);
+  const [permissions, setPermissions] = useState<any[]>([]);
   const [members, setMembers] = useState<MemberCardProps[]>([...details.members])
+
+  async function FetchData() {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getRolePermission({ role_id: data?.id }),
+      method: 'GET',
+      data: null,
+      noToast: true,
+    });
+
+    let permits = dataToPermissions(result?.data?.map((data: any) => data?.permission), 'answer');
+    setPermissions(permits);
+  }
+
+  useEffect(() => {
+    FetchData();
+  }, [data])
   
-   
   const incorrect = (
     !role_name ||
     !description
   );
 
-  const initialState = {
-    message: null,
-  }
-
-  const [state, formAction] = useFormState(updateRole, initialState);
-  if(state?.message) {
-    next();
-  }
+  const initialState = { role_id: data?.id }
+  const [state, formAction] = useServerAction(updateRole, initialState);
 
   return (
     <form
@@ -49,7 +64,8 @@ const EditRolePage = ({
           placeholder=''
           label='Role Name'
           value={role_name}
-          changeValue={setRoleName}
+          disabled
+          // changeValue={setRoleName}
           required
         />
 
@@ -68,11 +84,18 @@ const EditRolePage = ({
             Permissions
           </h3>
 
+          <input 
+            className='opacity-0 hidden'
+            readOnly
+            value={JSON.stringify(permissions)}
+            name='permissions'
+          />
+
           <div className='flex flex-col w-full gap-[16px]'>
             {
               ROLES_PERMISSIONS?.map((data) => (
                 <PermissionCard
-                  key={data?.id} 
+                  key={data?.value} 
                   label={data?.label}
                   value={data?.value}
                   permissions={permissions}

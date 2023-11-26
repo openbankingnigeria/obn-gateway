@@ -5,8 +5,11 @@ import { Button } from '@/components/globalComponents'
 import React, { useState } from 'react'
 import CreateRolePage from './CreateRolePage';
 import { toast } from 'react-toastify';
+import { CreateRoleButtonProps } from '@/types/webappTypes/appTypes';
 
-const CreateRoleButton = () => {
+const CreateRoleButton = ({
+  permissions_list
+}: CreateRoleButtonProps) => {
   const [openModal, setOpenModal] = useState(false);
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,6 +39,7 @@ const CreateRoleButton = () => {
           >
             <CreateRolePage 
               close={() => setOpenModal(false)}
+              data={permissions_list}
               next={handleCreate}
             />
           </AppRightModal>

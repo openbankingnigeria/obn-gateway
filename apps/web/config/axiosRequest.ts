@@ -1,18 +1,12 @@
+import { HttpRequestProps } from '@/types/configTypes';
 import axios from './axios';
-
-interface AxiosRequestProps {
-  apiEndpoint: string;
-  method: 'POST' | 'GET' | 'PATCH' | 'DELETE' | 'PUT';
-  headers: any;
-  data: any;
-};
 
 export const axiosRequest = async ({
   apiEndpoint,
   method,
   headers,
   data
-}: AxiosRequestProps) => {
+}: HttpRequestProps) => {
   const config = {
     method,
     url: apiEndpoint,
@@ -29,7 +23,9 @@ export const axiosRequest = async ({
     return ({
       // @ts-ignore
       message: err?.message,
-      status: null
+      status: null,
+      data: [],
+      meta_data: {}
     });
   }
 }

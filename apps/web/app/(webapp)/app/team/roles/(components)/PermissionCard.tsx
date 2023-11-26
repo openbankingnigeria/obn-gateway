@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { PermissionSelector } from '.'
 import { PermissionCardProps, PermissionOptionsProps } from '@/types/webappTypes/appTypes'
 
@@ -13,8 +13,14 @@ const PermissionCard = ({
 }: PermissionCardProps) => {
   const isSelected = permissions?.some(obj => obj?.permission == value);
   const [thisPermission] = permissions?.filter(obj => obj?.permission == value);
-  const permit_options = thisPermission?.options || [];
-  const [permission_options, setPermissionOptions] = useState<PermissionOptionsProps[]>(permit_options);
+  // const permit_options = thisPermission?.options || [];
+  const memoizedPermitOptions = useMemo(() => (thisPermission?.options || []), [thisPermission?.options]);
+  const [permission_options, setPermissionOptions] = useState<PermissionOptionsProps[]>(memoizedPermitOptions);
+
+  useEffect(() => {
+    memoizedPermitOptions?.length >= 1 && 
+    setPermissionOptions(memoizedPermitOptions);
+  }, [memoizedPermitOptions]);
 
   useEffect(() => {
     if (isSelected) {
@@ -60,8 +66,8 @@ const PermissionCard = ({
             </svg>
         }
 
-        <span className='text-o-text-medium2 whitespace-nowrap text-f14'>
-          {label}
+        <span className='capitalize text-o-text-medium2 whitespace-nowrap text-f14'>
+          {label?.replace('api', 'API')}
         </span>
       </div>
 

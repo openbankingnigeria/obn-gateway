@@ -5,9 +5,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 import { postReInitiatePasswordReset } from '@/actions/authActions'
-import { InputElement } from '@/components/forms'
 import { useServerAction } from '@/hooks'
-import { getStorage, setStorage } from '@/config/webStorage'
+import { getStorage } from '@/config/webStorage'
 
 const CheckEmailPage = () => {
   const email = getStorage('aperta-user-email', false, 'session');
@@ -19,9 +18,6 @@ const CheckEmailPage = () => {
 
   const initialState = {}
   const [state, formAction] = useServerAction(postReInitiatePasswordReset, initialState);
-  if (state?.response?.data) {
-    setStorage('aperta-user-resetToken', state?.response?.data);
-  }
 
   return (
     <form 

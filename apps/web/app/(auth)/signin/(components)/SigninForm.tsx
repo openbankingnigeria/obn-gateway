@@ -7,7 +7,6 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import { postSignIn } from '@/actions/authActions';
 import { useServerAction } from '@/hooks';
-import { setStorage } from '@/config/webStorage';
 
 const SigninForm = () => {
   const [email, setEmail] = useState(''); 
@@ -20,9 +19,6 @@ const SigninForm = () => {
 
   const initialState = {}
   const [state, formAction] = useServerAction(postSignIn, initialState);
-  if (state?.response?.data && (typeof window !== 'undefined')) {
-    setStorage('aperta-user-accessToken', state?.response?.data)
-  }
 
   return (
     <form

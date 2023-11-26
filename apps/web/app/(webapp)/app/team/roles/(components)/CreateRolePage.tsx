@@ -1,22 +1,27 @@
+// @ts-nocheck
 'use client'
 
 import { postCreateRole } from '@/actions/teamActions'
 import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
-import { ROLES_PERMISSIONS } from '@/data/rolesData'
+// import { ROLES_PERMISSIONS } from '@/data/rolesData'
 import { CreateRolePageProps, PermissionValue } from '@/types/webappTypes/appTypes'
 import React, { useState } from 'react'
 import { useServerAction } from '@/hooks';
 import { PermissionCard } from '.'
+import { dataToPermissions } from '@/utils/dataToPermissions'
 
 const CreateRolePage = ({
   close,
+  data,
   next
 }: CreateRolePageProps) => {
   const [role_name, setRoleName] = useState('');
   const [description, setDescription] = useState('');
   const [permissions, setPermissions] = useState<PermissionValue[]>([]);
+
+  const ROLES_PERMISSIONS = dataToPermissions(data);
 
   const incorrect = (
     !role_name ||
@@ -57,11 +62,18 @@ const CreateRolePage = ({
             Permissions
           </h3>
 
+          <input 
+            className='opacity-0 hidden'
+            readOnly
+            value={JSON.stringify(permissions)}
+            name='permissions'
+          />
+
           <div className='flex flex-col w-full gap-[16px]'>
             {
               ROLES_PERMISSIONS?.map((data) => (
                 <PermissionCard
-                  key={data?.id} 
+                  key={data?.value} 
                   label={data?.label}
                   value={data?.value}
                   permissions={permissions}
