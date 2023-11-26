@@ -55,6 +55,8 @@ export class RolesService {
       }),
     );
 
+    // TODO emit event
+
     return ResponseFormatter.success(roleSuccessMessages.createdRole, role);
   }
 
@@ -71,6 +73,9 @@ export class RolesService {
         },
       ],
     });
+
+    // TODO emit event
+
     return ResponseFormatter.success(roleSuccessMessages.fetchedRole, roles);
   }
 
@@ -95,6 +100,8 @@ export class RolesService {
         message: roleErrors.roleNotFound,
       });
     }
+
+    // TODO emit event
 
     return ResponseFormatter.success(roleSuccessMessages.fetchedRole, role);
   }
@@ -124,6 +131,8 @@ export class RolesService {
       }),
     );
 
+    // TODO emit event
+
     return ResponseFormatter.success(
       roleSuccessMessages.updatedRole,
       updatedRole,
@@ -146,6 +155,8 @@ export class RolesService {
     }
 
     await this.roleRepository.softDelete({ id: role.id });
+
+    // TODO emit event
 
     return ResponseFormatter.success(roleSuccessMessages.deletedRole, null);
   }
@@ -172,6 +183,8 @@ export class RolesService {
         message: roleErrors.roleNotFound,
       });
     }
+
+    // TODO emit event
 
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRole,
@@ -227,6 +240,8 @@ export class RolesService {
     await this.rolePermissionRepository.insert(
       newPermissions.map((permissionId) => ({ roleId: role.id, permissionId })),
     );
+
+    // TODO emit event
 
     return ResponseFormatter.success(roleSuccessMessages.updatedRole);
   }

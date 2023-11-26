@@ -179,6 +179,8 @@ export class AuthService {
       },
     );
 
+    // TODO emit event
+
     return ResponseFormatter.success(
       authSuccessMessages.forgotPassword(email),
       resetToken,
@@ -235,6 +237,8 @@ export class AuthService {
       },
     );
 
+    // TODO emit event
+
     return ResponseFormatter.success(
       userOrToken instanceof User
         ? authSuccessMessages.changePassword
@@ -282,6 +286,8 @@ export class AuthService {
         lastName,
       },
     );
+
+    // TODO emit event
 
     return ResponseFormatter.success(authSuccessMessages.signup);
   }

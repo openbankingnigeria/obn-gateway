@@ -35,6 +35,8 @@ export class ProfileService {
       });
     }
 
+    // TODO emit event
+
     return ResponseFormatter.success(
       profileSuccessMessages.fetchedProfile,
       profile,
@@ -61,6 +63,8 @@ export class ProfileService {
         lastName,
       }),
     );
+
+    // TODO emit event
 
     return ResponseFormatter.success(
       profileSuccessMessages.updatedProfile,
@@ -98,6 +102,8 @@ export class ProfileService {
         lastPasswordChange: moment().toDate(),
       },
     );
+
+    // TODO emit event
 
     return ResponseFormatter.success(profileSuccessMessages.updatedPassword);
   }

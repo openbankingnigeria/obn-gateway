@@ -63,6 +63,8 @@ export class AuditLogsService {
       },
     });
 
+    // TODO emit event
+
     return ResponseFormatter.success(auditLogsSuccessMessages.fetchLogs, logs, {
       totalNumberOfRecords: totalLogs,
       totalNumberOfPages: Math.ceil(totalLogs / limit),
@@ -88,6 +90,8 @@ export class AuditLogsService {
         message: auditLogErrors.logWithIdNotFound(id),
       });
     }
+
+    // TODO emit event
 
     return ResponseFormatter.success(auditLogsSuccessMessages.fetchLog, log);
   }

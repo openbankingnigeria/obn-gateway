@@ -15,7 +15,10 @@ import {
   UpdateCollectionDto,
 } from './dto/index.dto';
 import slugify from 'slugify';
-import { collectionsSuccessMessages } from './collections.constants';
+import {
+  collectionErrorMessages,
+  collectionsSuccessMessages,
+} from './collections.constants';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { KONG_PLUGINS } from './types';
 
@@ -32,6 +35,7 @@ export class CollectionsService {
 
   async listCollections() {
     const collections = await this.collectionRepository.find({});
+    // TODO emit event
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollections,
       collections,
@@ -42,6 +46,15 @@ export class CollectionsService {
     const collection = await this.collectionRepository.findOne({
       where: { id },
     });
+
+    if (!collection) {
+      throw new INotFoundException({
+        message: collectionErrorMessages.collectionNotFound(id),
+      });
+    }
+
+    // TODO emit event
+
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollection,
       collection,
@@ -49,15 +62,13 @@ export class CollectionsService {
   }
 
   async createCollection(data: CreateCollectionDto) {
-    const collectionExists = await this.collectionRepository.count({
-      where: {
-        name: data.name,
-      },
+    const collectionExists = await this.collectionRepository.countBy({
+      name: data.name,
     });
 
     if (collectionExists) {
       throw new IBadRequestException({
-        message: '',
+        message: collectionErrorMessages.collectionExists(data.name),
       });
     }
 
@@ -70,6 +81,8 @@ export class CollectionsService {
         description,
       }),
     );
+
+    // TODO emit event
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.createdCollection,
@@ -84,7 +97,7 @@ export class CollectionsService {
 
     if (!collection) {
       throw new IBadRequestException({
-        message: '',
+        message: collectionErrorMessages.collectionNotFound(id),
       });
     }
 
@@ -96,6 +109,8 @@ export class CollectionsService {
         description,
       }),
     );
+
+    // TODO emit event
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.updatedCollection,
@@ -109,7 +124,7 @@ export class CollectionsService {
     });
     if (!collection) {
       throw new INotFoundException({
-        message: '',
+        message: collectionErrorMessages.collectionNotFound(collectionId),
       });
     }
 
@@ -121,6 +136,8 @@ export class CollectionsService {
       this.kongService.listServices({ tags: collection.slug }),
       this.kongRouteService.listRoutes({ tags: collection.slug }),
     ]);
+
+    // TODO emit event
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedAPIs,
@@ -157,7 +174,7 @@ export class CollectionsService {
 
     if (!route) {
       throw new IBadRequestException({
-        message: '',
+        message: collectionErrorMessages.routeNotFound(id),
       });
     }
 
@@ -165,6 +182,9 @@ export class CollectionsService {
     const gatewayRoutes = await this.kongService.getServiceRoutes(
       route.serviceId,
     );
+
+    // TODO emit event
+
     return ResponseFormatter.success(collectionsSuccessMessages.fetchedAPI, {
       id: route.id,
       name: route.name,
@@ -191,14 +211,14 @@ export class CollectionsService {
 
     if (!collection) {
       throw new IBadRequestException({
-        message: '',
+        message: collectionErrorMessages.collectionNotFound(collectionId),
       });
     }
 
-    const exists = await this.routeRepository.countBy({ name });
-    if (exists) {
+    const routeExists = await this.routeRepository.countBy({ name });
+    if (routeExists) {
       throw new IBadRequestException({
-        message: '',
+        message: collectionErrorMessages.routeExists(name),
       });
     }
 
@@ -243,6 +263,8 @@ export class CollectionsService {
       });
     }
 
+    // TODO emit event
+
     return ResponseFormatter.success(collectionsSuccessMessages.createdAPI, {
       id: createdRoute.id,
       name: createdRoute.name,
@@ -267,17 +289,17 @@ export class CollectionsService {
 
     if (!route) {
       throw new IBadRequestException({
-        message: '',
+        message: collectionErrorMessages.routeNotFound(routeId),
       });
     }
 
-    const exists = await this.routeRepository.countBy({
+    const routeExists = await this.routeRepository.countBy({
       id: Not(routeId),
       name,
     });
-    if (exists) {
+    if (routeExists) {
       throw new IBadRequestException({
-        message: '',
+        message: collectionErrorMessages.routeExists(name),
       });
     }
 
@@ -320,6 +342,8 @@ export class CollectionsService {
         enabled: true,
       });
     }
+
+    // TODO emit event
 
     return ResponseFormatter.success(collectionsSuccessMessages.updatedAPI, {
       id: route.id,

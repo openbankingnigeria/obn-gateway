@@ -98,6 +98,9 @@ export class UsersService {
       where: { companyId: this.requestContext.user!.companyId },
       relations: { profile: true },
     });
+
+    // TODO emit event
+
     return ResponseFormatter.success(userSuccessMessages.fetchedUsers, users);
   }
 
@@ -112,6 +115,8 @@ export class UsersService {
         message: userErrors.userNotFound,
       });
     }
+
+    // TODO emit event
 
     return ResponseFormatter.success(userSuccessMessages.fetchedUser, user);
   }

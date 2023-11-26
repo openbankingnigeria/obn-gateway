@@ -14,4 +14,7 @@ export const collectionsSuccessMessages = {
 
 export const collectionErrorMessages = {
   collectionNotFound: (id: string) => `Collection '${id}' does not exist`,
+  collectionExists: (name: string) => `Collection name '${name}' exists`,
+  routeNotFound: (id: string) => `API Route '${id}' does not exist`,
+  routeExists: (name: string) => `API Route name '${name}' exists`,
 };

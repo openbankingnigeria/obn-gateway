@@ -24,7 +24,15 @@ export class CollectionRoute {
   @Column()
   routeId: string;
 
-  @Column({ type: 'boolean' })
+  @Column({
+    type: 'boolean',
+    transformer: {
+      from: (value: number) => (value ? true : false),
+      to: (value: boolean) => (value ? 1 : 0),
+    },
+    nullable: false,
+    default: null,
+  })
   enabled: boolean;
 
   @JoinColumn({ name: 'collection_id' })

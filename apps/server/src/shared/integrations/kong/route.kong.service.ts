@@ -33,9 +33,7 @@ export class KongRouteService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({
-              message: '',
-            });
+            throw new IInternalServerErrorException({});
           }),
         ),
     );
@@ -52,9 +50,7 @@ export class KongRouteService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({
-              message: '',
-            });
+            throw new IInternalServerErrorException({});
           }),
         ),
     );
@@ -71,9 +67,7 @@ export class KongRouteService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({
-              message: '',
-            });
+            throw new IInternalServerErrorException({});
           }),
         ),
     );
@@ -90,9 +84,7 @@ export class KongRouteService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({
-              message: '',
-            });
+            throw new IInternalServerErrorException({});
           }),
         ),
     );
@@ -108,9 +100,7 @@ export class KongRouteService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({
-              message: '',
-            });
+            throw new IInternalServerErrorException({});
           }),
         ),
     );
@@ -132,9 +122,7 @@ export class KongRouteService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({
-              message: '',
-            });
+            throw new IInternalServerErrorException({});
           }),
         ),
     );
