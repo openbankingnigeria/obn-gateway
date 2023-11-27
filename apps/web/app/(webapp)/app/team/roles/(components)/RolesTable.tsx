@@ -60,8 +60,10 @@ const RolesTable = ({
         status: openModal == 'deactivate' ? 'inactive' : 'active'
       }
     });
+
     if (result?.message) {
       setOpenModal('');
+      setLoading(false);
       // setOpen2FA(true);
     }
   }

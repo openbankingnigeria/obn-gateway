@@ -40,9 +40,9 @@ const APIConsumerDashboardPage = ({
         {`${greetByTime()}, John Ajayi!`}
       </h2>
 
-      <div className='w-full flex'>
+      <section className='w-full flex'>
         <DashboardBanner />
-      </div>
+      </section>
 
       <div className='w-full flex flex-col'>
         <APIConsumerDashboardTable 

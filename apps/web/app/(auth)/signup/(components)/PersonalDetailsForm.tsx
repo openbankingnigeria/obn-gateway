@@ -6,6 +6,7 @@ import React, { MouseEvent, useEffect, useState } from 'react';
 import { COUNTRIES_DATA } from '@/data/countriesData';
 import { useRouter } from 'next/navigation';
 import { getStorage, setStorage } from '@/config/webStorage';
+import { validateName } from '@/utils/globalValidations';
 
 const PersonalDetailsForm = () => {
   const [first_name, setFirstName] = useState(''); 
@@ -23,9 +24,12 @@ const PersonalDetailsForm = () => {
     setPhoneNumber(getData?.phone_number);
   }, []);
 
+  const correctFirstName = validateName(first_name);
+  const correctLastName = validateName(last_name);
+
   const incorrect = (
-    !first_name ||
-    !last_name ||
+    !correctFirstName ||
+    !correctLastName ||
     !country ||
     phone_number?.length !== 11
   );
@@ -58,13 +62,13 @@ const PersonalDetailsForm = () => {
   const handleFirstName = (value: string) => {
     const inputValue = value;
     const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
-    setFirstName(capitalizedValue);
+    setFirstName(capitalizedValue?.replace(/[^a-zA-Z]/g, ''));
   };
 
   const handleLastName = (value: string) => {
     const inputValue = value;
     const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
-    setLastName(capitalizedValue);
+    setLastName(capitalizedValue?.replace(/[^a-zA-Z]/g, ''));
   };
 
   return (

@@ -4,7 +4,7 @@ import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
 import React, { useState } from 'react';
 import { postAccountSetUp } from '@/actions/authActions';
-import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
+import { greaterThan8, validateLowercase, validateName, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 import { useServerAction } from '@/hooks';
 
 const AccountSetUpForm = ({
@@ -21,11 +21,13 @@ const AccountSetUpForm = ({
   const passwordLength = greaterThan8(password);
 
   const correctPassword = (upperAndLowerCase && number && symbol && passwordLength);
-  const passwordMatch = password === confirm_password
+  const passwordMatch = password === confirm_password;
+  const correctFirstName = validateName(first_name);
+  const correctLastName = validateName(last_name);
 
   const incorrect = (
-    !first_name ||
-    !last_name ||
+    !correctFirstName ||
+    !correctLastName ||
     !correctPassword ||
     !passwordMatch
   );
@@ -33,13 +35,13 @@ const AccountSetUpForm = ({
   const handleFirstName = (value: string) => {
     const inputValue = value;
     const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
-    setFirstName(capitalizedValue);
+    setFirstName(capitalizedValue?.replace(/[^a-zA-Z]/g, ''));
   };
 
   const handleLastName = (value: string) => {
     const inputValue = value;
     const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
-    setLastName(capitalizedValue);
+    setLastName(capitalizedValue?.replace(/[^a-zA-Z]/g, ''));
   };
 
   const initialState = {

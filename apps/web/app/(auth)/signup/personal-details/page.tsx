@@ -7,7 +7,7 @@ const PersonalDetailsPage = () => {
   return (
     <section className='w-full flex flex-col'>
       <div  className='w-full flex flex-col gap-[24px]'>
-        <div className='w-full'>
+        {/* <div className='w-full'>
           <Link 
             href='/signup'
             className='cursor-pointer gap-[6px] flex items-center w-fit text-f14 font-[600] text-o-light-blue'
@@ -18,7 +18,7 @@ const PersonalDetailsPage = () => {
 
             Back
           </Link>
-        </div>
+        </div> */}
 
         <div className='w-full flex flex-col gap-[12px]'>
           <h2 className='text-o-text-dark text-[28px] font-[600]'>

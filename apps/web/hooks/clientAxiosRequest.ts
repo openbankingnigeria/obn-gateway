@@ -5,7 +5,6 @@ import { getJsCookies, removeJsCookies } from "@/config/jsCookie";
 import { applyAxiosRequest } from ".";
 import { HttpRequestProps } from "@/types/configTypes";
 import { toast } from "react-toastify";
-import { redirect } from "next/navigation";
 
 const clientAxiosRequest = async ({
   headers,

@@ -9,8 +9,8 @@ import { getStorage, setStorage } from '@/config/webStorage';
 
 const DashboardBanner = () => {
   const [openModal, setOpenModal] = useState('');
-  const close_modal = Boolean(getStorage('close-dashboard-modal'));
-  const [closeDashboardModal, setCloseDashboardModal] = useState(close_modal);
+  const close_modal = Boolean(getStorage('close-banner'));
+  const [closebanner, setCloseBanner] = useState(Boolean(close_modal));
 
   const cancelModal = () => {
     setOpenModal('cancel');
@@ -20,8 +20,13 @@ const DashboardBanner = () => {
     setOpenModal('');
   }
 
+  const handleCloseBanner = () => {
+    // setStorage('close-banner', 'yes');
+    setCloseBanner(prev => !prev);
+  }
+
   return (
-    <>
+    <div className='w-full'>
       {
         openModal &&
           <AppRightModal
@@ -39,8 +44,8 @@ const DashboardBanner = () => {
       }
 
       {
-        (!closeDashboardModal) ?
-          <section className='w-full relative overflow-hidden flex items-center justify-between rounded-[12px] bg-[#F3F6FB] border-[#DCE4F4]'>
+        (!closebanner) ?
+          <div className='w-full relative overflow-hidden flex items-center justify-between rounded-[12px] bg-[#F3F6FB] border-[#DCE4F4]'>
             <svg 
               width="20" 
               height="20" 
@@ -48,7 +53,7 @@ const DashboardBanner = () => {
               fill="none" 
               xmlns="http://www.w3.org/2000/svg"
               className='absolute cursor-pointer top-[14px] right-[14px]'
-              onClick={() => setStorage('close-dashboard-modal', 'yes')}
+              onClick={handleCloseBanner}
             >
               <path 
                 d="M15 5L5 15M5 5L15 15" 
@@ -90,10 +95,10 @@ const DashboardBanner = () => {
                 className='object-cover absolute'
               />
             </div>
-          </section>
+          </div>
           : null
       }
-    </>
+    </div>
   )
 }
 
