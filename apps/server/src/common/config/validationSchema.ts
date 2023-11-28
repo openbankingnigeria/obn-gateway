@@ -19,6 +19,7 @@ export const validationSchema = Joi.object({
   EMAIL_USER: Joi.string(),
   EMAIL_SECURE: Joi.boolean(),
   EMAIL_FROM: Joi.string(),
+  LOGSTASH_ENDPOINT: Joi.string().required(),
 })
   .xor('DATABASE_PASSWORD', 'DATABASE_PASSWORD_FILE')
   .xor('JWT_SECRET', 'JWT_SECRET_FILE');

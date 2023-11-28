@@ -6,8 +6,8 @@ import {
 } from '@common/utils/exceptions/exceptions';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { KongRouteService } from '@shared/integrations/kong/route.kong.service';
-import { KongServiceService } from '@shared/integrations/kong/service.kong.service';
+import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
+import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
 import { Not, Repository } from 'typeorm';
 import {
   CreateCollectionDto,
@@ -20,7 +20,7 @@ import {
   collectionsSuccessMessages,
 } from './collections.constants';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
-import { KONG_PLUGINS } from './types';
+import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 
 @Injectable()
 export class CollectionsService {

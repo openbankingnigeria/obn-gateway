@@ -21,7 +21,3 @@ export enum HTTP_METHODS {
   TRACE = 'TRACE',
   PATCH = 'PATCH',
 }
-
-export enum KONG_PLUGINS {
-  REQUEST_TERMINATION = 'request-termination',
-}
