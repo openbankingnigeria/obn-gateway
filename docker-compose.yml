@@ -29,16 +29,22 @@ volumes:
     driver_opts:
      type: tmpfs
      device: tmpfs
+  escerts: {}
+  esdata: {}
+  logstashdata: {}
 
 networks:
   kong-net:
     external: false
   obn-net:
     external: false
+  elastic-net:
+    external: false
 
 services:
   kong-db:
     image: postgres:9.5
+    container_name: obn-kong-db
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
       POSTGRES_USER: ${KONG_PG_USER:-kong}
@@ -60,6 +66,7 @@ services:
 
   kong-migrations:
     image: "${KONG_DOCKER_TAG:-kong:latest}"
+    container_name: obn-kong-migrations
     command: kong migrations bootstrap
     depends_on:
       kong-db:
@@ -78,6 +85,7 @@ services:
 
   kong-migrations-up:
     image: "${KONG_DOCKER_TAG:-kong:latest}"
+    container_name: obn-kong-migrations-up
     command: kong migrations up && kong migrations finish
     depends_on:
       kong-db:
@@ -96,6 +104,7 @@ services:
 
   kong:
     image: "${KONG_DOCKER_TAG:-kong:latest}"
+    container_name: obn-kong
     user: "${KONG_USER:-kong}"
     environment:
       <<: *kong-env
@@ -103,11 +112,10 @@ services:
       - kong_postgres_password
     networks:
       - kong-net
+      - elastic-net
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8000:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8443:8443/tcp"
-      - "127.0.0.1:8001:8001/tcp" # TODO unpublish port 
-      - "127.0.0.1:8444:8444/tcp"
     depends_on:
       kong-db:
         condition: service_healthy
@@ -126,12 +134,126 @@ services:
     security_opt:
       - no-new-privileges
 
+  elk-setup:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION}
+    container_name: obn-elk-setup
+    volumes:
+      - escerts:/usr/share/elasticsearch/config/certs
+    user: "0"
+    command: >
+     bash -c '
+       if [ x${ELASTIC_PASSWORD} == x ]; then
+         echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
+         exit 1;
+       fi;
+       if [ ! -f config/certs/ca.zip ]; then
+         echo "Creating CA";
+         bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
+         unzip config/certs/ca.zip -d config/certs;
+       fi;
+       if [ ! -f config/certs/certs.zip ]; then
+         echo "Creating certs";
+         echo -ne \
+         "instances:\n"\
+         "  - name: es\n"\
+         "    dns:\n"\
+         "      - es\n"\
+         "      - localhost\n"\
+         "    ip:\n"\
+         "      - 127.0.0.1\n"\
+         > config/certs/instances.yml;
+         bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+         unzip config/certs/certs.zip -d config/certs;
+       fi;
+       echo "Setting file permissions"
+       chown -R root:root config/certs;
+       find . -type d -exec chmod 750 \{\} \;;
+       find . -type f -exec chmod 640 \{\} \;;
+       echo "Waiting for Elasticsearch availability";
+       until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+       echo "All done!";
+     '
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
+      interval: 1s
+      timeout: 5s
+      retries: 120
+    networks:
+      - elastic-net
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION}
+    container_name: obn-es
+    labels:
+      co.elastic.logs/module: elasticsearch
+    volumes:
+      - escerts:/usr/share/elasticsearch/config/certs
+      - esdata:/usr/share/elasticsearch/data
+    depends_on:
+      elk-setup:
+        condition: service_healthy
+    environment:
+      - node.name=es
+      - cluster.name=${CLUSTER_NAME}
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=certs/es/es.key
+      - xpack.security.http.ssl.certificate=certs/es/es.crt
+      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.key=certs/es/es.key
+      - xpack.security.transport.ssl.certificate=certs/es/es.crt
+      - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.license.self_generated.type=${ES_LICENSE:-basic}
+    mem_limit: ${ES_MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    networks:
+      - elastic-net
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:${ELASTIC_STACK_VERSION}
+    container_name: obn-logstash
+    labels:
+      co.elastic.logs/module: logstash
+    user: root
+    volumes:
+      - escerts:/usr/share/logstash/certs
+      - logstashdata:/usr/share/logstash/data
+      - "./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"
+    depends_on:
+      es:
+        condition: service_healthy
+    environment:
+      - xpack.monitoring.enabled=false
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_HOSTS=https://es:9200
+    networks:
+      - elastic-net
+
   redis:
-    image: redis:latest
-    ports:
-      - ":6379"
+    image: "${REDIS_DOCKER_TAG:-redis:latest}"
+    container_name: obn-redis
     volumes:
       - redis_data:/var/lib/redis
+    networks:
+      - obn-net
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 30s
@@ -139,7 +261,8 @@ services:
       retries: 3
 
   mysql:
-    image: mysql:latest
+    image: "${MYSQL_DOCKER_TAG:-mysql:latest}"
+    container_name: obn-mysql
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
       MYSQL_DATABASE: ${MYSQL_DATABASE:-obn}
@@ -148,8 +271,6 @@ services:
     secrets:
       - mysql_password
       - mysql_root_password
-    ports:
-      - ":3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -162,11 +283,13 @@ services:
 
   web:
     build: ./apps/web
+    container_name: obn-web
     ports:
       - "3000:3000"
 
   server:
     build: ./apps/server
+    container_name: obn-server
     environment:
       DATABASE_HOST: ${DATABASE_HOST:-mysql}
       DATABASE_USERNAME: ${DATABASE_USERNAME:-obn}
@@ -196,6 +319,7 @@ services:
     networks:
       - kong-net
       - obn-net
+      - elastic-net
     restart: on-failure:5
     depends_on:
       mysql:

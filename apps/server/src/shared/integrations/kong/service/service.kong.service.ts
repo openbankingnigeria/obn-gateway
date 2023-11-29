@@ -3,6 +3,7 @@ import {
   CreateServiceRequest,
   CreateServiceResponse,
   GetServiceResponse,
+  ListRoutesResponse,
   ListServicesRequest,
   ListServicesResponse,
 } from './service.kong.interface';
@@ -11,7 +12,6 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { IInternalServerErrorException } from 'src/common/utils/exceptions/exceptions';
 import { ConfigService } from '@nestjs/config';
-import { ListRoutesResponse } from './route.kong.interface';
 
 @Injectable()
 // ;-)

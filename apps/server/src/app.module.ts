@@ -21,6 +21,8 @@ import { ProfileModule } from './profile/profile.module';
 import { EmailService } from './shared/email/email.service';
 import { AuditLogsModule } from './auditLogs/auditLogs.module';
 import { CollectionsModule } from './collections/collections.module';
+import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -56,10 +58,12 @@ import { CollectionsModule } from './collections/collections.module';
     ProfileModule,
     AuditLogsModule,
     CollectionsModule,
+    HttpModule,
   ],
   controllers: [AppController],
   providers: [
     JwtService,
+    KongPluginService,
     Auth,
     {
       provide: APP_FILTER,

@@ -43,4 +43,7 @@ export const globalConfig = (): {
   kong: {
     adminUrl: process.env.KONG_ADMIN_API_URL,
   },
+  logging: {
+    endpoint: process.env.LOGSTASH_ENDPOINT,
+  },
 });
