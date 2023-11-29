@@ -2,10 +2,8 @@
 
 import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import React, { MouseEventHandler, useState } from 'react';
-import { toast } from 'react-toastify';
+import { useServerAction } from '@/hooks';
 import { greaterThan8, validateLowercase, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 import { postChangePassword } from '@/actions/profileActions';
 
@@ -30,13 +28,9 @@ const ChangePasswordForm = ({
     !passwordMatch
   );
 
-  const initialState = {
-    message: null,
-  }
-
-  const [state, formAction] = useFormState(postChangePassword, initialState);
-  state?.message && toast.error(state?.message);
-
+  const initialState = {}
+  const [state, formAction] = useServerAction(postChangePassword, initialState);
+  
   return (
     <form
       action={incorrect ? '' : formAction}

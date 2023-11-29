@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/globalComponents'
+import { removeJsCookies } from '@/config/jsCookie';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react'
 
@@ -8,8 +9,9 @@ const PasswordChangedSuccessfully = () => {
   const router = useRouter();
 
   useEffect(() => {
+    removeJsCookies('aperta-user-accessToken');
     const interval = setInterval(() => {
-      router.push('/signin')
+      router.refresh();
     }, 2000)
 
     return () => {
