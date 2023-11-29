@@ -30,34 +30,22 @@ export const AUDIT_TRAIL_EVENT_TYPE = [
   },
   {
     id: 2,
-    label: 'Create member',
-    name: 'create_member',
-    value: 'create_member'
+    label: 'Login',
+    name: 'auth.login',
+    value: 'auth.login'
   },
   {
     id: 3,
-    label: 'Create API Collection',
-    name: 'create_api_collection',
-    value: 'create_api_collection'
+    label: 'Signup',
+    name: 'auth.signup',
+    value: 'auth.signup'
   },
   {
     id: 4,
-    label: 'Deactivate Memeber',
-    name: 'deactivate_member',
-    value: 'deactivate_member'
-  },
-  {
-    id: 5,
-    label: 'Edit API',
-    name: 'edit_api',
-    value: 'edit_api'
-  },
-  {
-    id: 5,
-    label: 'Edit Role',
-    name: 'edit_role',
-    value: 'edit_role'
-  },
+    label: 'User Updated',
+    name: 'user.updated',
+    value: 'user.updated'
+  }
 ];
 
 export const AUDIT_TRAIL_TABLE_DATA = [

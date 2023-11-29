@@ -1,24 +1,57 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
-import { AUDIT_TRAIL_TABLE_HEADERS, AUDIT_TRAIL_TABLE_DATA, AUDIT_TRAIL_EVENT_TYPE } from '@/data/auditTrailData'
+import { AUDIT_TRAIL_TABLE_HEADERS, AUDIT_TRAIL_EVENT_TYPE } from '@/data/auditTrailData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { AuditTrailTable } from './(components)'
-import { DatePicker, ExportButton } from '@/app/(webapp)/(components)'
+import { DatePicker } from '@/app/(webapp)/(components)'
+import { applyAxiosRequest } from '@/hooks'
+import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout'
+import moment from 'moment'
 
-const AuditTrailPage = ({ searchParams }: UrlParamsProps) => {
+const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
   const type = searchParams?.type || ''
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
   const date_filter = searchParams?.date_filter || ''
 
-  const filters = [search_query, type, date_filter];
+  const dateFilter = date_filter ? JSON.parse(date_filter) : {};
+  const filters = [search_query, type, dateFilter?.start_date, dateFilter?.end_date];
 
+  const fetchedAuditTrails: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getAuditTrails({
+      page: `${page}`,
+      limit: `${rows}`,
+      name: search_query,
+      event: type,
+      createdAt_gt: moment(dateFilter?.start_date).endOf('day').format()?.split('+')[0] + '.000Z',
+      createdAt_l: moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z'
+    }),
+    method: 'GET',
+    data: null
+  });
+
+  if (fetchedAuditTrails?.status == 401) {
+    return <Logout />
+  }
+
+  let meta_data = fetchedAuditTrails?.meta_data;
+  let audit_trail = fetchedAuditTrails?.data?.map((trail: any) => {
+    return({
+      ...trail,
+      member_name: `${trail?.user?.profile?.firstName} ${trail?.user?.profile?.lastName}`,
+      email_address: trail?.user?.email,
+      event_type: trail?.event,
+      description: trail?.description,
+      timestamp: trail?.createdAt
+    })
+  })
   const headers = AUDIT_TRAIL_TABLE_HEADERS;
-  const audit_trail = AUDIT_TRAIL_TABLE_DATA;
-  const total_pages = audit_trail?.length;
-  const total_elements_in_page = audit_trail?.length;
-  const total_elements = audit_trail?.length;
+  const total_pages = meta_data?.totalNumberOfPages;
+  const total_elements_in_page = meta_data?.pageSize;
+  const total_elements = meta_data?.totalNumberOfRecords;
 
   const event_type_list = AUDIT_TRAIL_EVENT_TYPE?.map(data => {
     return({

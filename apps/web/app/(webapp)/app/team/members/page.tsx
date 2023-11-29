@@ -8,8 +8,6 @@ import Logout from '@/components/globalComponents/Logout'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 
-// export const revalidate = 2;
-
 const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
   const search_query = searchParams?.search_query || ''
