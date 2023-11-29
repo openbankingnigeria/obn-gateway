@@ -1,12 +1,14 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { TopPanel } from '@/app/(webapp)/(components)'
-import { MEMBERS_TABLE_HEADERS, MEMBERS_STATUS_DATA, INVITED_MEMBERS_TABLE_HEADERS, INVITED_MEMBERS_TABLE_DATA } from '@/data/membersData'
+import { MEMBERS_TABLE_HEADERS, MEMBERS_STATUS_DATA, INVITED_MEMBERS_TABLE_HEADERS } from '@/data/membersData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { InviteMembersButton, MembersTable } from './(components)'
 import Logout from '@/components/globalComponents/Logout'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
+
+// export const revalidate = 2;
 
 const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''

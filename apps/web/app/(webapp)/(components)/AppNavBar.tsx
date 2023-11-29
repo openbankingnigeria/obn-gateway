@@ -9,6 +9,7 @@ import { NOTIFICATIONS_DATA } from '@/data/notificationData';
 import { Button, OutsideClicker } from '../../../components/globalComponents';
 import { AppCenterModal, AvatarMenu, NotificationBox } from '.';
 import { toast } from 'react-toastify';
+import { removeJsCookies } from '@/config/jsCookie';
 
 const AppNavBar = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -38,7 +39,8 @@ const AppNavBar = () => {
 
   const handleLogout = () => {
     setLoadingLogout(true);
-    router.push('/');
+    removeJsCookies('aperta-user-accessToken');
+    router.refresh();
   }
 
   const handleToggle = (value: boolean) => {
