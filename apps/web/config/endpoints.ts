@@ -32,6 +32,11 @@ export const updateTeam = ({ member_id }: SingleMemberProps) =>
 export const getTeam = ({ member_id }: SingleMemberProps) => 
   `${BASE_URL}/users/${member_id}`;
 
+// PROFILE
+export const getProfile = () => `${BASE_URL}/profile`;
+export const updateProfile = () => `${BASE_URL}/profile`;
+export const updatePassword = () => `${BASE_URL}/profile/password`;
+
 
 // AUDIT TRAIL
 export const getAuditLog = ({ logId }: GetAuditLogProps) => 

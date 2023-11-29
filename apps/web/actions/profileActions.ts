@@ -1,16 +1,28 @@
 'use server'
 
+import { axiosRequest } from '@/config/axiosRequest';
+import * as API from '../config/endpoints';
 import { redirect } from 'next/navigation';
 
 /* CHANGE PASSWORD ACTION */
 export async function postChangePassword(prevState: any, formData: FormData) {
   const fullData = {
-    old_password: formData.get('old_password'),
-    password: formData.get('password'),
-    confirm_password: formData.get('confirm_password'),
+    oldPassword: formData.get('old_password'),
+    newPassword: formData.get('password'),
+    confirmPassword: formData.get('confirm_password'),
   };
 
-  redirect(`/app/profile?status=successful`);
+  let response = await axiosRequest({
+    apiEndpoint: API.updatePassword(),
+    method: 'PATCH',
+    headers: { },
+    data: fullData
+  });
+
+  return {
+    response,
+    redirect: `/app/profile?status=successful`,
+  };
 }
 
 /* ADD BUSINESS INFORMATION ACTION */

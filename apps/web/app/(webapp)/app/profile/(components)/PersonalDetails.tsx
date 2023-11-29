@@ -2,7 +2,9 @@ import { InputElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import React from 'react'
 
-const PersonalDetails = () => {
+const PersonalDetails = ({
+  profile
+}: { profile: any }) => {
   return (
     <form 
       action={''}
@@ -43,7 +45,7 @@ const PersonalDetails = () => {
               <InputElement 
                 name='first_name'
                 placeholder='First name'
-                value={'John'}
+                value={profile?.firstName}
                 disabled
                 required
               />
@@ -53,7 +55,7 @@ const PersonalDetails = () => {
               <InputElement 
                 name='last_name'
                 placeholder='Last name'
-                value={'Ajayi'}
+                value={profile?.lastName}
                 disabled
                 required
               />
@@ -79,8 +81,8 @@ const PersonalDetails = () => {
             <InputElement 
               name='email'
               type='email'
-              placeholder='johndoe@openbanking.com'
-              value={'johnajayi@gmail.com'}
+              // placeholder='johndoe@openbanking.com'
+              value={profile?.email}
               disabled
               required
             />
@@ -105,7 +107,7 @@ const PersonalDetails = () => {
             <InputElement
               name='role'
               placeholder='role'
-              value={'Super Admin'}
+              value={profile?.companyRole?.replace(/_/g, ' ')}
               disabled
               required
             />

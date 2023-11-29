@@ -9,8 +9,12 @@ import { useRouter } from 'next/navigation'
 import TwoFactoAuthEnabled from './TwoFactoAuthEnabled'
 
 const SecurityDetails = ({
-  successful
-}: {successful: boolean }) => {
+  successful,
+  profile
+}: {
+  successful: boolean,
+  profile: any
+}) => {
   const router = useRouter();
   const [openModal, setOpenModal] = useState('');
   const [enable2FA, setToggle2FA] = useState(false);
