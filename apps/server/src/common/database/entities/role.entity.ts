@@ -14,7 +14,7 @@ import { RolePermission } from './rolepermission.entity';
 import { Company } from './company.entity';
 
 @Entity({ name: 'roles' })
-@Unique(['slug', 'parent'])
+@Unique(['slug', 'parent', 'company'])
 export class Role {
   @PrimaryGeneratedColumn('uuid')
   id?: string;

@@ -69,7 +69,7 @@ export class RolesService {
         ...filters,
       },
       {
-        parentId: this.requestContext.user!.role.parentId,
+        parentId: IsNull(),
         companyId: IsNull(),
         ...filters,
       },
@@ -103,7 +103,7 @@ export class RolesService {
         },
         {
           id,
-          parentId: this.requestContext.user!.role.parentId,
+          parentId: IsNull(),
           companyId: IsNull(),
         },
       ],
@@ -185,7 +185,7 @@ export class RolesService {
         },
         {
           id,
-          parentId: this.requestContext.user!.role.parentId,
+          parentId: IsNull(),
           companyId: IsNull(),
         },
       ],

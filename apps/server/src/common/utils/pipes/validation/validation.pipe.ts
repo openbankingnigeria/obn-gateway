@@ -51,7 +51,12 @@ export class IValidationPipe implements PipeTransform<any> {
     const structuredErrors: Record<string, any> = {};
 
     errors.forEach((error) => {
-      structuredErrors[error.property] = this.getMessage(error.constraints);
+      if (error.children) {
+        structuredErrors[error.property] = this.structureErrors(error.children);
+      }
+      if (error.constraints) {
+        structuredErrors[error.property] = this.getMessage(error.constraints);
+      }
     });
     return structuredErrors;
   }

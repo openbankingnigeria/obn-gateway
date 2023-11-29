@@ -33,6 +33,7 @@ export class UsersService {
     private readonly profileRepository: Repository<Profile>,
   ) {}
 
+  // TODO confirm that this roleId belongs to the comapny.
   async createUser(data: CreateUserDto) {
     const { email, firstName, lastName, roleId } = data;
 

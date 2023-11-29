@@ -152,11 +152,13 @@ export class CollectionsService {
           id: route.id,
           name: route.name,
           enabled: route.enabled,
-          host: gatewayService.host,
-          protocol: gatewayService.protocol,
-          port: gatewayService.port,
-          path: gatewayService.path,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+          host: gatewayService?.host,
+          protocol: gatewayService?.protocol,
+          port: gatewayService?.port,
+          path: gatewayService?.path,
+          url: gatewayService
+            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+            : null,
           route: {
             paths: gatewayRoute?.paths || [],
             methods: gatewayRoute?.methods || [],

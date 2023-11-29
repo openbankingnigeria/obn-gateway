@@ -4,10 +4,13 @@ import {
   IsBoolean,
   IsEnum,
   IsNotEmpty,
+  IsObject,
   IsString,
   IsUrl,
+  ValidateNested,
 } from 'class-validator';
 import { HTTP_METHODS } from '../types';
+import { Type } from 'class-transformer';
 
 export class CreateCollectionDto {
   @IsNotEmpty()
@@ -25,6 +28,21 @@ export class UpdateCollectionDto {
   description: string;
 }
 
+class CreateRouteDTO {
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  @ArrayNotEmpty()
+  paths: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  @IsEnum(HTTP_METHODS, { each: true })
+  @ArrayNotEmpty()
+  methods: string[];
+}
+
 export class CreateAPIDto {
   @IsNotEmpty()
   @IsString()
@@ -37,10 +55,13 @@ export class CreateAPIDto {
   @IsUrl()
   url: string;
 
+  @IsObject()
+  @ValidateNested()
+  @Type(() => CreateRouteDTO)
   route: CreateRouteDTO;
 }
 
-class CreateRouteDTO {
+class UpdateRouteDTO {
   @IsArray()
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
@@ -67,20 +88,8 @@ export class UpdateAPIDto {
   @IsUrl()
   url: string;
 
+  @IsObject()
+  @ValidateNested()
+  @Type(() => UpdateRouteDTO)
   route: UpdateRouteDTO;
-}
-
-class UpdateRouteDTO {
-  @IsArray()
-  @IsString({ each: true })
-  @IsNotEmpty({ each: true })
-  @ArrayNotEmpty()
-  paths: string[];
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsNotEmpty({ each: true })
-  @IsEnum(HTTP_METHODS, { each: true })
-  @ArrayNotEmpty()
-  methods: string[];
 }
