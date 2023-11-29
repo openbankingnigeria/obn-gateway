@@ -165,3 +165,14 @@ export async function post2FAVerification(prevState: any, formData: FormData) {
     redirect(`/reset-password?status=successful`) :
     redirect(`/app/home/dashboard`);
 }
+
+/** BACKUP CODE VERIFICATION ACTION */
+export async function postBackupCodeVerification(prevState: any, formData: FormData) {
+  const fullData = {
+    code: formData.get('code'),
+  }
+
+  prevState?.location?.includes('reset-password') ?
+    redirect(`/reset-password?status=successful`) :
+    redirect(`/app/home/dashboard`);
+}
