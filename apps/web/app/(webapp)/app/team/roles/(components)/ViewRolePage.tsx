@@ -71,7 +71,7 @@ const ViewRolePage = ({
                   key={data}
                   className='text-f14 capitalize text-o-text-medium3'
                 >
-                  {data}
+                  {data?.replace(/,/g, ', ')}
                 </li>
               ))
             }

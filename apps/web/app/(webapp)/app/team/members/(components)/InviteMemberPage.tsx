@@ -115,11 +115,11 @@ const InviteMemberPage = ({
                 Role&#39;s Permissions              
               </h3>
 
-              <ul className='list-disc pl-[26px] text-o-text-medium3 text-f14'>
+              <ul className='capitalize list-disc pl-[26px] text-o-text-medium3 text-f14'>
                 {
                   permissions?.map(permit => (
                   <li key={permit}>
-                    {permit}
+                    {permit?.replace(/,/g, ', ')}
                   </li>
                 ))}
               </ul>
