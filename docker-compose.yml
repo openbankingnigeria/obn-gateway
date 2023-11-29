@@ -135,7 +135,7 @@ services:
       - no-new-privileges
 
   elk-setup:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION}
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION:-8.11.1}
     container_name: obn-elk-setup
     volumes:
       - escerts:/usr/share/elasticsearch/config/certs
@@ -182,7 +182,7 @@ services:
       - elastic-net
 
   es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION}
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION:-8.11.1}
     container_name: obn-es
     labels:
       co.elastic.logs/module: elasticsearch
@@ -194,7 +194,7 @@ services:
         condition: service_healthy
     environment:
       - node.name=es
-      - cluster.name=${CLUSTER_NAME}
+      - cluster.name=${CLUSTER_NAME:-docker-cluster}
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - bootstrap.memory_lock=true
@@ -209,7 +209,7 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${ES_LICENSE:-basic}
-    mem_limit: ${ES_MEM_LIMIT}
+    mem_limit: ${ES_MEM_LIMIT:-1073741824}
     ulimits:
       memlock:
         soft: -1
@@ -227,7 +227,7 @@ services:
       - elastic-net
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:${ELASTIC_STACK_VERSION}
+    image: docker.elastic.co/logstash/logstash:${ELASTIC_STACK_VERSION:-8.11.1}
     container_name: obn-logstash
     labels:
       co.elastic.logs/module: logstash
@@ -311,6 +311,7 @@ services:
       DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD is required}
       KONG_ADMIN_API_URL: ${KONG_ADMIN_API_URL:-http://kong:8001}
       MANAGEMENT_URL: ${MANAGEMENT_URL:-http://localhost:3000}
+      LOGSTASH_ENDPOINT: ${LOGSTASH_ENDPOINT:-http://obn-logstash:8080}
     secrets:
       - mysql_password
       - jwt_secret
