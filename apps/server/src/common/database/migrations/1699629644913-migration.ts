@@ -10,6 +10,9 @@ export class Migration1699629644913 implements MigrationInterface {
   profileId = uuidv4();
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+        ALTER TABLE \`companies\` CHANGE \`type\` \`type\` enum ('${CompanyTypes.BANK}', '${CompanyTypes.API_PROVIDER}') NOT NULL
+    `);
     await queryRunner.query(
       `INSERT INTO companies (id, name, type) VALUES (?, ?, ?)`,
       [this.companyId, process.env.COMPANY_NAME, CompanyTypes.API_PROVIDER],
