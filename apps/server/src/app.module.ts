@@ -23,6 +23,8 @@ import { AuditLogsModule } from './auditLogs/auditLogs.module';
 import { CollectionsModule } from './collections/collections.module';
 import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
 import { HttpModule } from '@nestjs/axios';
+import { SettingsModule } from './settings/settings.module';
+import { CompanyModule } from './company/company.module';
 
 @Module({
   imports: [
@@ -59,6 +61,8 @@ import { HttpModule } from '@nestjs/axios';
     AuditLogsModule,
     CollectionsModule,
     HttpModule,
+    SettingsModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [

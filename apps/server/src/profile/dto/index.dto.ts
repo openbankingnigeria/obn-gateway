@@ -1,7 +1,4 @@
-import {
-  userConfig,
-  userErrors,
-} from '@users/user.errors';
+import { userConfig, userErrors } from '@users/user.errors';
 import {
   IsNotEmpty,
   IsString,

@@ -19,6 +19,15 @@ export class Company {
   @Column()
   name?: string;
 
+  @Column({ name: 'rc_number', nullable: true, unique: true })
+  rcNumber: string;
+
+  @Column({ name: 'is_verified', type: 'boolean', default: false })
+  isVerified: boolean;
+
+  @Column('longblob', { name: 'kyb_data', nullable: true })
+  kybData?: string;
+
   @Column({
     type: 'enum',
     enum: CompanyTypes,
