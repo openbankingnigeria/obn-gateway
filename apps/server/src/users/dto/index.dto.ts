@@ -11,7 +11,9 @@ import {
 import { UserStatuses } from 'src/common/database/entities';
 
 export class CreateUserDto {
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: ({ property }) => userErrors.dto.isRequired(property),
+  })
   @IsString()
   @IsEmail()
   email: string;

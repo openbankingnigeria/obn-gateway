@@ -16,7 +16,7 @@ export const UserFilters: Record<string, AllowedFieldOptions[]> = {
     {
       key: 'phone',
       valueType: ValueTypes.string,
-      mapsTo: ['profile.phone', 'profile.phone'],
+      mapsTo: ['profile.phone'],
     },
   ],
 };

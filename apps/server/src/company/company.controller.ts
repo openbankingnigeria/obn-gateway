@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  OnApplicationBootstrap,
   Param,
   // MaxFileSizeValidator,
   // ParseFilePipe,
@@ -13,7 +14,6 @@ import {
 import { CompanyService } from './company.service';
 import { UpdateCompanyDetailsDto } from './dto/update-company-details.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import * as settingsKybJson from '../settings/settings.kyb.json';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import { KybDataTypes } from 'src/settings/types';
 import {
@@ -24,12 +24,22 @@ import { CompanyFilters } from './company.filter';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
-// import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
-// import { PERMISSIONS } from '@permissions/types';
+import { path } from 'app-root-path';
+import { join } from 'path';
+import { readFileSync } from 'fs';
+import * as settingsKybJson from '@common/config/settings.kyb.json';
+
+let kybSettings = settingsKybJson;
 
 @Controller('company')
-export class CompanyController {
+export class CompanyController implements OnApplicationBootstrap {
   constructor(private readonly companyService: CompanyService) {}
+
+  onApplicationBootstrap() {
+    kybSettings = JSON.parse(
+      readFileSync(join(path, 'server.settings', 'settings.kyb.json'), 'utf-8'),
+    );
+  }
 
   // new ParseFilePipe({
   //   validators: [
@@ -45,7 +55,7 @@ export class CompanyController {
   @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_DETAILS)
   @UseInterceptors(
     FileFieldsInterceptor(
-      settingsKybJson.kybRequirements
+      kybSettings.kybRequirements
         .filter((requirement) => requirement.type === KybDataTypes.FILE)
         .map((requirement) => ({
           name: requirement.name,
@@ -66,12 +76,6 @@ export class CompanyController {
     return this.companyService.getCompanyDetails();
   }
 
-  @Get(':id')
-  @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
-  getCompanyDetailsById(@Param('id') companyId: string) {
-    return this.companyService.getCompanyDetails(companyId);
-  }
-
   @Get('list')
   @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
   listCompanies(
@@ -80,5 +84,11 @@ export class CompanyController {
     filters: any,
   ) {
     return this.companyService.listCompanies(pagination, filters);
+  }
+
+  @Get(':id')
+  @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
+  getCompanyDetailsById(@Param('id') companyId: string) {
+    return this.companyService.getCompanyDetails(companyId);
   }
 }

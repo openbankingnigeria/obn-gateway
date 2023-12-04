@@ -1,23 +1,45 @@
+import { settingsErrors } from '@settings/settings.error';
 import { KybDataTypes } from '@settings/types';
-import { IsArray, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export class KybRequirements {
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: ({ property }) => settingsErrors.dto.isRequired(property),
+  })
   @IsString()
   name: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: ({ property }) => settingsErrors.dto.isRequired(property),
+  })
   @IsString()
   label: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: ({ property }) => settingsErrors.dto.isRequired(property),
+  })
   @IsString()
   @IsEnum(KybDataTypes)
   type: KybDataTypes;
 }
 
 export class UpdateKybRequirementsDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsArray()
-  kybRequirements: KybRequirements[];
+  @ValidateNested({ each: true })
+  @Type(() => KybRequirements)
+  newKybRequirements: KybRequirements[];
+
+  @IsOptional()
+  @Type(() => String)
+  @IsArray()
+  removedKybRequirements: string[];
 }
