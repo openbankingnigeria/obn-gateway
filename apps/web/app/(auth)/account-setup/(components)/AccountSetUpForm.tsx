@@ -35,13 +35,13 @@ const AccountSetUpForm = ({
   const handleFirstName = (value: string) => {
     const inputValue = value;
     const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
-    setFirstName(capitalizedValue?.replace(/[^a-zA-Z]/g, ''));
+    setFirstName(capitalizedValue?.replace(/[^a-zA-Z-]/g, ''));
   };
 
   const handleLastName = (value: string) => {
     const inputValue = value;
     const capitalizedValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
-    setLastName(capitalizedValue?.replace(/[^a-zA-Z]/g, ''));
+    setLastName(capitalizedValue?.replace(/[^a-zA-Z-]/g, ''));
   };
 
   const initialState = {

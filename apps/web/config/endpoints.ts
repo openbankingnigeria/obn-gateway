@@ -4,6 +4,7 @@ import { GetAuditLogProps, GetAuditTrailsProps, PostAccountSetUpProps, PostReset
 
 const BASE_URL = 'http://3.134.253.153:4000';
 
+
 // AUTH
 export const postSignup = () => `${BASE_URL}/auth/signup`;
 export const postLogin = () => `${BASE_URL}/auth/login`;
@@ -12,6 +13,7 @@ export const postResetPassword = ({ resetToken }: PostResetPasswordProps) =>
   `${BASE_URL}/auth/password/reset/${resetToken}`;
 export const postAccountSetUp = ({ setupToken }: PostAccountSetUpProps) => 
   `${BASE_URL}/auth/setup/${setupToken}`;
+
 
 // ROLES
 export const getRolePermission = ({ role_id }: { role_id: string }) => 
@@ -24,6 +26,7 @@ export const updateRole = ({ role_id }: SingleRoleProps) =>
 export const putRolePermission = ({ role_id }: SingleRoleProps) => 
   `${BASE_URL}/roles/${role_id}/permissions`;
 
+
 // TEAMS
 export const postTeam = () => `${BASE_URL}/users`;
 export const getTeams = () => `${BASE_URL}/users`;
@@ -32,6 +35,7 @@ export const updateTeam = ({ member_id }: SingleMemberProps) =>
 export const getTeam = ({ member_id }: SingleMemberProps) => 
   `${BASE_URL}/users/${member_id}`;
 
+  
 // PROFILE
 export const getProfile = () => `${BASE_URL}/profile`;
 export const updateProfile = () => `${BASE_URL}/profile`;
