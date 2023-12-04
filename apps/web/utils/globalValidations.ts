@@ -17,4 +17,4 @@ export const validateEmail = (value: string) =>
   value?.toString()?.match(/^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/);
 
 export const validateName = (value: string) => 
-  value?.toString()?.match(/^[a-zA-Z]+$/) && value.length > 2
+  value?.toString()?.match(/^[a-zA-Z-]+$/) && value.length >= 2

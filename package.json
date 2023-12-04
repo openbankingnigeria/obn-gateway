@@ -1,4 +1,7 @@
 {
+  "dependencies": {
+    "@nestjs/mapped-types": "*"
+  },
   "name": "obn-gateway",
   "version": "1.0.0",
   "description": "",

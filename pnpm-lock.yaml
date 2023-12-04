@@ -6,7 +6,11 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      '@nestjs/mapped-types':
+        specifier: '*'
+        version: 2.0.2(@nestjs/common@10.2.7)(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.13)
 
   apps/server:
     dependencies:
@@ -116,6 +120,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.2
         version: 29.5.5
+      '@types/multer':
+        specifier: ^1.4.11
+        version: 1.4.11
       '@types/node':
         specifier: ^20.3.1
         version: 20.8.6
@@ -1676,6 +1683,12 @@ packages:
 
   /@types/mime@3.0.2:
     resolution: {integrity: sha512-Wj+fqpTLtTbG7c0tH47dkahefpLKEbB+xAZuLq7b4/IDHPl/n6VoXcyUQ2bypFlbSwvCr0y+bD4euTTqTJsPxQ==}
+    dev: true
+
+  /@types/multer@1.4.11:
+    resolution: {integrity: sha512-svK240gr6LVWvv3YGyhLlA+6LRRWA4mnGIU7RcNmgjBYFl6665wcXrRfxGp5tEPVHUNm5FMcmq7too9bxCwX/w==}
+    dependencies:
+      '@types/express': 4.17.19
     dev: true
 
   /@types/node@20.8.6:

@@ -70,6 +70,7 @@ export class AuthGuard implements CanActivate {
           permissions: true,
           parent: true,
         },
+        company: true,
       },
     });
 

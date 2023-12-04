@@ -36,7 +36,10 @@ export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
     errorResponse = {
       ...errorResponse,
       status: exception.getStatus(),
-      message: exceptionResponse.message || exception.message,
+      message:
+        exceptionResponse.message === 'Unexpected field'
+          ? 'One or more file fields passed were invalid.'
+          : exceptionResponse.message || exception.message,
       data: exceptionResponse.data,
     };
   }

@@ -16,6 +16,7 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@auditLogs/*": ["src/auditLogs/*"],
@@ -25,7 +26,9 @@
       "@profile/*": ["src/profile/*"],
       "@roles/*": ["src/roles/*"],
       "@shared/*": ["src/shared/*"],
-      "@users/*": ["src/users/*"]
+      "@users/*": ["src/users/*"],
+      "@company/*": ["src/company/*"],
+      "@settings/*": ["src/settings/*"]
     }
   }
 }
