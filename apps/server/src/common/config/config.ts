@@ -46,4 +46,7 @@ export const globalConfig = (): {
   logging: {
     endpoint: process.env.LOGSTASH_ENDPOINT,
   },
+  uploads: {
+    maxFileUploadSize: Number(process.env.UPLOAD_MAXIMUM_FILE_SIZE) || 2097152,
+  },
 });

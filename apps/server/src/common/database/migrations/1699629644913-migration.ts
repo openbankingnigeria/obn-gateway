@@ -18,7 +18,7 @@ export class Migration1699629644913 implements MigrationInterface {
       [this.companyId, process.env.COMPANY_NAME, CompanyTypes.API_PROVIDER],
     );
     const role = await queryRunner.query(
-      `SELECT child.* FROM roles child INNER JOIN roles parent ON child.parent = parent.id WHERE parent.slug = ? AND child.slug = ? AND deleted_at IS NULL;`,
+      `SELECT child.* FROM roles child INNER JOIN roles parent ON child.parent = parent.id WHERE parent.slug = ? AND child.slug = ? AND child.deleted_at IS NULL;`,
       [ROLES.API_PROVIDER, ROLES.ADMIN],
     );
     await queryRunner.query(
