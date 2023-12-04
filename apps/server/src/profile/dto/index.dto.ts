@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsString,
   IsStrongPassword,
+  Length,
   Matches,
   MinLength,
 } from 'class-validator';
@@ -49,4 +50,11 @@ export class UpdatePasswordDto {
   @IsStrongPassword()
   @IsString()
   confirmPassword: string;
+}
+
+export class UpdateTwoFADto {
+  @IsNotEmpty()
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }

@@ -12,8 +12,12 @@ import {
   ResetPasswordDto,
   SetupDto,
   SignupDto,
+  TwoFADto,
 } from './dto/index.dto';
-import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
+import {
+  IBadRequestException,
+  IPreconditionFailedException,
+} from 'src/common/utils/exceptions/exceptions';
 import { userErrors } from '@users/user.errors';
 import {
   ApiResponse,
@@ -28,7 +32,7 @@ import { ROLES } from 'src/roles/types';
 import { authSuccessMessages } from '@auth/auth.constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthLoginEvent, AuthSignupEvent } from '@shared/events/auth.event';
-
+import * as speakeasy from 'speakeasy';
 @Injectable()
 export class AuthService {
   constructor(
@@ -122,7 +126,17 @@ export class AuthService {
     }
   }
 
-  async login({ email, password }: LoginDto) {
+  async login({ email, password }: LoginDto): Promise<ApiResponse<string>>;
+  async login({
+    email,
+    password,
+    code,
+  }: TwoFADto): Promise<ApiResponse<string>>;
+  async login({
+    email,
+    password,
+    code,
+  }: LoginDto & TwoFADto): Promise<ApiResponse<string>> {
     const user = await this.userRepository.findOne({
       where: {
         email,
@@ -139,6 +153,24 @@ export class AuthService {
       throw new IBadRequestException({
         message: authErrors.invalidCredentials,
       });
+    }
+
+    if (user.twofaEnabled) {
+      if (!code) {
+        throw new IPreconditionFailedException({
+          message: userErrors.provide2FACode,
+        });
+      }
+      const verified = speakeasy.totp.verify({
+        secret: user.twofaSecret,
+        encoding: 'base32',
+        token: code,
+      });
+      if (!verified) {
+        throw new IBadRequestException({
+          message: authErrors.invalidCredentials,
+        });
+      }
     }
 
     const isFirstLogin = !user.lastLogin;

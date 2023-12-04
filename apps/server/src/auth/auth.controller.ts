@@ -6,6 +6,7 @@ import {
   ResetPasswordDto,
   SetupDto,
   SignupDto,
+  TwoFADto,
 } from './dto/index.dto';
 import { SkipAuthGuard } from 'src/common/utils/authentication/auth.decorator';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
@@ -26,6 +27,13 @@ export class AuthController {
   @SkipAuthGuard()
   @UsePipes(IValidationPipe)
   login(@Body() data: LoginDto) {
+    return this.authService.login(data);
+  }
+
+  @Post('login/two-fa')
+  @SkipAuthGuard()
+  @UsePipes(IValidationPipe)
+  twoFA(@Body() data: TwoFADto) {
     return this.authService.login(data);
   }
 
