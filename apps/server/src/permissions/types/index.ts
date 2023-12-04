@@ -38,6 +38,7 @@ export enum PERMISSIONS {
 
   UPDATE_COMPANY_KYB_DETAILS = 'update-company-kyb-details',
   UPDATE_COMPANY_DETAILS = 'update-company-details',
+  LIST_COMPANIES = 'list-companies',
 
   UPDATE_KYB_REQUIREMENT_SETTINGS = 'update-kyb-requirement-setting',
   UPDATE_KYB_REQUIREMENTS = 'update-kyb-requirements',
