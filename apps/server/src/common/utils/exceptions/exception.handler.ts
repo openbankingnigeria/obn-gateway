@@ -3,6 +3,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  PreconditionFailedException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ErrorResponse } from './types/exception.types';
@@ -25,7 +26,8 @@ export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
     exception instanceof BadRequestException ||
     exception instanceof InternalServerErrorException ||
     exception instanceof NotFoundException ||
-    exception instanceof UnauthorizedException
+    exception instanceof UnauthorizedException ||
+    exception instanceof PreconditionFailedException
   ) {
     const exceptionResponse = exception.getResponse() as {
       message: string;

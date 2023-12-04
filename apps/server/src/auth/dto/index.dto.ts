@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsString,
   IsStrongPassword,
+  Length,
   Matches,
   MinLength,
 } from 'class-validator';
@@ -60,6 +61,25 @@ export class LoginDto extends ForgotPasswordDto {
       authValidationErrors.dto.passwordStrengthMismatch(property),
   })
   password: string;
+}
+
+export class TwoFADto extends ForgotPasswordDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  @IsStrongPassword(passwordConfig, {
+    message: ({ property }) =>
+      authValidationErrors.dto.passwordStrengthMismatch(property),
+  })
+  password: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }
 
 export class SignupDto extends LoginDto {

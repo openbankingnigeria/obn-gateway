@@ -33,6 +33,12 @@ export class User {
   @Column()
   password: string;
 
+  @Column()
+  twofaSecret: string;
+
+  @Column()
+  twofaEnabled: boolean;
+
   @Column({ default: UserStatuses.PENDING, type: 'enum', enum: UserStatuses })
   status?: UserStatuses;
 

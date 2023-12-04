@@ -5,7 +5,11 @@ import { Repository } from 'typeorm';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
-import { UpdatePasswordDto, UpdateProfileDto } from './dto/index.dto';
+import {
+  UpdatePasswordDto,
+  UpdateProfileDto,
+  UpdateTwoFADto,
+} from './dto/index.dto';
 import { userErrors } from '@users/user.errors';
 import { compareSync, hashSync } from 'bcrypt';
 import * as moment from 'moment';
@@ -13,6 +17,8 @@ import {
   profileErrorMessages,
   profileSuccessMessages,
 } from '@profile/profile.constants';
+import * as speakeasy from 'speakeasy';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class ProfileService {
@@ -106,5 +112,66 @@ export class ProfileService {
     // TODO emit event
 
     return ResponseFormatter.success(profileSuccessMessages.updatedPassword);
+  }
+
+  async generateTwoFA() {
+    // TODO emit event
+    // TODO encrypt secret in DB
+
+    if (this.requestContext.user!.twofaEnabled) {
+      throw new IBadRequestException({
+        message: profileErrorMessages.twoFaAlreadyEnabled,
+      });
+    }
+
+    const { base32, otpauth_url: otpAuthURL } = speakeasy.generateSecret({
+      length: 20,
+    });
+
+    const url = speakeasy.otpauthURL({
+      label: encodeURIComponent(this.requestContext.user!.email!),
+      secret: base32,
+      encoding: 'base32',
+    });
+    const qrCodeImage = await QRCode.toDataURL(url);
+
+    await this.userRepository.update(
+      { id: this.requestContext.user!.id },
+      {
+        twofaSecret: base32,
+      },
+    );
+    return ResponseFormatter.success(profileSuccessMessages.generatedTwoFA, {
+      otpAuthURL,
+      qrCodeImage,
+    });
+  }
+
+  async verifyTwoFA(data: UpdateTwoFADto) {
+    if (this.requestContext.user!.twofaEnabled) {
+      throw new IBadRequestException({
+        message: profileErrorMessages.twoFaAlreadyEnabled,
+      });
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret: this.requestContext.user!.twofaSecret,
+      encoding: 'base32',
+      token: data.code,
+    });
+
+    if (!verified) {
+      throw new IBadRequestException({
+        message: profileErrorMessages.invalidCredentials,
+      });
+    }
+
+    await this.userRepository.update(
+      { id: this.requestContext.user!.id },
+      {
+        twofaEnabled: true,
+      },
+    );
+    return ResponseFormatter.success(profileSuccessMessages.twoFaEnabled);
   }
 }
