@@ -31,10 +31,10 @@ export class User {
   email: string;
 
   @Column()
-  password: string;
+  password?: string;
 
   @Column()
-  twofaSecret: string;
+  twofaSecret?: string;
 
   @Column()
   twofaEnabled: boolean;

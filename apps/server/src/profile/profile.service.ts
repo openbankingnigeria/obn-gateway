@@ -33,6 +33,14 @@ export class ProfileService {
   async getProfile() {
     const profile = await this.profileRepository.findOne({
       where: { userId: this.requestContext.user!.id },
+      relations: {
+        user: {
+          role: {
+            permissions: true,
+            parent: true,
+          },
+        },
+      },
     });
 
     if (!profile) {
@@ -40,6 +48,10 @@ export class ProfileService {
         message: userErrors.userNotFound,
       });
     }
+
+    // TODO do this in a DTO
+    delete profile.user!.password;
+    delete profile.user!.twofaSecret;
 
     // TODO emit event
 
@@ -93,7 +105,7 @@ export class ProfileService {
       });
     }
 
-    if (!compareSync(oldPassword, this.requestContext.user!.password)) {
+    if (!compareSync(oldPassword, this.requestContext.user!.password!)) {
       throw new IBadRequestException({
         message: profileErrorMessages.invalidCredentials,
       });
@@ -155,7 +167,7 @@ export class ProfileService {
     }
 
     const verified = speakeasy.totp.verify({
-      secret: this.requestContext.user!.twofaSecret,
+      secret: this.requestContext.user!.twofaSecret!,
       encoding: 'base32',
       token: data.code,
     });
