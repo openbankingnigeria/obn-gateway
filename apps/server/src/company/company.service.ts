@@ -9,6 +9,7 @@ import { Company, User } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 
 @Injectable()
 export class CompanyService {
@@ -83,7 +84,7 @@ export class CompanyService {
     );
   }
 
-  async getCompanyKybDetails(companyId?: string) {
+  async getCompanyDetails(companyId?: string) {
     const company = companyId
       ? await this.companyRepository.findOne({ where: { id: companyId } })
       : this.requestContext.user!.company;
@@ -118,9 +119,36 @@ export class CompanyService {
       }
     }
 
+    return ResponseFormatter.success('Successfully fetched company details', {
+      ...company,
+      kybData: kybDetails,
+    });
+  }
+
+  async listCompanies({ limit, page }: PaginationParameters, filters?: any) {
+    const totalCompanies = await this.companyRepository.count({
+      where: {
+        ...filters,
+      },
+    });
+    const companies = await this.companyRepository.find({
+      where: { ...filters },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
     return ResponseFormatter.success(
-      'Successfully fetched KYB details',
-      kybDetails,
+      'Successfully fetched company',
+      companies,
+      {
+        totalNumberOfRecords: totalCompanies,
+        totalNumberOfPages: Math.ceil(totalCompanies / limit),
+        pageNumber: page,
+        pageSize: limit,
+      },
     );
   }
 }
