@@ -4,6 +4,7 @@ export const profileSuccessMessages = {
   updatedPassword: 'Successfully updated password',
   generatedTwoFA: 'Successfully generated 2FA code',
   twoFaEnabled: 'Successfully enabled 2FA',
+  twoFaDisabled: 'Successfully disabled 2FA',
 };
 
 export const profileErrorMessages = {
@@ -11,4 +12,5 @@ export const profileErrorMessages = {
   passwordMismatch: 'Passwords do not match.',
   invalidCredentials: 'Invalid credentials.',
   twoFaAlreadyEnabled: '2FA is already enabled on your account',
+  twoFaAlreadyDisabled: '2FA is already disabled on your account',
 };

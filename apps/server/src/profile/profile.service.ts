@@ -186,4 +186,26 @@ export class ProfileService {
     );
     return ResponseFormatter.success(profileSuccessMessages.twoFaEnabled);
   }
+
+  async disableTwoFA() {
+    // TODO emit event
+    // TODO delete all recovery codes
+
+    if (!this.requestContext.user!.twofaEnabled) {
+      throw new IBadRequestException({
+        message: profileErrorMessages.twoFaAlreadyDisabled,
+      });
+    }
+
+    await this.userRepository.update(
+      { id: this.requestContext.user!.id },
+      {
+        twofaEnabled: false,
+      },
+    );
+    return ResponseFormatter.success(
+      profileSuccessMessages.twoFaDisabled,
+      null,
+    );
+  }
 }
