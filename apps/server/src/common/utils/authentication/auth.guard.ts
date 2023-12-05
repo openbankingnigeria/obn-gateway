@@ -60,6 +60,7 @@ export class AuthGuard implements CanActivate {
       });
     }
 
+    // TODO ensure user permission exists within parent's too
     const user = await this.userRepository.findOne({
       where: {
         id: decoded.id,
@@ -85,7 +86,7 @@ export class AuthGuard implements CanActivate {
       user.role.slug !== 'admin' &&
       requiredPermission &&
       !user.role.permissions.some(
-        (permission) => permission.permission?.slug === requiredPermission,
+        (permission) => permission?.slug === requiredPermission,
       )
     ) {
       throw new IUnauthorizedException({

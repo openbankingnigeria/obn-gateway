@@ -4,6 +4,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -12,6 +14,7 @@ import {
 } from 'typeorm';
 import { RolePermission } from './rolepermission.entity';
 import { Company } from './company.entity';
+import { Permission } from './permission.entity';
 
 @Entity({ name: 'roles' })
 @Unique(['slug', 'parent', 'company'])
@@ -46,7 +49,16 @@ export class Role {
   companyId: string;
 
   @OneToMany(() => RolePermission, (permission) => permission.role)
-  permissions: RolePermission[];
+  rolePermissions: RolePermission[];
+
+  @ManyToMany(() => Permission, (permission) => permission.roles)
+  @JoinTable({
+    name: 'role_permissions',
+    joinColumn: { name: 'role_id' },
+    inverseJoinColumn: { name: 'permission_id' },
+    synchronize: false,
+  })
+  permissions: Permission[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;
