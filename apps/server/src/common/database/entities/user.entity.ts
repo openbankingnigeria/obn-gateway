@@ -33,7 +33,7 @@ export class User {
   @Column()
   password?: string;
 
-  @Column()
+  @Column({ type: 'varchar', nullable: true, default: null })
   twofaSecret?: string;
 
   @Column()

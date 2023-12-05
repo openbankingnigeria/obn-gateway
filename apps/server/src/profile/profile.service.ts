@@ -107,7 +107,7 @@ export class ProfileService {
 
     if (!compareSync(oldPassword, this.requestContext.user!.password!)) {
       throw new IBadRequestException({
-        message: profileErrorMessages.invalidCredentials,
+        message: profileErrorMessages.incorrectOldPassword,
       });
     }
 
@@ -174,7 +174,7 @@ export class ProfileService {
 
     if (!verified) {
       throw new IBadRequestException({
-        message: profileErrorMessages.invalidCredentials,
+        message: profileErrorMessages.incorrectTwoFaCode,
       });
     }
 

@@ -10,7 +10,8 @@ export const profileSuccessMessages = {
 export const profileErrorMessages = {
   sameOldPassword: 'New password cannot be the same as old password.',
   passwordMismatch: 'Passwords do not match.',
-  invalidCredentials: 'Invalid credentials.',
+  incorrectTwoFaCode: 'Incorrect 2FA code.',
+  incorrectOldPassword: 'Incorrect current password',
   twoFaAlreadyEnabled: '2FA is already enabled on your account',
   twoFaAlreadyDisabled: '2FA is already disabled on your account',
 };
