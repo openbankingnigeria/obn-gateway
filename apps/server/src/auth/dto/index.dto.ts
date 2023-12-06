@@ -49,15 +49,18 @@ export class ResetPasswordDto {
   confirmPassword: string;
 }
 
-export class LoginDto extends ForgotPasswordDto {
+export class LoginDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @IsStrongPassword(passwordConfig, {
-    message: ({ property }) =>
-      authValidationErrors.dto.passwordStrengthMismatch(property),
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
+  @IsString()
   password: string;
 }
 
@@ -80,7 +83,17 @@ export class TwoFADto extends ForgotPasswordDto {
   code: string;
 }
 
-export class SignupDto extends LoginDto {
+export class SignupDto extends ForgotPasswordDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  @IsStrongPassword(passwordConfig, {
+    message: ({ property }) =>
+      authValidationErrors.dto.passwordStrengthMismatch(property),
+  })
+  password: string;
+
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
