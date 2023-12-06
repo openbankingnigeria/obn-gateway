@@ -1,39 +1,59 @@
 'use client'
 
-import { post2FAVerification } from '@/actions/authActions';
+import { post2FAVerification, postSignInWith2FA } from '@/actions/authActions';
 import { InputElement } from '@/components/forms';
 import { Button, LinkButton } from '@/components/globalComponents';
+import { getStorage } from '@/config/webStorage';
+import { useServerAction } from '@/hooks';
 import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
-import { toast } from 'react-toastify';
 
 const TwoFactorAuthForm = () => {
   const [code, setCode] = useState('');
+  const email = getStorage('el', true, 'session');
+  const password = getStorage('pd', true, 'session');
 
   const incorrect = code?.length !== 6;
   const pathname = usePathname();
 
   const handleCode = (value: string) => {
-    if (value?.length <= 6) {
-      setCode(value);
+    if (value?.length <= 6 ) {
+      setCode(value?.toString()?.replace(/[^0-9.]/g, ''));
     }
   }
 
-  const initialState = {
-    message: null,
-    location: pathname
-  }
-
-  const [state, formAction] = useFormState(post2FAVerification, initialState);
-  state?.message && toast.error(state?.message);
+  const initialState = {}
+  const [state, formAction] = useServerAction(
+    pathname?.includes('signin') ? 
+      postSignInWith2FA : 
+      post2FAVerification, 
+    initialState
+  );
 
   return (
     <form 
       action={incorrect ? '' : formAction}
       className='flex w-full flex-col gap-[24px]'
     >
+      {
+        pathname?.includes('signin') &&
+        <>
+          <input 
+            name='email' 
+            value={email} 
+            readOnly 
+            className='hidden opacity-0' 
+          />
+
+          <input 
+            name='password' 
+            value={password} 
+            readOnly 
+            className='hidden opacity-0' 
+          />
+        </>
+      }
+
       <InputElement 
         name='code'
         type='text'

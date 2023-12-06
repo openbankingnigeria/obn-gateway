@@ -16,7 +16,10 @@ const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
   const filters = [search_query, date_filter]
   const fetchedRoles = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getRoles(),
+    apiEndpoint: API.getRoles({
+      page: '1',
+      limit: '1000',
+    }),
     method: 'GET',
     data: null
   });
@@ -24,7 +27,7 @@ const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
   const fetchedMember = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getTeam({
-      member_id: memberId || ''
+      id: memberId || ''
     }),
     method: 'GET',
     data: null

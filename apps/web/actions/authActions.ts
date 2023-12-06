@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use server'
 
 import { axiosRequest } from '@/config/axiosRequest';
@@ -27,7 +26,31 @@ export async function postSignIn(prevState: any, formData: FormData) {
   return {
     response,
     redirect: `/app/home/dashboard`,
-    // redirect: `/signin/2fa`,
+  };
+}
+
+/* SIGNIN WITH 2FA ACTION */
+export async function postSignInWith2FA(prevState: any, formData: FormData) {
+  const fullData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+    code: formData.get('code'),
+  }
+
+  let response = await axiosRequest({
+    apiEndpoint: API.postLoginWith2FA(),
+    method: 'POST',
+    headers: { },
+    data: fullData
+  });
+
+  if (response?.data) {
+    setCookies('aperta-user-accessToken', response?.data);
+  }
+
+  return {
+    response,
+    redirect: `/app/home/dashboard`,
   };
 }
 
@@ -42,7 +65,7 @@ export async function postAccountSetUp(prevState: any, formData: FormData) {
 
   let response = await axiosRequest({
     apiEndpoint: API.postAccountSetUp({
-      setupToken: prevState?.setupToken
+      token: prevState?.setupToken
     }),
     method: 'POST',
     headers: { },
@@ -133,7 +156,7 @@ export async function postResetPassword(prevState: any, formData: FormData) {
 
   let response = await axiosRequest({
     apiEndpoint: API.postResetPassword({
-      resetToken: prevState?.resetToken
+      token: prevState?.resetToken
     }),
     method: 'POST',
     headers: { },
@@ -152,6 +175,7 @@ export async function postResetPassword(prevState: any, formData: FormData) {
 /* LOGOUT ACTION */
 export async function logOutAction(prevState: any, formData: FormData) {
   deleteCookies('aperta-user-accessToken');
+  deleteCookies('aperta-user-profile');
   redirect('/');
 }
 

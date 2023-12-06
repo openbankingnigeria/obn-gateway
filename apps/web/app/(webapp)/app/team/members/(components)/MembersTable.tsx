@@ -57,7 +57,7 @@ const MembersTable = ({
     setLoading(true);
     const result: any = await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.updateTeam({ member_id: member?.id }),
+      apiEndpoint: API.updateTeam({ id: member?.id }),
       method: 'PATCH',
       data: {
         email: member?.email,
@@ -71,6 +71,7 @@ const MembersTable = ({
     if (result?.message) {
       setOpenModal('');
       setLoading(false);
+      router.refresh();
       // setOpen2FA(true);
     }
   }

@@ -53,7 +53,7 @@ const RolesTable = ({
     setLoading(true);
     const result: any = await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.updateRole({ role_id: role?.id }),
+      apiEndpoint: API.updateRole({ id: role?.id }),
       method: 'PATCH',
       data: {
         description: role?.description,
@@ -64,6 +64,7 @@ const RolesTable = ({
     if (result?.message) {
       setOpenModal('');
       setLoading(false);
+      router.refresh();
       // setOpen2FA(true);
     }
   }

@@ -1,28 +1,18 @@
-export interface PostResetPasswordProps {
-  resetToken: string
-}
-
-export interface PostAccountSetUpProps {
-  setupToken: string;
-}
-
-export interface SingleRoleProps {
-  role_id: string;
-}
-
-export interface SingleMemberProps {
-  member_id: string;
-} 
-
-export interface GetAuditTrailsProps {
+export interface GetListProps {
   page: string; 
   limit: string; 
+  name?: string; 
   event?: string; 
+  status?: string;
+  email?: string;
   createdAt_gt?: string; 
   createdAt_l?: string; 
-  name?: string; 
 }
 
-export interface GetAuditLogProps {
-  logId: string;
+export interface GetSingleProps {
+  id: string;
+}
+
+export interface PostTokenProps {
+  token: string;
 }

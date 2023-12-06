@@ -10,13 +10,22 @@ export const MEMBERS_STATUS_DATA = ({
       label: 'Active',
       amount: active || 0,
       value: '',
+      panel: true,
       name: 'active'
+    },
+    {
+      id: 2,
+      label: 'Inactive',
+      value: 'inactive',
+      panel: false,
+      name: 'inactive'
     },
     {
       id: 2,
       label: 'Invited',
       amount: invited || 0,
-      value: 'invited',
+      panel: true,
+      value: 'pending',
       name: 'invited'
     },
   ])

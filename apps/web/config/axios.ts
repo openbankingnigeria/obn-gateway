@@ -23,6 +23,7 @@ axios.interceptors.response.use(
   // @ts-ignore
   async (response) => {
     if (response && response.status) {
+      console.log(response?.data);
       return ({
         // @ts-ignore
         message: response?.data?.message || response?.message,

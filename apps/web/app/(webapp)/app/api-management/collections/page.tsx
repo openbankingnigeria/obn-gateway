@@ -3,19 +3,38 @@ import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { COLLECTIONS_TABLE_DATA, COLLECTIONS_TABLE_HEADERS } from '@/data/collectionDatas'
 import { SearchBar } from '@/components/forms'
 import { CollectionsTable } from './(components)'
+import { applyAxiosRequest } from '@/hooks'
+import * as API from '@/config/endpoints';
 
-const CollectionsPage = ({ searchParams }: UrlParamsProps) => {
+const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
 
   const filters = [search_query];
 
+  const fetchedCollections: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCollections(),
+    method: 'GET',
+    data: null
+  })
+
+  let meta_data = fetchedCollections?.meta_data;
+  let collection_list = fetchedCollections?.data
+
+  const collections = collection_list?.map((collection: any) => {
+    return ({
+      ...collection,
+      collection_name: collection?.name,
+      description: collection?.description,
+    })
+  })
   const headers = COLLECTIONS_TABLE_HEADERS;
-  const collections = COLLECTIONS_TABLE_DATA;
-  const total_pages = collections?.length;
-  const total_elements_in_page = collections?.length;
-  const total_elements = collections?.length;
+  // const collections = COLLECTIONS_TABLE_DATA;
+  const total_pages = meta_data?.totalNumberOfPages;
+  const total_elements_in_page = collection_list?.length || meta_data?.pageSize;
+  const total_elements = meta_data?.totalNumberOfRecords;
 
   return (
     <section className='flex flex-col h-full  w-full'>

@@ -50,7 +50,7 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
   })
   const headers = AUDIT_TRAIL_TABLE_HEADERS;
   const total_pages = meta_data?.totalNumberOfPages;
-  const total_elements_in_page = meta_data?.pageSize;
+  const total_elements_in_page = audit_trail?.length || meta_data?.pageSize;
   const total_elements = meta_data?.totalNumberOfRecords;
 
   const event_type_list = AUDIT_TRAIL_EVENT_TYPE?.map(data => {

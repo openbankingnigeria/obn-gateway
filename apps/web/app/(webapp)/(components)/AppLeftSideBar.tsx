@@ -3,15 +3,44 @@
 import { LEFT_SIDE_BAR_BOTTOM_DATA, LEFT_SIDE_BAR_TOP_DATA } from '@/data/leftSideBarData'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import * as API from '@/config/endpoints';
+import { setJsCookies } from '@/config/jsCookie'
 
 const AppLeftSideBar = () => {
   const pathname = usePathname();
+  const [profile, setProfile] = useState<any>();
+
+  async function fetchProfile() {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setProfile(result?.data);
+    setJsCookies('aperta-user-profile', JSON.stringify({
+      name: `${result?.data?.firstName} ${result?.data?.lastName}`,
+      companyRole: result?.data?.companyRole?.toLowerCase()?.replace(/_/g, ' '),
+      userType: result?.data?.user?.role?.parent?.slug
+    }))
+  }
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   const isActive = (path: string): boolean => {
     return pathname?.includes(path);
   }
+
+  let firstName = profile?.firstName;
+  let lastName = profile?.lastName;
+  let avatarAlt = `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`
 
   return (
     <aside className='fixed w-[280px] z-[100] left-0 h-screen border-r border-o-border bg-white flex flex-col gap-[24px] py-[24px]'>
@@ -19,16 +48,16 @@ const AppLeftSideBar = () => {
         <div className='w-full p-[12px] flex flex-row gap-[8px] items-center rounded-[8px] bg-[#182749]'>
           {/* API CONSUMER */}
           <div className='min-w-[32px] h-[32px] text-[#459572] rounded-full bg-[#EDF8EF] flex items-center justify-center text-f14 font-[500]'>
-            JC
+            {avatarAlt}
           </div>
 
           <div className='flex flex-col w-full gap-[2px]'>
-            <h3 className='capitalize w-full text-white text-f14 font-[500]'>
-              John Ajayi
+            <h3 className='capitalize truncate w-full text-white text-f14 font-[500]'>
+              {firstName} {lastName}
             </h3>
 
-            <div className='w-full text-o-alt-white text-f12'>
-              Admin 1
+            <div className='w-full capitalize text-o-alt-white text-f12'>
+              {profile?.companyRole?.toLowerCase()?.replace(/_/g, ' ')}
             </div>
           </div>
 
@@ -54,7 +83,7 @@ const AppLeftSideBar = () => {
       <div className='w-full h-full overflow-y-auto flex flex-col gap-[40px]'>
         <div className='w-full h-fit flex flex-col gap-[20px]'>
           {
-            LEFT_SIDE_BAR_TOP_DATA?.map((data) => (
+            LEFT_SIDE_BAR_TOP_DATA?.map((data: any) => (
               <div
                 key={data?.id}
                 className='w-full flex flex-col gap-[4px]'
@@ -65,7 +94,11 @@ const AppLeftSideBar = () => {
 
                 <div className='w-full flex flex-col gap-[4px]'>
                   {
-                    data?.links?.map((link) => (
+                    data?.links?.map((link: any) => (
+                      !(
+                        link?.title?.includes('Consumers') && 
+                        profile?.user?.role?.parent?.slug == 'api-consumer'
+                      ) &&
                       <div
                         key={link?.id}
                         className='w-full relative h-fit px-[16px]'
