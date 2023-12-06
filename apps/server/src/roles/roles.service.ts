@@ -263,6 +263,7 @@ export class RolesService {
     return ResponseFormatter.success(roleSuccessMessages.updatedRole);
   }
 
+  // TODO how do we ensure that if a parents permission is leaked to a created role, that permission cannot be used.
   async getPermissions() {
     const permissions = await this.permissionRepository.find({
       where: { roles: { roleId: this.requestContext.user!.role.parentId } },

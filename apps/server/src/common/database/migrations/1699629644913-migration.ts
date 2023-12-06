@@ -17,7 +17,7 @@ export class Migration1699629644913 implements MigrationInterface {
       `INSERT INTO companies (id, name, type) VALUES (?, ?, ?)`,
       [this.companyId, process.env.COMPANY_NAME, CompanyTypes.API_PROVIDER],
     );
-    const role = await queryRunner.query(
+    const roles = await queryRunner.query(
       `SELECT child.* FROM roles child INNER JOIN roles parent ON child.parent = parent.id WHERE parent.slug = ? AND child.slug = ? AND child.deleted_at IS NULL;`,
       [ROLES.API_PROVIDER, ROLES.ADMIN],
     );
@@ -26,7 +26,7 @@ export class Migration1699629644913 implements MigrationInterface {
       [
         this.userId,
         process.env.COMPANY_EMAIL,
-        role[0].id,
+        roles[0].id,
         hashSync(process.env.DEFAULT_PASSWORD!, 12),
         this.companyId,
       ],
