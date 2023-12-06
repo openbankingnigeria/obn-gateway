@@ -1,6 +1,5 @@
 import {
   IsEmail,
-  IsEnum,
   IsMobilePhone,
   IsNotEmpty,
   IsString,
@@ -10,7 +9,6 @@ import {
   MinLength,
 } from 'class-validator';
 import { authConfig, authValidationErrors } from '@auth/auth.config';
-import { CompanyRoles, CompanyTypes } from 'src/users/types';
 
 const passwordConfig = {
   minLength: authConfig.minPasswordLength,
@@ -152,15 +150,13 @@ export class SignupDto extends LoginDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @IsEnum(CompanyTypes)
-  companyType: CompanyTypes;
+  companyType: string;
 
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @IsEnum(CompanyRoles)
-  companyRole: CompanyRoles;
+  companyRole: string;
 }
 
 export class SetupDto {

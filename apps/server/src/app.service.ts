@@ -12,13 +12,13 @@ export class AppService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    this.kongPluginService
-      .updateOrCreatePlugin({
-        name: KONG_PLUGINS.HTTP_LOG,
-        enabled: true,
-        config: { http_endpoint: this.config.get('logging.endpoint') },
-      })
-      .catch(console.error);
+    // this.kongPluginService
+    //   .updateOrCreatePlugin({
+    //     name: KONG_PLUGINS.HTTP_LOG,
+    //     enabled: true,
+    //     config: { http_endpoint: this.config.get('logging.endpoint') },
+    //   })
+    //   .catch(console.error);
   }
 
   health() {

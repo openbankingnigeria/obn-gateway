@@ -2,41 +2,47 @@ import { IBadRequestException } from '@common/utils/exceptions/exceptions';
 import { Injectable } from '@nestjs/common';
 import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
-import { KybDataTypes, Settings } from '@settings/types';
+import { KybDataTypes, KybSettings } from '@settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Company, User } from '@common/database/entities';
+import { Company, Settings } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
-import { path } from 'app-root-path';
-import { join } from 'path';
-import { readFileSync } from 'fs';
+import { settingsErrors } from '@settings/settings.errors';
 
 @Injectable()
 export class CompanyService {
   constructor(
     private readonly fileHelpers: FileHelpers,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
+    @InjectRepository(Settings)
+    private readonly settingsRepository: Repository<Settings>,
     private readonly requestContext: RequestContextService,
   ) {}
 
-  private readonly kybSettings: Settings = JSON.parse(
-    readFileSync(join(path, 'server.settings', 'settings.kyb.json'), 'utf-8'),
-  );
-
-  async updateCompanyKybDetails(
-    data: any,
-    files: Record<string, Express.Multer.File[]>,
-  ) {
+  async updateCompanyKybDetails(data: any, files: Express.Multer.File[]) {
     if (this.requestContext.user!.company.isVerified) {
       throw new IBadRequestException({
         message: companyErrors.companyAlreadyVerified,
       });
     }
+
+    const savedKybSettings = await this.settingsRepository.findOne({
+      where: { name: 'kyb_settings' },
+    });
+
+    if (!savedKybSettings) {
+      throw new IBadRequestException({
+        message: settingsErrors.settingNotFound('kyb_settings'),
+      });
+    }
+
+    const kybSettings: KybSettings = JSON.parse(
+      Buffer.from(savedKybSettings.value).toString('utf-8'),
+    );
+
     // If a file is uploaded is present, validate image size
     if (Object.keys(files).length) {
       const { isValid, maxFileSize } = this.fileHelpers.validateFileSize(files);
@@ -55,7 +61,7 @@ export class CompanyService {
     > = {};
 
     // Select only valid fields from the request payload
-    this.kybSettings.kybRequirements
+    kybSettings.kybRequirements
       .filter((requirement) => requirement.type === KybDataTypes.STRING)
       .forEach((requirement) => {
         if (dataKeys.includes(requirement.name)) {
@@ -67,15 +73,11 @@ export class CompanyService {
       ? JSON.parse(this.requestContext.user!.company.kybData)
       : {};
 
-    Object.keys(files).forEach((fileKey) => {
-      const fileArray = files[fileKey];
-
-      fileArray.forEach((file) => {
-        validKybData[fileKey] = {
-          file: file.buffer,
-          fileName: file.originalname,
-        };
-      });
+    files.forEach((file) => {
+      validKybData[file.fieldname] = {
+        file: file.buffer,
+        fileName: file.originalname,
+      };
     });
 
     await this.companyRepository.update(
@@ -102,26 +104,21 @@ export class CompanyService {
     }
     const kybDetails: any = {};
 
-    if (!company.kybData) {
-      throw new IBadRequestException({
-        message: companyErrors.noKybDetailsFound,
-      });
-    }
-
-    const kybData = JSON.parse(company.kybData);
-
-    for (const key of Object.keys(kybData)) {
-      if (typeof kybData![key] === 'string') {
-        kybDetails[key] = kybData![key];
-      } else {
-        const fileObject = kybData![key] as {
-          file: Buffer;
-          fileName: string;
-        };
-        kybDetails[key] = {
-          fileName: fileObject.fileName,
-          file: Buffer.from(fileObject.file).toString('base64url'),
-        };
+    if (company.kybData) {
+      const kybData = JSON.parse(company.kybData);
+      for (const key of Object.keys(kybData)) {
+        if (typeof kybData![key] === 'string') {
+          kybDetails[key] = kybData![key];
+        } else {
+          const fileObject = kybData![key] as {
+            file: Buffer;
+            fileName: string;
+          };
+          kybDetails[key] = {
+            fileName: fileObject.fileName,
+            file: Buffer.from(fileObject.file).toString('base64url'),
+          };
+        }
       }
     }
 

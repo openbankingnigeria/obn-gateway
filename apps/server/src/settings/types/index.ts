@@ -3,7 +3,7 @@ export enum KybDataTypes {
   STRING = 'string',
 }
 
-export interface Settings {
+export interface KybSettings {
   uneditableFields: string[];
   kybRequirements: {
     name: string;

@@ -1,4 +1,3 @@
-import { CompanyTypes } from '../../../users/types';
 import {
   Column,
   CreateDateColumn,
@@ -10,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { AuditLog } from './auditlog.entity';
+import { Settings } from './settings.entity';
 
 @Entity({ name: 'companies' })
 export class Company {
@@ -28,17 +28,17 @@ export class Company {
   @Column('longblob', { name: 'kyb_data', nullable: true })
   kybData?: string;
 
-  @Column({
-    type: 'enum',
-    enum: CompanyTypes,
-  })
-  type: CompanyTypes;
+  @Column()
+  type: string;
 
   @OneToMany(() => User, (user) => user.company)
   users?: User[];
 
   @OneToMany(() => AuditLog, (auditLog) => auditLog.company)
   auditLogs?: AuditLog[];
+
+  @OneToMany(() => Settings, (settings) => settings.company)
+  settings?: Settings[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

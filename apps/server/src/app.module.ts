@@ -1,6 +1,6 @@
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -25,10 +25,6 @@ import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.
 import { HttpModule } from '@nestjs/axios';
 import { SettingsModule } from './settings/settings.module';
 import { CompanyModule } from './company/company.module';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { path } from 'app-root-path';
-import * as settingsKybJson from '@common/config/settings.kyb.json';
 
 @Module({
   imports: [
@@ -85,22 +81,4 @@ import * as settingsKybJson from '@common/config/settings.kyb.json';
     EmailService,
   ],
 })
-export class AppModule implements OnModuleInit {
-  onModuleInit() {
-    const settingsDirExists = existsSync(join(path, 'server.settings'));
-    const settingsFileExists = existsSync(
-      join(path, 'server.settings', 'settings.kyb.json'),
-    );
-
-    if (!settingsDirExists) {
-      mkdirSync(join(path, 'server.settings'));
-    }
-
-    if (!settingsFileExists) {
-      writeFileSync(
-        join(path, 'server.settings', 'settings.kyb.json'),
-        JSON.stringify(settingsKybJson),
-      );
-    }
-  }
-}
+export class AppModule {}

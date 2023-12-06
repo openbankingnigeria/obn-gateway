@@ -1,26 +1,38 @@
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { Injectable } from '@nestjs/common';
 import { UpdateKybRequirementsDto } from './dto/index.dto';
-import { readFileSync, writeFile } from 'fs';
-import { join } from 'path';
-import { path } from 'app-root-path';
-import { Settings } from './types';
-// import * as settingsKybJson from '@common/config/settings.kyb.json';
+import { KybSettings } from './types';
+import { Settings } from '@common/database/entities';
+import { Repository } from 'typeorm';
+import { settingsErrors } from './settings.errors';
+import { IBadRequestException } from '@common/utils/exceptions/exceptions';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class SettingsService {
-  private kybSettings: Settings;
+  constructor(
+    @InjectRepository(Settings)
+    private readonly settingsRepository: Repository<Settings>,
+  ) {}
 
-  onApplicationBootstrap() {
-    this.kybSettings = JSON.parse(
-      readFileSync(join(path, 'server.settings', 'settings.kyb.json'), 'utf-8'),
-    );
-  }
+  async getKybRequirements() {
+    const savedKybSettings = await this.settingsRepository.findOne({
+      where: {
+        name: 'kyb_settings',
+      },
+    });
 
-  getKybRequirements() {
+    if (!savedKybSettings) {
+      throw new IBadRequestException({
+        message: settingsErrors.settingNotFound('kyb_settings'),
+      });
+    }
+
+    const kybSettings: KybSettings = JSON.parse(savedKybSettings.value);
+
     return ResponseFormatter.success(
       'KYB Requirements fetched successfully',
-      this.kybSettings.kybRequirements,
+      kybSettings.kybRequirements,
     );
   }
 
@@ -28,15 +40,29 @@ export class SettingsService {
     newKybRequirements,
     removedKybRequirements,
   }: UpdateKybRequirementsDto) {
-    const cleanData: Settings['kybRequirements'] = [];
+    const cleanData: KybSettings['kybRequirements'] = [];
 
     const validRemovedRequirements: string[] = [];
+
+    const savedKybSettings = await this.settingsRepository.findOne({
+      where: {
+        name: 'kyb_settings',
+      },
+    });
+
+    if (!savedKybSettings) {
+      throw new IBadRequestException({
+        message: settingsErrors.settingNotFound('kyb_settings'),
+      });
+    }
+
+    const kybSettings: KybSettings = JSON.parse(savedKybSettings.value);
 
     if (newKybRequirements) {
       newKybRequirements.forEach((requirement) => {
         if (
-          !this.kybSettings.uneditableFields.includes(requirement.name) &&
-          !this.kybSettings.kybRequirements.some(
+          !kybSettings.uneditableFields.includes(requirement.name) &&
+          !kybSettings.kybRequirements.some(
             (existingRequirement) =>
               existingRequirement.name === requirement.name,
           )
@@ -48,7 +74,7 @@ export class SettingsService {
 
     if (removedKybRequirements) {
       removedKybRequirements.forEach((requirement) => {
-        const existingRequirement = this.kybSettings.kybRequirements.find(
+        const existingRequirement = kybSettings.kybRequirements.find(
           (existingRequirement) => existingRequirement.name === requirement,
         );
         if (existingRequirement && existingRequirement.editable) {
@@ -57,7 +83,7 @@ export class SettingsService {
       });
     }
 
-    const previousKybSettings = this.kybSettings.kybRequirements;
+    const previousKybSettings = kybSettings.kybRequirements;
 
     const updatedKybSettings = [
       ...previousKybSettings.filter(
@@ -67,16 +93,14 @@ export class SettingsService {
       ...cleanData,
     ];
 
-    console.log({ updatedKybSettings, cleanData });
-    // console.log({ updatedKybSettings });
-
-    writeFile(
-      join(path, 'server.settings', 'settings.kyb.json'),
-      JSON.stringify({
-        ...this.kybSettings,
-        kybRequirements: updatedKybSettings,
-      }),
-      () => {},
+    await this.settingsRepository.update(
+      { id: savedKybSettings.id },
+      {
+        value: JSON.stringify({
+          ...kybSettings,
+          kybRequirements: updatedKybSettings,
+        }),
+      },
     );
 
     return ResponseFormatter.success('Updated KYB settings successfully');
