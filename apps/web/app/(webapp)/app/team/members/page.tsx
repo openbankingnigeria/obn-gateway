@@ -17,16 +17,25 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
 
   const filters = [search_query, status, role];
 
-  const fetchedMembers = await applyAxiosRequest({
+  const fetchedMembers: any = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getTeams(),
+    apiEndpoint: API.getTeams({
+      page: `${page}`,
+      limit: `${rows}`,
+      name: search_query,
+      status: status,
+      email: search_query,
+    }),
     method: 'GET',
     data: null
   });
 
   const fetchedRoles = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getRoles(),
+    apiEndpoint: API.getRoles({
+      page: '1',
+      limit: '1000',
+    }),
     method: 'GET',
     data: null
   });
@@ -36,11 +45,14 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   }
 
   let roles = fetchedRoles?.data;
+  let meta_data = fetchedMembers?.meta_data;
   let teams = fetchedMembers?.data;
 
   const panel = MEMBERS_STATUS_DATA({
     active: 29,
     invited: 5
+  })?.map((pane: any) => {
+    if (pane?.panel) { return pane }
   });
 
   const invited_members = teams?.map((data: any) => {
@@ -63,7 +75,7 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
         email_address: data?.email,
         member_name: `${data?.profile?.firstName} ${data?.profile?.lastName}`,
         role: '',
-        two_fa: false,
+        two_fa: data?.twofaEnabled,
       });
     }
   });
@@ -72,9 +84,9 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   const members = status == 'invited' ? 
     invited_members?.filter((x: any) => x) : 
     active_memebers?.filter((x: any) => x);
-  const total_pages = members?.length;
-  const total_elements_in_page = members?.length;
-  const total_elements = members?.length;
+    const total_pages = meta_data?.totalNumberOfPages;
+    const total_elements_in_page = members?.length || meta_data?.pageSize;
+    const total_elements = meta_data?.totalNumberOfRecords;
 
   const status_list = MEMBERS_STATUS_DATA({})?.map(data => {
     return({

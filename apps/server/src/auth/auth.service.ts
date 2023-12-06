@@ -149,7 +149,7 @@ export class AuthService {
       });
     }
 
-    if (!compareSync(password, user.password)) {
+    if (!compareSync(password, user.password!)) {
       throw new IBadRequestException({
         message: authErrors.invalidCredentials,
       });
@@ -162,7 +162,7 @@ export class AuthService {
         });
       }
       const verified = speakeasy.totp.verify({
-        secret: user.twofaSecret,
+        secret: user.twofaSecret!,
         encoding: 'base32',
         token: code,
       });
@@ -253,7 +253,7 @@ export class AuthService {
       });
     }
 
-    if (compareSync(password, userToUpdate!.password)) {
+    if (compareSync(password, userToUpdate!.password!)) {
       throw new IBadRequestException({
         message: authErrors.sameOldPassword,
       });

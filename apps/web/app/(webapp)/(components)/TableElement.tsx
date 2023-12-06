@@ -122,7 +122,7 @@ const TableElement = ({
                 key={index}
                 onClick={() => redirect && router.push(redirect(
                   module == 'collections' ? 
-                    row.original.collection_name :
+                    row.original.id :
                     row.original.id
                 ))}
                 className={`bg-white group`}

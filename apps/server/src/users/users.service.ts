@@ -53,7 +53,6 @@ export class UsersService {
         parentId: this.requestContext.user!.role.parentId,
         companyId: this.requestContext.user!.companyId,
       },
-      relations: { permissions: true },
     });
 
     if (!role) {
@@ -68,7 +67,7 @@ export class UsersService {
     const user = await this.userRepository.save(
       this.userRepository.create({
         email,
-        roleId,
+        roleId: role.id,
         password: '',
         companyId: this.requestContext.user!.companyId,
         resetPasswordToken: hashedResetToken,
@@ -154,8 +153,25 @@ export class UsersService {
       });
     }
 
+    let role;
+    if (roleId) {
+      role = await this.roleRepository.findOne({
+        where: {
+          id: roleId,
+          parentId: this.requestContext.user!.role.parentId,
+          companyId: this.requestContext.user!.companyId,
+        },
+      });
+
+      if (!role) {
+        throw new IBadRequestException({
+          message: roleErrors.roleNotFound,
+        });
+      }
+    }
+
     const updatedUser = this.userRepository.create({
-      roleId,
+      roleId: role?.id,
       status,
     });
 

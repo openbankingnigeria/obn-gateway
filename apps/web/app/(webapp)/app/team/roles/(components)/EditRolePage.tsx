@@ -12,6 +12,7 @@ import * as API from '@/config/endpoints';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import { dataToPermissions } from '@/utils/dataToPermissions'
 import { useServerAction } from '@/hooks'
+import { useRouter } from 'next/navigation'
 
 const EditRolePage = ({
   close,
@@ -22,6 +23,7 @@ const EditRolePage = ({
   const details = EDIT_ROLE_DETAILS;
   const ROLES_PERMISSIONS = dataToPermissions(list);
 
+  const router = useRouter();
   const [role_name, setRoleName] = useState(data?.name);
   const [description, setDescription] = useState(data?.description);
   const [permissions, setPermissions] = useState<any[]>([]);
@@ -30,13 +32,13 @@ const EditRolePage = ({
   async function FetchData() {
     const result = await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.getRolePermission({ role_id: data?.id }),
+      apiEndpoint: API.getRolePermission({ id: data?.id }),
       method: 'GET',
       data: null,
       noToast: true,
     });
 
-    let permits = dataToPermissions(result?.data?.map((data: any) => data?.permission), 'answer');
+    let permits = dataToPermissions(result?.data?.map((data: any) => data), 'answer');
     setPermissions(permits);
   }
 
@@ -51,6 +53,10 @@ const EditRolePage = ({
 
   const initialState = { role_id: data?.id }
   const [state, formAction] = useServerAction(updateRole, initialState);
+  if (state?.response?.status == 200 || state?.response?.status == 201) {
+    close();
+    router.refresh();
+  }
 
   return (
     <form

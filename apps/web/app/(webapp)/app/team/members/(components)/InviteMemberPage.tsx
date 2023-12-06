@@ -9,6 +9,7 @@ import { dataToPermissions } from '@/utils/dataToPermissions'
 import React, { useEffect, useState } from 'react'
 import { useServerAction } from '@/hooks';
 import * as API from '@/config/endpoints';
+import { useRouter } from 'next/navigation'
 
 const InviteMemberPage = ({
   roles,
@@ -18,17 +19,18 @@ const InviteMemberPage = ({
   const [permissions, setPermissions] = useState<any[]>([]);
   const [email, setEmail] = useState('');
   const [show_role, setShowRole] = useState(false);
+  const router = useRouter();
 
   async function FetchData(id: string) {
     const result: any = id && await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.getRolePermission({ role_id: id }),
+      apiEndpoint: API.getRolePermission({ id: id }),
       method: 'GET',
       data: null,
       noToast: true
     });
 
-    let permits = dataToPermissions(result?.data?.map((data: any) => data?.permission), 'string');
+    let permits = dataToPermissions(result?.data?.map((data: any) => data), 'string');
     // console.log(result, permits)
     setPermissions(permits);
   }
@@ -52,6 +54,10 @@ const InviteMemberPage = ({
 
   const initialState = {}
   const [state, formAction] = useServerAction(postInviteMember, initialState);
+  if (state?.response?.status == 200 || state?.response?.status == 201) {
+    close();
+    router.refresh();
+  }
 
   const handleShowRole = () => {
     setShowRole(prev => !prev);

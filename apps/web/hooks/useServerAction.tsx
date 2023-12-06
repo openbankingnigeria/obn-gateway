@@ -1,6 +1,6 @@
 'use client'
 
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 // @ts-ignore
 import { experimental_useFormState as useFormState } from 'react-dom'
@@ -10,7 +10,7 @@ const useServerAction = (
   serverAction: (prevState: any, formData: any) => any,
   initialState: any,
 ) => {
-
+  const router = useRouter();
   const initial_state = {
     ...initialState
   }
@@ -22,6 +22,7 @@ const useServerAction = (
     if (state?.response?.status == 200 || state?.response?.status == 201) {
       toast.success(state?.response?.message);
       state?.redirect && redirect(state?.redirect);
+      state?.refresh && router.refresh();
     } else {
       toast.error(state?.response?.message);
     }

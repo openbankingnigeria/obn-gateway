@@ -37,7 +37,7 @@ export class Profile {
 
   @OneToOne(() => User, (user) => user.profile, { nullable: false })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+  user?: User;
 
   @Column({ name: 'user_id', default: null, nullable: false, length: 36 })
   userId: string;

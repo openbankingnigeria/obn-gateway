@@ -7,6 +7,8 @@ import React, { useState } from 'react'
 import { ChangePasswordForm, EnableTwoFactorAuth, PasswordChangedSuccessfully } from '.'
 import { useRouter } from 'next/navigation'
 import TwoFactoAuthEnabled from './TwoFactoAuthEnabled'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import * as API from '@/config/endpoints';
 
 const SecurityDetails = ({
   successful,
@@ -16,10 +18,14 @@ const SecurityDetails = ({
   profile: any
 }) => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState('');
-  const [enable2FA, setToggle2FA] = useState(false);
+  const [enable2FA, setToggle2FA] = useState(profile?.user?.twofaEnabled);
+  const [qrcode_key, setQRCodeKey] = useState('');
+  const [qrcode_image, setQRCodeImage] = useState('');
+  const [code, setCode] = useState('');
 
-  const QRCODE_KEY = '3489323SHJ90A';
+  // const QRCODE_KEY = '3489323SHJ90A';
   const BACKUP_CODES = [
     '58tip84yj0p',
     '58tip84zj0p',
@@ -40,17 +46,52 @@ const SecurityDetails = ({
     setOpenModal('')
   }
 
-  const handleToggle2FA = () => {
+  const handleToggle2FA = async () => {
     if (enable2FA) {
-      setToggle2FA(prev => !prev);
+      // DISABLE 2FA
+      const result: any = await clientAxiosRequest({
+        headers: {},
+        apiEndpoint: API.disable2FA(),
+        method: 'PATCH',
+        data: null
+      });
+
+      if (result?.status == 200) {
+        setToggle2FA((prev: boolean) => !prev);
+      }
     } else {
-      handleOpenModal('enable2fa')
+      // ENABLE 2FA
+      const result: any = await clientAxiosRequest({
+        headers: {},
+        apiEndpoint: API.postSetup2FA(),
+        method: 'POST',
+        data: null
+      });
+
+      if (result?.status == 201) {
+        setQRCodeKey(result?.data?.otpAuthURL?.split('secret=')[1]);
+        setQRCodeImage(result?.data?.qrCodeImage)
+        handleOpenModal('enable2fa');
+      }
     }
   }
 
-  const handleEnable2fa = () => {
-    setToggle2FA(true);
-    setOpenModal('2fa')
+  const handleEnable2fa = async () => {
+    setLoading(true);
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.verify2FA(),
+      method: 'PATCH',
+      data: { code }
+    });
+
+    if (result?.status == 200) {
+      setToggle2FA(true);
+      setOpenModal('');
+      // setOpenModal('2fa');
+    } else {
+      setLoading(false);
+    }
   }
 
   return (
@@ -93,7 +134,10 @@ const SecurityDetails = ({
               <EnableTwoFactorAuth 
                 close={handleCloseModal}
                 next={handleEnable2fa}
-                qrcode_key={QRCODE_KEY}
+                qrcode_key={qrcode_key}
+                qrcode_image={qrcode_image}
+                loading={loading}
+                setCode={setCode}
               /> 
               :
               <TwoFactoAuthEnabled 

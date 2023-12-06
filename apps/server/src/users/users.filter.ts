@@ -4,10 +4,11 @@ import {
 } from '@common/utils/pipes/query/types/filter.types';
 
 export const UserFilters: Record<string, AllowedFieldOptions[]> = {
-  listRoles: [
+  listUsers: [
     { key: 'email', valueType: ValueTypes.string },
     { key: 'status', valueType: ValueTypes.string },
     { key: 'createdAt', valueType: ValueTypes.date },
+    { key: 'roleId', valueType: ValueTypes.string },
     {
       key: 'name',
       valueType: ValueTypes.string,

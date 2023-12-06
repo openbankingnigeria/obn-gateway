@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -44,6 +45,12 @@ export class CollectionsController {
     return this.collectionsService.viewCollection(id);
   }
 
+  @Get(':id')
+  @UsePipes(IValidationPipe)
+  deleteCollection(@Param('id') id: string) {
+    return this.collectionsService.deleteCollection(id);
+  }
+
   @Get(':id/apis')
   @UsePipes(IValidationPipe)
   viewAPIs(@Param('id') id: string) {
@@ -60,6 +67,12 @@ export class CollectionsController {
   @UsePipes(IValidationPipe)
   viewAPI(@Param('id') id: string) {
     return this.collectionsService.viewAPI(id);
+  }
+
+  @Delete('apis/:id')
+  @UsePipes(IValidationPipe)
+  deletAPI(@Param('id') id: string) {
+    return this.collectionsService.deleteAPI(id);
   }
 
   @Patch('apis/:id')

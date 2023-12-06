@@ -189,7 +189,7 @@ export class RolesService {
           companyId: IsNull(),
         },
       ],
-      relations: { permissions: { permission: true } },
+      relations: { permissions: true },
     });
 
     if (!role) {
@@ -216,7 +216,7 @@ export class RolesService {
         parentId: this.requestContext.user!.role.parentId,
         companyId: this.requestContext.user!.companyId,
       },
-      relations: { permissions: true },
+      relations: { rolePermissions: true },
     });
 
     if (!role) {
@@ -226,13 +226,16 @@ export class RolesService {
     }
 
     const newPermissions = permissions.filter((permission) => {
-      return !role.permissions.find(
+      return !role.rolePermissions.find(
         (rolePermission) => rolePermission.permissionId === permission,
       );
     });
 
     const newPermissionsData = await this.permissionRepository.find({
-      where: { id: In(newPermissions) },
+      where: {
+        id: In(newPermissions),
+        roles: { roleId: this.requestContext.user!.role.parentId },
+      },
     });
 
     for (const newPermission of newPermissions) {
@@ -246,7 +249,7 @@ export class RolesService {
       }
     }
 
-    await this.rolePermissionRepository.softDelete({
+    await this.rolePermissionRepository.delete({
       permissionId: Not(In(permissions)),
       roleId: role.id,
     });
@@ -260,8 +263,11 @@ export class RolesService {
     return ResponseFormatter.success(roleSuccessMessages.updatedRole);
   }
 
+  // TODO how do we ensure that if a parents permission is leaked to a created role, that permission cannot be used.
   async getPermissions() {
-    const permissions = await this.permissionRepository.find({});
+    const permissions = await this.permissionRepository.find({
+      where: { roles: { roleId: this.requestContext.user!.role.parentId } },
+    });
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedPermissions,
       permissions,

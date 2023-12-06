@@ -7,6 +7,8 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import { postSignIn } from '@/actions/authActions';
 import { useServerAction } from '@/hooks';
+import { redirect } from 'next/navigation';
+import { setStorage } from '@/config/webStorage';
 
 const SigninForm = () => {
   const [email, setEmail] = useState(''); 
@@ -19,6 +21,11 @@ const SigninForm = () => {
 
   const initialState = {}
   const [state, formAction] = useServerAction(postSignIn, initialState);
+  if (state?.response?.status == 412) {
+    setStorage('el', email, 'session');
+    setStorage('pd', password, 'session');
+    redirect('/signin/2fa')
+  }
 
   return (
     <form

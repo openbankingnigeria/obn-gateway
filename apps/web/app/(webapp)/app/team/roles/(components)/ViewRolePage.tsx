@@ -22,13 +22,13 @@ const ViewRolePage = ({
   async function FetchData() {
     const result = await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.getRolePermission({ role_id: data?.id }),
+      apiEndpoint: API.getRolePermission({ id: data?.id }),
       method: 'GET',
       data: null,
       noToast: true,
     });
 
-    let permits = dataToPermissions(result?.data?.map((data: any) => data?.permission), 'string');
+    let permits = dataToPermissions(result?.data?.map((data: any) => data), 'string');
     setPermissions(permits);
   }
 

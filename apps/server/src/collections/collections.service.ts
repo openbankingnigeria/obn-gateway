@@ -118,6 +118,39 @@ export class CollectionsService {
     );
   }
 
+  async deleteCollection(id: string) {
+    const collection = await this.collectionRepository.findOne({
+      where: { id },
+    });
+
+    if (!collection) {
+      throw new IBadRequestException({
+        message: collectionErrorMessages.collectionNotFound(id),
+      });
+    }
+
+    const routes = await this.routeRepository.find({
+      where: { collectionId: id },
+    });
+
+    if (routes.length) {
+      throw new IBadRequestException({
+        message: collectionErrorMessages.collectionNotEmpty,
+      });
+    }
+
+    await this.collectionRepository.softDelete({
+      id,
+    });
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.deletedCollection,
+      null,
+    );
+  }
+
   async viewAPIs(collectionId: string) {
     const collection = await this.collectionRepository.findOne({
       where: { id: collectionId },
@@ -201,6 +234,31 @@ export class CollectionsService {
         methods: gatewayRoutes.data[0]?.methods || [],
       },
     });
+  }
+
+  async deleteAPI(id: string) {
+    const route = await this.routeRepository.findOne({
+      where: { id },
+    });
+
+    if (!route) {
+      throw new IBadRequestException({
+        message: collectionErrorMessages.routeNotFound(id),
+      });
+    }
+
+    await this.kongRouteService.deleteRoute(route.routeId);
+
+    await this.routeRepository.softDelete({
+      id,
+    });
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.deletedAPI,
+      null,
+    );
   }
 
   async createAPI(collectionId: string, data: UpdateAPIDto) {

@@ -15,9 +15,13 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const role = searchParams?.role || ''
 
-  const roles = await applyAxiosRequest({
+  const roles: any = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getRoles(),
+    apiEndpoint: API.getRoles({
+      page: `${page}`,
+      limit: `${rows}`,
+      name: search_query,
+    }),
     method: 'GET',
     data: null
   })
@@ -34,6 +38,7 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   }
 
   let permission_list = permissions?.data;
+  let meta_data = roles?.meta_data;
   let role_list = roles?.data?.map((role: any) => {
     return ({
       ...role,
@@ -45,9 +50,9 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const filters = [search_query, status, role];
 
   const headers = ROLES_TABLE_HEADERS;
-  const total_pages = role_list?.length;
-  const total_elements_in_page = role_list?.length;
-  const total_elements = role_list?.length;
+  const total_pages = meta_data?.totalNumberOfPages;
+  const total_elements_in_page = role_list?.length || meta_data?.pageSize;
+  const total_elements = meta_data?.totalNumberOfRecords;
 
   const status_list = ROLES_STATUS_DATA?.map(data => {
     return({
