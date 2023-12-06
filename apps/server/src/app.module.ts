@@ -34,7 +34,6 @@ import { CompanyModule } from './company/company.module';
       validationSchema,
       load: [globalConfig],
     }),
-    // Logging
     LoggerModule.forRoot({
       pinoHttp: {
         transport: {
@@ -45,7 +44,6 @@ import { CompanyModule } from './company/company.module';
         },
       },
     }),
-    // Database setup
     TypeOrmModule.forRootAsync({
       useFactory: (config: ConfigService) => {
         return getDatabaseConfig(config);
