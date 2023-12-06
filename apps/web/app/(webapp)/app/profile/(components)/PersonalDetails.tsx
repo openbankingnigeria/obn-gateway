@@ -82,7 +82,7 @@ const PersonalDetails = ({
               name='email'
               type='email'
               // placeholder='johndoe@openbanking.com'
-              value={profile?.email}
+              value={profile?.user?.email}
               disabled
               required
             />

@@ -11,6 +11,7 @@ import React, { useState } from 'react'
 import { useServerAction } from '@/hooks';
 import { PermissionCard } from '.'
 import { dataToPermissions } from '@/utils/dataToPermissions'
+import { useRouter } from 'next/navigation'
 
 const CreateRolePage = ({
   close,
@@ -19,6 +20,7 @@ const CreateRolePage = ({
 }: CreateRolePageProps) => {
   const [role_name, setRoleName] = useState('');
   const [description, setDescription] = useState('');
+  const router = useRouter();
   const [permissions, setPermissions] = useState<PermissionValue[]>([]);
 
   const ROLES_PERMISSIONS = dataToPermissions(data);
@@ -30,6 +32,10 @@ const CreateRolePage = ({
 
   const initialState = {}
   const [state, formAction] = useServerAction(postCreateRole, initialState);
+  if (state?.response?.status == 200 || state?.response?.status == 201) {
+    close();
+    router.refresh();
+  }
 
   return (
     <form

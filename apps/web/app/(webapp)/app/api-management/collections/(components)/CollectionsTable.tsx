@@ -22,7 +22,7 @@ const CollectionsTable = ({
     header: () => '',
     cell: ({ row }) => (
       <Link 
-        href={`/app/api-management/collections/${row.original.collection_name}`}
+        href={`/app/api-management/collections/${row.original.id}`}
         id={row.original.id} 
         className='text-f14 !text-[#5277C7] cursor-pointer capitalize'
       >

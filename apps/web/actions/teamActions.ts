@@ -24,18 +24,12 @@ export async function postInviteMember(prevState: any, formData: FormData) {
 
   if (response?.status == 201) {
     // return { message: 'You sent an invite to [email_address]' };
-    return { 
-      response,
-      redirect: `/app/team/members`
-    }
+    return { response }
   } else if ([401, 403]?.includes(Number(response?.status))) { 
     deleteCookies('aperta-user-accessToken');
     redirect('/');
   } else {
-    return { 
-      response,
-      redirect: `/app/team/members`
-    }
+    return { response }
   }
 }
 
@@ -66,7 +60,7 @@ export async function postCreateRole(prevState: any, formData: FormData) {
     // console.log('Check the console', sanitizedPermissions, fullData?.permissions)
 
     await axiosRequest({
-      apiEndpoint: API.putRolePermission({ role_id }),
+      apiEndpoint: API.putRolePermission({ id: role_id }),
       method: 'PUT',
       headers: { },
       data: {
@@ -74,18 +68,12 @@ export async function postCreateRole(prevState: any, formData: FormData) {
       }
     });
     
-    return { 
-      response,
-      redirect: `/app/team/roles`
-    }
+    return { response }
   } else if ([401, 403]?.includes(Number(response?.status))) { 
     deleteCookies('aperta-user-accessToken');
     redirect('/');
   } else {
-    return { 
-      response,
-      redirect: `/app/team/roles`
-    }
+    return { response }
   }
 }
 
@@ -99,7 +87,7 @@ export async function updateRole(prevState: any, formData: FormData) {
 
   let response = await axiosRequest({
     apiEndpoint: API.updateRole({
-      role_id: prevState?.role_id
+      id: prevState?.role_id
     }),
     method: 'PATCH',
     headers: { },
@@ -117,7 +105,7 @@ export async function updateRole(prevState: any, formData: FormData) {
     // console.log('Check the console', sanitizedPermissions, fullData?.permissions)
 
     await axiosRequest({
-      apiEndpoint: API.putRolePermission({ role_id }),
+      apiEndpoint: API.putRolePermission({ id: role_id }),
       method: 'PUT',
       headers: { },
       data: {
@@ -125,17 +113,11 @@ export async function updateRole(prevState: any, formData: FormData) {
       }
     });
     
-    return { 
-      response,
-      redirect: `/app/team/roles`
-    }
+    return { response }
   } else if ([401, 403]?.includes(Number(response?.status))) { 
     deleteCookies('aperta-user-accessToken');
     redirect('/');
   } else {
-    return { 
-      response,
-      redirect: `/app/team/roles`
-    }
+    return { response }
   }
 }

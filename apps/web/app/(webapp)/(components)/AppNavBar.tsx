@@ -9,7 +9,7 @@ import { NOTIFICATIONS_DATA } from '@/data/notificationData';
 import { Button, OutsideClicker } from '../../../components/globalComponents';
 import { AppCenterModal, AvatarMenu, NotificationBox } from '.';
 import { toast } from 'react-toastify';
-import { removeJsCookies } from '@/config/jsCookie';
+import { getJsCookies, removeJsCookies } from '@/config/jsCookie';
 
 const AppNavBar = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -20,6 +20,12 @@ const AppNavBar = () => {
   const router = useRouter();
   const { get } = useSearchParams();
   const slug = get('slug');
+  const getUserProfile = getJsCookies('aperta-user-profile');
+  const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
+
+  let firstName = userProfile?.name?.split(' ')[0];
+  let lastName = userProfile?.name?.split(' ')[1];
+  let avatarAlt = `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`
 
   const unReadNotifications = NOTIFICATIONS_DATA;
   const notifications = NOTIFICATIONS_DATA?.slice(0, 5);
@@ -116,8 +122,8 @@ const AppNavBar = () => {
                 >
                   {
                     (slug && path == lastPath) ?
-                      slug :
-                      path?.replace('api', 'API')?.replace(/-/g, ' ')
+                     decodeURI(slug) :
+                     decodeURI(path)?.replace('api', 'API')?.replace(/-/g, ' ')
                   }
                 </Link>
 
@@ -187,7 +193,7 @@ const AppNavBar = () => {
           <div className='relative py-1 group'>
             <div className='group px-[8px] cursor-pointer flex items-center gap-[8px]'>
               <div className='uppercase w-[32px] h-[32px] rounded-full text-f14 font-[500] text-white flex items-center justify-center bg-[#459572]'>
-                JA
+                {avatarAlt}
               </div>
 
               <svg 

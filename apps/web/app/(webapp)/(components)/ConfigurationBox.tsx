@@ -12,7 +12,11 @@ const ConfigurationBox = ({
       ${isGreen ? 'text-white bg-[#459572]' : 'bg-[#F6C344] text-o-text-dark'}
       text-f12 font-[500] px-[8px] rounded-full`}
     >
-      {`${value}${noOfApis ? `/${noOfApis}` : ''}`}
+      {
+        (value || noOfApis) ? 
+          `${value}${noOfApis ? `/${noOfApis}` : ''}` :
+          ''
+      }
     </div>
   )
 }

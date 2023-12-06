@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, MouseEventHandler, SetStateAction } from "react";
 
 export interface DashboardMetricCardProps {
   title: string;
@@ -200,4 +200,13 @@ export interface APIConfigurationContainerProps {
 
 export interface CreateRoleButtonProps {
   permissions_list: any;
+}
+
+export interface EnableTwoFactorAuthProps { 
+  close: MouseEventHandler<HTMLButtonElement>;
+  next: () => void;
+  qrcode_key: string;
+  qrcode_image: string;
+  setCode: Dispatch<React.SetStateAction<string>>;
+  loading: boolean
 }
