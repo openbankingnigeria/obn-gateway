@@ -74,6 +74,22 @@ export class KongRouteService {
     return response.data;
   }
 
+  async deleteRoute(id: string) {
+    const response = await firstValueFrom(
+      this.httpService
+        .delete<UpdateRouteResponse>(
+          `${this.config.get('kong.adminUrl')}/routes/${id}`,
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            this.logger.error(error.response?.data || error);
+            throw new IInternalServerErrorException({});
+          }),
+        ),
+    );
+    return response.data;
+  }
+
   async createPlugin(id: string, data: CreatePluginRequest) {
     const response = await firstValueFrom(
       this.httpService

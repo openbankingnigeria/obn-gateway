@@ -249,7 +249,7 @@ export class RolesService {
       }
     }
 
-    await this.rolePermissionRepository.softDelete({
+    await this.rolePermissionRepository.delete({
       permissionId: Not(In(permissions)),
       roleId: role.id,
     });
