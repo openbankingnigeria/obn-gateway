@@ -1,9 +1,6 @@
-import {
-  AllowedFieldOptions,
-  ValueTypes,
-} from '@common/utils/pipes/query/types/filter.types';
+import { ValueTypes } from '@common/utils/pipes/query/types/filter.types';
 
-export const RoleFilters: Record<string, AllowedFieldOptions[]> = {
+export const RoleFilters = {
   listRoles: [
     { key: 'name', valueType: ValueTypes.string },
     { key: 'status', valueType: ValueTypes.string },

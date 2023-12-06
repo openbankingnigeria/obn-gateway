@@ -56,7 +56,10 @@ export class FilterPipe implements PipeTransform<any, any> {
   ) {
     const result: any = {};
     if (typeof query === 'string') {
-      result[key] = Like(this.validateValueType(query, allowedFieldType, true));
+      result[key] =
+        allowedFieldType === ValueTypes.string
+          ? Like(this.validateValueType(`%${query}%`, allowedFieldType, true))
+          : this.validateValueType(query, allowedFieldType, true);
     } else {
       const subQueryKeys: any[] = Object.keys(
         query as Record<FilterRules, string>,

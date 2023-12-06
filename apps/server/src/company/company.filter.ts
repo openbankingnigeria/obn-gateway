@@ -1,9 +1,6 @@
-import {
-  AllowedFieldOptions,
-  ValueTypes,
-} from '@common/utils/pipes/query/types/filter.types';
+import { ValueTypes } from '@common/utils/pipes/query/types/filter.types';
 
-export const CompanyFilters: Record<string, AllowedFieldOptions[]> = {
+export const CompanyFilters = {
   getCompanies: [
     { key: 'createdAt', valueType: ValueTypes.date },
     { key: 'name', valueType: ValueTypes.string },

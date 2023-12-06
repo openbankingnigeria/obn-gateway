@@ -6,7 +6,6 @@ import * as moment from 'moment';
 
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
-  // export class AppService {
   constructor(
     private readonly kongPluginService: KongPluginService,
     private readonly config: ConfigService,

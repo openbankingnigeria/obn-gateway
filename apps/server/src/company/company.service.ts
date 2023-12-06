@@ -2,14 +2,16 @@ import { IBadRequestException } from '@common/utils/exceptions/exceptions';
 import { Injectable } from '@nestjs/common';
 import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
-import * as settingsKybJson from '@settings/settings.kyb.json';
-import { KybDataTypes } from '@settings/types';
+import { KybDataTypes, Settings } from '@settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company, User } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { path } from 'app-root-path';
+import { join } from 'path';
+import { readFileSync } from 'fs';
 
 @Injectable()
 export class CompanyService {
@@ -21,6 +23,10 @@ export class CompanyService {
     private readonly companyRepository: Repository<Company>,
     private readonly requestContext: RequestContextService,
   ) {}
+
+  private readonly kybSettings: Settings = JSON.parse(
+    readFileSync(join(path, 'server.settings', 'settings.kyb.json'), 'utf-8'),
+  );
 
   async updateCompanyKybDetails(
     data: any,
@@ -49,7 +55,7 @@ export class CompanyService {
     > = {};
 
     // Select only valid fields from the request payload
-    settingsKybJson.kybRequirements
+    this.kybSettings.kybRequirements
       .filter((requirement) => requirement.type === KybDataTypes.STRING)
       .forEach((requirement) => {
         if (dataKeys.includes(requirement.name)) {
@@ -137,6 +143,16 @@ export class CompanyService {
       take: limit,
       order: {
         createdAt: 'DESC',
+      },
+      select: {
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        rcNumber: true,
+        type: true,
+        isVerified: true,
+        deletedAt: true,
+        id: true,
       },
     });
 
