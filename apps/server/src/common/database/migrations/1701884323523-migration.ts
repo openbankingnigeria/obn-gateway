@@ -1,6 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Company } from '../entities';
+import { CompanyTypes } from '@users/types';
 
 export class Migration1701883113873 implements MigrationInterface {
   private readonly defaultSettings = {
@@ -37,7 +38,7 @@ export class Migration1701883113873 implements MigrationInterface {
   };
   public async up(queryRunner: QueryRunner): Promise<void> {
     const [apiProvider]: Company[] = await queryRunner.query(
-      `SELECT * FROM companies ORDER BY created_at ASC`,
+      `SELECT * FROM companies WHERE type = '${CompanyTypes.API_PROVIDER}' ORDER BY created_at ASC`,
     );
 
     const parameters = [
