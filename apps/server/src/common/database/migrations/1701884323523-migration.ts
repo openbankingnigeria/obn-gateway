@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Company } from '../entities';
-import { CompanyTypes } from '@users/types';
+import { CompanyTypes } from '../../../users/types';
 
 export class Migration1701883113873 implements MigrationInterface {
   private readonly defaultSettings = {
