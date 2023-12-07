@@ -21,6 +21,7 @@ import {
 } from './collections.constants';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 
 @Injectable()
 export class CollectionsService {
@@ -33,12 +34,24 @@ export class CollectionsService {
     private readonly kongRouteService: KongRouteService,
   ) {}
 
-  async listCollections() {
-    const collections = await this.collectionRepository.find({});
+  async listCollections({ limit, page }: PaginationParameters, filters?: any) {
+    const [collections, totalNumberOfRecords] =
+      await this.collectionRepository.findAndCount({
+        where: { ...filters },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
     // TODO emit event
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollections,
       collections,
+      {
+        totalNumberOfRecords,
+        totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
+        pageNumber: page,
+        pageSize: limit,
+      },
     );
   }
 
@@ -151,7 +164,11 @@ export class CollectionsService {
     );
   }
 
-  async viewAPIs(collectionId: string) {
+  async viewAPIs(
+    collectionId: string,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
     const collection = await this.collectionRepository.findOne({
       where: { id: collectionId },
     });
@@ -161,9 +178,12 @@ export class CollectionsService {
       });
     }
 
-    const routes = await this.routeRepository.find({
-      where: { collectionId },
-    });
+    const [routes, totalNumberOfRecords] =
+      await this.routeRepository.findAndCount({
+        where: { collectionId, ...filters },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
 
     const [gatewayServices, gatewayRoutes] = await Promise.all([
       this.kongService.listServices({ tags: collection.slug }),
@@ -198,6 +218,12 @@ export class CollectionsService {
           },
         };
       }),
+      {
+        totalNumberOfRecords,
+        totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
+        pageNumber: page,
+        pageSize: limit,
+      },
     );
   }
 

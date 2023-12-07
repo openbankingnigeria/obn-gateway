@@ -2,16 +2,21 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   REQUIRED_PERMISSION_METADATA_KEY,
+  REQUIRE_TWO_FA_KEY,
   SKIP_AUTH_METADATA_KEY,
 } from './auth.decorator';
 import { IRequest } from './auth.types';
-import { IUnauthorizedException } from '../exceptions/exceptions';
+import {
+  IBadRequestException,
+  IUnauthorizedException,
+} from '../exceptions/exceptions';
 import { Auth } from './auth.helper';
 import { authErrors } from '@auth/auth.errors';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/common/database/entities';
 import { IsNull, Not, Repository } from 'typeorm';
 import { PERMISSIONS } from 'src/permissions/types';
+import * as speakeasy from 'speakeasy';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -30,6 +35,10 @@ export class AuthGuard implements CanActivate {
       this.reflector.get(REQUIRED_PERMISSION_METADATA_KEY, context.getHandler())
     );
 
+    const strictRequireTwoFA = <boolean | undefined>(
+      this.reflector.get(REQUIRE_TWO_FA_KEY, context.getHandler())
+    );
+
     if (shouldSkipAuth) {
       return true;
     }
@@ -37,6 +46,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<IRequest>();
 
     const accessToken = request.headers.authorization?.replace(/^Bearer\s/, '');
+    const body = request.body;
 
     if (!accessToken) {
       throw new IUnauthorizedException({
@@ -92,6 +102,32 @@ export class AuthGuard implements CanActivate {
       throw new IUnauthorizedException({
         message: authErrors.inadequatePermissions,
       });
+    }
+
+    if (strictRequireTwoFA !== undefined) {
+      if (strictRequireTwoFA === true) {
+        if (!body.code || !user.twofaEnabled) {
+          throw new IBadRequestException({
+            message: authErrors.twoFARequired,
+          });
+        }
+      } else if (user.twofaEnabled && !body.code) {
+        throw new IBadRequestException({
+          message: authErrors.provideTwoFA,
+        });
+      }
+      if (user.twofaEnabled) {
+        const verified = speakeasy.totp.verify({
+          secret: user.twofaSecret!,
+          encoding: 'base32',
+          token: body.code,
+        });
+        if (!verified) {
+          throw new IBadRequestException({
+            message: authErrors.invalidTwoFA,
+          });
+        }
+      }
     }
 
     request.user = user;

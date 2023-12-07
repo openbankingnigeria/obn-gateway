@@ -23,7 +23,7 @@ export class CreateUserDto {
     message: ({ property }) =>
       userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
   })
-  @Matches(/^[A-Za-z]+$/gi, {
+  @Matches(/^[A-Za-z]*$/gi, {
     message: ({ property }) =>
       userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
   })
@@ -34,7 +34,7 @@ export class CreateUserDto {
     message: ({ property }) =>
       userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
   })
-  @Matches(/^[A-Za-z]+$/gi, {
+  @Matches(/^[A-Za-z]*$/gi, {
     message: ({ property }) =>
       userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
   })

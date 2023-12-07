@@ -168,7 +168,7 @@ export class AuthService {
       });
       if (!verified) {
         throw new IBadRequestException({
-          message: authErrors.invalidCredentials,
+          message: authErrors.invalidTwoFA,
         });
       }
     }

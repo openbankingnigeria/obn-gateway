@@ -12,5 +12,10 @@ export const AuditLogFilters: Record<string, AllowedFieldOptions[]> = {
       valueType: ValueTypes.string,
       mapsTo: ['user.profile.firstName', 'user.profile.lastName'],
     },
+    {
+      key: 'email',
+      valueType: ValueTypes.string,
+      mapsTo: ['user.profile.email'],
+    },
   ],
 };

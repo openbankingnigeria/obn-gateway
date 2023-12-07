@@ -12,6 +12,10 @@ export class CreateRoleDto {
   @IsNotEmpty()
   @IsString()
   status: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  permissions: string[];
 }
 
 export class UpdateRoleDto {

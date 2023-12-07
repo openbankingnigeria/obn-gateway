@@ -8,4 +8,7 @@ export const authErrors = {
   errorOccurredCreatingUser:
     'An error occurred while signing you up. Please try again.',
   sameOldPassword: 'Password should not be same as existing one',
+  invalidTwoFA: 'Invalid 2FA code.',
+  provideTwoFA: 'Please provide a 2FA code to access this resource',
+  twoFARequired: '2FA is required on your account to access this resource',
 };
