@@ -74,11 +74,11 @@ const AddBusinessInformation = ({
               changeValue={(value: string) => handleCac(value)}
               required
             />
-            <div className='w-full'>
+            {/* <div className='w-full'>
               <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
                 What is a CAC registration number?
               </a>
-            </div>
+            </div> */}
           </div>
 
           <div className='w-full flex flex-col gap-[6px]'>
@@ -89,11 +89,11 @@ const AddBusinessInformation = ({
               changeValue={setRegulatorLicense}
               value={regulator_license}
             />
-            <div className='w-full'>
+            {/* <div className='w-full'>
               <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
                 What is a Regulatory License?
               </a>
-            </div>
+            </div> */}
           </div>
 
           <div className='w-full flex flex-col gap-[6px]'>
@@ -104,11 +104,11 @@ const AddBusinessInformation = ({
               changeValue={setCertificationOfIncorporation}
               value={certificate_of_incorporation}
             />
-            <div className='w-full'>
+            {/* <div className='w-full'>
               <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
                 What is a Certificate of Incorporation?
               </a>
-            </div>
+            </div> */}
           </div>
 
           <div className='w-full flex flex-col gap-[6px]'>
@@ -121,11 +121,11 @@ const AddBusinessInformation = ({
               changeValue={(value: string) => handleTin(value)}
               required
             />
-            <div className='w-full'>
+            {/* <div className='w-full'>
               <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
                 What is a Tax Identification Number (TIN)?
               </a>
-            </div>
+            </div> */}
           </div>
 
           <div className='w-full flex flex-col gap-[6px]'>
@@ -136,11 +136,11 @@ const AddBusinessInformation = ({
               changeValue={setCompanyStatusReport}
               value={company_status_report}
             />
-            <div className='w-full'>
+            {/* <div className='w-full'>
               <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
                 Document on Company&#39;s shareholding, details of shareholders, Board, and Secretary.
               </a>
-            </div>
+            </div> */}
           </div>
         </div>
 

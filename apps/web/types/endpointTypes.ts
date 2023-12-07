@@ -4,6 +4,7 @@ export interface GetListProps {
   name?: string; 
   event?: string; 
   status?: string;
+  role?: string;
   email?: string;
   createdAt_gt?: string; 
   createdAt_l?: string; 

@@ -71,7 +71,7 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
           <div className='w-full flex items-start justify-between gap-[12px]'>
             <div className='w-fit flex-wrap flex items-center gap-[12px]'>
               <SearchBar 
-                placeholder='Search by name, email'
+                placeholder='Search by name'
                 searchQuery={search_query}
               />
 

@@ -1,27 +1,34 @@
 import { MembersStatusProps } from "@/types/dataTypes"
 
 export const MEMBERS_STATUS_DATA = ({
-  active,
+  all,
   invited
 }: MembersStatusProps) => {
   return ([
     {
       id: 1,
-      label: 'Active',
-      amount: active || 0,
+      label: 'All',
+      amount: all || 0,
       value: '',
       panel: true,
-      name: 'active'
+      name: 'all'
     },
     {
       id: 2,
+      label: 'Active',
+      value: 'active',
+      panel: false,
+      name: 'active'
+    },
+    {
+      id: 3,
       label: 'Inactive',
       value: 'inactive',
       panel: false,
       name: 'inactive'
     },
     {
-      id: 2,
+      id: 4,
       label: 'Invited',
       amount: invited || 0,
       panel: true,

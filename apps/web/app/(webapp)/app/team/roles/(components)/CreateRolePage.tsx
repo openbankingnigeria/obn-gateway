@@ -27,7 +27,8 @@ const CreateRolePage = ({
 
   const incorrect = (
     !role_name ||
-    !description
+    !description ||
+    permissions?.length <= 0
   );
 
   const initialState = {}
