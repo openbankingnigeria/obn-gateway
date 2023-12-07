@@ -5,8 +5,10 @@ import {
   IsEnum,
   IsNotEmpty,
   IsObject,
+  IsOptional,
   IsString,
   IsUrl,
+  Length,
   ValidateNested,
 } from 'class-validator';
 import { HTTP_METHODS } from '../types';
@@ -20,12 +22,22 @@ export class CreateCollectionDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }
 
 export class UpdateCollectionDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }
 
 class CreateRouteDTO {
@@ -59,6 +71,11 @@ export class CreateAPIDto {
   @ValidateNested()
   @Type(() => CreateRouteDTO)
   route: CreateRouteDTO;
+
+  @IsOptional()
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }
 
 class UpdateRouteDTO {
@@ -92,4 +109,9 @@ export class UpdateAPIDto {
   @ValidateNested()
   @Type(() => UpdateRouteDTO)
   route: UpdateRouteDTO;
+
+  @IsOptional()
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }

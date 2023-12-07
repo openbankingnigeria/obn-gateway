@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class CreateRoleDto {
   @IsNotEmpty()
@@ -16,6 +22,11 @@ export class CreateRoleDto {
   @IsArray()
   @IsString({ each: true })
   permissions: string[];
+
+  @IsOptional()
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }
 
 export class UpdateRoleDto {
@@ -26,10 +37,20 @@ export class UpdateRoleDto {
   @IsNotEmpty()
   @IsString()
   status: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }
 
 export class SetRolePermissionsDto {
   @IsArray()
   @IsString({ each: true })
   permissions: string[];
+
+  @IsOptional()
+  @IsString()
+  @Length(6, 6)
+  code: string;
 }
