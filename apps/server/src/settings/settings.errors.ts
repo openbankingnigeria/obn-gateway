@@ -8,4 +8,6 @@ export const settingsErrors = {
       `${propertyName} value should have at least ${propertyLength} characters.`,
     isRequired: (propertyName: string) => `${propertyName} is required.`,
   },
+  settingNotFound: (settingName: string) =>
+    `Setting with ${settingName} was not found.`,
 };

@@ -1,4 +1,4 @@
-import { settingsErrors } from '@settings/settings.error';
+import { settingsErrors } from '@settings/settings.errors';
 import { KybDataTypes } from '@settings/types';
 import { Type } from 'class-transformer';
 import {

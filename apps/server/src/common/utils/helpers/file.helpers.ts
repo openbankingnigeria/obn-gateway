@@ -5,15 +5,12 @@ import { ConfigService } from '@nestjs/config';
 export class FileHelpers {
   constructor(private readonly config: ConfigService) {}
 
-  validateFileSize(files: Record<string, Express.Multer.File[]>) {
+  validateFileSize(files: Express.Multer.File[]) {
     const fileSizes: number[] = [];
     const maxFileSize = this.config.get('uploads.maxFileUploadSize') as number;
 
-    Object.keys(files).forEach((fileKey) => {
-      const fileArray = files[fileKey];
-      fileArray.forEach((file) => {
-        fileSizes.push(file.size);
-      });
+    files.forEach((file) => {
+      fileSizes.push(file.size);
     });
 
     if (fileSizes.some((size) => size > maxFileSize)) {
