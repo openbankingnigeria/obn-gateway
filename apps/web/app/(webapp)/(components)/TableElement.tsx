@@ -74,7 +74,7 @@ const TableElement = ({
 
   return (
     <div className='w-full flex flex-col gap-[20px]'>
-      <div className="relative border overflow-y-hidden overflow-x-auto border-o-border rounded-[8px] w-full min-h-[150px]">
+      <div className="relative border overflow-y-visible overflow-x-auto border-o-border rounded-[8px] w-full min-h-[150px]">
         <table className='min-w-fit w-full'>
           <thead>
             {getHeaderGroups().map((headerGroup, index) => (
