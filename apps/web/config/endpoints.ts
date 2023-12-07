@@ -19,8 +19,8 @@ export const postAccountSetUp = ({ token }: PostTokenProps) =>
 export const getRolePermission = ({ id }: GetSingleProps) => 
   `${BASE_URL}/roles/${id}/permissions`
 export const getPermissions = () => `${BASE_URL}/roles/permissions`
-export const getRoles = ({ page, limit, name }: GetListProps) => 
-  `${BASE_URL}/roles?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}`;
+export const getRoles = ({ page, limit, name, status }: GetListProps) => 
+  `${BASE_URL}/roles?page=${page}${limit ? `&limit=${limit}`: ''}${status ? `&filter[status]=${status}`: ''}${name ? `&filter[name]=${name}`: ''}`;
 export const postRole = () => `${BASE_URL}/roles`;
 export const updateRole = ({ id }: GetSingleProps) => 
   `${BASE_URL}/roles/${id}`
@@ -30,8 +30,8 @@ export const putRolePermission = ({ id }: GetSingleProps) =>
 
 // TEAMS
 export const postTeam = () => `${BASE_URL}/users`;
-export const getTeams = ({ page, limit, name, status, email }: GetListProps) => 
-  `${BASE_URL}/users?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${email ? `&filter[email]=${email}`: ''}${status ? `&filter[status]=${status}`: ''}`;
+export const getTeams = ({ page, limit, name, status, email, role }: GetListProps) => 
+  `${BASE_URL}/users?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${role ? `&filter[role]=${role}`: ''}${email ? `&filter[email]=${email}`: ''}${status ? `&filter[status]=${status}`: ''}`;
 export const updateTeam = ({ id }: GetSingleProps) => 
   `${BASE_URL}/users/${id}`;
 export const getTeam = ({ id }: GetSingleProps) => 

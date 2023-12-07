@@ -10,7 +10,7 @@ import Logout from '@/components/globalComponents/Logout';
 const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
   const search_query = searchParams?.search_query || ''
-  const two_fa = searchParams?.two_fa || ''
+  // const two_fa = searchParams?.two_fa || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
   const role = searchParams?.role || ''
@@ -21,6 +21,7 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
       page: `${page}`,
       limit: `${rows}`,
       name: search_query,
+      status: status,
     }),
     method: 'GET',
     data: null
@@ -96,7 +97,7 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
                 forFilter
               />
 
-              <SelectElement 
+              {/* <SelectElement 
                 name='two_fa'
                 options={two_fa_list}
                 value={two_fa}
@@ -106,7 +107,7 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
                 removeSearch
                 optionStyle='!top-[38px]'
                 forFilter
-              />
+              /> */}
             </div>
 
             <CreateRoleButton 
