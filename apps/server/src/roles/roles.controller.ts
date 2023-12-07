@@ -22,7 +22,10 @@ import {
   PaginationPipe,
 } from '@common/utils/pipes/query/pagination.pipe';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
-import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
+import {
+  RequireTwoFA,
+  RequiredPermission,
+} from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
 import { RoleFilters } from './roles.filter';
 
@@ -32,6 +35,8 @@ export class RolesController {
 
   @Post()
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.CREATE_ROLE)
+  @RequireTwoFA()
   createRole(@Body() data: CreateRoleDto) {
     return this.rolesService.createRole(data);
   }
@@ -49,36 +54,45 @@ export class RolesController {
 
   @Get('permissions')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
   getPermissions() {
     return this.rolesService.getPermissions();
   }
 
   @Get(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
   getRole(@Param('id') id: string) {
     return this.rolesService.getRole(id);
   }
 
   @Patch(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_ROLE)
+  @RequireTwoFA()
   updateRole(@Param('id') id: string, @Body() data: UpdateRoleDto) {
     return this.rolesService.updateRole(id, data);
   }
 
   @Delete(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.DEACTIVATE_ROLE)
+  @RequireTwoFA()
   deleteRole(@Param('id') id: string) {
     return this.rolesService.deleteRole(id);
   }
 
   @Get(':id/permissions')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
   getRolePermissions(@Param('id') id: string) {
     return this.rolesService.getRolePermissions(id);
   }
 
   @Put(':id/permissions')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_ROLE)
+  @RequireTwoFA()
   setRolePermissions(
     @Param('id') id: string,
     @Body() data: SetRolePermissionsDto,
