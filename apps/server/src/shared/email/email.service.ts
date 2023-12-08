@@ -135,13 +135,17 @@ export class EmailService {
       });
     }
 
-    const info = await this.transporter.sendMail({
+    const mailOptions = {
       from: this.config.get('email.from'),
       to: recipient,
       subject: Handlebars.compile(template.title)(data),
       html: Handlebars.compile(template.body.toString())(data),
-    });
+    };
 
-    console.log('Message sent: %s', info.messageId);
+    console.log('Sending mail: ', mailOptions);
+
+    const info = await this.transporter.sendMail(mailOptions);
+
+    console.log('Mail sent: %s', info.messageId);
   }
 }

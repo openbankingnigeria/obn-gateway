@@ -117,6 +117,8 @@ export class AuthService {
         },
       });
 
+      user.company = companyCreated;
+
       const event = new AuthSignupEvent(user);
       this.eventEmitter.emit(event.name, event);
 

@@ -29,10 +29,12 @@
 <body width="100%" style="width: 100%; background: #F6F8FA ; padding: 30px;" bgcolor="#F6F8FA">
   <!-- Logo: BEGIN -->
   <section style="width: 100%;">
+    {{#if logo}}
     <div style="width: 100%; max-width: 560px; margin-left: auto; margin-right: auto; padding-bottom: 24px;">
-      <img src="https://res.cloudinary.com/drp54ph7b/image/upload/v1699883338/syx6xd05bm9hdwoahp6m.svg"
-        style="margin-right: auto;" alt="Aperta Logo" height="32">
+      <img src="{{logo}}"
+        style="margin-right: auto;" alt="{{companyName}} Logo" height="32">
     </div>
+    {{/if}}
   </section>
   <!-- Logo: END -->
 
@@ -134,7 +136,7 @@
 
                   <tr>
                     <td style="padding-top: 8px; width: 100%;">
-                      © 2023 Aperta, Powered by Open Banking Nigeria
+                      © 2023 {{companyName}}, Powered by Open Banking Nigeria
                     </td>
                   </tr>
 
@@ -144,40 +146,6 @@
                     </td>
                   </tr>
                 </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-
-    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
-      style="width: 100%; max-width: 560px;">
-      <tr>
-        <td
-          style="padding-top: 32px; font-size: 14px; line-height: 20px; text-align: center; font-weight: 400; letter-spacing: -0.02em; font-family: 'Inter', sans-serif; line-height: 20px; color: #666D80;">
-          <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
-            style="width: 100%; max-width: 560px;">
-            <tr>
-              <td style="padding-top: 10px; padding-bottom: 10px; border: 1px solid #E6E7EB;">
-                <a target="_blank" href="https://www.facebook.com/aperta/" style="text-decoration: none;">
-                  <img src="https://res.cloudinary.com/drp54ph7b/image/upload/v1699883398/ra8bce2ssjs3mwdfmkak.svg"
-                    alt="Facebook" height="24" width="24" style="vertical-align: middle;">
-                </a>
-              </td>
-
-              <td style="padding-top: 10px; padding-bottom: 10px; border: 1px solid #E6E7EB;">
-                <a target="_blank" href="https://twitter.com/aperta" style="text-decoration: none;">
-                  <img src="https://res.cloudinary.com/drp54ph7b/image/upload/v1699883386/bnbtqacxprxuwur7gemm.svg"
-                    alt="Twitter" height="24" width="24" style="vertical-align: middle;">
-                </a>
-              </td>
-
-              <td style="padding-top: 10px; padding-bottom: 10px; border: 1px solid #E6E7EB;">
-                <a target="_blank" href="https://www.linkedin.com/aperta/" style="text-decoration: none;">
-                  <img src="https://res.cloudinary.com/drp54ph7b/image/upload/v1699883407/ntzh5f8qzjwtuvbxndbk.svg"
-                    alt="Facebook" height="24" width="24" style="vertical-align: middle;">
-                </a>
               </td>
             </tr>
           </table>
