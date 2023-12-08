@@ -12,8 +12,9 @@ const CheckEmailPage = () => {
   const email = getStorage('aperta-user-email', true, 'session');
 
   const openEmailInbox = () => {
-    const mailtoLink = `mailto:${email}`;
-    window.location.href = mailtoLink;
+    const mailtoLink = `https://mail.google.com/mail/u/0/#inbox`;
+    window.open(mailtoLink);
+    // window.location.href = mailtoLink;
   };
 
   const initialState = {}
