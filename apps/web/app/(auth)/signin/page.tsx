@@ -1,5 +1,6 @@
 import React from 'react'
 import { SigninForm } from './(components)'
+import Link from 'next/link'
 
 const SigninPage = () => {
   return (
@@ -16,6 +17,16 @@ const SigninPage = () => {
         </div>
 
         <SigninForm />
+
+        <div className='text-f14 font-[400] w-full text-o-text-dark'>
+          Don&#39;t have an account?&#160;
+          <Link
+            href={'/signup'}
+            className='text-f14 font-[600] w-fit text-o-light-blue' 
+          >
+            Sign Up
+          </Link>
+        </div>
       </div>
     </section>
   )

@@ -1,5 +1,6 @@
 import React from 'react'
 import { SignupForm } from './(components)'
+import Link from 'next/link'
 
 const SignupPage = () => {
   /* API CONSUMER */
@@ -17,6 +18,16 @@ const SignupPage = () => {
         </div>
         
         <SignupForm />
+
+        <div className='text-f14 font-[400] w-full text-o-text-dark'>
+          Already have an account?&#160;
+          <Link
+            href={'/signin'}
+            className='text-f14 font-[600] w-fit text-o-light-blue' 
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     </section>
   )

@@ -47,10 +47,10 @@ export const INVITED_MEMBERS_TABLE_HEADERS = [
     header: 'Status',
     accessor: 'status'
   },
-  {
-    header: 'Invited By',
-    accessor: 'invited_by'
-  },
+  // {
+  //   header: 'Invited By',
+  //   accessor: 'invited_by'
+  // },
   {
     header: 'Date Invited',
     accessor: 'date_invited'
