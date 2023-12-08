@@ -28,11 +28,16 @@ import { authErrors } from '@auth/auth.errors';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { Role } from 'src/common/database/entities/role.entity';
-import { ROLES } from 'src/roles/types';
 import { authSuccessMessages } from '@auth/auth.constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuthLoginEvent, AuthSignupEvent } from '@shared/events/auth.event';
+import {
+  AuthLoginEvent,
+  AuthResetPasswordEvent,
+  AuthResetPasswordRequestEvent,
+  AuthSignupEvent,
+} from '@shared/events/auth.event';
 import * as speakeasy from 'speakeasy';
+import { ROLES } from '@common/database/constants';
 @Injectable()
 export class AuthService {
   constructor(
@@ -112,6 +117,8 @@ export class AuthService {
         },
       });
 
+      user.company = companyCreated;
+
       const event = new AuthSignupEvent(user);
       this.eventEmitter.emit(event.name, event);
 
@@ -155,6 +162,12 @@ export class AuthService {
       });
     }
 
+    if (user.status !== UserStatuses.ACTIVE) {
+      throw new IBadRequestException({
+        message: authErrors.accountNotActive(user.status!),
+      });
+    }
+
     if (user.twofaEnabled) {
       if (!code) {
         throw new IPreconditionFailedException({
@@ -195,9 +208,9 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new IBadRequestException({
-        message: userErrors.userWithEmailNotFound(email),
-      });
+      return ResponseFormatter.success(
+        authSuccessMessages.forgotPassword(email),
+      );
     }
 
     const resetToken = await this.auth.getToken();
@@ -211,12 +224,12 @@ export class AuthService {
       },
     );
 
-    // TODO emit event
+    const event = new AuthResetPasswordRequestEvent(user, {
+      token: resetToken,
+    });
+    this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success(
-      authSuccessMessages.forgotPassword(email),
-      resetToken,
-    );
+    return ResponseFormatter.success(authSuccessMessages.forgotPassword(email));
   }
 
   async resetPassword(
@@ -269,7 +282,8 @@ export class AuthService {
       },
     );
 
-    // TODO emit event
+    const event = new AuthResetPasswordEvent(userToUpdate);
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       userOrToken instanceof User

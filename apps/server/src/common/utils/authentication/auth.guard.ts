@@ -85,7 +85,7 @@ export class AuthGuard implements CanActivate {
       },
     });
 
-    if (!user) {
+    if (!user || !user.company) {
       throw new IUnauthorizedException({
         message: authErrors.invalidCredentials,
       });
@@ -130,7 +130,7 @@ export class AuthGuard implements CanActivate {
       }
     }
 
-    request.user = user;
+    request.user = user as IRequest['user'];
 
     return true;
   }

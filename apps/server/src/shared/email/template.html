@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    table {
+      border: 0;
+      border-spacing: 0;
+      border-collapse: collapse
+    }
+
+    a {
+      color: #666D80;
+    }
+  </style>
+</head>
+
+<body width="100%" style="width: 100%; background: #F6F8FA ; padding: 30px;" bgcolor="#F6F8FA">
+  <!-- Logo: BEGIN -->
+  <section style="width: 100%;">
+    {{#if logo}}
+    <div style="width: 100%; max-width: 560px; margin-left: auto; margin-right: auto; padding-bottom: 24px;">
+      <img src="{{logo}}"
+        style="margin-right: auto;" alt="{{companyName}} Logo" height="32">
+    </div>
+    {{/if}}
+  </section>
+  <!-- Logo: END -->
+
+  <center style="background: #F6F8FA;" bgcolor="#F6F8FA">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+      style="width: 100%; max-width: 560px;">
+      <tr>
+        <!-- email container -->
+        <td class="email-container">
+          <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width: 100%;">
+            <tbody>
+              <tr>
+                <!-- White bg -->
+                <td class="email-container" style="padding-top: 32px; padding-bottom: 32px; background: #FFFFFF;"
+                  bgcolor="#FFFFFF">
+                  <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+                    style="width: 85%; max-width: 560px;">
+
+                    <!-- Main: BEGIN -->
+                    <tr>
+                      <td
+                        style="font-weight: 400; font-family: 'Inter', sans-serif; font-size: 16px; line-height: 24px; color: #666D80;">
+                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width: 100%;">
+                          <!-- Header: BEGIN -->
+                          <tr>
+                            <td
+                              style="font-weight: 500; font-family: 'Inter', sans-serif; font-size: 24px; line-height: 30px; color: #2B2E36;">
+                              {{title}}
+                            </td>
+                          </tr>
+                          <!-- Header: END -->
+
+                          <!-- Body Text: BEGIN -->
+                          <tr>
+                            <td style="font-weight: 400; font-family: 'Inter', sans-serif; padding-top: 32px;">
+                              <table border="0" cellpadding="0" cellspacing="0" role="presentation"
+                                style="width: 100%;">
+                                {{#each body}}
+                                <tr>
+                                  {{#if text}}
+                                  <td style="padding-top: 14px">{{ text }}</td>
+                                  {{/if}}
+                                  {{#if lists}}
+                                  <td style="padding-top: 14px">
+                                    <ul style="margin: 0;">
+                                      {{#each lists}}
+                                      <li>
+                                        <span style="font-weight: 600;">{{field}}</span>: {{value}}
+                                      </li>
+                                      {{/each}}
+                                    </ul>
+                                  </td>
+                                  {{/if}}
+                                </tr>
+                                {{/each}}
+
+                                {{#if cta}}
+                                <tr>
+                                  <td style="padding-top: 24px">
+                                    <a href='{{cta.value}}'
+                                      style="font-weight: 600; font-size: 14px; line-height: 20px; color: #9FF5B4; padding: 12px 20px 12px 20px; border-radius: 6px; background: #274079;">
+                                      {{cta.field}}
+                                    </a>
+                                  </td>
+                                </tr>
+                                {{/if}}
+                                <!-- Body Text: END -->
+                              </table>
+                            </td>
+                          </tr>
+                          <!-- Main: END -->
+                        </table>
+                      </td>
+                      <!-- White bg -->
+                    </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+      style="width: 100%; max-width: 560px;">
+      <!-- Footer: BEGIN -->
+      <tr>
+        <td
+          style="padding-top: 32px; font-size: 14px; line-height: 20px; text-align: center; font-weight: 400; letter-spacing: -0.02em; font-family: 'Inter', sans-serif; line-height: 20px; color: #666D80;">
+          <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+            style="width: 100%; max-width: 560px;">
+            <tr style="width: 100%;">
+              <td style="width: 100%;">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width: 100%;">
+                  <tr>
+                    <td style="padding-top: 8px; width: 100%;">
+                      Do you have questions? <a href="#">Click here</a>. Receiving this email in error? <a
+                        href="#">Click here</a>.
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-top: 8px; width: 100%;">
+                      © 2023 {{companyName}}, Powered by Open Banking Nigeria
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-top: 8px; width: 100%;">
+                      <a href="#">View in browser</a> | <a href="#">Unsubscribe</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <!-- Footer: END -->
+  </center>
+</body>
+
+</html>

@@ -4,7 +4,7 @@ import {
   CONSUMER_PERMISSIONS,
   PROVIDER_PERMISSIONS,
 } from '../../../permissions/types';
-import { ROLES } from '../../../roles/types';
+import { ROLES } from '../constants';
 import { v4 as uuidv4 } from 'uuid';
 
 export class Migration1701856285972 implements MigrationInterface {

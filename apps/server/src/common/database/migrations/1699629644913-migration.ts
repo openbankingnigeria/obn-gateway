@@ -1,6 +1,5 @@
 import { hashSync } from 'bcrypt';
-import { ROLES } from '../../../roles/types';
-import { CompanyTypes } from '../../../users/types';
+import { ROLES, CompanyTypes } from '../constants';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 

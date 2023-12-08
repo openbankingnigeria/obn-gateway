@@ -18,13 +18,13 @@ import { UsersModule } from './users/users.module';
 import { User } from './common/database/entities';
 import { RolesModule } from './roles/roles.module';
 import { ProfileModule } from './profile/profile.module';
-import { EmailService } from './shared/email/email.service';
 import { AuditLogsModule } from './auditLogs/auditLogs.module';
 import { CollectionsModule } from './collections/collections.module';
 import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
 import { HttpModule } from '@nestjs/axios';
 import { SettingsModule } from './settings/settings.module';
 import { CompanyModule } from './company/company.module';
+import { EmailModule } from '@shared/email/email.module';
 
 @Module({
   imports: [
@@ -61,6 +61,7 @@ import { CompanyModule } from './company/company.module';
     HttpModule,
     SettingsModule,
     CompanyModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [
@@ -76,7 +77,6 @@ import { CompanyModule } from './company/company.module';
       useClass: AuthGuard,
     },
     AppService,
-    EmailService,
   ],
 })
 export class AppModule {}
