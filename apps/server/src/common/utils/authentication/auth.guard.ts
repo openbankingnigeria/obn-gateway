@@ -46,7 +46,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<IRequest>();
 
     const accessToken = request.headers.authorization?.replace(/^Bearer\s/, '');
-    const body = request.body;
+    const twoFACode = request.get('x-twofa-code');
 
     if (!accessToken) {
       throw new IUnauthorizedException({
@@ -106,12 +106,12 @@ export class AuthGuard implements CanActivate {
 
     if (strictRequireTwoFA !== undefined) {
       if (strictRequireTwoFA === true) {
-        if (!body.code || !user.twofaEnabled) {
+        if (!twoFACode || !user.twofaEnabled) {
           throw new IBadRequestException({
             message: authErrors.twoFARequired,
           });
         }
-      } else if (user.twofaEnabled && !body.code) {
+      } else if (user.twofaEnabled && !twoFACode) {
         throw new IBadRequestException({
           message: authErrors.provideTwoFA,
         });
@@ -120,7 +120,7 @@ export class AuthGuard implements CanActivate {
         const verified = speakeasy.totp.verify({
           secret: user.twofaSecret!,
           encoding: 'base32',
-          token: body.code,
+          token: twoFACode!,
         });
         if (!verified) {
           throw new IBadRequestException({

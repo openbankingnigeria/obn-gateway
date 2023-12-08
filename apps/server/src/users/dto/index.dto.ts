@@ -5,7 +5,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  Length,
   Matches,
   MinLength,
 } from 'class-validator';
@@ -22,11 +21,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   roleId: string;
-
-  @IsOptional()
-  @IsString()
-  @Length(6, 6)
-  code: string;
 }
 
 export class UpdateUserDto {
@@ -62,9 +56,4 @@ export class UpdateUserDto {
   @IsString()
   @IsEnum(UserStatuses)
   status: UserStatuses;
-
-  @IsOptional()
-  @IsString()
-  @Length(6, 6)
-  code: string;
 }
