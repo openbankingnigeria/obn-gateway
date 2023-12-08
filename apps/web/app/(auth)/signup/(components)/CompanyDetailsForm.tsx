@@ -64,7 +64,16 @@ const CompanyDetailsForm = () => {
           required
         />
 
-        <>
+        <InputElement 
+          name='company_type'
+          placeholder='Your company type'
+          label='What type of company is it?'
+          value={company_type}
+          changeValue={setCompanyType}
+          required
+        />
+
+        {/* <>
           <input 
             name='company_type'
             value={company_type}
@@ -83,9 +92,18 @@ const CompanyDetailsForm = () => {
             value={company_type}
             changeValue={setCompanyType}
           />
-        </>
+        </> */}
 
-        <>
+        <InputElement 
+          name='role'
+          placeholder='Your role'
+          label='What is your role?'
+          value={role}
+          changeValue={setRole}
+          required
+        />
+
+        {/* <>
           <input 
             name='role'
             value={role}
@@ -104,7 +122,7 @@ const CompanyDetailsForm = () => {
             value={role}
             changeValue={setRole}
           />
-        </>
+        </> */}
       </div>
 
       <div className='w-full flex-col flex gap-[12px]'>
