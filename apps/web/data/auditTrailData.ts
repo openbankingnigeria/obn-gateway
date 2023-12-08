@@ -11,10 +11,10 @@ export const AUDIT_TRAIL_TABLE_HEADERS = [
     header: 'Event Type',
     accessor: 'event_type'
   },
-  {
-    header: 'Description',
-    accessor: 'description'
-  },
+  // {
+  //   header: 'Description',
+  //   accessor: 'description'
+  // },
   {
     header: 'Timestamp',
     accessor: 'timestamp'
