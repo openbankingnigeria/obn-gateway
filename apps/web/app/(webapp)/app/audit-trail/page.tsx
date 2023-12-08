@@ -26,7 +26,7 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
       limit: `${rows}`,
       name: search_query,
       event: type,
-      createdAt_gt: moment(dateFilter?.start_date).endOf('day').format()?.split('+')[0] + '.000Z',
+      createdAt_gt: moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z',
       createdAt_l: moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z'
     }),
     method: 'GET',
