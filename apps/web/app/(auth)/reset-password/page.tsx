@@ -4,6 +4,7 @@ import { ResetPasswordSuccess, ResetPasswordForm } from './(components)'
 
 const ResetPasswordPage = ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
+  const token = searchParams?.token;
 
   return (
     <section className='w-full flex flex-col'>
@@ -16,7 +17,9 @@ const ResetPasswordPage = ({ searchParams }: UrlParamsProps) => {
               Reset Your Password
             </h2>
             
-            <ResetPasswordForm />
+            <ResetPasswordForm 
+              token={token}
+            />
           </div>
       }
     </section>
