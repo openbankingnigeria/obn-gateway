@@ -15,10 +15,10 @@ export const ROLES_TABLE_HEADERS = [
     header: 'Date Created',
     accessor: 'date_created'
   },
-  {
-    header: 'Members',
-    accessor: 'members'
-  }
+  // {
+  //   header: 'Members',
+  //   accessor: 'members'
+  // }
 ];
 
 export const ROLES_ACTIONS_DATA = [

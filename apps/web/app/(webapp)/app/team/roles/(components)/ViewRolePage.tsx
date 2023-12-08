@@ -78,7 +78,7 @@ const ViewRolePage = ({
           </ul>
         </div>
 
-        <div className='w-full flex flex-col gap-[12px]'>
+        {/* <div className='w-full flex flex-col gap-[12px]'>
           <h3 className='text-f14 font-[600] text-o-text-medium2'>
             Members <span className='font-[400]'>({members?.length})</span>
           </h3>
@@ -93,7 +93,7 @@ const ViewRolePage = ({
               ))
             }
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>
