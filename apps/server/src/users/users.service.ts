@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Profile, Role, User } from 'src/common/database/entities';
+import {
+  Profile,
+  Role,
+  User,
+  UserStatuses,
+} from 'src/common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
@@ -11,6 +16,7 @@ import { roleErrors } from '@roles/role.errors';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   UserCreatedEvent,
+  UserDeactivatedEvent,
   UserDeletedEvent,
   UserUpdatedEvent,
 } from 'src/shared/events/user.event';
@@ -18,6 +24,7 @@ import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { userSuccessMessages } from '@users/user.constants';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { UserReactivatedEvent } from 'src/shared/events/user.event';
 
 @Injectable()
 export class UsersService {
@@ -35,7 +42,7 @@ export class UsersService {
 
   // TODO confirm that this roleId belongs to the comapny.
   async createUser(data: CreateUserDto) {
-    const { email, firstName, lastName, roleId } = data;
+    const { email, roleId } = data;
 
     const userExists = await this.userRepository.count({
       where: { email },
@@ -61,8 +68,8 @@ export class UsersService {
       });
     }
 
-    const resetToken = await this.auth.getToken();
-    const hashedResetToken = await this.auth.hashToken(resetToken);
+    const token = await this.auth.getToken();
+    const hashedToken = await this.auth.hashToken(token);
 
     const user = await this.userRepository.save(
       this.userRepository.create({
@@ -70,24 +77,17 @@ export class UsersService {
         roleId: role.id,
         password: '',
         companyId: this.requestContext.user!.companyId,
-        resetPasswordToken: hashedResetToken,
+        resetPasswordToken: hashedToken,
         resetPasswordExpires: moment().add(24, 'hours').toDate(),
-        profile: {
-          firstName,
-          lastName,
-        },
+        profile: {},
       }),
     );
 
-    const event = new UserCreatedEvent(
-      this.requestContext.user!,
-      user,
-      resetToken,
-      {
-        pre: null,
-        post: user,
-      },
-    );
+    const event = new UserCreatedEvent(this.requestContext.user!, user, {
+      pre: null,
+      post: user,
+      token,
+    });
 
     this.eventEmitter.emit(event.name, event);
 
@@ -182,7 +182,7 @@ export class UsersService {
 
     await this.userRepository.update({ id: user.id }, updatedUser);
     await this.profileRepository.update(
-      { id: user.profile.id },
+      { id: user.profile!.id },
       updatedProfile,
     );
     updatedUser.profile = updatedProfile;
@@ -191,6 +191,17 @@ export class UsersService {
       pre: user,
       post: updatedUser,
     });
+
+    if (updatedUser.status && user.status !== updatedUser.status) {
+      if (updatedUser.status === UserStatuses.ACTIVE) {
+        const event = new UserReactivatedEvent(this.requestContext.user!, user);
+        this.eventEmitter.emit(event.name, event);
+      }
+      if (updatedUser.status === UserStatuses.INACTIVE) {
+        const event = new UserDeactivatedEvent(this.requestContext.user!, user);
+        this.eventEmitter.emit(event.name, event);
+      }
+    }
 
     this.eventEmitter.emit(event.name, event);
 

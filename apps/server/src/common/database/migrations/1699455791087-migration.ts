@@ -1,4 +1,4 @@
-import { ROLES } from '../../../roles/types';
+import { ROLES } from '../constants';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 

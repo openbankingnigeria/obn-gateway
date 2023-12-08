@@ -51,7 +51,7 @@ export class User {
 
   @ManyToOne(() => Company, (company) => company.users, { cascade: ['insert'] })
   @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
-  company: Company;
+  company?: Company;
 
   @Column({ name: 'company_id', length: 36 })
   companyId: string;
@@ -59,7 +59,7 @@ export class User {
   @OneToOne(() => Profile, (profile) => profile.user, {
     cascade: true,
   })
-  profile: Profile;
+  profile?: Profile;
 
   @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
   auditLogs?: AuditLog[];

@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Company } from '../entities';
-import { CompanyTypes } from '../../../users/types';
+import { CompanyTypes } from '../constants';
 
-export class Migration1701883113873 implements MigrationInterface {
+export class Migration1701884323523 implements MigrationInterface {
   private readonly defaultSettings = {
     uneditableFields: ['taxIdentificationNumber', 'registryLicense'],
     kybRequirements: [

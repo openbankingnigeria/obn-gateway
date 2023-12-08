@@ -19,6 +19,8 @@ import {
 } from '@profile/profile.constants';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
+import { AuthSetPasswordEvent } from '@shared/events/auth.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ProfileService {
@@ -28,6 +30,7 @@ export class ProfileService {
     private readonly profileRepository: Repository<Profile>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getProfile() {
@@ -121,7 +124,8 @@ export class ProfileService {
       },
     );
 
-    // TODO emit event
+    const event = new AuthSetPasswordEvent(this.requestContext.user!);
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(profileSuccessMessages.updatedPassword);
   }

@@ -11,4 +11,6 @@ export const authErrors = {
   invalidTwoFA: 'Invalid 2FA code.',
   provideTwoFA: 'Please provide a 2FA code to access this resource',
   twoFARequired: '2FA is required on your account to access this resource',
+  accountNotActive: (status: string) =>
+    `Cannot login, your account is ${status}`,
 };
