@@ -51,7 +51,7 @@ export const disable2FA = () => `${BASE_URL}/profile/two-fa/disable`;
 export const getAuditLog = ({ id }: GetSingleProps) => 
   `${BASE_URL}/audit-trail/${id}`;
 export const getAuditTrails = ({ page, limit, event, createdAt_gt, createdAt_l, name }: GetListProps) => 
-  `${BASE_URL}/audit-trail?page=${page}${limit ? `&limit=${limit}`: ''}${event ? `&filter[event]=${event}`: ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][l]=${createdAt_l}`: ''}${name ? `&filter[name]=${name}`: ''}`
+  `${BASE_URL}/audit-trail?page=${page}${limit ? `&limit=${limit}`: ''}${event ? `&filter[event]=${event}`: ''}${createdAt_gt ? `&filter[createdAt][gte]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lte]=${createdAt_l}`: ''}${name ? `&filter[name]=${name}`: ''}`
 
 
 // COLLECTIONS

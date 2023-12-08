@@ -21,12 +21,12 @@ const PersonalDetails = ({
           </div>
         </div>
 
-        <Button 
+        {/* <Button 
           title='Save changes'
           type='submit'
           disabled
           small
-        />
+        /> */}
       </div>
 
       <div className='w-full gap-[20px] p-[24px] flex flex-col bg-white rounded-[12px] border border-o-border'>
