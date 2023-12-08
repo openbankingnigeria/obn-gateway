@@ -1,5 +1,17 @@
-import { IsNotEmpty, IsNumberString, Length } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  // Length,
+} from 'class-validator';
 import { companyValidationErrors } from '../company.config';
+
+export enum KybStatusActions {
+  APPROVE = 'approve',
+  DENY = 'deny',
+}
 
 export class UpdateCompanyDetailsDto {
   @IsNotEmpty({
@@ -12,6 +24,17 @@ export class UpdateCompanyDetailsDto {
         companyValidationErrors.dto.typeMismatch(property, 'numbers'),
     },
   )
-  @Length(21, 21, { message: 'rcNumber must be exactly 21 digits long.' })
+  // @Length(21, 21, { message: 'rcNumber must be exactly 21 digits long.' })
   rcNumber: string;
+}
+
+export class UpdateKybStatusDto {
+  @IsNotEmpty()
+  @IsString()
+  @IsEnum(KybStatusActions)
+  action: KybStatusActions;
+
+  @IsOptional()
+  @IsString()
+  reason: string;
 }

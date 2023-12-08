@@ -4,12 +4,19 @@ import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
 import { KybDataTypes, KybSettings } from '@settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Company, Settings } from '@common/database/entities';
+import { Company, Profile, Settings, User } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { settingsErrors } from '@settings/settings.errors';
+import * as dummyRegistry from './dummy.registry.json';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  CompanyApprovedEvent,
+  CompanyDeniedEvent,
+} from '@shared/events/company.event';
+import { ROLES } from '@common/database/constants';
 
 @Injectable()
 export class CompanyService {
@@ -17,9 +24,12 @@ export class CompanyService {
     private readonly fileHelpers: FileHelpers,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Settings)
     private readonly settingsRepository: Repository<Settings>,
     private readonly requestContext: RequestContextService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async updateCompanyKybDetails(data: any, files: Express.Multer.File[]) {
@@ -162,6 +172,92 @@ export class CompanyService {
         pageNumber: page,
         pageSize: limit,
       },
+    );
+  }
+
+  verifyCompanyRC(rcNumber: string) {
+    // TODO remove dummy registry
+    const business = dummyRegistry.find(
+      (business) => business.rcNumber === `RC${rcNumber}`,
+    );
+
+    if (!business) {
+      throw new IBadRequestException({
+        message: companyErrors.businessNotFoundOnRegistry(rcNumber),
+      });
+    }
+
+    return ResponseFormatter.success(
+      'Successfully fetched business details',
+      business,
+    );
+  }
+
+  async updateKYBstatus(
+    companyId: string,
+    { action, reason }: { action: 'approve' | 'deny'; reason?: string },
+  ) {
+    const company = await this.companyRepository.findOne({
+      where: {
+        id: companyId,
+      },
+    });
+
+    if (!company) {
+      throw new IBadRequestException({
+        message: companyErrors.companyNotFound(companyId!),
+      });
+    }
+
+    const companyAdmins = (await this.userRepository.find({
+      where: {
+        companyId: company.id,
+        role: {
+          slug: ROLES.ADMIN,
+        },
+      },
+      relations: {
+        profile: true,
+      },
+    })) as (User & { profile: Profile })[];
+
+    switch (action) {
+      case 'approve':
+        await this.companyRepository.update(
+          { id: companyId },
+          { isVerified: true },
+        );
+        const event = new CompanyApprovedEvent(
+          this.requestContext.user!,
+          this.requestContext.user!,
+          {
+            admins: companyAdmins,
+            apiProvider: this.requestContext.user!.company.name!,
+          },
+        );
+        this.eventEmitter.emit(event.name, event);
+        break;
+      // Send mail to company with reason
+      case 'deny':
+        if (!reason) {
+          throw new IBadRequestException({
+            message: companyErrors.reasonNotProvided,
+          });
+        }
+        const deniedEvent = new CompanyDeniedEvent(
+          this.requestContext.user!,
+          this.requestContext.user!,
+          {
+            admins: companyAdmins,
+            reason: reason!,
+          },
+        );
+        this.eventEmitter.emit(deniedEvent.name, deniedEvent);
+      // Send message to company with reason
+    }
+
+    return ResponseFormatter.success(
+      `Successfully ${action === 'approve' ? 'approved' : 'denied'} business.`,
     );
   }
 }

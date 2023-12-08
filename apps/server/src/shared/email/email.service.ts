@@ -26,6 +26,11 @@ import {
   AuthSetPasswordEvent,
   AuthSignupEvent,
 } from '@shared/events/auth.event';
+import {
+  CompanyApprovedEvent,
+  CompanyDeniedEvent,
+  CompanyEvents,
+} from '@shared/events/company.event';
 
 @Injectable()
 export class EmailService {
@@ -118,6 +123,26 @@ export class EmailService {
   handleUserResetPasswordEvent(event: AuthResetPasswordEvent) {
     this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD, event.user.email, {
       firstName: event.user.profile?.firstName || '',
+    });
+  }
+
+  @OnEvent(CompanyEvents.COMPANY_KYB_APPROVED)
+  handleApproveCompanyKyb(event: CompanyApprovedEvent) {
+    event.metadata.admins.forEach((admin) => {
+      this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, event.user.email, {
+        name: admin.profile.firstName,
+        apiProvider: event.metadata.apiProvider,
+      });
+    });
+  }
+
+  @OnEvent(CompanyEvents.COMPANY_KYB_DENIED)
+  handleDenyCompanyKyb(event: CompanyDeniedEvent) {
+    event.metadata.admins.forEach((admin) => {
+      this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, event.user.email, {
+        name: admin.profile.firstName,
+        reason: event.metadata.reason,
+      });
     });
   }
 

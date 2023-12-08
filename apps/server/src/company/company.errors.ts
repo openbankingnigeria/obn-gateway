@@ -6,4 +6,8 @@ export const companyErrors = {
   noKybDetailsFound: 'No KYB details were found for this company',
   companyNotFound: (companyId: string) =>
     `No company found with ID - ${companyId}`,
+  businessNotFoundOnRegistry: (rcNumber: string) =>
+    `No business with RC number - ${rcNumber} found in registry.`,
+  reasonNotProvided:
+    'A reason must be provided when denying a company KYB approval request.',
 };

@@ -20,9 +20,6 @@ export class Migration1700016347598 implements MigrationInterface {
     await queryRunner.query(`
             ALTER TABLE \`profiles\` CHANGE \`company_role\` \`company_role\` enum ('SOFTWARE_ENGINEER', 'CEO', 'API_PROVIDER') NOT NULL
         `);
-    await queryRunner.query(`
-            ALTER TABLE \`companies\` CHANGE \`type\` \`type\` enum ('BANK', 'API_PROVIDER') NOT NULL
-        `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

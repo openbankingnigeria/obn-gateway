@@ -3,6 +3,11 @@ export enum CompanyTypes {
   API_PROVIDER = 'API_PROVIDER',
 }
 
+export const CompanyTypesObject = {
+  bank: 'BANK',
+  apiProvider: 'API_PROVIDER',
+};
+
 export enum CompanyRoles {
   SOFTWARE_ENGINEER = 'SOFTWARE_ENGINEER',
   CEO = 'CEO',
@@ -23,4 +28,6 @@ export enum EMAIL_TEMPLATES {
   SET_PASSWORD = 'set-password',
   RESET_PASSWORD_REQUEST = 'reset-password-request',
   RESET_PASSWORD = 'reset-password',
+  COMPANY_KYB_APPROVED = 'company-kyb-approved',
+  COMPANY_KYB_DENIED = 'company-kyb-denied',
 }
