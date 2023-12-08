@@ -162,11 +162,12 @@ export class AuthService {
       });
     }
 
-    if (user.status !== UserStatuses.ACTIVE) {
-      throw new IBadRequestException({
-        message: authErrors.accountNotActive(user.status!),
-      });
-    }
+    // TODO
+    // if (user.status !== UserStatuses.ACTIVE) {
+    //   throw new IBadRequestException({
+    //     message: authErrors.accountNotActive(user.status!),
+    //   });
+    // }
 
     if (user.twofaEnabled) {
       if (!code) {

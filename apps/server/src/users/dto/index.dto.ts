@@ -30,9 +30,7 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
-  @IsNotEmpty({
-    message: ({ property }) => userErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
   @MinLength(userConfig.minNameLength, {
     message: ({ property }) =>
@@ -44,9 +42,7 @@ export class UpdateUserDto {
   })
   firstName: string;
 
-  @IsNotEmpty({
-    message: ({ property }) => userErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
   @MinLength(userConfig.minNameLength, {
     message: ({ property }) =>

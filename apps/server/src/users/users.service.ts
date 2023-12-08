@@ -101,7 +101,7 @@ export class UsersService {
 
     const users = await this.userRepository.find({
       where: { companyId: this.requestContext.user!.companyId, ...filters },
-      relations: { profile: true },
+      relations: { profile: true, role: true },
       skip: (page - 1) * limit,
       take: limit,
     });
