@@ -1,14 +1,14 @@
 'use client'
 
 import { postAddBusinessInfo } from '@/actions/profileActions'
-import { DragAndUploadFile } from '@/app/(webapp)/(components)'
+// import { DragAndUploadFile } from '@/app/(webapp)/(components)'
 import { DragAndUploadElement, InputElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import { AddBusinessInformationProps } from '@/types/webappTypes/appTypes'
 import React, { useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import { ConfirmCancel } from '.'
+import { useServerAction } from '@/hooks'
+import { useRouter } from 'next/navigation'
 
 const AddBusinessInformation = ({
   close,
@@ -17,13 +17,14 @@ const AddBusinessInformation = ({
   next
 }: AddBusinessInformationProps) => {
   const [cac, setCac] = useState('');
+  const router = useRouter();
   const [regulator_license, setRegulatorLicense] = useState('');
   const [certificate_of_incorporation, setCertificationOfIncorporation] = useState('');
   const [tin, setTin] = useState('');
   const [company_status_report, setCompanyStatusReport] = useState('');
 
   const incorrect = (
-    !cac ||
+    cac?.length != 21 ||
     !regulator_license ||
     !certificate_of_incorporation ||
     !tin?.match(/^\d{9}$/) ||
@@ -31,7 +32,9 @@ const AddBusinessInformation = ({
   );
 
   const handleCac = (value: string) => {
-    setCac(value?.toString()?.replace(/[^0-9.]/g, ''));
+    if (value?.length <= 21) {
+      setCac(value?.toString()?.replace(/[^0-9.]/g, ''));
+    }
   }
 
   const handleTin = (value: string) => {
@@ -40,13 +43,11 @@ const AddBusinessInformation = ({
     }
   }
 
-  const initialState = {
-    message: null,
-  }
-
-  const [state, formAction] = useFormState(postAddBusinessInfo, initialState);
-  if(state?.message) {
+  const initialState = {}
+  const [state, formAction] = useServerAction(postAddBusinessInfo, initialState);
+  if(state?.response?.status == 200) {
     next();
+    router.refresh();
   }
 
   return (
