@@ -1,0 +1,22 @@
+[
+  { "rcNumber": "RC1234567890", "name": "Innovate Co." },
+  { "rcNumber": "RC0987654321", "name": "Global Ventures" },
+  { "rcNumber": "RC2345678901", "name": "Smart Industries" },
+  { "rcNumber": "RC9876543210", "name": "Tech Solutions" },
+  { "rcNumber": "RC3456789012", "name": "Future Enterprises" },
+  { "rcNumber": "RC2109876543", "name": "Pioneer Systems" },
+  { "rcNumber": "RC4567890123", "name": "Eco Innovations" },
+  { "rcNumber": "RC5432109876", "name": "Summit Technologies" },
+  { "rcNumber": "RC6789012345", "name": "Digital Dynamics" },
+  { "rcNumber": "RC3210987654", "name": "Creative Concepts" },
+  { "rcNumber": "RC7890123456", "name": "Synergy Solutions" },
+  { "rcNumber": "RC4321098765", "name": "Innovative Insights" },
+  { "rcNumber": "RC5678901234", "name": "Sustainable Systems" },
+  { "rcNumber": "RC8901234567", "name": "Strategic Solutions" },
+  { "rcNumber": "RC1098765432", "name": "Dynamic Developments" },
+  { "rcNumber": "RC3456789012", "name": "Progressive Platforms" },
+  { "rcNumber": "RC4321098765", "name": "Visionary Ventures" },
+  { "rcNumber": "RC5678901234", "name": "Unified Innovations" },
+  { "rcNumber": "RC8901234567", "name": "Advanced Analytics" },
+  { "rcNumber": "RC1098765432", "name": "Precision Technologies" }
+]

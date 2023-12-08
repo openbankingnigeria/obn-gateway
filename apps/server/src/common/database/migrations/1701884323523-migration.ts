@@ -41,6 +41,8 @@ export class Migration1701884323523 implements MigrationInterface {
       `SELECT * FROM companies WHERE type = '${CompanyTypes.API_PROVIDER}' ORDER BY created_at ASC`,
     );
 
+    console.log({ apiProvider });
+
     const parameters = [
       [
         uuidv4(),
