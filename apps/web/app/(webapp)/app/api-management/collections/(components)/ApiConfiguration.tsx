@@ -160,7 +160,7 @@ const ApiConfiguration = ({
             rows={3}
             value={parameters}
             changeValue={setParameters}
-            placeholder=''
+            placeholder='Parameters'
             label='Parameters (if any)'
           />
         </div>

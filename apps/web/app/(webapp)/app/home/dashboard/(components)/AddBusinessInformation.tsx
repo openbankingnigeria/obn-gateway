@@ -32,13 +32,13 @@ const AddBusinessInformation = ({
   );
 
   const handleCac = (value: string) => {
-    if (value?.length <= 21) {
-      setCac(value?.toString()?.replace(/[^0-9.]/g, ''));
+    if (value?.length <= 15) {
+      setCac(value?.toString()?.replace(/[^0-9a-zA-Z.]/g, ''));
     }
   }
 
   const handleTin = (value: string) => {
-    if (value?.length <= 9){
+    if (value?.length <= 15){
       setTin(value?.toString()?.replace(/[^0-9.]/g, ''));
     }
   }
@@ -69,7 +69,7 @@ const AddBusinessInformation = ({
             <InputElement 
               name='cac'
               type='cac'
-              placeholder=''
+              placeholder='RC Number'
               label='CAC Registration Number'
               value={cac}
               changeValue={(value: string) => handleCac(value)}
@@ -83,16 +83,18 @@ const AddBusinessInformation = ({
           </div>
 
           <div className='w-full flex flex-col gap-[6px]'>
-            <DragAndUploadElement 
-              required={true}
-              label={'Regular License'}
-              name={'regulator_license'}
-              changeValue={setRegulatorLicense}
-              value={regulator_license}
+            <InputElement 
+              name='tin'
+              type='tin'
+              placeholder='Tax identification number'
+              label='Tax Identification Number (TIN)'
+              value={tin}
+              changeValue={(value: string) => handleTin(value)}
+              required
             />
             {/* <div className='w-full'>
               <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
-                What is a Regulatory License?
+                What is a Tax Identification Number (TIN)?
               </a>
             </div> */}
           </div>
@@ -113,23 +115,6 @@ const AddBusinessInformation = ({
           </div>
 
           <div className='w-full flex flex-col gap-[6px]'>
-            <InputElement 
-              name='tin'
-              type='tin'
-              placeholder=''
-              label='Tax Identification Number (TIN)'
-              value={tin}
-              changeValue={(value: string) => handleTin(value)}
-              required
-            />
-            {/* <div className='w-full'>
-              <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
-                What is a Tax Identification Number (TIN)?
-              </a>
-            </div> */}
-          </div>
-
-          <div className='w-full flex flex-col gap-[6px]'>
             <DragAndUploadElement 
               required={true}
               label={'Company Status Report'}
@@ -140,6 +125,21 @@ const AddBusinessInformation = ({
             {/* <div className='w-full'>
               <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
                 Document on Company&#39;s shareholding, details of shareholders, Board, and Secretary.
+              </a>
+            </div> */}
+          </div>
+
+          <div className='w-full flex flex-col gap-[6px]'>
+            <DragAndUploadElement 
+              required={true}
+              label={'Regulatory License'}
+              name={'regulator_license'}
+              changeValue={setRegulatorLicense}
+              value={regulator_license}
+            />
+            {/* <div className='w-full'>
+              <a className='text-f12 text-o-light-blue cursor-pointer hover:text-o-dark-blue'>
+                What is a Regulatory License?
               </a>
             </div> */}
           </div>

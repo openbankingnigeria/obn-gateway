@@ -72,7 +72,7 @@ const InviteMemberPage = ({
         <InputElement 
           name='email'
           type='email'
-          placeholder=''
+          placeholder='johndoe@example.com'
           label='Email Address'
           value={email}
           changeValue={setEmail}

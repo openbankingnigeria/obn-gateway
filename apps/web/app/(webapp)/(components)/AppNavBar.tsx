@@ -155,7 +155,7 @@ const AppNavBar = () => {
           </div>
 
           {/* NOTIFICATIONS */}
-          <div className='relative w-fit h-fit'>
+          {/* <div className='relative w-fit h-fit'>
             <div
               onClick={() => setOpenNotification(prev => !prev)}
               className='w-fit h-fit hidden md:block cursor-pointer relative'
@@ -188,7 +188,7 @@ const AppNavBar = () => {
                 </OutsideClicker>
               </div>
             }
-          </div>
+          </div> */}
 
           <div className='relative py-1 group'>
             <div className='group px-[8px] cursor-pointer flex items-center gap-[8px]'>

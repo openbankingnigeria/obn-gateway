@@ -163,7 +163,9 @@ export const CONSUMER_API_ACTIVITIES_HEADERS = [
   },
 ];
 
-export const CONSUMER_API_ACTIVITIES = [
+export const CONSUMER_API_ACTIVITIES = [];
+
+export const CONSUMER_API_ACTIVITIES_FULLDATA = [
   {
     id: 1,
     api_name: 'Get Transactions',
@@ -232,7 +234,9 @@ export const CONSUMER_CONSENTS_HEADERS = [
   },
 ];
 
-export const CONSUMER_CONSENTS = [
+export const CONSUMER_CONSENTS = [];
+
+export const CONSUMER_CONSENTS_FULLDATA = [
   {
     id: 1,
     name: 'Consent name',
@@ -276,7 +280,9 @@ export const CONSUMER_CONSENTS_STATUS = [
   },
 ];
 
-export const CONSUMERS_TABLE_DATA = [
+export const CONSUMERS_TABLE_DATA = [];
+
+export const CONSUMERS_TABLE_FULLDATA = [
   {
     id: 1,
     name: 'John Ajayi',

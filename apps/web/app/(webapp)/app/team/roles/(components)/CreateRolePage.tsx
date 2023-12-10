@@ -47,7 +47,7 @@ const CreateRolePage = ({
         <InputElement 
           name='role_name'
           type='role_name'
-          placeholder=''
+          placeholder='Role name'
           label='Role Name'
           value={role_name}
           changeValue={setRoleName}
@@ -59,7 +59,7 @@ const CreateRolePage = ({
           rows={3}
           value={description}
           changeValue={setDescription}
-          placeholder=''
+          placeholder='Role description'
           required
           label='Description'
         />

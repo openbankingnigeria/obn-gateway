@@ -48,7 +48,9 @@ export const AUDIT_TRAIL_EVENT_TYPE = [
   }
 ];
 
-export const AUDIT_TRAIL_TABLE_DATA = [
+export const AUDIT_TRAIL_TABLE_DATA = [];
+
+export const AUDIT_TRAIL_TABLE_FULLDATA = [
   {
     id: 1,
     member_name: 'John Ajayi',

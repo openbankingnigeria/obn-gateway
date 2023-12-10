@@ -46,6 +46,7 @@ const ViewRolePage = ({
           type='role_name'
           label='Role Name'
           disabled
+          placeholder='Role name'
           value={data?.name}
           required
         />
@@ -53,6 +54,7 @@ const ViewRolePage = ({
         <TextareaElement
           name='description'
           rows={3}
+          placeholder='Role description'
           disabled
           value={data?.description}
           required

@@ -81,7 +81,7 @@ const PersonalDetails = ({
             <InputElement 
               name='email'
               type='email'
-              // placeholder='johndoe@openbanking.com'
+              placeholder='johndoe@openbanking.com'
               value={profile?.user?.email}
               disabled
               required
@@ -106,7 +106,7 @@ const PersonalDetails = ({
           <div className='w-full'>
             <InputElement
               name='role'
-              placeholder='role'
+              placeholder='Role'
               value={profile?.companyRole?.replace(/_/g, ' ')}
               disabled
               required
