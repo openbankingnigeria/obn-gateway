@@ -119,7 +119,7 @@ export class UsersService {
   async getUser(id: string) {
     const user = await this.userRepository.findOne({
       where: { id, companyId: this.requestContext.user!.companyId },
-      relations: { profile: true },
+      relations: { profile: true, role: true },
     });
 
     if (!user) {
@@ -238,5 +238,24 @@ export class UsersService {
     this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(userSuccessMessages.deletedUser, null);
+  }
+
+  async getStats() {
+    const stats = await this.userRepository.query(
+      `SELECT IFNULL(count, 0) count, definitions.value FROM definitions
+              LEFT OUTER JOIN (
+              SELECT count(id) AS count, status
+              FROM users WHERE deleted_at IS NULL AND company_id = ?
+              GROUP BY status
+            ) users ON users.status = definitions.value
+              AND definitions.type = 'status'
+              WHERE definitions.entity = 'user'
+        `,
+      [this.requestContext.user!.companyId],
+    );
+    return ResponseFormatter.success(
+      userSuccessMessages.fetchedUsersStats,
+      stats,
+    );
   }
 }

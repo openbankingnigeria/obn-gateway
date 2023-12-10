@@ -52,6 +52,13 @@ export class RolesController {
     return this.rolesService.listRoles(pagination, filters);
   }
 
+  @Get('stats')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
+  getStats() {
+    return this.rolesService.getStats();
+  }
+
   @Get('permissions')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.LIST_ROLES)

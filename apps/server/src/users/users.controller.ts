@@ -46,6 +46,13 @@ export class UsersController {
     return this.usersService.listUsers(pagination, filters);
   }
 
+  @Get('stats')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_TEAM_MEMBERS)
+  getStats() {
+    return this.usersService.getStats();
+  }
+
   @Get(':id')
   @UsePipes(IValidationPipe)
   getUser(@Param('id') id: string) {

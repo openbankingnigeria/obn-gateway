@@ -6,6 +6,7 @@ export const roleSuccessMessages = {
   updatedRole: 'Successfully updated role',
   deletedRole: 'Successfully deleted role',
   fetchedPermissions: 'Successfully fetched permissions',
+  fetchedRolesStats: 'Successfully fetched role stats',
 };
 
 export const roleErrorMessages = {

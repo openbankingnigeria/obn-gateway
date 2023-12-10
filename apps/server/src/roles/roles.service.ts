@@ -294,4 +294,23 @@ export class RolesService {
       permissions,
     );
   }
+
+  async getStats() {
+    const stats = await this.roleRepository.query(
+      `SELECT IFNULL(count, 0) count, definitions.value FROM definitions
+              LEFT OUTER JOIN (
+              SELECT count(id) AS count, status
+              FROM roles WHERE deleted_at IS NULL AND company_id = ?
+              GROUP BY status
+            ) roles ON roles.status = definitions.value
+              AND definitions.type = 'status'
+              WHERE definitions.entity = 'role'
+        `,
+      [this.requestContext.user!.companyId],
+    );
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRolesStats,
+      stats,
+    );
+  }
 }
