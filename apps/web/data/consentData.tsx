@@ -98,7 +98,9 @@ export const CONSENT_ACTIONS_DATA = [
   },
 ];
 
-export const CONSENTS_API_ACTIVITIES = [
+export const CONSENTS_API_ACTIVITIES = [];
+
+export const CONSENTS_API_ACTIVITIES_FULLDATA = [
   {
     id: 1,
     event_type: 'Get Transactions',
@@ -193,7 +195,9 @@ export const CONSENTS_TABLE_HEADERS = [
   }
 ];
 
-export const CONSENTS_TABLE_DATA = [
+export const CONSENTS_TABLE_DATA = [];
+
+export const CONSENTS_TABLE_FULLDATA = [
   {
     id: 1,
     consent_id: '#128902983GH',

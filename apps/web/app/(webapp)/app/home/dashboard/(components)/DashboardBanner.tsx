@@ -70,7 +70,7 @@ const DashboardBanner = ({
               </svg>
             }
 
-            <div className='p-[20px] gap-[20px] w-full flex flex-col'>
+            <div className='p-[20px] gap-[20px] w-[55%] flex flex-col'>
               <div className='w-full flex flex-col gap-[8px]'>
                 <h2 className='w-full text-f18 font-[600] text-o-text-dark'>
                   {
@@ -108,7 +108,7 @@ const DashboardBanner = ({
               }
             </div>
 
-            <div className='w-full flex items-center pt-[19px] justify-end pr-[51px]'>
+            <div className={`w-[45%] flex items-center ${(!rawData?.isVerified && !rawData?.kybData?.taxIdentificationNumber) ? 'pt-[19px]' : 'h-full'} justify-end pr-[51px]`}>
               <Image 
                 src={
                   rawData?.isVerified ? 
@@ -119,7 +119,13 @@ const DashboardBanner = ({
                 }
                 alt='status'
                 loading='lazy'
-                width={290}
+                width={
+                  rawData?.isVerified ?
+                    218 :
+                    (!rawData?.isVerified && rawData?.kybData?.taxIdentificationNumber) ?
+                      169 :
+                      290
+                }
                 height={170}
                 className='object-cover absolute'
               />

@@ -111,6 +111,7 @@ const NewMemberInviteTwo = () => {
 
             <SelectElement 
               name='group'
+              placeholder='Select'
               label='Group'
               options={group_list}
               required

@@ -165,7 +165,9 @@ export const MEMBER_RECENT_ACTIVITIES_HEADER = [
   }
 ];
 
-export const MEMBER_RECENT_ACTIVITIES = [
+export const MEMBER_RECENT_ACTIVITIES = [];
+
+export const MEMBER_RECENT_ACTIVITIES_FULLDATA = [
   {
     id: 1,
     event_type: 'Event title here',
@@ -189,7 +191,9 @@ export const MEMBER_DETAILS_PANEL = [
   },
 ];
 
-export const INVITED_MEMBERS_TABLE_DATA = [
+export const INVITED_MEMBERS_TABLE_DATA = [];
+
+export const INVITED_MEMBERS_TABLE_FULLDATA = [
   {
     id: 1,
     email_address: 'johnajayi@lendsqr.com',

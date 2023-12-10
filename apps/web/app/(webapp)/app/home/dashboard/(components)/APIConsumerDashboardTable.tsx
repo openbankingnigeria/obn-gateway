@@ -115,7 +115,7 @@ const APIConsumerDashboardTable = ({
                 <EmptyState 
                   title='Nothing to show'
                   type='DEFAULT'
-                  parentStyle='!h-[calc(100vh-600px)]'
+                  parentStyle='!h-[calc(100vh-400px)]'
                   body='There’s no information to show yet. Complete your account setup to see APIs available to you.'
                 />
             }

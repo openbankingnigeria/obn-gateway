@@ -42,7 +42,7 @@ const ChangePasswordForm = ({
           type='password'
           value={old_password}
           changeValue={setOldPassword}
-          placeholder='● ● ● ● ● ● ● ● ● ● ●'
+          placeholder='Old password'
           label='Old Password'
           required
         />
@@ -53,7 +53,7 @@ const ChangePasswordForm = ({
           value={password}
           changeValue={setPassword}
           showGuide
-          placeholder='● ● ● ● ● ● ● ● ● ● ●'
+          placeholder='Password'
           label='New Password'
           required
         />
@@ -63,7 +63,7 @@ const ChangePasswordForm = ({
           type='password'
           value={confirm_password}
           changeValue={setConfirmPassword}
-          placeholder='● ● ● ● ● ● ● ● ● ● ●'
+          placeholder='Confirm password'
           label='Confirm Password'
           hint={!passwordMatch ? 'Password does not match' : ''}
           invalid={!passwordMatch && !!confirm_password}

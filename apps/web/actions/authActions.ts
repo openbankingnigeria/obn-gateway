@@ -86,7 +86,7 @@ export async function postSignup(prevState: any, formData: FormData) {
     confirmPassword: formData.get('confirm_password'),
     firstName: formData.get('first_name'),
     lastName: formData.get('last_name'),
-    country: formData.get('country'),
+    // country: formData.get('country'),
     phone: formData.get('phone_number'),
     companyName: formData.get('company_name'),
     companyType: formData.get('company_type'),

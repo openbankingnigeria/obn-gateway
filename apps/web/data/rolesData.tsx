@@ -99,7 +99,9 @@ export const ROLES_2FA_DATA = [
   },
 ];
 
-export const ROLES_MEMBERS = [
+export const ROLES_MEMBERS = [];
+
+export const ROLES_MEMBERS_FULLDATA = [
   {
     id: 1,
     name: 'John Ajayi',
@@ -143,8 +145,9 @@ export const ROLES_VIEW_PERMISSIONS = [
     label: 'Manage Roles: Create, Edit and Delete'
   },
 ];
+export const ROLES_TABLE_DATA = [];
 
-export const ROLES_TABLE_DATA = [
+export const ROLES_TABLE_FULLDATA = [
   {
     id: 1,
     role_name: 'Admin 1',

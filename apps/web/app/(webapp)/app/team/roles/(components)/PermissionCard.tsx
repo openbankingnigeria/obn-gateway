@@ -42,7 +42,7 @@ const PermissionCard = ({
         ...prev, 
         {
           permission: value,
-          options: []
+          options: [...options]
         }
       ])
     }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { SignupForm } from './(components)'
+import { SignupForm, SignupFullForm } from './(components)'
 import Link from 'next/link'
 
 const SignupPage = () => {
@@ -17,7 +17,8 @@ const SignupPage = () => {
           </div>
         </div>
         
-        <SignupForm />
+        {/* <SignupForm /> */}
+        <SignupFullForm />
 
         <div className='text-f14 font-[400] w-full text-o-text-dark'>
           Already have an account?&#160;
