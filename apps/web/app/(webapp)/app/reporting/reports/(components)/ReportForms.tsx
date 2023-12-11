@@ -4,7 +4,7 @@ import { postGenerateReport } from '@/actions/reportActions';
 import { DatePicker } from '@/app/(webapp)/(components)';
 import { SelectElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents';
-import { CONSUMERS_TABLE_DATA } from '@/data/consumerData';
+import { CONSUMERS_TABLE_DATA, CONSUMERS_TABLE_FULLDATA } from '@/data/consumerData';
 import { OptionsProps } from '@/types/componentsTypes/forms';
 import React, { useState } from 'react';
 // @ts-ignore
@@ -16,7 +16,7 @@ const ReportForms = () => {
   const [to, setTo] = useState<string | undefined>('');
   const [consumers, setConsumers] = useState<OptionsProps[]>([]);
 
-  const consumers_list = CONSUMERS_TABLE_DATA?.map((consumer) => {
+  const consumers_list = CONSUMERS_TABLE_FULLDATA?.map((consumer) => {
     return({
       label: consumer?.name,
       value: consumer?.id?.toString()
