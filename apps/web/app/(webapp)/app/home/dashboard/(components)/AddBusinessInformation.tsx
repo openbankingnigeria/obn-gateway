@@ -33,13 +33,13 @@ const AddBusinessInformation = ({
 
   const handleCac = (value: string) => {
     if (value?.length <= 15) {
-      setCac(value?.toString()?.replace(/[^0-9a-zA-Z.]/g, ''));
+      setCac(value?.toString()?.replace(/[^0-9a-zA-Z]/g, ''));
     }
   }
 
   const handleTin = (value: string) => {
     if (value?.length <= 15){
-      setTin(value?.toString()?.replace(/[^0-9.]/g, ''));
+      setTin(value?.toString()?.replace(/[^0-9-]/g, ''));
     }
   }
 
