@@ -1,13 +1,16 @@
 import type { Metadata } from 'next'
-import { AppLeftSideBar, AppNavBar } from '../(components)'
+import { AppLeftSideBar, AppNavBar, KybBanner } from '../(components)'
 import { redirect } from 'next/navigation'
 import { getCookies } from '@/config/cookies'
+import { applyAxiosRequest } from '@/hooks'
+import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout'
 
 export const metadata: Metadata = {
   title: 'Aperta - App',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
@@ -15,12 +18,27 @@ export default function RootLayout({
   if (!getCookies('aperta-user-accessToken')) {
     redirect('/signin')
   } else {
+    const fetchedDetails : any = await applyAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyDetails(),
+      method: 'GET',
+      data: null
+    });
+  
+    if (fetchedDetails?.status == 401) {
+      return <Logout />
+    }
+  
+    let details = fetchedDetails?.data;
+    let showBanner = Boolean(!details?.isVerified)
+
     return (
       <section className='max-w-full min-h-screen relative bg-[#FCFDFD]'>
-        <AppNavBar />
-        <AppLeftSideBar />
+        { showBanner && <KybBanner rawData={details} /> }
+        <AppNavBar bannerExist={showBanner} />
+        <AppLeftSideBar bannerExist={showBanner} />
 
-        <main className='w-full min-h-screen flex flex-col pt-[112px] pb-[25px] wide:pl-[360px] pl-[330px] wide:pr-[80px] pr-[25px] overflow-auto'>
+        <main className={`w-full min-h-screen flex flex-col ${showBanner ? 'pt-[168px]' : 'pt-[112px]'} pb-[25px] wide:pl-[360px] pl-[330px] wide:pr-[80px] pr-[25px] overflow-auto`}>
           <section className='w-full h-full flex flex-col'>
             {children}
           </section>

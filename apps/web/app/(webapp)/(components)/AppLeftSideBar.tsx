@@ -9,7 +9,7 @@ import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
 import { setJsCookies } from '@/config/jsCookie'
 
-const AppLeftSideBar = () => {
+const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const pathname = usePathname();
   const [profile, setProfile] = useState<any>();
 
@@ -43,7 +43,7 @@ const AppLeftSideBar = () => {
   let avatarAlt = `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`
 
   return (
-    <aside className='fixed w-[280px] z-[100] left-0 h-screen border-r border-o-border bg-white flex flex-col gap-[24px] py-[24px]'>
+    <aside className={`fixed w-[280px] z-[100] left-0 bottom-0 ${bannerExist ? 'h-[calc(100vh-56px)]' : 'h-screen'} border-r border-o-border bg-white flex flex-col gap-[24px] py-[24px]`}>
       <div className='w-full px-[16px]'>
         <div className='w-full p-[12px] flex flex-row gap-[8px] items-center rounded-[8px] bg-[#182749]'>
           {/* API CONSUMER */}

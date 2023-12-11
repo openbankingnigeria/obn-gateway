@@ -26,6 +26,7 @@ import BooleanBox from "./BooleanBox";
 import TierBox from "./TierBox";
 import DownloadButton from "./DownloadButton";
 import DragAndUploadFile from "./DragAndUploadFile";
+import KybBanner from "./KybBanner";
 
 export {
   DatePicker,
@@ -39,6 +40,7 @@ export {
   AppRightModal,
   TopPanel,
   TableElement,
+  KybBanner,
   StatusBox,
   TablePagination,
   TwoFactorAuthModal,
