@@ -448,13 +448,12 @@ export class AuthService {
     const otpData: any = {};
 
     if (this.config.get('server.nodeEnv') === 'development') {
-      otpData[otp] = otp.toString();
+      otpData.otp = otp.toString();
     }
 
     this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(authSuccessMessages.resendOtp, {
-      ...user,
       ...otpData,
     });
   }
