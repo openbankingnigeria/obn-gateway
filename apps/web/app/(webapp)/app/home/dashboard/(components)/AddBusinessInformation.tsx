@@ -73,6 +73,7 @@ const AddBusinessInformation = ({
     console.log(result?.status == 200)
     setLoading(false);
     if (result?.status == 200) {
+      next();
       router?.refresh();
     }
   }
