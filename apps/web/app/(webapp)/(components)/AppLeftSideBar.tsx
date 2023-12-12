@@ -23,11 +23,11 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
     });
 
     setProfile(result?.data);
-    setJsCookies('aperta-user-profile', JSON.stringify({
-      name: `${result?.data?.firstName} ${result?.data?.lastName}`,
-      companyRole: result?.data?.companyRole?.toLowerCase()?.replace(/_/g, ' '),
-      userType: result?.data?.user?.role?.parent?.slug
-    }))
+    // setJsCookies('aperta-user-profile', JSON.stringify({
+    //   name: `${result?.data?.firstName} ${result?.data?.lastName}`,
+    //   companyRole: result?.data?.companyRole?.toLowerCase()?.replace(/_/g, ' '),
+    //   userType: result?.data?.user?.role?.parent?.slug
+    // }))
   }
 
   useEffect(() => {

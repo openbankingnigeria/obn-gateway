@@ -24,10 +24,10 @@ const AddBusinessInformation = ({
   const [company_status_report, setCompanyStatusReport] = useState('');
 
   const incorrect = (
-    cac?.length != 21 ||
+    cac?.length != 15 ||
     !regulator_license ||
     !certificate_of_incorporation ||
-    !tin?.match(/^\d{9}$/) ||
+    !tin?.match(/^\d{15}$/) ||
     !company_status_report
   );
 

@@ -28,7 +28,8 @@ const ForgetPasswordForm = () => {
       <div className='w-full flex flex-col gap-[16px]'>
         <InputElement 
           name='email'
-          placeholder='johndoe@openbanking.com'
+          type='email'
+          placeholder='Email address'
           label='Email Address'
           value={email}
           changeValue={setEmail}

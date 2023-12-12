@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Loader, OutsideClicker } from '@/components/globalComponents';
 import { PermissionSelectorProps } from '@/types/webappTypes/appTypes';
 

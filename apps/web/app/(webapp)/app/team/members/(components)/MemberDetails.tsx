@@ -184,7 +184,7 @@ const MemberDetails = ({
                   name='role'
                   // @ts-ignore
                   options={roleList}
-                  placeholder='Select'
+                  placeholder='Select role'
                   value={role}
                   changeValue={(value: string) => changeRole(value)}
                   containerStyle='!w-fit cursor-pointer'

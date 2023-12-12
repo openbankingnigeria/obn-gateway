@@ -35,7 +35,7 @@ const KybBanner = ({
           </AppRightModal>
       }
 
-      <section className='bg-[#FEEBCB] p-[16px] w-full flex justify-center items-centee fixed top-0 right-0 left-0 border-b-[4px] border-[#DD6B20]'>
+      <section className='bg-[#FEEBCB] p-[16px] z-50 w-full flex justify-center items-centee fixed top-0 right-0 left-0 border-b-[4px] border-[#DD6B20]'>
         <div className='text-f14 text-[#2D3748]'>
           {
             rawData?.isVerified ?
