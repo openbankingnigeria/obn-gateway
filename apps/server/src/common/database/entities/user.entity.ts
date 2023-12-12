@@ -33,10 +33,20 @@ export class User {
   @Column()
   password?: string;
 
-  @Column({ type: 'varchar', nullable: true, default: null })
+  @Column({
+    // name: 'twofa_secret',
+    type: 'varchar',
+    nullable: true,
+    default: null,
+  })
   twofaSecret?: string;
 
-  @Column({ type: 'boolean', nullable: false, default: false })
+  @Column({
+    // name: 'twofa_enabled',
+    type: 'boolean',
+    nullable: false,
+    default: false,
+  })
   twofaEnabled: boolean;
 
   @Column({ default: UserStatuses.PENDING, type: 'enum', enum: UserStatuses })

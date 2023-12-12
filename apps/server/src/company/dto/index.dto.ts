@@ -8,6 +8,9 @@ import {
   // Length,
 } from 'class-validator';
 import { companyValidationErrors } from '../company.config';
+import { Company } from '@common/database/entities';
+import { CompanyTypes } from '@common/database/constants';
+import { Expose } from 'class-transformer';
 
 export enum KybStatusActions {
   APPROVE = 'approve',
@@ -38,4 +41,34 @@ export class UpdateKybStatusDto {
   @IsOptional()
   @IsString()
   reason: string;
+}
+
+export class GetCompanyResponseDTO {
+  constructor(partial: Partial<Company>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  id: string;
+
+  @Expose()
+  name: string;
+
+  @Expose()
+  rcNumber: string;
+
+  @Expose()
+  isVerified: boolean;
+
+  @Expose()
+  isActive: boolean;
+
+  @Expose()
+  kybData: string;
+
+  @Expose()
+  type: CompanyTypes;
+
+  @Expose()
+  createdAt: Date;
 }

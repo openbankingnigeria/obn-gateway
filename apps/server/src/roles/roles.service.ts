@@ -5,12 +5,17 @@ import { In, IsNull, Not, Repository } from 'typeorm';
 import slugify from 'slugify';
 import {
   CreateRoleDto,
+  GetPermissionResponseDTO,
+  GetRoleResponseDTO,
   SetRolePermissionsDto,
   UpdateRoleDto,
 } from './dto/index.dto';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { roleErrors } from '@roles/role.errors';
-import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { Permission } from 'src/common/database/entities/permission.entity';
 import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
@@ -80,7 +85,10 @@ export class RolesService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(roleSuccessMessages.createdRole, role);
+    return ResponseFormatter.success(
+      roleSuccessMessages.createdRole,
+      new GetRoleResponseDTO(role),
+    );
   }
 
   async listRoles({ limit, page }: PaginationParameters, filters?: any) {
@@ -108,12 +116,16 @@ export class RolesService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(roleSuccessMessages.fetchedRole, roles, {
-      totalNumberOfRecords: totalRoles,
-      totalNumberOfPages: Math.ceil(totalRoles / limit),
-      pageNumber: page,
-      pageSize: limit,
-    });
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRole,
+      roles.map((role) => new GetRoleResponseDTO(role)),
+      new ResponseMetaDTO({
+        totalNumberOfRecords: totalRoles,
+        totalNumberOfPages: Math.ceil(totalRoles / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
   }
 
   async getRole(id: string) {
@@ -140,7 +152,10 @@ export class RolesService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(roleSuccessMessages.fetchedRole, role);
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRole,
+      new GetRoleResponseDTO(role),
+    );
   }
 
   async updateRole(id: string, data: UpdateRoleDto) {
@@ -171,7 +186,7 @@ export class RolesService {
 
     return ResponseFormatter.success(
       roleSuccessMessages.updatedRole,
-      updatedRole,
+      new GetRoleResponseDTO(updatedRole),
     );
   }
 
@@ -224,7 +239,9 @@ export class RolesService {
 
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRole,
-      role.permissions,
+      role.permissions.map(
+        (permission) => new GetPermissionResponseDTO(permission),
+      ),
     );
   }
 
@@ -292,7 +309,7 @@ export class RolesService {
     });
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedPermissions,
-      permissions,
+      permissions.map((permission) => new GetPermissionResponseDTO(permission)),
     );
   }
 

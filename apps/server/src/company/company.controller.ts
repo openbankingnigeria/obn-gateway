@@ -14,7 +14,7 @@ import { CompanyService } from './company.service';
 import {
   UpdateCompanyDetailsDto,
   UpdateKybStatusDto,
-} from './dto/update-company-details.dto';
+} from './dto/index.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {

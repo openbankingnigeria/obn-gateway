@@ -43,6 +43,7 @@ import * as speakeasy from 'speakeasy';
 import { ROLES } from '@common/database/constants';
 import { generateOtp } from '@common/utils/helpers/auth.helpers';
 import { ConfigService } from '@nestjs/config';
+import { GetUserResponseDTO } from '@users/dto/index.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -132,20 +133,17 @@ export class AuthService {
 
       const event = new AuthSignupEvent(user, { otp });
 
-      // TODO remove, this should always be deleted;
-      if (this.config.get('server.nodeEnv') !== 'development') {
-        delete (user as any).emailVerificationOtp;
-        delete (user as any).emailVerificationExpires;
-      }
-
       user.company = companyCreated;
 
       this.eventEmitter.emit(event.name, event);
 
-      return ResponseFormatter.success(authSuccessMessages.signup, {
-        ...user,
-        company: companyCreated,
-      });
+      return ResponseFormatter.success(
+        authSuccessMessages.signup,
+        new GetUserResponseDTO({
+          ...user,
+          company: companyCreated,
+        }),
+      );
     } else {
       throw new IBadRequestException({
         message: authErrors.errorOccurredCreatingUser,
@@ -170,6 +168,7 @@ export class AuthService {
       },
     });
 
+    // TODO do not throw error if email not found
     if (!user) {
       throw new IBadRequestException({
         message: userErrors.userWithEmailNotFound(email),
@@ -372,6 +371,7 @@ export class AuthService {
       },
     });
 
+    // TODO do not throw error if email not found;
     if (!user) {
       throw new IBadRequestException({
         message: `User with email - ${email} not found.`,
@@ -404,9 +404,10 @@ export class AuthService {
       },
     );
 
-    return ResponseFormatter.success(authSuccessMessages.verifyEmail, {
-      ...user,
-    });
+    return ResponseFormatter.success(
+      authSuccessMessages.verifyEmail,
+      new GetUserResponseDTO(user),
+    );
   }
 
   async resendOtp({ email }: ResendOtpDto) {
@@ -416,6 +417,7 @@ export class AuthService {
       },
     });
 
+    // TODO do not throw error if email not found;
     if (!user) {
       throw new IBadRequestException({
         message: `User with email - ${email} not found.`,
@@ -444,17 +446,8 @@ export class AuthService {
     const event = new AuthResendOtpEvent(user, {
       otp: otp.toString(),
     });
-
-    const otpData: any = {};
-
-    if (this.config.get('server.nodeEnv') === 'development') {
-      otpData.otp = otp.toString();
-    }
-
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success(authSuccessMessages.resendOtp, {
-      ...otpData,
-    });
+    return ResponseFormatter.success(authSuccessMessages.resendOtp);
   }
 }

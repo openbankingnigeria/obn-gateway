@@ -1,6 +1,10 @@
+import { Profile } from '@common/database/entities';
+import { GetUserResponseDTO } from '@users/dto/index.dto';
 import { userConfig, userErrors } from '@users/user.errors';
+import { Expose, Type } from 'class-transformer';
 import {
   IsNotEmpty,
+  IsObject,
   IsString,
   IsStrongPassword,
   Length,
@@ -57,4 +61,36 @@ export class UpdateTwoFADto {
   @IsString()
   @Length(6, 6)
   code: string;
+}
+
+export class GetProfileResponseDTO {
+  constructor(partial: Partial<Profile>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  id: string;
+
+  @Expose()
+  firstName: string;
+
+  @Expose()
+  lastName: string;
+
+  @Expose()
+  companyRole: string;
+
+  @Expose()
+  phone: string;
+
+  @Expose()
+  country: string;
+
+  @Expose()
+  @IsObject()
+  @Type(() => GetUserResponseDTO)
+  user: GetUserResponseDTO;
+
+  @Expose()
+  createdAt: Date;
 }

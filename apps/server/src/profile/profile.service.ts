@@ -6,6 +6,7 @@ import { RequestContextService } from 'src/common/utils/request/request-context.
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import {
+  GetProfileResponseDTO,
   UpdatePasswordDto,
   UpdateProfileDto,
   UpdateTwoFADto,
@@ -60,7 +61,7 @@ export class ProfileService {
 
     return ResponseFormatter.success(
       profileSuccessMessages.fetchedProfile,
-      profile,
+      new GetProfileResponseDTO(profile),
     );
   }
 
@@ -89,7 +90,7 @@ export class ProfileService {
 
     return ResponseFormatter.success(
       profileSuccessMessages.updatedProfile,
-      profile,
+      new GetProfileResponseDTO(profile),
     );
   }
 

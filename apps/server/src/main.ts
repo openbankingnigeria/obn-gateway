@@ -1,5 +1,8 @@
-import { NestFactory } from '@nestjs/core';
-import { Logger as NestLogger } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
+import {
+  ClassSerializerInterceptor,
+  Logger as NestLogger,
+} from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
@@ -15,6 +18,12 @@ async function bootstrap() {
   // Logging
   app.useLogger(app.get(Logger));
   const logger = new NestLogger();
+
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector), {
+      strategy: 'excludeAll',
+    }),
+  );
 
   await app.listen(port, () => {
     logger.log(`Server listening on PORT - ${port}`);

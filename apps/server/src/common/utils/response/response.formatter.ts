@@ -1,8 +1,61 @@
+import { Expose } from 'class-transformer';
+import { IsArray, IsObject, ValidateIf, ValidateNested } from 'class-validator';
+
 export interface ApiResponse<T> {
   status: string;
   message: string;
   data?: T;
-  _meta?: any;
+  meta?: any;
+}
+
+export class ResponseMetaDTO<
+  T = {
+    totalNumberOfRecords: number;
+    totalNumberOfPages: number;
+    pageNumber: number;
+    pageSize: number;
+  },
+> {
+  constructor(partial: Partial<T>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  totalNumberOfRecords: number;
+
+  @Expose()
+  totalNumberOfPages: number;
+
+  @Expose()
+  pageNumber: number;
+
+  @Expose()
+  pageSize: number;
+}
+
+export class ResponseDTO<T> {
+  constructor(partial: Partial<T>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  status: string;
+
+  @Expose()
+  message: string;
+
+  @Expose()
+  @ValidateIf(
+    (obj) => Array.isArray(obj.field) || typeof obj.field === 'object',
+  )
+  @IsArray()
+  @IsObject()
+  @ValidateNested({ each: true })
+  data: any;
+
+  @Expose()
+  @IsObject()
+  meta: ResponseMetaDTO;
 }
 
 export class ResponseFormatter {
@@ -10,16 +63,13 @@ export class ResponseFormatter {
     message: string,
     data?: T,
     meta?: any,
-  ): ApiResponse<T> {
-    if ((data as any)?.password) {
-      delete (data as any)?.password;
-    }
-    return {
+  ): ResponseDTO<ApiResponse<T>> {
+    return new ResponseDTO<ApiResponse<T>>({
       status: 'success',
       message,
       data,
-      _meta: meta,
-    };
+      meta,
+    });
   }
 
   static error(message: string): ApiResponse<null> {

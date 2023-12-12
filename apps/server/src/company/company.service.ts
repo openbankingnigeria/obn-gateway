@@ -7,7 +7,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Company, Settings, User } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
-import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { settingsErrors } from '@settings/settings.errors';
 import * as dummyRegistry from './dummy.registry.json';
@@ -17,7 +20,7 @@ import {
   CompanyDeniedEvent,
 } from '@shared/events/company.event';
 import { CompanyTypes } from '@common/database/constants';
-import { UpdateKybStatusDto } from './dto/update-company-details.dto';
+import { GetCompanyResponseDTO, UpdateKybStatusDto } from './dto/index.dto';
 
 @Injectable()
 export class CompanyService {
@@ -142,10 +145,13 @@ export class CompanyService {
       }
     }
 
-    return ResponseFormatter.success('Successfully fetched company details', {
-      ...company,
-      kybData: kybDetails,
-    });
+    return ResponseFormatter.success(
+      'Successfully fetched company details',
+      new GetCompanyResponseDTO({
+        ...company,
+        kybData: kybDetails,
+      }),
+    );
   }
 
   async listCompanies({ limit, page }: PaginationParameters, filters?: any) {
@@ -175,13 +181,13 @@ export class CompanyService {
 
     return ResponseFormatter.success(
       'Successfully fetched company',
-      companies,
-      {
+      companies.map((company) => new GetCompanyResponseDTO(company)),
+      new ResponseMetaDTO({
         totalNumberOfRecords: totalCompanies,
         totalNumberOfPages: Math.ceil(totalCompanies / limit),
         pageNumber: page,
         pageSize: limit,
-      },
+      }),
     );
   }
 
