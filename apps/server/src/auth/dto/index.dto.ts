@@ -219,12 +219,14 @@ export class SetupDto {
   confirmPassword: string;
 }
 
-export class VerifyEmailDto {
+export class ResendOtpDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   email: string;
+}
 
+export class VerifyEmailDto extends ResendOtpDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })

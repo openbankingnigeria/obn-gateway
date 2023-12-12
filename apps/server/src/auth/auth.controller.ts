@@ -11,6 +11,7 @@ import { AuthService } from './auth.service';
 import {
   ForgotPasswordDto,
   LoginDto,
+  ResendOtpDto,
   ResetPasswordDto,
   SetupDto,
   SignupDto,
@@ -46,6 +47,14 @@ export class AuthController {
   @UsePipes(IValidationPipe)
   verifyEmail(@Body() data: VerifyEmailDto) {
     return this.authService.verifyEmail(data);
+  }
+
+  @Post('otp/resend')
+  @HttpCode(HttpStatus.OK)
+  @SkipAuthGuard()
+  @UsePipes(IValidationPipe)
+  resendOtp(@Body() data: ResendOtpDto) {
+    return this.authService.resendOtp(data);
   }
 
   @Post('login/two-fa')

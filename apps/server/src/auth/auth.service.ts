@@ -9,6 +9,7 @@ import {
 import { Repository, MoreThan } from 'typeorm';
 import {
   LoginDto,
+  ResendOtpDto,
   ResetPasswordDto,
   SetupDto,
   SignupDto,
@@ -33,6 +34,7 @@ import { authSuccessMessages } from '@auth/auth.constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   AuthLoginEvent,
+  AuthResendOtpEvent,
   AuthResetPasswordEvent,
   AuthResetPasswordRequestEvent,
   AuthSignupEvent,
@@ -178,6 +180,12 @@ export class AuthService {
     if (!user) {
       throw new IBadRequestException({
         message: userErrors.userWithEmailNotFound(email),
+      });
+    }
+
+    if (!user.emailVerified) {
+      throw new IBadRequestException({
+        message: userErrors.userEmailNotVerified,
       });
     }
 
@@ -368,7 +376,6 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: {
         email,
-        emailVerified: false,
       },
     });
 
@@ -378,11 +385,12 @@ export class AuthService {
       });
     }
 
-    console.log(
-      '🪄🪄🪄',
-      user.emailVerificationExpires,
-      user.emailVerificationOtp,
-    );
+    if (user.emailVerified) {
+      throw new IBadRequestException({
+        message: `User already verified.`,
+      });
+    }
+
     if (
       user.emailVerificationOtp !== otp ||
       (user.emailVerificationExpires &&
@@ -405,6 +413,63 @@ export class AuthService {
 
     return ResponseFormatter.success(authSuccessMessages.verifyEmail, {
       ...user,
+    });
+  }
+
+  async resendOtp({ email }: ResendOtpDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new IBadRequestException({
+        message: `User with email - ${email} not found.`,
+      });
+    }
+
+    if (user.emailVerified) {
+      throw new IBadRequestException({
+        message: `User already verified.`,
+      });
+    }
+
+    const otp = generateOtp(6);
+    const expiry = moment()
+      .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
+      .toDate();
+
+    await this.userRepository.update(
+      { email },
+      {
+        emailVerificationOtp: otp.toString(),
+        emailVerificationExpires: expiry,
+      },
+    );
+
+    const apiProvider = await this.companyRepository.findOne({
+      where: {
+        type: CompanyTypes.API_PROVIDER,
+      },
+    });
+
+    const event = new AuthResendOtpEvent(user, {
+      apiProvider: apiProvider ? apiProvider.name : '',
+      otp: otp.toString(),
+    });
+
+    const otpData: any = {};
+
+    if (this.config.get('server.nodeEnv') === 'development') {
+      otpData[otp] = otp.toString();
+    }
+
+    this.eventEmitter.emit(event.name, event);
+
+    return ResponseFormatter.success(authSuccessMessages.resendOtp, {
+      ...user,
+      ...otpData,
     });
   }
 }

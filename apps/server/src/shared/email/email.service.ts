@@ -21,6 +21,7 @@ import {
 } from '@common/database/constants';
 import {
   AuthEvents,
+  AuthResendOtpEvent,
   AuthResetPasswordEvent,
   AuthResetPasswordRequestEvent,
   AuthSetPasswordEvent,
@@ -150,6 +151,16 @@ export class EmailService {
   handleVerifyEmail(event: AuthSignupEvent) {
     this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
       apiProvider: event.metadata.apiProvider!,
+      otp: event.metadata.otp!,
+      name: event.author.profile!.firstName,
+    });
+  }
+
+  @OnEvent(AuthEvents.SIGN_UP)
+  handleResendOtp(event: AuthResendOtpEvent) {
+    this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
+      apiProvider: event.metadata.apiProvider!,
+      otp: event.metadata.otp!,
       name: event.author.profile!.firstName,
     });
   }
