@@ -83,7 +83,7 @@ export class EmailService {
         where: { type: CompanyTypes.API_PROVIDER },
         order: { id: 'ASC' },
       });
-      this.sendEmail(EMAIL_TEMPLATES.USER_REACTIVATED, event.user.email, {
+      await this.sendEmail(EMAIL_TEMPLATES.USER_REACTIVATED, event.user.email, {
         firstName: event.user.profile?.firstName || '',
         companyName: company.name!,
       });
@@ -95,7 +95,7 @@ export class EmailService {
   @OnEvent(AuthEvents.SET_PASSWORD)
   async handleUserSetPasswordEvent(event: AuthSetPasswordEvent) {
     try {
-      this.sendEmail(EMAIL_TEMPLATES.SET_PASSWORD, event.user.email, {
+      await this.sendEmail(EMAIL_TEMPLATES.SET_PASSWORD, event.user.email, {
         firstName: event.user.profile?.firstName || '',
       });
     } catch (error) {
@@ -112,13 +112,17 @@ export class EmailService {
         where: { type: CompanyTypes.API_PROVIDER },
         order: { id: 'ASC' },
       });
-      this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD_REQUEST, event.user.email, {
-        firstName: event.user.profile?.firstName || '',
-        resetUrl: `${this.config.get(
-          'server.managementUrl',
-        )}/reset-password?token=${event.metadata.token}`,
-        companyName: company.name!,
-      });
+      await this.sendEmail(
+        EMAIL_TEMPLATES.RESET_PASSWORD_REQUEST,
+        event.user.email,
+        {
+          firstName: event.user.profile?.firstName || '',
+          resetUrl: `${this.config.get(
+            'server.managementUrl',
+          )}/reset-password?token=${event.metadata.token}`,
+          companyName: company.name!,
+        },
+      );
     } catch (error) {
       console.error(error);
     }
@@ -127,7 +131,7 @@ export class EmailService {
   @OnEvent(AuthEvents.RESET_PASSWORD)
   async handleUserResetPasswordEvent(event: AuthResetPasswordEvent) {
     try {
-      this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD, event.user.email, {
+      await this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD, event.user.email, {
         firstName: event.user.profile?.firstName || '',
       });
     } catch (error) {
@@ -196,7 +200,7 @@ export class EmailService {
         where: { type: CompanyTypes.API_PROVIDER },
         order: { id: 'ASC' },
       });
-      this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
+      await this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
         apiProvider: apiProvider.name!,
         name: event.author.profile!.firstName,
         otp: event.metadata.otp,
@@ -211,26 +215,30 @@ export class EmailService {
     recipient: string,
     data: Record<string, string>,
   ) {
-    const template = await this.templateRepository.findOneBy({
-      slug: templateSlug,
-    });
-    if (!template) {
-      throw new IBadRequestException({
-        message: 'email template does not exist',
+    try {
+      const template = await this.templateRepository.findOneBy({
+        slug: templateSlug,
       });
+      if (!template) {
+        throw new IBadRequestException({
+          message: 'email template does not exist',
+        });
+      }
+
+      const mailOptions = {
+        from: this.config.get('email.from'),
+        to: recipient,
+        subject: Handlebars.compile(template.title)(data),
+        html: Handlebars.compile(template.body.toString())(data),
+      };
+
+      console.log('Sending mail: ', mailOptions);
+
+      const info = await this.transporter.sendMail(mailOptions);
+
+      console.log('Mail sent: %s', info.messageId);
+    } catch (error) {
+      console.error(error);
     }
-
-    const mailOptions = {
-      from: this.config.get('email.from'),
-      to: recipient,
-      subject: Handlebars.compile(template.title)(data),
-      html: Handlebars.compile(template.body.toString())(data),
-    };
-
-    console.log('Sending mail: ', mailOptions);
-
-    const info = await this.transporter.sendMail(mailOptions);
-
-    console.log('Mail sent: %s', info.messageId);
   }
 }
