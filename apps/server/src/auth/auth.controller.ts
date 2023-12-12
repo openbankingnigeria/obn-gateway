@@ -1,4 +1,12 @@
-import { Body, Controller, Param, Post, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  UsePipes,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordDto,
@@ -24,6 +32,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   @SkipAuthGuard()
   @UsePipes(IValidationPipe)
   login(@Body() data: LoginDto) {
@@ -45,6 +54,7 @@ export class AuthController {
   }
 
   @Post('password/reset/:resetToken')
+  @HttpCode(HttpStatus.OK)
   @SkipAuthGuard()
   @UsePipes(IValidationPipe)
   resetPassword(

@@ -1,5 +1,10 @@
 export enum CompanyTypes {
-  BANK = 'BANK',
+  BANK = 'Bank',
+  BNPL = 'BNPL',
+  LENDING = 'Lending',
+  FINTECH = 'Fintech',
+  INSURANCE = 'Insurance',
+  OTHERS = 'Others',
   API_PROVIDER = 'API_PROVIDER',
 }
 
@@ -30,4 +35,5 @@ export enum EMAIL_TEMPLATES {
   RESET_PASSWORD = 'reset-password',
   COMPANY_KYB_APPROVED = 'company-kyb-approved',
   COMPANY_KYB_DENIED = 'company-kyb-denied',
+  VERIFY_EMAIL = 'verify-email',
 }

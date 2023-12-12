@@ -1,9 +1,10 @@
 import {
+  IsAlphanumeric,
   IsEnum,
   IsNotEmpty,
-  IsNumberString,
   IsOptional,
   IsString,
+  Length,
   // Length,
 } from 'class-validator';
 import { companyValidationErrors } from '../company.config';
@@ -17,14 +18,14 @@ export class UpdateCompanyDetailsDto {
   @IsNotEmpty({
     message: ({ property }) => companyValidationErrors.dto.isRequired(property),
   })
-  @IsNumberString(
-    { no_symbols: true },
-    {
-      message: ({ property }) =>
-        companyValidationErrors.dto.typeMismatch(property, 'numbers'),
-    },
-  )
-  // @Length(21, 21, { message: 'rcNumber must be exactly 21 digits long.' })
+  @IsAlphanumeric('en-US', {
+    message: ({ property }) =>
+      companyValidationErrors.dto.typeMismatch(
+        property,
+        'alphabets and numbers',
+      ),
+  })
+  @Length(15, 15, { message: 'rcNumber must be exactly 15 digits long.' })
   rcNumber: string;
 }
 

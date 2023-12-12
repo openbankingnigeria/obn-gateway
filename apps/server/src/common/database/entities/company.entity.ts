@@ -10,6 +10,7 @@ import {
 import { User } from './user.entity';
 import { AuditLog } from './auditlog.entity';
 import { Settings } from './settings.entity';
+import { CompanyTypes } from '../constants';
 
 @Entity({ name: 'companies' })
 export class Company {
@@ -31,8 +32,8 @@ export class Company {
   @Column('longblob', { name: 'kyb_data', nullable: true })
   kybData?: string;
 
-  @Column()
-  type: string;
+  @Column('enum', { enum: CompanyTypes })
+  type: CompanyTypes;
 
   @OneToMany(() => User, (user) => user.company)
   users?: User[];

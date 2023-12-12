@@ -1,5 +1,6 @@
 export const authSuccessMessages = {
   signup: 'You have successfully signed up.',
+  verifyEmail: 'You have successfully verified your email address.',
   login: (isFirstLogin: boolean) =>
     `Welcome${
       isFirstLogin ? '' : ' back'
