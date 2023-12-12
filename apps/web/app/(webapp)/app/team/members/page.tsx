@@ -22,9 +22,10 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
     apiEndpoint: API.getTeams({
       page: `${page}`,
       limit: `${rows}`,
-      name: search_query,
+      name: !(search_query?.includes('@')) ? search_query : '',
       status: status,
-      email: search_query,
+      email: search_query?.includes('@') ? search_query : '',
+      role: role
     }),
     method: 'GET',
     data: null
@@ -49,7 +50,7 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   let teams = fetchedMembers?.data;
 
   const panel = MEMBERS_STATUS_DATA({
-    active: 29,
+    all: 29,
     invited: 5
   })?.map((pane: any) => {
     if (pane?.panel) { return pane }
@@ -80,8 +81,8 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
     }
   });
 
-  const headers = status == 'invited' ? INVITED_MEMBERS_TABLE_HEADERS : MEMBERS_TABLE_HEADERS;
-  const members = status == 'invited' ? 
+  const headers = status == 'pending' ? INVITED_MEMBERS_TABLE_HEADERS : MEMBERS_TABLE_HEADERS;
+  const members = status == 'pending' ? 
     invited_members?.filter((x: any) => x) : 
     active_memebers?.filter((x: any) => x);
     const total_pages = meta_data?.totalNumberOfPages;

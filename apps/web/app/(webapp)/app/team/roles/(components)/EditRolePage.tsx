@@ -67,7 +67,7 @@ const EditRolePage = ({
         <InputElement 
           name='role_name'
           type='role_name'
-          placeholder=''
+          placeholder='Role name'
           label='Role Name'
           value={role_name}
           disabled
@@ -80,7 +80,7 @@ const EditRolePage = ({
           rows={3}
           value={description}
           changeValue={setDescription}
-          placeholder=''
+          placeholder='Role description'
           required
           label='Description'
         />
@@ -113,7 +113,7 @@ const EditRolePage = ({
           </div>
         </div>
 
-        <div className='w-full flex flex-col gap-[12px]'>
+        {/* <div className='w-full flex flex-col gap-[12px]'>
           <h3 className='text-f14 font-[600] text-o-text-medium2'>
             Members <span className='font-[400]'>({members?.length})</span>
           </h3>
@@ -130,7 +130,7 @@ const EditRolePage = ({
               ))
             }
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className='px-[20px] w-full h-[50px] mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between'>

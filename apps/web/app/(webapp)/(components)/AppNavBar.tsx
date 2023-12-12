@@ -11,7 +11,7 @@ import { AppCenterModal, AvatarMenu, NotificationBox } from '.';
 import { toast } from 'react-toastify';
 import { getJsCookies, removeJsCookies } from '@/config/jsCookie';
 
-const AppNavBar = () => {
+const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const [openModal, setOpenModal] = useState(false);
   const [isLive, setToggleMode] = useState(false);
   const [openNotification, setOpenNotification] = useState(false);
@@ -106,7 +106,7 @@ const AppNavBar = () => {
             </div>
           </AppCenterModal>
       }
-      <nav className='bg-white z-[101] fixed top-0 left-[280px] right-0 px-[32px] py-[20px] flex items-center justify-between gap-[24px] border-b border-o-border'>
+      <nav className={`bg-white z-[101] fixed ${bannerExist ? 'top-[56px]' : 'top-0'} left-[280px] right-0 px-[32px] py-[20px] flex items-center justify-between gap-[24px] border-b border-o-border`}>
         <section className='w-full gap-[4px] flex items-center'>
           {
             sanitizedPaths?.map((path, index) => (
@@ -155,7 +155,7 @@ const AppNavBar = () => {
           </div>
 
           {/* NOTIFICATIONS */}
-          <div className='relative w-fit h-fit'>
+          {/* <div className='relative w-fit h-fit'>
             <div
               onClick={() => setOpenNotification(prev => !prev)}
               className='w-fit h-fit hidden md:block cursor-pointer relative'
@@ -188,7 +188,7 @@ const AppNavBar = () => {
                 </OutsideClicker>
               </div>
             }
-          </div>
+          </div> */}
 
           <div className='relative py-1 group'>
             <div className='group px-[8px] cursor-pointer flex items-center gap-[8px]'>

@@ -7,10 +7,10 @@ import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
-import { ROLES } from '@roles/types';
 import { INotFoundException } from '@common/utils/exceptions/exceptions';
 import { auditLogErrors } from '@auditLogs/auditLogs.errors';
 import { BaseEvent } from '@shared/events/base.event';
+import { ROLES } from '@common/database/constants';
 
 @Injectable()
 export class AuditLogsService {

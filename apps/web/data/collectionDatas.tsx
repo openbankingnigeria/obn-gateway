@@ -167,7 +167,9 @@ export const COLLECTIONS_TIER = [
   }
 ];
 
-export const COLLECTIONS_APIS = [
+export const COLLECTIONS_APIS = [];
+
+export const COLLECTIONS_APIS_FULLDATA = [
   {
     id: 1,
     api_name: 'Get Transactions',
@@ -224,7 +226,9 @@ export const COLLECTIONS_APIS = [
   }
 ];
 
-export const COLLECTIONS_TABLE_DATA = [
+export const COLLECTIONS_TABLE_DATA = [];
+
+export const COLLECTIONS_TABLE_FULLDATA = [
   {
     id: 1,
     collection_name: 'Authorization',

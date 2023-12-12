@@ -41,6 +41,9 @@ export async function postCreateRole(prevState: any, formData: FormData) {
     permissions: formData.get('permissions')
   }
 
+  // @ts-ignore
+  let sanitizedPermissions = JSON.parse(fullData?.permissions)?.flatMap(item => item.options.map(option => option.id))
+
   let response = await axiosRequest({
     apiEndpoint: API.postRole(),
     method: 'POST',
@@ -48,28 +51,12 @@ export async function postCreateRole(prevState: any, formData: FormData) {
     data: { 
       name: fullData?.name, 
       description: fullData?.description,
+      permissions: sanitizedPermissions,
       status: "active",
     }
   });
 
-  // @ts-ignore
-  if (fullData?.permissions?.length >= 3 && response?.status == 201) {
-    let role_id = response?.data?.id;
-    // @ts-ignore
-    let sanitizedPermissions = JSON.parse(fullData?.permissions)?.flatMap(item => item.options.map(option => option.id))
-    // console.log('Check the console', sanitizedPermissions, fullData?.permissions)
-
-    await axiosRequest({
-      apiEndpoint: API.putRolePermission({ id: role_id }),
-      method: 'PUT',
-      headers: { },
-      data: {
-        permissions: sanitizedPermissions
-      }
-    });
-    
-    return { response }
-  } else if ([401, 403]?.includes(Number(response?.status))) { 
+  if ([401, 403]?.includes(Number(response?.status))) { 
     deleteCookies('aperta-user-accessToken');
     redirect('/');
   } else {

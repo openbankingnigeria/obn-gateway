@@ -110,6 +110,7 @@ const NewMemberInviteOne = () => {
               label='Group'
               options={group_list}
               required
+              placeholder='Select'
               optionStyle='top-[70px]'
               clickerStyle='!w-full'
               value={group}

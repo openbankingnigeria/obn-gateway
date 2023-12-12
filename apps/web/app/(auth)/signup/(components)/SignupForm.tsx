@@ -66,7 +66,7 @@ const SignupForm = () => {
           value={password}
           changeValue={setPassword}
           showGuide
-          placeholder='● ● ● ● ● ● ● ● ● ● ●'
+          placeholder='Password'
           label='Password'
           required
         />
@@ -76,7 +76,7 @@ const SignupForm = () => {
           type='password'
           value={confirm_password}
           changeValue={setConfirmPassword}
-          placeholder='● ● ● ● ● ● ● ● ● ● ●'
+          placeholder='Confirm password'
           label='Confirm Password'
           hint={!passwordMatch ? 'Password does not match' : ''}
           invalid={!passwordMatch && !!confirm_password}

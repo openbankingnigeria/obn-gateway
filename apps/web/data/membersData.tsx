@@ -1,27 +1,34 @@
 import { MembersStatusProps } from "@/types/dataTypes"
 
 export const MEMBERS_STATUS_DATA = ({
-  active,
+  all,
   invited
 }: MembersStatusProps) => {
   return ([
     {
       id: 1,
-      label: 'Active',
-      amount: active || 0,
+      label: 'All',
+      amount: all || 0,
       value: '',
       panel: true,
-      name: 'active'
+      name: 'all'
     },
     {
       id: 2,
+      label: 'Active',
+      value: 'active',
+      panel: false,
+      name: 'active'
+    },
+    {
+      id: 3,
       label: 'Inactive',
       value: 'inactive',
       panel: false,
       name: 'inactive'
     },
     {
-      id: 2,
+      id: 4,
       label: 'Invited',
       amount: invited || 0,
       panel: true,
@@ -40,10 +47,10 @@ export const INVITED_MEMBERS_TABLE_HEADERS = [
     header: 'Status',
     accessor: 'status'
   },
-  {
-    header: 'Invited By',
-    accessor: 'invited_by'
-  },
+  // {
+  //   header: 'Invited By',
+  //   accessor: 'invited_by'
+  // },
   {
     header: 'Date Invited',
     accessor: 'date_invited'
@@ -158,7 +165,9 @@ export const MEMBER_RECENT_ACTIVITIES_HEADER = [
   }
 ];
 
-export const MEMBER_RECENT_ACTIVITIES = [
+export const MEMBER_RECENT_ACTIVITIES = [];
+
+export const MEMBER_RECENT_ACTIVITIES_FULLDATA = [
   {
     id: 1,
     event_type: 'Event title here',
@@ -182,7 +191,9 @@ export const MEMBER_DETAILS_PANEL = [
   },
 ];
 
-export const INVITED_MEMBERS_TABLE_DATA = [
+export const INVITED_MEMBERS_TABLE_DATA = [];
+
+export const INVITED_MEMBERS_TABLE_FULLDATA = [
   {
     id: 1,
     email_address: 'johnajayi@lendsqr.com',

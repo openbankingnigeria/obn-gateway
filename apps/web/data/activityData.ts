@@ -102,7 +102,9 @@ export const ACTIVITY_DETAILS = {
   response_time: '1.5'
 };
 
-export const ACTIVITY_TABLE_DATA = [
+export const ACTIVITY_TABLE_DATA = [];
+
+export const ACTIVITY_TABLE_FULLDATA = [
   {
     id: 1,
     reference_id: 'API-A1B2C3D4E5F6',

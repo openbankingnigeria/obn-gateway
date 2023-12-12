@@ -116,7 +116,7 @@ export interface ActionsSelectorProps {
   options: ReactNode;
 }
 
-export interface TablePagination {
+export interface TablePaginationProps {
   rows: number;
   page: number;
   totalElements?: number

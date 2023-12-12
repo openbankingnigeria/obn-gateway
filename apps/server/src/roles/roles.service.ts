@@ -43,7 +43,25 @@ export class RolesService {
       });
     }
 
-    const { name, description, status } = data;
+    const { name, description, status, permissions } = data;
+
+    const permissionsData = await this.permissionRepository.find({
+      where: {
+        id: In(permissions),
+        roles: { roleId: this.requestContext.user!.role.parentId },
+      },
+    });
+
+    for (const permission of permissions) {
+      const permissionExists = permissionsData.find(
+        ({ id }) => id === permission,
+      );
+      if (!permissionExists) {
+        throw new IBadRequestException({
+          message: roleErrorMessages.permissionNotFound(permission),
+        });
+      }
+    }
 
     const role = await this.roleRepository.save(
       this.roleRepository.create({
@@ -54,6 +72,10 @@ export class RolesService {
         parentId: this.requestContext.user!.role.parentId,
         companyId: this.requestContext.user!.companyId,
       }),
+    );
+
+    await this.rolePermissionRepository.insert(
+      permissions.map((permissionId) => ({ roleId: role.id, permissionId })),
     );
 
     // TODO emit event
@@ -137,13 +159,12 @@ export class RolesService {
 
     const { description, status } = data;
 
-    const updatedRole = await this.roleRepository.update(
-      { id: role.id },
-      this.roleRepository.create({
-        description,
-        status,
-      }),
-    );
+    const updatedRole = this.roleRepository.create({
+      description,
+      status,
+    });
+
+    await this.roleRepository.update({ id: role.id }, updatedRole);
 
     // TODO emit event
 
@@ -271,6 +292,25 @@ export class RolesService {
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedPermissions,
       permissions,
+    );
+  }
+
+  async getStats() {
+    const stats = await this.roleRepository.query(
+      `SELECT IFNULL(count, 0) count, definitions.value FROM definitions
+              LEFT OUTER JOIN (
+              SELECT count(id) AS count, status
+              FROM roles WHERE deleted_at IS NULL AND company_id = ?
+              GROUP BY status
+            ) roles ON roles.status = definitions.value
+              AND definitions.type = 'status'
+              WHERE definitions.entity = 'role'
+        `,
+      [this.requestContext.user!.companyId],
+    );
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRolesStats,
+      stats,
     );
   }
 }

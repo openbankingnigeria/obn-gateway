@@ -2,7 +2,7 @@
 
 import { SelectElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents';
-import { TablePagination } from '@/types/webappTypes/componentsTypes';
+import { TablePaginationProps } from '@/types/webappTypes/componentsTypes';
 import { updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
 import React from 'react'
@@ -13,7 +13,7 @@ const TablePagination = ({
   totalElements,
   totalElementsInPage,
   totalPages
-}: TablePagination) => {
+}: TablePaginationProps) => {
   const router = useRouter();
 
   const row_list = [
@@ -54,7 +54,7 @@ const TablePagination = ({
               containerStyle='!w-fit cursor-pointer'
               small
               removeSearch
-              optionStyle='!top-[38px]'
+              optionStyle='!bottom-[40px]'
               forFilter
             />
           </div>

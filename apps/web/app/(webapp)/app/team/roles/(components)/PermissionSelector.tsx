@@ -46,7 +46,7 @@ const PermissionSelector = ({
           gap-[8px] bg-transparent ${fieldStyle}`}
         >
           <div
-            className={`text-f14 max-w-[250px] overflow-auto border-none font-[600] flex items-center text-o-text-dark3 
+            className={`text-f14 max-w-[350px] overflow-auto border-none font-[600] flex items-center text-o-text-dark3 
             capitalize outline-none whitespace-nowrap bg-transparent`}
           >
             {

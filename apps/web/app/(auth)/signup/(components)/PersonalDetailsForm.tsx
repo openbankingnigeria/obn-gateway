@@ -11,7 +11,7 @@ import { validateName } from '@/utils/globalValidations';
 const PersonalDetailsForm = () => {
   const [first_name, setFirstName] = useState(''); 
   const [last_name, setLastName] = useState(''); 
-  const [country, setCountry] = useState(''); 
+  // const [country, setCountry] = useState(''); 
   const [phone_number, setPhoneNumber] = useState(''); 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -20,7 +20,7 @@ const PersonalDetailsForm = () => {
   useEffect(() => {
     setFirstName(getData?.first_name);
     setLastName(getData?.last_name);
-    setCountry(getData?.country);
+    // setCountry(getData?.country);
     setPhoneNumber(getData?.phone_number);
   }, []);
 
@@ -30,23 +30,23 @@ const PersonalDetailsForm = () => {
   const incorrect = (
     !correctFirstName ||
     !correctLastName ||
-    !country ||
+    // !country ||
     phone_number?.length !== 11
   );
 
-  const countries_list = COUNTRIES_DATA?.map(country => {
-    return ({
-      label: country?.name || '',
-      value: country?.name || ''
-    });
-  })
+  // const countries_list = COUNTRIES_DATA?.map(country => {
+  //   return ({
+  //     label: country?.name || '',
+  //     value: country?.name || ''
+  //   });
+  // })
 
   const handleSubmit = (e: MouseEvent) => {
     e.preventDefault();
     setLoading(true);
     setStorage(
       'pd', 
-      { first_name, last_name, country, phone_number }, 
+      { first_name, last_name, phone_number }, 
       'session'
     );
     router.push('/signup/company-details');
@@ -96,7 +96,7 @@ const PersonalDetailsForm = () => {
           />
         </div>
 
-        <>
+        {/* <>
           <input 
             name='country'
             value={country}
@@ -115,10 +115,11 @@ const PersonalDetailsForm = () => {
             value={country}
             changeValue={setCountry}
           />
-        </>
+        </> */}
 
         <InputElement 
           name='phone_number'
+          placeholder='Phone number'
           type='tel'
           value={phone_number}
           changeValue={(value: string) => handlePhoneNumber(value)}

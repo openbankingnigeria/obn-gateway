@@ -37,6 +37,7 @@ export enum PERMISSIONS {
   LIST_API_COLLECTIONS = 'list-api-collections',
 
   UPDATE_COMPANY_KYB_DETAILS = 'update-company-kyb-details',
+  UPDATE_COMPANY_KYB_STATUS = 'update-company-kyb-status',
   UPDATE_COMPANY_DETAILS = 'update-company-details',
   LIST_COMPANIES = 'list-companies',
 

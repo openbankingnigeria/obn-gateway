@@ -18,37 +18,13 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
-  @IsString()
-  @MinLength(userConfig.minNameLength, {
-    message: ({ property }) =>
-      userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
-  })
-  @Matches(/^[A-Za-z]+$/gi, {
-    message: ({ property }) =>
-      userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
-  })
-  firstName: string;
-
-  @IsString()
-  @MinLength(userConfig.minNameLength, {
-    message: ({ property }) =>
-      userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
-  })
-  @Matches(/^[A-Za-z]+$/gi, {
-    message: ({ property }) =>
-      userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
-  })
-  lastName: string;
-
   @IsNotEmpty()
   @IsString()
   roleId: string;
 }
 
 export class UpdateUserDto {
-  @IsNotEmpty({
-    message: ({ property }) => userErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
   @MinLength(userConfig.minNameLength, {
     message: ({ property }) =>
@@ -60,9 +36,7 @@ export class UpdateUserDto {
   })
   firstName: string;
 
-  @IsNotEmpty({
-    message: ({ property }) => userErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
   @MinLength(userConfig.minNameLength, {
     message: ({ property }) =>

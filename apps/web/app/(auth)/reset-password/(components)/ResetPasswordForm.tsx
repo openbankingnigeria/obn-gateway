@@ -8,7 +8,9 @@ import { greaterThan8, validateLowercase, validateNumber, validateSymbol, valida
 import { useServerAction } from '@/hooks';
 import { getCookies } from '@/config/cookies';
 
-const ResetPasswordForm = () => {
+const ResetPasswordForm = ({
+  token
+}: { token: string | undefined }) => {
   const [password, setPassword] = useState(''); 
   const [confirm_password, setConfirmPassword] = useState(''); 
 
@@ -26,7 +28,7 @@ const ResetPasswordForm = () => {
   );
 
   const initialState = {
-    resetToken: getCookies('aperta-user-resetToken'),
+    resetToken: token,
   }
   const [state, formAction] = useServerAction(postResetPassword, initialState);
 
@@ -42,7 +44,7 @@ const ResetPasswordForm = () => {
           value={password}
           changeValue={setPassword}
           showGuide
-          placeholder='● ● ● ● ● ● ● ● ● ● ●'
+          placeholder='Password'
           label='Password'
           required
         />
@@ -52,7 +54,7 @@ const ResetPasswordForm = () => {
           type='password'
           value={confirm_password}
           changeValue={setConfirmPassword}
-          placeholder='● ● ● ● ● ● ● ● ● ● ●'
+          placeholder='Confirm password'
           label='Confirm Password'
           hint={!passwordMatch ? 'Password does not match' : ''}
           invalid={!passwordMatch && !!confirm_password}

@@ -50,7 +50,7 @@ const CompanyDetailsForm = () => {
         <input name='confirm_password' value={signupDetails?.confirm_password} readOnly className='hidden opacity-0' />
         <input name='first_name' value={personalDetails?.first_name} readOnly className='hidden opacity-0' />
         <input name='last_name' value={personalDetails?.last_name} readOnly className='hidden opacity-0' />
-        <input name='country' value={personalDetails?.country} readOnly className='hidden opacity-0' />
+        {/* <input name='country' value={personalDetails?.country} readOnly className='hidden opacity-0' /> */}
         <input name='phone_number' value={personalDetails?.phone_number} readOnly className='hidden opacity-0' />
       </>
       
@@ -64,6 +64,15 @@ const CompanyDetailsForm = () => {
           required
         />
 
+        {/* <InputElement 
+          name='company_type'
+          placeholder='Your company type'
+          label='Select company type'
+          value={company_type}
+          changeValue={setCompanyType}
+          required
+        /> */}
+
         <>
           <input 
             name='company_type'
@@ -75,8 +84,8 @@ const CompanyDetailsForm = () => {
           <SelectElement 
             name='company_type'
             options={company_type_list}
-            label='What type of company is it?'
-            placeholder='Your company name goes here'
+            label='Select company type'
+            placeholder='Select type'
             required
             optionStyle='top-[70px]'
             clickerStyle='!w-full'
@@ -85,7 +94,16 @@ const CompanyDetailsForm = () => {
           />
         </>
 
-        <>
+        <InputElement 
+          name='role'
+          placeholder='Your role'
+          label='What is your role?'
+          value={role}
+          changeValue={setRole}
+          required
+        />
+
+        {/* <>
           <input 
             name='role'
             value={role}
@@ -104,7 +122,7 @@ const CompanyDetailsForm = () => {
             value={role}
             changeValue={setRole}
           />
-        </>
+        </> */}
       </div>
 
       <div className='w-full flex-col flex gap-[12px]'>

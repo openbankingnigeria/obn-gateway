@@ -1,8 +1,8 @@
 import { hashSync } from 'bcrypt';
-import { ROLES } from '../../../roles/types';
-import { CompanyTypes } from '../../../users/types';
+import { ROLES, CompanyTypes } from '../constants';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { UserStatuses } from '../entities';
 
 export class Migration1699629644913 implements MigrationInterface {
   companyId = uuidv4();
@@ -10,9 +10,9 @@ export class Migration1699629644913 implements MigrationInterface {
   profileId = uuidv4();
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-        ALTER TABLE \`companies\` CHANGE \`type\` \`type\` enum ('${CompanyTypes.BANK}', '${CompanyTypes.API_PROVIDER}') NOT NULL
-    `);
+    // await queryRunner.query(`
+    //     ALTER TABLE \`companies\` CHANGE \`type\` \`type\` enum ('${CompanyTypes.BANK}', '${CompanyTypes.API_PROVIDER}') NOT NULL
+    // `);
     await queryRunner.query(
       `INSERT INTO companies (id, name, type) VALUES (?, ?, ?)`,
       [this.companyId, process.env.COMPANY_NAME, CompanyTypes.API_PROVIDER],
@@ -22,13 +22,14 @@ export class Migration1699629644913 implements MigrationInterface {
       [ROLES.API_PROVIDER, ROLES.ADMIN],
     );
     await queryRunner.query(
-      `INSERT INTO users (id, email, role, password, company) VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO users (id, email, role, password, company, status) VALUES (?, ?, ?, ?, ?, ?)`,
       [
         this.userId,
         process.env.COMPANY_EMAIL,
         roles[0].id,
         hashSync(process.env.DEFAULT_PASSWORD!, 12),
         this.companyId,
+        UserStatuses.ACTIVE,
       ],
     );
     await queryRunner.query(

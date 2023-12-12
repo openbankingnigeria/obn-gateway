@@ -45,7 +45,7 @@ const SigninForm = () => {
         <InputElement 
           name='password'
           type='password'
-          placeholder='● ● ● ● ● ● ● ● ● ● ●'
+          placeholder='Password'
           changeValue={setPassword}
           label='Password'
           required

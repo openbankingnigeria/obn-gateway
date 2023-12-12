@@ -3,10 +3,26 @@ import { greetByTime } from '@/utils/greetByTime'
 import React from 'react'
 import { APIConsumerDashboardTable, DashboardBanner } from '.'
 import { COLLECTIONS_APIS, COLLECTIONS_REQUEST_METHOD, COLLECTIONS_TIER, DASHBOARD_API_HEADERS } from '@/data/collectionDatas'
+import { applyAxiosRequest } from '@/hooks'
+import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout'
 
-const APIConsumerDashboardPage = ({
+const APIConsumerDashboardPage = async ({
   search_query, request_method, tier, rows, page
 }: searchParamsProps) => {
+
+  const fetchedDetails : any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyDetails(),
+    method: 'GET',
+    data: null
+  });
+
+  if (fetchedDetails?.status == 401) {
+    return <Logout />
+  }
+
+  let details = fetchedDetails?.data;
   
   /* API CONSUMER */
   const request_method_list = COLLECTIONS_REQUEST_METHOD?.map(method => {
@@ -41,7 +57,9 @@ const APIConsumerDashboardPage = ({
       </h2>
 
       <section className='w-full flex'>
-        <DashboardBanner />
+        <DashboardBanner 
+          rawData={details}
+        />
       </section>
 
       <div className='w-full flex flex-col'>

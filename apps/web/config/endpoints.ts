@@ -19,8 +19,8 @@ export const postAccountSetUp = ({ token }: PostTokenProps) =>
 export const getRolePermission = ({ id }: GetSingleProps) => 
   `${BASE_URL}/roles/${id}/permissions`
 export const getPermissions = () => `${BASE_URL}/roles/permissions`
-export const getRoles = ({ page, limit, name }: GetListProps) => 
-  `${BASE_URL}/roles?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}`;
+export const getRoles = ({ page, limit, name, status }: GetListProps) => 
+  `${BASE_URL}/roles?page=${page}${limit ? `&limit=${limit}`: ''}${status ? `&filter[status]=${status}`: ''}${name ? `&filter[name]=${name}`: ''}`;
 export const postRole = () => `${BASE_URL}/roles`;
 export const updateRole = ({ id }: GetSingleProps) => 
   `${BASE_URL}/roles/${id}`
@@ -30,8 +30,8 @@ export const putRolePermission = ({ id }: GetSingleProps) =>
 
 // TEAMS
 export const postTeam = () => `${BASE_URL}/users`;
-export const getTeams = ({ page, limit, name, status, email }: GetListProps) => 
-  `${BASE_URL}/users?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${email ? `&filter[email]=${email}`: ''}${status ? `&filter[status]=${status}`: ''}`;
+export const getTeams = ({ page, limit, name, status, email, role }: GetListProps) => 
+  `${BASE_URL}/users?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${role ? `&filter[role]=${role}`: ''}${email ? `&filter[email]=${email}`: ''}${status ? `&filter[status]=${status}`: ''}`;
 export const updateTeam = ({ id }: GetSingleProps) => 
   `${BASE_URL}/users/${id}`;
 export const getTeam = ({ id }: GetSingleProps) => 
@@ -51,7 +51,7 @@ export const disable2FA = () => `${BASE_URL}/profile/two-fa/disable`;
 export const getAuditLog = ({ id }: GetSingleProps) => 
   `${BASE_URL}/audit-trail/${id}`;
 export const getAuditTrails = ({ page, limit, event, createdAt_gt, createdAt_l, name }: GetListProps) => 
-  `${BASE_URL}/audit-trail?page=${page}${limit ? `&limit=${limit}`: ''}${event ? `&filter[event]=${event}`: ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][l]=${createdAt_l}`: ''}${name ? `&filter[name]=${name}`: ''}`
+  `${BASE_URL}/audit-trail?page=${page}${limit ? `&limit=${limit}`: ''}${event ? `&filter[event]=${event}`: ''}${createdAt_gt ? `&filter[createdAt][gte]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lte]=${createdAt_l}`: ''}${name ? `&filter[name]=${name}`: ''}`
 
 
 // COLLECTIONS
@@ -61,3 +61,10 @@ export const getCollection = ({ id }: GetSingleProps) =>
   `${BASE_URL}/collections/${id}`;
 export const getAPIEndpoints = ({ id }: GetSingleProps) => 
   `${BASE_URL}/collections/${id}/apis`;
+
+
+// COMPANY
+export const updateCompanyDetails = () => 
+  `${BASE_URL}/company/kyb`;
+export const getCompanyDetails = () => 
+  `${BASE_URL}/company/me`;

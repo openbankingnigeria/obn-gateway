@@ -17,7 +17,10 @@ import {
   PaginationPipe,
 } from '@common/utils/pipes/query/pagination.pipe';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
-import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
+import {
+  RequireTwoFA,
+  RequiredPermission,
+} from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
 import { UserFilters } from './users.filter';
 
@@ -27,6 +30,7 @@ export class UsersController {
 
   @Post()
   @UsePipes(IValidationPipe)
+  @RequireTwoFA()
   createUser(@Body() data: CreateUserDto) {
     return this.usersService.createUser(data);
   }
@@ -42,6 +46,13 @@ export class UsersController {
     return this.usersService.listUsers(pagination, filters);
   }
 
+  @Get('stats')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_TEAM_MEMBERS)
+  getStats() {
+    return this.usersService.getStats();
+  }
+
   @Get(':id')
   @UsePipes(IValidationPipe)
   getUser(@Param('id') id: string) {
@@ -50,12 +61,14 @@ export class UsersController {
 
   @Patch(':id')
   @UsePipes(IValidationPipe)
+  @RequireTwoFA()
   updateUser(@Param('id') id: string, @Body() data: UpdateUserDto) {
     return this.usersService.updateUser(id, data);
   }
 
   @Delete(':id')
   @UsePipes(IValidationPipe)
+  @RequireTwoFA()
   deleteUser(@Param('id') id: string) {
     return this.usersService.deleteUser(id);
   }

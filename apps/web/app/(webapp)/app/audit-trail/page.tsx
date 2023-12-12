@@ -26,7 +26,7 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
       limit: `${rows}`,
       name: search_query,
       event: type,
-      createdAt_gt: moment(dateFilter?.start_date).endOf('day').format()?.split('+')[0] + '.000Z',
+      createdAt_gt: moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z',
       createdAt_l: moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z'
     }),
     method: 'GET',
@@ -71,7 +71,7 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
           <div className='w-full flex items-start justify-between gap-[12px]'>
             <div className='w-fit flex-wrap flex items-center gap-[12px]'>
               <SearchBar 
-                placeholder='Search by name, email'
+                placeholder='Search by name'
                 searchQuery={search_query}
               />
 

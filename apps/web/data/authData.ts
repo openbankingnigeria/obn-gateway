@@ -1,20 +1,24 @@
 export const COMPANY_TYPES = [
   {
-    label: 'API Provider',
-    value: 'API_PROVIDER'
+    label: 'Lending',
+    value: 'LENDING'
   },
   {
-    label: 'Bank',
-    value: 'BANK'
+    label: 'BNPL',
+    value: 'BNPL'
   },
-  // {
-  //   label: 'BNPL',
-  //   value: 'BNPL'
-  // },
-  // {
-  //   label: 'Lending',
-  //   value: 'LENDING'
-  // }
+  {
+    label: 'Fintech',
+    value: 'FINTECH'
+  },
+  {
+    label: 'Insurance',
+    value: 'INSURANCE'
+  },
+  {
+    label: 'Others',
+    value: 'OTHERS'
+  },
 ];
 
 export const CONSUMER_ROLES = [

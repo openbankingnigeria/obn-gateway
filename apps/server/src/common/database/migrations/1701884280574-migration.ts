@@ -25,13 +25,6 @@ export class Migration1701884280574 implements MigrationInterface {
             ADD \`company_role\` varchar(255) NOT NULL
         `);
     await queryRunner.query(`
-            ALTER TABLE \`companies\` DROP COLUMN \`type\`
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`companies\`
-            ADD \`type\` varchar(255) NOT NULL
-        `);
-    await queryRunner.query(`
             ALTER TABLE \`settings\`
             ADD CONSTRAINT \`FK_3dc0f88c481ee12c88efbdafb0c\` FOREIGN KEY (\`company_id\`) REFERENCES \`companies\`(\`id\`) ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
@@ -43,10 +36,6 @@ export class Migration1701884280574 implements MigrationInterface {
         `);
     await queryRunner.query(`
             ALTER TABLE \`companies\` DROP COLUMN \`type\`
-        `);
-    await queryRunner.query(`
-            ALTER TABLE \`companies\`
-            ADD \`type\` enum ('BANK', 'API_PROVIDER') NOT NULL
         `);
     await queryRunner.query(`
             ALTER TABLE \`profiles\` DROP COLUMN \`company_role\`

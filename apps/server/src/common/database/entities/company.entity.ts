@@ -25,6 +25,9 @@ export class Company {
   @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified: boolean;
 
+  @Column({ name: 'is_active', type: 'boolean', default: false })
+  isActive: boolean;
+
   @Column('longblob', { name: 'kyb_data', nullable: true })
   kybData?: string;
 

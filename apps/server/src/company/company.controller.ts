@@ -4,12 +4,17 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UploadedFiles,
   UseInterceptors,
+  UsePipes,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import { UpdateCompanyDetailsDto } from './dto/update-company-details.dto';
+import {
+  UpdateCompanyDetailsDto,
+  UpdateKybStatusDto,
+} from './dto/update-company-details.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {
@@ -55,5 +60,22 @@ export class CompanyController {
   @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
   getCompanyDetailsById(@Param('id') companyId: string) {
     return this.companyService.getCompanyDetails(companyId);
+  }
+
+  @Post('companies/rc/verify')
+  @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_STATUS)
+  @UsePipes(IValidationPipe)
+  verifyCompanyRC(@Body() data: UpdateCompanyDetailsDto) {
+    return this.companyService.verifyCompanyRC(data.rcNumber);
+  }
+
+  @Patch('companies/:id/kyb/status')
+  @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_STATUS)
+  @UsePipes(IValidationPipe)
+  updateKybStatus(
+    @Body() data: UpdateKybStatusDto,
+    @Param('id') companyId: string,
+  ) {
+    return this.companyService.updateKYBstatus(companyId, data);
   }
 }

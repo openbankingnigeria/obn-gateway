@@ -16,6 +16,11 @@ import { RolePermission } from './rolepermission.entity';
 import { Company } from './company.entity';
 import { Permission } from './permission.entity';
 
+export enum RoleStatuses {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
 @Entity({ name: 'roles' })
 @Unique(['slug', 'parent', 'company'])
 export class Role {
@@ -32,7 +37,7 @@ export class Role {
   description?: string;
 
   @Column()
-  status?: string;
+  status?: RoleStatuses;
 
   @JoinColumn({ name: 'parent_id' })
   @ManyToOne(() => Role, { nullable: true })
