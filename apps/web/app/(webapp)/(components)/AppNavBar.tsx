@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { getElementAndBelow } from '@/utils/getElementAndBelow';
 import Link from 'next/link';
@@ -10,6 +10,8 @@ import { Button, OutsideClicker } from '../../../components/globalComponents';
 import { AppCenterModal, AvatarMenu, NotificationBox } from '.';
 import { toast } from 'react-toastify';
 import { getJsCookies, removeJsCookies } from '@/config/jsCookie';
+import clientAxiosRequest from '@/hooks/clientAxiosRequest';
+import * as API from '@/config/endpoints';
 
 const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const [openModal, setOpenModal] = useState(false);
@@ -20,11 +22,28 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const router = useRouter();
   const { get } = useSearchParams();
   const slug = get('slug');
-  const getUserProfile = getJsCookies('aperta-user-profile');
-  const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
+  const [profile, setProfile] = useState<any>(null);
+  // const getUserProfile = getJsCookies('aperta-user-profile');
+  // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
 
-  let firstName = userProfile?.name?.split(' ')[0];
-  let lastName = userProfile?.name?.split(' ')[1];
+  const fetchProfile = async() => {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setProfile(result?.data);
+  }
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  let firstName = profile?.firstName;
+  let lastName = profile?.lastName;
   let avatarAlt = `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`
 
   const unReadNotifications = NOTIFICATIONS_DATA;

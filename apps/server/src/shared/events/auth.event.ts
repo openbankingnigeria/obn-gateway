@@ -20,7 +20,7 @@ export class AuthEvent extends BaseEvent {
 export class AuthSignupEvent extends AuthEvent {
   constructor(
     public readonly author: User,
-    public readonly metadata: any = {},
+    public readonly metadata: { otp: string; [k: string]: any },
   ) {
     super(AuthEvents.SIGN_UP, author, metadata);
   }

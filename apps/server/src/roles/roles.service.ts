@@ -103,6 +103,7 @@ export class RolesService {
       where,
       skip: (page - 1) * limit,
       take: limit,
+      order: { createdAt: 'DESC' },
     });
 
     // TODO emit event

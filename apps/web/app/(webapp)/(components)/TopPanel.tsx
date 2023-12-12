@@ -1,10 +1,12 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { TopPanelContainerProps } from '@/types/webappTypes/componentsTypes'
 import { deleteSearchParams, updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
+import * as API from '@/config/endpoints';
+import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 
 const TopPanel = ({
   name,
@@ -13,6 +15,25 @@ const TopPanel = ({
   containerStyle
 }: TopPanelContainerProps) => {
   const router = useRouter();
+  const [details, setDetails] = useState<any>(null);
+
+  async function fetchDetails() {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyDetails(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setDetails(result?.data);
+  }
+
+  useEffect(() => {
+    fetchDetails();
+  }, []);
+
+  let showBanner = Boolean(!details?.isVerified)
   
   const handleClick = (value: string) => {
     if (value) {
@@ -26,7 +47,7 @@ const TopPanel = ({
 
   return (
     <div className={`overflow-x-auto px-[32px] z-[100] pt-[16px] bg-white border-b border-o-border 
-      flex items-center gap-[24px] h-[56px] w-full fixed top-[80px] 
+      flex items-center gap-[24px] h-[56px] w-full fixed ${showBanner ? 'top-[136px]' : 'top-[80px]'}
       left-[280px] ${containerStyle}`}
     >
       {

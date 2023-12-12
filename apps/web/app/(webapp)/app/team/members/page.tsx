@@ -41,6 +41,13 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  const fetchedStats: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getTeamStats(),
+    method: 'GET',
+    data: null
+  });
+
   if (fetchedMembers?.status == 401 || fetchedRoles?.status == 401) {
     return <Logout />
   }
@@ -48,10 +55,13 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   let roles = fetchedRoles?.data;
   let meta_data = fetchedMembers?.meta_data;
   let teams = fetchedMembers?.data;
+  let stats = fetchedStats?.data;
 
   const panel = MEMBERS_STATUS_DATA({
-    all: 29,
-    invited: 5
+    all: stats?.reduce((acc: any, obj: any) => acc + Number(obj.count), 0),
+    invited: stats?.find((stat: any) => stat?.value == 'pending')?.count
+    // all: 29,
+    // invited: 4
   })?.map((pane: any) => {
     if (pane?.panel) { return pane }
   });
@@ -63,7 +73,7 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
         email_address: data?.email,
         date_invited: data?.createdAt,
         status: 'invited',
-        role: '',
+        role: data?.role?.name,
         invited_by: ''
       });
     }
@@ -75,7 +85,7 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
         ...data,
         email_address: data?.email,
         member_name: `${data?.profile?.firstName} ${data?.profile?.lastName}`,
-        role: '',
+        role: data?.role?.name,
         two_fa: data?.twofaEnabled,
       });
     }

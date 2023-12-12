@@ -50,119 +50,173 @@ export class EmailService {
 
   @OnEvent(UserEvents.USER_CREATED)
   async handleUserCreatedEvent(event: UserCreatedEvent) {
-    const company = await this.companyRepository.findOneOrFail({
-      where: { type: CompanyTypes.API_PROVIDER },
-      order: { id: 'ASC' },
-    });
-    this.sendEmail(EMAIL_TEMPLATES.USER_INVITE, event.user.email, {
-      invitationUrl: `${this.config.get(
-        'server.managementUrl',
-      )}/account-setup?token=${event.metadata.token}`,
-      companyName: company.name!,
-    });
-  }
-
-  // TODO send to api provider user capable of accepting invites
-  @OnEvent(AuthEvents.SIGN_UP)
-  async handleUserSignupEvent(event: AuthSignupEvent) {
-    const user = await this.userRepository.findOneOrFail({
-      where: {
-        company: { type: CompanyTypes.API_PROVIDER },
-        role: { parent: { slug: ROLES.API_PROVIDER } },
-      },
-    });
-    this.sendEmail(EMAIL_TEMPLATES.ACCESS_REQUEST, user.email, {
-      name: event.author.company?.name || '',
-      email: event.author.email,
-    });
+    try {
+      const company = await this.companyRepository.findOneOrFail({
+        where: { type: CompanyTypes.API_PROVIDER },
+        order: { id: 'ASC' },
+      });
+      this.sendEmail(EMAIL_TEMPLATES.USER_INVITE, event.user.email, {
+        invitationUrl: `${this.config.get(
+          'server.managementUrl',
+        )}/account-setup?token=${event.metadata.token}`,
+        companyName: company.name!,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @OnEvent(UserEvents.USER_DEACTIVATED)
-  handleUserDeactivatedEvent(event: UserDeactivatedEvent) {
-    this.sendEmail(EMAIL_TEMPLATES.USER_DEACTIVATED, event.user.email, {
-      firstName: event.user.profile?.firstName || '',
-    });
+  async handleUserDeactivatedEvent(event: UserDeactivatedEvent) {
+    try {
+      await this.sendEmail(EMAIL_TEMPLATES.USER_DEACTIVATED, event.user.email, {
+        firstName: event.user.profile?.firstName || '',
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @OnEvent(UserEvents.USER_REACTIVATED)
   async handleUserReactivatedEvent(event: UserReactivatedEvent) {
-    const company = await this.companyRepository.findOneOrFail({
-      where: { type: CompanyTypes.API_PROVIDER },
-      order: { id: 'ASC' },
-    });
-    this.sendEmail(EMAIL_TEMPLATES.USER_REACTIVATED, event.user.email, {
-      firstName: event.user.profile?.firstName || '',
-      companyName: company.name!,
-    });
+    try {
+      const company = await this.companyRepository.findOneOrFail({
+        where: { type: CompanyTypes.API_PROVIDER },
+        order: { id: 'ASC' },
+      });
+      this.sendEmail(EMAIL_TEMPLATES.USER_REACTIVATED, event.user.email, {
+        firstName: event.user.profile?.firstName || '',
+        companyName: company.name!,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @OnEvent(AuthEvents.SET_PASSWORD)
-  handleUserSetPasswordEvent(event: AuthSetPasswordEvent) {
-    this.sendEmail(EMAIL_TEMPLATES.SET_PASSWORD, event.user.email, {
-      firstName: event.user.profile?.firstName || '',
-    });
+  async handleUserSetPasswordEvent(event: AuthSetPasswordEvent) {
+    try {
+      this.sendEmail(EMAIL_TEMPLATES.SET_PASSWORD, event.user.email, {
+        firstName: event.user.profile?.firstName || '',
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @OnEvent(AuthEvents.RESET_PASSWORD_REQUEST)
   async handleUserResetPasswordRequestEvent(
     event: AuthResetPasswordRequestEvent,
   ) {
-    const company = await this.companyRepository.findOneOrFail({
-      where: { type: CompanyTypes.API_PROVIDER },
-      order: { id: 'ASC' },
-    });
-    this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD_REQUEST, event.user.email, {
-      firstName: event.user.profile?.firstName || '',
-      resetUrl: `${this.config.get(
-        'server.managementUrl',
-      )}/reset-password?token=${event.metadata.token}`,
-      companyName: company.name!,
-    });
+    try {
+      const company = await this.companyRepository.findOneOrFail({
+        where: { type: CompanyTypes.API_PROVIDER },
+        order: { id: 'ASC' },
+      });
+      this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD_REQUEST, event.user.email, {
+        firstName: event.user.profile?.firstName || '',
+        resetUrl: `${this.config.get(
+          'server.managementUrl',
+        )}/reset-password?token=${event.metadata.token}`,
+        companyName: company.name!,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @OnEvent(AuthEvents.RESET_PASSWORD)
-  handleUserResetPasswordEvent(event: AuthResetPasswordEvent) {
-    this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD, event.user.email, {
-      firstName: event.user.profile?.firstName || '',
-    });
+  async handleUserResetPasswordEvent(event: AuthResetPasswordEvent) {
+    try {
+      this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD, event.user.email, {
+        firstName: event.user.profile?.firstName || '',
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @OnEvent(CompanyEvents.COMPANY_KYB_APPROVED)
-  handleApproveCompanyKyb(event: CompanyApprovedEvent) {
-    event.metadata.admins.forEach((admin) => {
-      this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, event.user.email, {
-        name: admin.profile.firstName,
-        apiProvider: event.metadata.apiProvider,
+  async handleApproveCompanyKyb(event: CompanyApprovedEvent) {
+    try {
+      const apiProvider = await this.companyRepository.findOneOrFail({
+        where: { type: CompanyTypes.API_PROVIDER },
+        order: { id: 'ASC' },
       });
-    });
+      const admins = await this.userRepository.find({
+        where: {
+          companyId: event.company.id,
+          role: {
+            slug: ROLES.ADMIN,
+          },
+        },
+        relations: {
+          profile: true,
+        },
+      });
+      admins.forEach((admin) => {
+        this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, admin.email, {
+          name: admin.profile!.firstName,
+          apiProvider: apiProvider.name!,
+        });
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @OnEvent(CompanyEvents.COMPANY_KYB_DENIED)
-  handleDenyCompanyKyb(event: CompanyDeniedEvent) {
-    event.metadata.admins.forEach((admin) => {
-      this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, event.user.email, {
-        name: admin.profile.firstName,
-        reason: event.metadata.reason,
+  async handleDenyCompanyKyb(event: CompanyDeniedEvent) {
+    try {
+      const admins = await this.userRepository.find({
+        where: {
+          companyId: event.company.id,
+          role: {
+            slug: ROLES.ADMIN,
+          },
+        },
+        relations: {
+          profile: true,
+        },
       });
-    });
+      admins.forEach((admin) => {
+        this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, admin.email, {
+          name: admin.profile!.firstName,
+          reason: event.metadata.reason,
+        });
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @OnEvent(AuthEvents.SIGN_UP)
-  handleVerifyEmail(event: AuthSignupEvent) {
+  async handleResendOtp(event: AuthResendOtpEvent) {
+    const apiProvider = await this.companyRepository.findOneOrFail({
+      where: { type: CompanyTypes.API_PROVIDER },
+      order: { id: 'ASC' },
+    });
     this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
-      apiProvider: event.metadata.apiProvider!,
+      apiProvider: apiProvider.name!,
       otp: event.metadata.otp!,
       name: event.author.profile!.firstName,
     });
   }
 
-  @OnEvent(AuthEvents.SIGN_UP)
-  handleResendOtp(event: AuthResendOtpEvent) {
-    this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
-      apiProvider: event.metadata.apiProvider!,
-      otp: event.metadata.otp!,
-      name: event.author.profile!.firstName,
-    });
+  async handleVerifyEmail(event: AuthSignupEvent) {
+    try {
+      const apiProvider = await this.companyRepository.findOneOrFail({
+        where: { type: CompanyTypes.API_PROVIDER },
+        order: { id: 'ASC' },
+      });
+      this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
+        apiProvider: apiProvider.name!,
+        name: event.author.profile!.firstName,
+        otp: event.metadata.otp,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private async sendEmail(

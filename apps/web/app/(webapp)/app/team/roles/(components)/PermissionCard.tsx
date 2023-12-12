@@ -24,11 +24,16 @@ const PermissionCard = ({
 
   useEffect(() => {
     if (isSelected) {
-      thisPermission.options = permission_options
-      const newPermissions = [...permissions];
-      const sanitizedPermission = newPermissions?.filter(obj => obj?.permission != value);
-      sanitizedPermission.push(thisPermission);
-      changePermissions([...newPermissions]);
+      if (permission_options?.length >= 1) {
+        thisPermission.options = permission_options
+        const newPermissions = [...permissions];
+        const sanitizedPermission = newPermissions?.filter(obj => obj?.permission != value);
+        sanitizedPermission.push(thisPermission);
+        changePermissions([...newPermissions]);
+      } else {
+        const filteredPermissions = permissions?.filter(permit => permit?.permission != value);
+        changePermissions(filteredPermissions);
+      }
     }
   }, [permission_options]);
   

@@ -36,7 +36,7 @@ const SigninForm = () => {
         <InputElement 
           name='email'
           type='email'
-          placeholder='johndoe@openbanking.com'
+          placeholder='Email address'
           changeValue={setEmail}
           label='Email Address'
           required

@@ -40,6 +40,7 @@ export class CollectionsService {
         where: { ...filters },
         skip: (page - 1) * limit,
         take: limit,
+        order: { createdAt: 'DESC' },
       });
 
     // TODO emit event
@@ -183,6 +184,7 @@ export class CollectionsService {
         where: { collectionId, ...filters },
         skip: (page - 1) * limit,
         take: limit,
+        order: { createdAt: 'DESC' },
       });
 
     const [gatewayServices, gatewayRoutes] = await Promise.all([

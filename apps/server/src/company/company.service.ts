@@ -4,7 +4,7 @@ import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
 import { KybDataTypes, KybSettings } from '@settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Company, Profile, Settings, User } from '@common/database/entities';
+import { Company, Settings, User } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
@@ -16,7 +16,7 @@ import {
   CompanyApprovedEvent,
   CompanyDeniedEvent,
 } from '@shared/events/company.event';
-import { CompanyTypes, ROLES } from '@common/database/constants';
+import { CompanyTypes } from '@common/database/constants';
 import { UpdateKybStatusDto } from './dto/update-company-details.dto';
 
 @Injectable()
@@ -231,18 +231,6 @@ export class CompanyService {
 
     this.verifyCompanyRC(company.rcNumber, company.name);
 
-    const companyAdmins = (await this.userRepository.find({
-      where: {
-        companyId: company.id,
-        role: {
-          slug: ROLES.ADMIN,
-        },
-      },
-      relations: {
-        profile: true,
-      },
-    })) as (User & { profile: Profile })[];
-
     switch (action) {
       case 'approve':
         await this.companyRepository.update(
@@ -251,11 +239,7 @@ export class CompanyService {
         );
         const event = new CompanyApprovedEvent(
           this.requestContext.user!,
-          this.requestContext.user!,
-          {
-            admins: companyAdmins,
-            apiProvider: this.requestContext.user!.company.name!,
-          },
+          company,
         );
         this.eventEmitter.emit(event.name, event);
         break;
@@ -268,9 +252,8 @@ export class CompanyService {
         }
         const deniedEvent = new CompanyDeniedEvent(
           this.requestContext.user!,
-          this.requestContext.user!,
+          company,
           {
-            admins: companyAdmins,
             reason: reason!,
           },
         );

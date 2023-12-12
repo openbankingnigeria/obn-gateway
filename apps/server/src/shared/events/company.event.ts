@@ -1,4 +1,4 @@
-import { Profile, User } from 'src/common/database/entities';
+import { Company, User } from 'src/common/database/entities';
 import { BaseEvent } from './base.event';
 
 export enum CompanyEvents {
@@ -10,7 +10,7 @@ export class CompanyEvent extends BaseEvent {
   constructor(
     public readonly name: string,
     public readonly author: User,
-    public readonly user: User,
+    public readonly company: Company,
     public readonly metadata?: any,
   ) {
     super(name, author);
@@ -19,25 +19,19 @@ export class CompanyEvent extends BaseEvent {
 export class CompanyApprovedEvent extends CompanyEvent {
   constructor(
     public readonly author: User,
-    public readonly user: User,
-    public readonly metadata: {
-      admins: (User & { profile: Profile })[];
-      apiProvider: string;
-    },
+    public readonly company: Company,
+    public readonly metadata: any = {},
   ) {
-    super(CompanyEvents.COMPANY_KYB_APPROVED, author, user, metadata);
+    super(CompanyEvents.COMPANY_KYB_APPROVED, author, company, metadata);
   }
 }
 
 export class CompanyDeniedEvent extends CompanyEvent {
   constructor(
     public readonly author: User,
-    public readonly user: User,
-    public readonly metadata: {
-      admins: (User & { profile: Profile })[];
-      reason: string;
-    },
+    public readonly company: Company,
+    public readonly metadata: { reason: string },
   ) {
-    super(CompanyEvents.COMPANY_KYB_DENIED, author, user, metadata);
+    super(CompanyEvents.COMPANY_KYB_DENIED, author, company, metadata);
   }
 }

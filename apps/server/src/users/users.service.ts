@@ -79,7 +79,11 @@ export class UsersService {
         companyId: this.requestContext.user!.companyId,
         resetPasswordToken: hashedToken,
         resetPasswordExpires: moment().add(24, 'hours').toDate(),
-        profile: {},
+        profile: {
+          firstName: '',
+          lastName: '',
+          companyRole: '',
+        },
       }),
     );
 
@@ -104,6 +108,7 @@ export class UsersService {
       relations: { profile: true, role: true },
       skip: (page - 1) * limit,
       take: limit,
+      order: { createdAt: 'DESC' },
     });
 
     // TODO emit event
