@@ -79,7 +79,11 @@ export class UsersService {
         companyId: this.requestContext.user!.companyId,
         resetPasswordToken: hashedToken,
         resetPasswordExpires: moment().add(24, 'hours').toDate(),
-        profile: {},
+        profile: {
+          firstName: '',
+          lastName: '',
+          companyRole: '',
+        },
       }),
     );
 
