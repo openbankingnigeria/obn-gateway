@@ -55,6 +55,28 @@ export class Migration1702029963745 implements MigrationInterface {
         }),
       ],
     );
+
+    await queryRunner.query(
+      `INSERT INTO email_templates (id, slug, title, body) VALUES (?, ?, ?, ?)`,
+      [
+        uuidv4(),
+        EMAIL_TEMPLATES.VERIFY_EMAIL,
+        'Let’s get started, Verify your Email',
+        template({
+          title: 'Let’s get started, Verify your Email',
+          body: [
+            { text: 'Hi {{name}},' },
+            {
+              text: 'Thank you for creating your account on {{apiProvider}}.',
+            },
+            {
+              text: 'For security purposes, use the OTP below to verify your email address.',
+            },
+            { text: '{{otp}}' },
+          ],
+        }),
+      ],
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {}

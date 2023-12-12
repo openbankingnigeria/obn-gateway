@@ -13,6 +13,7 @@ import {
   SetupDto,
   SignupDto,
   TwoFADto,
+  VerifyEmailDto,
 } from './dto/index.dto';
 import {
   IBadRequestException,
@@ -37,7 +38,9 @@ import {
   AuthSignupEvent,
 } from '@shared/events/auth.event';
 import * as speakeasy from 'speakeasy';
-import { ROLES } from '@common/database/constants';
+import { CompanyTypes, ROLES } from '@common/database/constants';
+import { generateOtp } from '@common/utils/helpers/auth.helpers';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
   constructor(
@@ -51,6 +54,7 @@ export class AuthService {
     private readonly roleRepository: Repository<Role>,
     private readonly auth: Auth,
     private readonly eventEmitter: EventEmitter2,
+    private readonly config: ConfigService,
   ) {}
 
   async signup(data: SignupDto) {
@@ -103,11 +107,18 @@ export class AuthService {
         name: companyName,
         type: companyType,
       });
+
+      const otp = generateOtp(6);
+
       const user = await this.userRepository.save({
         email: email.trim().toLowerCase(),
         password: hashSync(password, 12),
         roleId: apiConsumerRole.id,
         companyId: companyCreated.id,
+        emailVerificationOtp: otp.toString(),
+        emailVerificationExpires: moment()
+          .add(this.config.get('auth.default_otp_expires_minutes'), 'minutes')
+          .toDate(),
         profile: {
           firstName,
           lastName,
@@ -117,9 +128,23 @@ export class AuthService {
         },
       });
 
+      const apiProvider = await this.companyRepository.findOne({
+        where: {
+          type: CompanyTypes.API_PROVIDER,
+        },
+      });
+
+      const event = new AuthSignupEvent(user, {
+        apiProvider: apiProvider ? apiProvider.name : '',
+      });
+
+      if (this.config.get('server.nodeEnv') !== 'development') {
+        delete (user as any).emailVerificationOtp;
+        delete (user as any).emailVerificationExpires;
+      }
+
       user.company = companyCreated;
 
-      const event = new AuthSignupEvent(user);
       this.eventEmitter.emit(event.name, event);
 
       return ResponseFormatter.success(authSuccessMessages.signup, {
@@ -337,5 +362,43 @@ export class AuthService {
     // TODO emit event
 
     return ResponseFormatter.success(authSuccessMessages.signup);
+  }
+
+  async verifyEmail({ email, otp }: VerifyEmailDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+        emailVerified: false,
+      },
+    });
+
+    if (!user) {
+      throw new IBadRequestException({
+        message: `User with email - ${email} not found.`,
+      });
+    }
+
+    if (
+      user.emailVerificationOtp !== otp ||
+      (user.emailVerificationExpires &&
+        user.emailVerificationExpires?.getTime() < new Date().getTime())
+    ) {
+      throw new IBadRequestException({
+        message: `Invalid OTP.`,
+      });
+    }
+
+    await this.userRepository.update(
+      { id: user.id },
+      {
+        emailVerified: true,
+        emailVerificationExpires: undefined,
+        emailVerificationOtp: undefined,
+      },
+    );
+
+    return ResponseFormatter.success(authSuccessMessages.verifyEmail, {
+      ...user,
+    });
   }
 }

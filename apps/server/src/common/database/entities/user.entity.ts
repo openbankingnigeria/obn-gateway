@@ -42,6 +42,9 @@ export class User {
   @Column({ default: UserStatuses.PENDING, type: 'enum', enum: UserStatuses })
   status?: UserStatuses;
 
+  @Column({ name: 'email_verified', default: false })
+  emailVerified: boolean;
+
   @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
   @ManyToOne(() => Role, { nullable: false })
   role: Role;
@@ -66,6 +69,12 @@ export class User {
 
   @Column({ name: 'reset_password_token', nullable: true })
   resetPasswordToken?: string;
+
+  @Column({ name: 'email_verification_otp', nullable: true })
+  emailVerificationOtp?: string;
+
+  @Column({ name: 'email_verification_expires', nullable: true })
+  emailVerificationExpires?: Date;
 
   @Column({ name: 'reset_password_expires', nullable: true })
   resetPasswordExpires?: Date;

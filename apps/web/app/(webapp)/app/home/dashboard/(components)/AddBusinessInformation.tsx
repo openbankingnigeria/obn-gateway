@@ -24,22 +24,22 @@ const AddBusinessInformation = ({
   const [company_status_report, setCompanyStatusReport] = useState('');
 
   const incorrect = (
-    cac?.length != 21 ||
+    cac?.length != 15 ||
     !regulator_license ||
     !certificate_of_incorporation ||
-    !tin?.match(/^\d{9}$/) ||
+    !tin?.match(/^\d{15}$/) ||
     !company_status_report
   );
 
   const handleCac = (value: string) => {
     if (value?.length <= 15) {
-      setCac(value?.toString()?.replace(/[^0-9a-zA-Z.]/g, ''));
+      setCac(value?.toString()?.replace(/[^0-9a-zA-Z]/g, ''));
     }
   }
 
   const handleTin = (value: string) => {
     if (value?.length <= 15){
-      setTin(value?.toString()?.replace(/[^0-9.]/g, ''));
+      setTin(value?.toString()?.replace(/[^0-9-]/g, ''));
     }
   }
 

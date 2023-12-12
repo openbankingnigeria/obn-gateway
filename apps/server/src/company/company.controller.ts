@@ -76,6 +76,6 @@ export class CompanyController {
     @Body() data: UpdateKybStatusDto,
     @Param('id') companyId: string,
   ) {
-    return this.companyService.updateKYBstatus(companyId, data);
+    return this.companyService.updateKYBStatus(companyId, data);
   }
 }

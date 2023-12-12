@@ -115,7 +115,7 @@ const EmailServicePage = () => {
                         name={data?.name}
                         options={email_provider_list}
                         required
-                        placeholder='Select'
+                        placeholder='Select provider'
                         optionStyle='top-[45px]'
                         clickerStyle='!w-full'
                         value={data?.value}

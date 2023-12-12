@@ -137,6 +137,10 @@ export interface PermissionOptionsProps {
   value: string;
 }
 
+export interface PermissionValue {
+  permission: string;
+  options: PermissionOptionsProps[]
+}
 export interface PermissionSelectorProps {
   placeholder?: string;
   parentIsSelected: boolean;
@@ -148,12 +152,7 @@ export interface PermissionSelectorProps {
   fieldStyle?: string;
   values: PermissionOptionsProps[];
   optionStyle?: string;
-  changeValues: Dispatch<SetStateAction<PermissionOptionsProps[]>>
-}
-
-export interface PermissionValue {
-  permission: string;
-  options: PermissionOptionsProps[]
+  changeValues: Dispatch<SetStateAction<PermissionOptionsProps[]>>;
 }
 
 export interface PermissionCardProps {

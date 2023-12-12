@@ -29,6 +29,7 @@ export const globalConfig = (): {
       (process.env.JWT_SECRET_FILE
         ? fs.readFileSync(process.env.JWT_SECRET_FILE)
         : undefined) || process.env.JWT_SECRET,
+    defaultOtpExpiresMinutes: process.env.DEFAULT_OTP_EXPIRES_MINUTES || '15',
   },
   email: {
     host: process.env.EMAIL_HOST,

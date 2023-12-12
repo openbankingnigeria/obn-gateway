@@ -72,7 +72,7 @@ const InviteMemberPage = ({
         <InputElement 
           name='email'
           type='email'
-          placeholder='johndoe@example.com'
+          placeholder='Email address'
           label='Email Address'
           value={email}
           changeValue={setEmail}
@@ -93,6 +93,7 @@ const InviteMemberPage = ({
               // @ts-ignore
               options={roles_list}
               required
+              placeholder='Select role'
               optionStyle='top-[72px]'
               label='Role'
               clickerStyle='!w-full'
