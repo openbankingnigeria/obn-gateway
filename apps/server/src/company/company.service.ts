@@ -103,6 +103,7 @@ export class CompanyService {
       { id: this.requestContext.user!.company.id },
       {
         kybData: JSON.stringify({ ...previousKybDetails, ...validKybData }),
+        rcNumber: data.rcNumber,
       },
     );
 

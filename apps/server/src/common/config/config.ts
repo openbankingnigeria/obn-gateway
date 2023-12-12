@@ -8,7 +8,7 @@ export const globalConfig = (): {
   database: DataSourceOptions;
 } => ({
   server: {
-    port: parseInt(process.env.SERVER_PORT as string, 10) || 8080,
+    port: parseInt(process.env.SERVER_PORT as string, 10) || 8089,
     nodeEnv: process.env.NODE_ENV || 'development',
     managementUrl: process.env.MANAGEMENT_URL,
   },
