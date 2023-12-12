@@ -74,7 +74,7 @@ const ReportForms = () => {
               name='report_type'
               options={report_type_list}
               label='Report Type'
-              placeholder='Select'
+              placeholder='Select type'
               required
               optionStyle='top-[70px]'
               clickerStyle='!w-full'
@@ -165,7 +165,7 @@ const ReportForms = () => {
               name='consumers'
               options={consumers_list}
               label='Select Consumer(s)'
-              placeholder='Select'
+              placeholder='Select consumer'
               multiple
               required
               optionStyle='top-[70px]'

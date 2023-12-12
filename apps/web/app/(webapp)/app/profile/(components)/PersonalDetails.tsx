@@ -81,7 +81,7 @@ const PersonalDetails = ({
             <InputElement 
               name='email'
               type='email'
-              placeholder='johndoe@openbanking.com'
+              placeholder='Email address'
               value={profile?.user?.email}
               disabled
               required

@@ -106,7 +106,8 @@ const SignupFullForm = () => {
 
         <InputElement 
           name='email'
-          placeholder='johndoe@openbanking.com'
+          type='email'
+          placeholder='Email address'
           label='Company Email Address'
           value={email}
           changeValue={setEmail}
