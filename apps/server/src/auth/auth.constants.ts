@@ -10,4 +10,5 @@ export const authSuccessMessages = {
   resetPassword:
     'Your password has been successfully reset. Please proceed to login.',
   changePassword: 'Your password has been successfully changed.',
+  resendOtp: 'OTP has been resent successfully.',
 };

@@ -26,6 +26,15 @@ export class AuthSignupEvent extends AuthEvent {
   }
 }
 
+export class AuthResendOtpEvent extends AuthEvent {
+  constructor(
+    public readonly author: User,
+    public readonly metadata: { otp: string; apiProvider?: string },
+  ) {
+    super(AuthEvents.SIGN_UP, author, metadata);
+  }
+}
+
 export class AuthLoginEvent extends AuthEvent {
   constructor(
     public readonly author: User,

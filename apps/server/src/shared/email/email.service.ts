@@ -21,6 +21,7 @@ import {
 } from '@common/database/constants';
 import {
   AuthEvents,
+  AuthResendOtpEvent,
   AuthResetPasswordEvent,
   AuthResetPasswordRequestEvent,
   AuthSetPasswordEvent,
@@ -190,6 +191,18 @@ export class EmailService {
   }
 
   @OnEvent(AuthEvents.SIGN_UP)
+  async handleResendOtp(event: AuthResendOtpEvent) {
+    const apiProvider = await this.companyRepository.findOneOrFail({
+      where: { type: CompanyTypes.API_PROVIDER },
+      order: { id: 'ASC' },
+    });
+    this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
+      apiProvider: apiProvider.name!,
+      otp: event.metadata.otp!,
+      name: event.author.profile!.firstName,
+    });
+  }
+
   async handleVerifyEmail(event: AuthSignupEvent) {
     try {
       const apiProvider = await this.companyRepository.findOneOrFail({
