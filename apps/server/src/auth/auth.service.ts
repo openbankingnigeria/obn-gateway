@@ -38,7 +38,7 @@ import {
   AuthSignupEvent,
 } from '@shared/events/auth.event';
 import * as speakeasy from 'speakeasy';
-import { CompanyTypes, ROLES } from '@common/database/constants';
+import { ROLES } from '@common/database/constants';
 import { generateOtp } from '@common/utils/helpers/auth.helpers';
 import { ConfigService } from '@nestjs/config';
 @Injectable()
@@ -128,16 +128,9 @@ export class AuthService {
         },
       });
 
-      const apiProvider = await this.companyRepository.findOne({
-        where: {
-          type: CompanyTypes.API_PROVIDER,
-        },
-      });
+      const event = new AuthSignupEvent(user, { otp });
 
-      const event = new AuthSignupEvent(user, {
-        apiProvider: apiProvider ? apiProvider.name : '',
-      });
-
+      // TODO remove, this should always be deleted;
       if (this.config.get('server.nodeEnv') !== 'development') {
         delete (user as any).emailVerificationOtp;
         delete (user as any).emailVerificationExpires;
@@ -383,6 +376,8 @@ export class AuthService {
       user.emailVerificationExpires,
       user.emailVerificationOtp,
     );
+
+    // TODO this otp should be encrypted
     if (
       user.emailVerificationOtp !== otp ||
       (user.emailVerificationExpires &&

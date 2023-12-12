@@ -127,29 +127,59 @@ export class EmailService {
   }
 
   @OnEvent(CompanyEvents.COMPANY_KYB_APPROVED)
-  handleApproveCompanyKyb(event: CompanyApprovedEvent) {
-    event.metadata.admins.forEach((admin) => {
-      this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, event.user.email, {
-        name: admin.profile.firstName,
-        apiProvider: event.metadata.apiProvider,
+  async handleApproveCompanyKyb(event: CompanyApprovedEvent) {
+    const apiProvider = await this.companyRepository.findOneOrFail({
+      where: { type: CompanyTypes.API_PROVIDER },
+      order: { id: 'ASC' },
+    });
+    const admins = await this.userRepository.find({
+      where: {
+        companyId: event.company.id,
+        role: {
+          slug: ROLES.ADMIN,
+        },
+      },
+      relations: {
+        profile: true,
+      },
+    });
+    admins.forEach((admin) => {
+      this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, admin.email, {
+        name: admin.profile!.firstName,
+        apiProvider: apiProvider.name!,
       });
     });
   }
 
   @OnEvent(CompanyEvents.COMPANY_KYB_DENIED)
-  handleDenyCompanyKyb(event: CompanyDeniedEvent) {
-    event.metadata.admins.forEach((admin) => {
-      this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, event.user.email, {
-        name: admin.profile.firstName,
+  async handleDenyCompanyKyb(event: CompanyDeniedEvent) {
+    const admins = await this.userRepository.find({
+      where: {
+        companyId: event.company.id,
+        role: {
+          slug: ROLES.ADMIN,
+        },
+      },
+      relations: {
+        profile: true,
+      },
+    });
+    admins.forEach((admin) => {
+      this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, admin.email, {
+        name: admin.profile!.firstName,
         reason: event.metadata.reason,
       });
     });
   }
 
   @OnEvent(AuthEvents.SIGN_UP)
-  handleVerifyEmail(event: AuthSignupEvent) {
+  async handleVerifyEmail(event: AuthSignupEvent) {
+    const apiProvider = await this.companyRepository.findOneOrFail({
+      where: { type: CompanyTypes.API_PROVIDER },
+      order: { id: 'ASC' },
+    });
     this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
-      apiProvider: event.metadata.apiProvider!,
+      apiProvider: apiProvider.name!,
       name: event.author.profile!.firstName,
     });
   }
