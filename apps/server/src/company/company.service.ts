@@ -17,6 +17,7 @@ import {
   CompanyDeniedEvent,
 } from '@shared/events/company.event';
 import { ROLES } from '@common/database/constants';
+import { UpdateKybStatusDto } from './dto/update-company-details.dto';
 
 @Injectable()
 export class CompanyService {
@@ -183,10 +184,15 @@ export class CompanyService {
     );
   }
 
-  verifyCompanyRC(rcNumber: string) {
+  verifyCompanyRC(rcNumber: string, name?: string) {
+    if (!name) {
+      throw new IBadRequestException({
+        message: 'Company name is empty',
+      });
+    }
     // TODO remove dummy registry
     const business = dummyRegistry.find(
-      (business) => business.rcNumber === `RC${rcNumber}`,
+      (business) => business.rcNumber === rcNumber && business.name === name,
     );
 
     if (!business) {
@@ -203,7 +209,7 @@ export class CompanyService {
 
   async updateKYBStatus(
     companyId: string,
-    { action, reason }: { action: 'approve' | 'deny'; reason?: string },
+    { action, reason }: UpdateKybStatusDto,
   ) {
     const company = await this.companyRepository.findOne({
       where: {
@@ -216,6 +222,14 @@ export class CompanyService {
         message: companyErrors.companyNotFound(companyId!),
       });
     }
+
+    if (!company.rcNumber) {
+      throw new IBadRequestException({
+        message: 'RC Number is yet to be provided',
+      });
+    }
+
+    this.verifyCompanyRC(company.rcNumber, company.name);
 
     const companyAdmins = (await this.userRepository.find({
       where: {
