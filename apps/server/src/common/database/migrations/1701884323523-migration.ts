@@ -12,6 +12,7 @@ export class Migration1701884323523 implements MigrationInterface {
         label: 'Tax Identification Number',
         type: 'string',
         editable: false,
+        length: 15,
       },
       {
         name: 'registryLicense',
@@ -40,8 +41,6 @@ export class Migration1701884323523 implements MigrationInterface {
     const [apiProvider]: Company[] = await queryRunner.query(
       `SELECT * FROM companies WHERE type = '${CompanyTypes.API_PROVIDER}' ORDER BY created_at ASC`,
     );
-
-    console.log({ apiProvider });
 
     const parameters = [
       [

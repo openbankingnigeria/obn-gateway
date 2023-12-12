@@ -146,6 +146,14 @@ export class EmailService {
     });
   }
 
+  @OnEvent(AuthEvents.SIGN_UP)
+  handleVerifyEmail(event: AuthSignupEvent) {
+    this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
+      apiProvider: event.metadata.apiProvider!,
+      name: event.author.profile!.firstName,
+    });
+  }
+
   private async sendEmail(
     templateSlug: string,
     recipient: string,

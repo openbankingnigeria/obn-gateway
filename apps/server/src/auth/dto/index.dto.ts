@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsEnum,
   IsMobilePhone,
   IsNotEmpty,
   IsString,
@@ -9,6 +10,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { authConfig, authValidationErrors } from '@auth/auth.config';
+import { CompanyTypes } from '@common/database/constants';
 
 const passwordConfig = {
   minLength: authConfig.minPasswordLength,
@@ -163,7 +165,8 @@ export class SignupDto extends ForgotPasswordDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  companyType: string;
+  @IsEnum(CompanyTypes)
+  companyType: CompanyTypes;
 
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
@@ -215,4 +218,16 @@ export class SetupDto {
   })
   @IsString()
   confirmPassword: string;
+}
+
+export class VerifyEmailDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  email: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  otp: string;
 }

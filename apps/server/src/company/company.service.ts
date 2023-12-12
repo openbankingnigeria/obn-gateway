@@ -75,6 +75,14 @@ export class CompanyService {
       .filter((requirement) => requirement.type === KybDataTypes.STRING)
       .forEach((requirement) => {
         if (dataKeys.includes(requirement.name)) {
+          if (
+            requirement.length &&
+            data[requirement.name].length > requirement.length
+          ) {
+            throw new IBadRequestException({
+              message: `${requirement.name} cannot be longer than ${requirement.length} characters.`,
+            });
+          }
           validKybData[requirement.name] = data[requirement.name];
         }
       });
@@ -193,7 +201,7 @@ export class CompanyService {
     );
   }
 
-  async updateKYBstatus(
+  async updateKYBStatus(
     companyId: string,
     { action, reason }: { action: 'approve' | 'deny'; reason?: string },
   ) {

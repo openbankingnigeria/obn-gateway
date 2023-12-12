@@ -10,5 +10,6 @@ export interface KybSettings {
     label: string;
     type: string;
     editable: boolean;
+    length?: number;
   }[];
 }
