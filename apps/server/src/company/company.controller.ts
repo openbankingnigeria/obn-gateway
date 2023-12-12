@@ -23,7 +23,10 @@ import {
 } from '@common/utils/pipes/query/pagination.pipe';
 import { CompanyFilters } from './company.filter';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
-import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
+import {
+  RequiredPermission,
+  SkipAuthGuard,
+} from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
 
 @Controller()
@@ -44,6 +47,12 @@ export class CompanyController {
   @Get('company/me')
   getCompanyDetails() {
     return this.companyService.getCompanyDetails();
+  }
+
+  @Get('company/types')
+  @SkipAuthGuard()
+  getCompanyTypes() {
+    return this.companyService.getCompanyTypes();
   }
 
   @Get('companies')
