@@ -2,15 +2,18 @@
 
 import { InputElement, SelectElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { greaterThan8, validateEmail, validateLowercase, validateName, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
 import { COMPANY_TYPES } from '@/data/authData';
 import { useServerAction } from '@/hooks';
 import { postSignup } from '@/actions/authActions';
 import { setStorage } from '@/config/webStorage';
+import clientAxiosRequest from '@/hooks/clientAxiosRequest';
+import * as API from '@/config/endpoints';
 
 const SignupFullForm = () => {
   const [email, setEmail] = useState(''); 
+  const [companyTypes, setCompanyTypes] = useState([]);
   const [password, setPassword] = useState(''); 
   const [confirm_password, setConfirmPassword] = useState(''); 
   const [first_name, setFirstName] = useState(''); 
@@ -19,6 +22,22 @@ const SignupFullForm = () => {
   const [company_name, setCompanyName] = useState(''); 
   const [company_type, setCompanyType] = useState(''); 
   const [role, setRole] = useState(''); 
+
+  const fetchTypes = async () => {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyTypes(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    })
+
+    setCompanyTypes(result?.data);
+  }
+
+  useEffect(() => {
+    fetchTypes();
+  }, []);
 
   const upperAndLowerCase = validateUppercase(password) && validateLowercase(password);
   const number = validateNumber(password);
@@ -42,10 +61,10 @@ const SignupFullForm = () => {
     !role
   );
 
-  const company_type_list = COMPANY_TYPES?.map(type => {
+  const company_type_list = companyTypes?.map(type => {
     return ({
-      label: type?.label || '',
-      value: type?.value || ''
+      label: type || '',
+      value: type || ''
     });
   })
 
@@ -100,16 +119,6 @@ const SignupFullForm = () => {
         </div>
 
         <InputElement 
-          name='phone_number'
-          placeholder='Phone number'
-          type='tel'
-          value={phone_number}
-          changeValue={(value: string) => handlePhoneNumber(value)}
-          label='Phone Number'
-          required
-        />
-
-        <InputElement 
           name='email'
           type='email'
           placeholder='Email address'
@@ -155,6 +164,16 @@ const SignupFullForm = () => {
           label='What is your role?'
           value={role}
           changeValue={setRole}
+          required
+        />
+
+        <InputElement 
+          name='phone_number'
+          placeholder='Phone number'
+          type='tel'
+          value={phone_number}
+          changeValue={(value: string) => handlePhoneNumber(value)}
+          label='Phone Number'
           required
         />
 

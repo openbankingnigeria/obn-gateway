@@ -167,7 +167,7 @@ const ConsumerDetails = ({
         <div className='w-full overflow-hidden bg-white border border-o-border rounded-[10px] h-fit'>
           <h3 className='px-[20px] py-[16px] w-full border-b border-o-border bg-o-bg2'>
             <div className='text-f16 font-[600] text-o-text-dark'>
-              Details
+              Basic information
             </div>
           </h3>
 

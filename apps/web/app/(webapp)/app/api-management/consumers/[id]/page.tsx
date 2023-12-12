@@ -1,5 +1,5 @@
 import React from 'react'
-import { ConsumerDetails, ConsumerSections } from '../(components)'
+import { ConsumerBusinessDetails, ConsumerDetails, ConsumerSections } from '../(components)'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { APIS_DATA } from '@/data/apisData';
 import { CONSUMER_API_ACTIVITIES, CONSUMER_API_ACTIVITIES_HEADERS, CONSUMER_API_ACTIVITIES_STATUS, CONSUMER_CONSENTS, CONSUMER_CONSENTS_HEADERS, CONSUMER_CONSENTS_STATUS } from '@/data/consumerData';
@@ -48,6 +48,7 @@ const ConsumerPage = ({ params, searchParams }: UrlParamsProps) => {
         dataList={apis_list}
         searchQuery={search_apis}
       />
+      <ConsumerBusinessDetails  />
       <ConsumerSections 
         path={path}
         rawData={raw_data}

@@ -1,18 +1,25 @@
 'use client'
 
-import React, { ChangeEvent, useState } from 'react'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import { postAddBusinessInfo } from '@/actions/profileActions'
 import { DragAndUploadElement, InputElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import { useServerAction } from '@/hooks'
 import { BUSINESS_INFORMATION_DATA } from '@/data/systemSettingsData'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest';
+import * as API from '@/config/endpoints';
+import { StatusBox } from '@/app/(webapp)/(components)'
 
 const BusinessInformationPage = () => {
+  const [businessDetails, setBusinessDetails] = useState<any>(null);
   const [cac, setCac] = useState('');
   const [regulator_license, setRegulatorLicense] = useState('');
+  const [regulator_license_file, setRegulatorLicenseFile] = useState('');
   const [certificate_of_incorporation, setCertificationOfIncorporation] = useState('');
+  const [certificate_of_incorporation_file, setCertificationOfIncorporationFile] = useState('');
   const [tin, setTin] = useState('');
   const [company_status_report, setCompanyStatusReport] = useState('');
+  const [company_status_report_file, setCompanyStatusReportFile] = useState('');
 
   const incorrect = (
     cac?.length != 15 ||
@@ -22,12 +29,42 @@ const BusinessInformationPage = () => {
     !company_status_report
   );
 
+  const fetchDetails = async () => {
+    const result : any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyDetails(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setBusinessDetails(result?.data);
+  }
+
+  useEffect(() => {
+    fetchDetails();
+  }, []);
+
+  useEffect(() => {
+    setCac(businessDetails?.kybData?.rcNumber || businessDetails?.rcNumber || '');
+    setCertificationOfIncorporation(businessDetails?.kybData?.certificateOfIncorporation?.fileName || '');
+    setCertificationOfIncorporationFile(businessDetails?.kybData?.certificateOfIncorporation?.file || '')
+    setCompanyStatusReport(businessDetails?.kybData?.companyStatusReport?.fileName || '');
+    setCompanyStatusReportFile(businessDetails?.kybData?.companyStatusReport?.file || '');
+    setRegulatorLicense(businessDetails?.kybData?.registryLicense?.fileName || '');
+    setRegulatorLicenseFile(businessDetails?.kybData?.registryLicense?.file || '');
+    setTin(businessDetails?.kybData?.taxIdentificationNumber || '');
+  }, [businessDetails]);
+
   const businessInformation = BUSINESS_INFORMATION_DATA({
     cac: cac,
     tin: tin,
     regulator_license: regulator_license,
+    regulator_license_file,
     certificate_of_incorporation: certificate_of_incorporation,
+    certificate_of_incorporation_file,
     company_status_report: company_status_report,
+    company_status_report_file
   });
 
   const handleCac = (value: string) => {
@@ -59,13 +96,20 @@ const BusinessInformationPage = () => {
           </div>
         </div>
 
-        <Button 
-          title='Submit'
-          type='submit'
-          containerStyle='!w-[120px]'
-          disabled={incorrect}
-          small
-        />
+        {
+          (!businessDetails?.isVerified && !businessDetails?.kybData?.taxIdentificationNumber) ?
+            <Button 
+              title='Submit'
+              type='submit'
+              containerStyle='!w-[120px]'
+              disabled={incorrect}
+              small
+            />
+            :
+            (!businessDetails?.isVerified && businessDetails?.kybData?.taxIdentificationNumber) ?
+              <StatusBox status='submitted' />
+              : null
+        }
       </div>
 
       <div className='w-full gap-[20px] p-[24px] flex flex-col bg-white rounded-[12px] border border-o-border'>
@@ -104,6 +148,7 @@ const BusinessInformationPage = () => {
                               null
                       }
                       value={data?.value}
+                      file={data?.file}
                     />
                     :
                     <InputElement 
@@ -111,6 +156,7 @@ const BusinessInformationPage = () => {
                       type={data?.type}
                       placeholder={data?.placeholder}
                       value={data?.value}
+                      disabled={businessDetails?.kybData?.taxIdentificationNumber}
                       changeEvent={(e: ChangeEvent<HTMLInputElement>) => {
                         data?.name == 'cac' ? 
                           handleCac(e.target.value) :

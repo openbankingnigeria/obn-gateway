@@ -30,6 +30,7 @@ export interface InputElementProps extends FieldsProps {
 
 export interface DragAndUploadElementProps extends FieldsProps {
   changeValue?: any;
+  file?: string;
 }
 
 export interface TextareaElementProps extends FieldsProps {

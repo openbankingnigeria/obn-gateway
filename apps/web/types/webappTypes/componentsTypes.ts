@@ -161,6 +161,7 @@ export interface DownloadButtonProps {
 
 export interface DragAndUploadFileProps {
   name: string
-  selectedFile: any
+  selectedFile: any;
+  file?: string;
   setSelectedFile: Dispatch<SetStateAction<any>>;
 }

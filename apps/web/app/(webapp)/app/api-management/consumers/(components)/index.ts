@@ -4,6 +4,7 @@ import ApproveConsumer from "./ApproveConsumer";
 import DeclineConsumer from "./DeclineConsumer";
 import ConsumerDetails from "./ConsumerDetails";
 import ConsumerSections from "./ConsumerSections";
+import ConsumerBusinessDetails from "./ConsumerBusinessDetails";
 
 export {
   ConsumersTable,
@@ -11,5 +12,6 @@ export {
   ApproveConsumer,
   DeclineConsumer,
   ConsumerDetails,
-  ConsumerSections
+  ConsumerSections,
+  ConsumerBusinessDetails
 }
