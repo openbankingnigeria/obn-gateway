@@ -4,7 +4,7 @@ import {
   Get,
   Param,
   Patch,
-  Post,
+  // Post,
   Query,
   UploadedFiles,
   UseInterceptors,
@@ -62,12 +62,12 @@ export class CompanyController {
     return this.companyService.getCompanyDetails(companyId);
   }
 
-  @Post('companies/rc/verify')
-  @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_STATUS)
-  @UsePipes(IValidationPipe)
-  verifyCompanyRC(@Body() data: UpdateCompanyDetailsDto) {
-    return this.companyService.verifyCompanyRC(data.rcNumber);
-  }
+  // @Post('companies/rc/verify')
+  // @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_STATUS)
+  // @UsePipes(IValidationPipe)
+  // verifyCompanyRC(@Body() data: UpdateCompanyDetailsDto) {
+  //   return this.companyService.verifyCompanyRC(data.rcNumber);
+  // }
 
   @Patch('companies/:id/kyb/status')
   @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_STATUS)
