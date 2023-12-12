@@ -9,10 +9,12 @@ import { BUSINESS_INFORMATION_DATA } from '@/data/systemSettingsData'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
 import { StatusBox } from '@/app/(webapp)/(components)'
+import { useRouter } from 'next/navigation'
 
 const BusinessInformationPage = () => {
   const [businessDetails, setBusinessDetails] = useState<any>(null);
   const [cac, setCac] = useState('');
+  const router = useRouter();
   const [regulator_license, setRegulatorLicense] = useState('');
   const [regulator_license_file, setRegulatorLicenseFile] = useState('');
   const [certificate_of_incorporation, setCertificationOfIncorporation] = useState('');
@@ -80,6 +82,9 @@ const BusinessInformationPage = () => {
   }
   const initialState = {}
   const [state, formAction] = useServerAction(postAddBusinessInfo, initialState);
+  if(state?.response?.status == 200 || state?.response?.status == 201) {
+    router.refresh();
+  }
 
   return (
     <form
