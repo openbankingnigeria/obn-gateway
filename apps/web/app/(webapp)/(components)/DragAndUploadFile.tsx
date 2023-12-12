@@ -57,7 +57,7 @@ const DragAndUploadFile = ({
   return (
     <>
       {
-        typeof selectedFile == 'string' ?
+        file ?
           <div className='w-full justify-start items-center gap-[8px] flex'>
             <div className='text-f14 flex items-center gap-[4px] w-fit'>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
