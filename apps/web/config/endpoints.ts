@@ -6,6 +6,7 @@ const BASE_URL = 'http://3.134.253.153:4000';
 
 // AUTH
 export const postSignup = () => `${BASE_URL}/auth/signup`;
+export const postVerfiyEmail = () => `${BASE_URL}/auth/email/verify`;
 export const postLoginWith2FA = () => `${BASE_URL}/auth/login/two-fa`;
 export const postLogin = () => `${BASE_URL}/auth/login`;
 export const postInitiatePasswordReset = () => `${BASE_URL}/auth/password/forgot`;

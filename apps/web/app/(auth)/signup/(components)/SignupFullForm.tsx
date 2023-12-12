@@ -7,6 +7,7 @@ import { greaterThan8, validateEmail, validateLowercase, validateName, validateN
 import { COMPANY_TYPES } from '@/data/authData';
 import { useServerAction } from '@/hooks';
 import { postSignup } from '@/actions/authActions';
+import { setStorage } from '@/config/webStorage';
 
 const SignupFullForm = () => {
   const [email, setEmail] = useState(''); 
@@ -68,6 +69,10 @@ const SignupFullForm = () => {
 
   const initialState = {}
   const [state, formAction] = useServerAction(postSignup, initialState);
+
+  const handleClientSubmit = () => {
+    setStorage('el', email, 'session');
+  }
 
   return (
     <form
@@ -180,6 +185,7 @@ const SignupFullForm = () => {
       <Button 
         type='submit'
         title='Create account'
+        effect={handleClientSubmit}
         disabled={incorrect}
       />
     </form>

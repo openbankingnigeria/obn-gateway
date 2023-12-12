@@ -1,23 +1,31 @@
 export const COMPANY_TYPES = [
+  // {
+  //   label: 'API Provider',
+  //   value: 'API_PROVIDER'
+  // },
   {
-    label: 'Lending',
-    value: 'LENDING'
+    label: 'Bank',
+    value: 'Bank'
   },
   {
     label: 'BNPL',
     value: 'BNPL'
   },
   {
+    label: 'Lending',
+    value: 'Lending'
+  },
+  {
     label: 'Fintech',
-    value: 'FINTECH'
+    value: 'Fintech'
   },
   {
     label: 'Insurance',
-    value: 'INSURANCE'
+    value: 'Insurance'
   },
   {
     label: 'Others',
-    value: 'OTHERS'
+    value: 'Others'
   },
 ];
 
