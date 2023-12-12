@@ -1,4 +1,4 @@
-import { EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, TestModeConfigurationProps } from "@/types/dataTypes";
+import { BusinessInformationDataProps, EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, TestModeConfigurationProps } from "@/types/dataTypes";
 
 export const SYSTEM_SETTINGS_PATHS = [
   {
@@ -6,49 +6,56 @@ export const SYSTEM_SETTINGS_PATHS = [
     label: 'General Settings',
     value: '',
     name: 'general_settings',
-    type: 'API_PROVIDERS'
+    type: 'api-provider'
   },
   {
     id: 2,
     label: 'Email Service',
     value: 'email_service',
     name: 'email_service',
-    type: 'API_PROVIDERS'
+    type: 'api-provider'
   },
   {
     id: 3,
     label: 'Email Template',
     value: 'email_template',
     name: 'email_template',
-    type: 'API_PROVIDERS'
+    type: 'api-provider'
   },
   {
     id: 4,
     label: 'External Services',
     value: 'external_services',
     name: 'external_services',
-    type: 'API_PROVIDERS'
+    type: 'api-provider'
   },
   {
     id: 5,
     label: 'Mock Services',
     value: 'mock_services',
     name: 'mock_services',
-    type: 'API_PROVIDERS'
+    type: 'api-provider'
   },
   {
-    id: 6,
-    label: 'Test Mode Configuration',
-    value: 'test_mode_configuration',
-    name: 'test_mode_configuration',
-    type: 'API_CONSUMERS'
+    id: 5,
+    label: 'Business Information',
+    value: '',
+    name: 'business_information',
+    type: 'api-consumer'
   },
   {
     id: 7,
+    label: 'Test Mode Configuration',
+    value: 'test_mode_configuration',
+    name: 'test_mode_configuration',
+    type: 'api-consumer'
+  },
+  {
+    id: 8,
     label: 'Live Mode Configuration',
     value: 'live_mode_configuration',
     name: 'live_mode_configuration',
-    type: 'API_CONSUMERS'
+    type: 'api-consumer'
   },
 ];
 
@@ -367,6 +374,63 @@ export const EMAIL_SERVICE_DATA = ({
     name: 'email_base_url',
     type: 'text',
     value: email_base_url
+  },
+];
+
+
+export const BUSINESS_INFORMATION_DATA = ({
+  cac,
+  tin,
+  regulator_license,
+  certificate_of_incorporation,
+  company_status_report
+}: BusinessInformationDataProps) => [
+  {
+    id: 1,
+    label: 'CAC Registration Number',
+    description: '',
+    name: 'cac',
+    type: 'string',
+    placeholder: 'RC Number',
+    rightLabel: '',
+    value: cac
+  },
+  {
+    id: 2,
+    label: 'Tax Identification Number (TIN)',
+    description: '',
+    name: 'tin',
+    placeholder: 'Tax Identification Number',
+    type: 'number',
+    rightLabel: '',
+    value: tin
+  },
+  {
+    id: 3,
+    label: 'Regulatory License',
+    description: '',
+    name: 'regulator_license',
+    type: 'file',
+    rightLabel: '',
+    value: regulator_license
+  },
+  {
+    id: 4,
+    label: 'Certificate of Incorporation',
+    description: '',
+    name: 'certificate_of_incorporation',
+    type: 'file',
+    rightLabel: '',
+    value: certificate_of_incorporation
+  },
+  {
+    id: 5,
+    label: 'Company Status Report',
+    description: '',
+    name: 'company_status_report',
+    type: 'file',
+    rightLabel: '',
+    value: company_status_report
   },
 ];
 

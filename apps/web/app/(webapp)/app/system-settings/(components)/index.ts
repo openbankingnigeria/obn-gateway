@@ -5,6 +5,7 @@ import ExternalServicesPage from "./ExternalServicesPage";
 import MockServicesPage from "./MockServicesPage";
 import TestModeConfigurationPage from "./TestModeConfigurationPage";
 import LiveModeConfigurationPage from "./LiveModeConfigurationPage";
+import BusinessInformationPage from "./BusinessInformationPage";
 
 export {
   GeneralSettingsPage,
@@ -13,5 +14,6 @@ export {
   ExternalServicesPage,
   MockServicesPage,
   TestModeConfigurationPage,
-  LiveModeConfigurationPage
+  LiveModeConfigurationPage,
+  BusinessInformationPage
 }

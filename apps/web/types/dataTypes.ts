@@ -24,6 +24,14 @@ export interface GeneralSettingsDataProps {
   failed_login_attempts: string;
 }
 
+export interface BusinessInformationDataProps {
+  cac: string,
+  tin: string,
+  regulator_license: string,
+  certificate_of_incorporation: string,
+  company_status_report: string,
+}
+
 export interface EmailServiceProps {
   email_provider: string;
   email_key: string;

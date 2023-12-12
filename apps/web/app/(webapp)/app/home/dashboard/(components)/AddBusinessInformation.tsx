@@ -27,7 +27,7 @@ const AddBusinessInformation = ({
     cac?.length != 15 ||
     !regulator_license ||
     !certificate_of_incorporation ||
-    cac?.length != 15 ||
+    tin?.length != 15 ||
     !company_status_report
   );
 

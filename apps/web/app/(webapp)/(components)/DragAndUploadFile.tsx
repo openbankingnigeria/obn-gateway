@@ -110,7 +110,7 @@ const DragAndUploadFile = ({
               name={name}
               accept='.jpg, .jpeg, .png, .pdf'
               type="file"
-              value={selectedFile}
+              value={selectedFile || ''}
               onChange={(event) => handleFileChange(event,'input')}
             />
       

@@ -102,9 +102,32 @@ export async function postSignup(prevState: any, formData: FormData) {
 
   return {
     response,
-    redirect: `/signup/company-details?status=successful`,
+    // redirect: `/signup?status=successful`
+    redirect: `/signup/verify-email`,
   };
 }
+
+
+/* VERIFIY EMAIL ACTION */
+export async function postVerifyEmail(prevState: any, formData: FormData) {
+  const fullData = {
+    otp: formData.get('code'),
+    email: formData.get('email'),
+  };
+  
+  let response = await axiosRequest({
+    apiEndpoint: API.postVerfiyEmail(),
+    method: 'POST',
+    headers: { },
+    data: fullData
+  });
+
+  return {
+    response,
+    redirect: `/signup/verify-email?status=successful`,
+  };
+};
+
 
 /* INITIATE PASSWORD RESET ACTION */
 export async function postInitiatePasswordReset(prevState: any, formData: FormData) {
