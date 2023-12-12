@@ -28,8 +28,11 @@ export interface BusinessInformationDataProps {
   cac: string,
   tin: string,
   regulator_license: string,
+  regulator_license_file: string,
   certificate_of_incorporation: string,
+  certificate_of_incorporation_file: string,
   company_status_report: string,
+  company_status_report_file: string;
 }
 
 export interface EmailServiceProps {

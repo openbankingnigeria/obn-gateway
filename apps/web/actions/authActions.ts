@@ -114,6 +114,8 @@ export async function postVerifyEmail(prevState: any, formData: FormData) {
     otp: formData.get('code'),
     email: formData.get('email'),
   };
+
+  console.log(fullData)
   
   let response = await axiosRequest({
     apiEndpoint: API.postVerfiyEmail(),

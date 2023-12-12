@@ -24,17 +24,29 @@ export default async function RootLayout({
       method: 'GET',
       data: null
     });
+
+    const fetchedProfile: any = await applyAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null
+    });
   
     if (fetchedDetails?.status == 401) {
       return <Logout />
     }
   
     let details = fetchedDetails?.data;
+    let profile = fetchedProfile?.data;
     let showBanner = Boolean(!details?.isVerified)
 
     return (
       <section className='max-w-full min-h-screen relative bg-[#FCFDFD]'>
-        { showBanner && <KybBanner rawData={details} /> }
+        { 
+          profile?.user?.role?.parent?.slug == 'api-consumer' && 
+          showBanner && 
+          <KybBanner rawData={details} /> 
+        }
         <AppNavBar bannerExist={showBanner} />
         <AppLeftSideBar bannerExist={showBanner} />
 

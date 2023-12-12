@@ -90,7 +90,7 @@ const MembersTable = ({
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',
     cell: ({ row }) => (
-      path == 'invited' ?
+      path == 'pending' ?
         <button 
           id={row.original.id} 
           onClick={() => handleReInvite(row.original.id)}

@@ -38,6 +38,11 @@ const StatusBox = ({ status }: StatusBoxProps) => {
         Write
       </span>
     )
+    : sanitizedStatus === 'submitted' ? (
+      <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-o-text-dark bg-o-status-yellow'>
+        Submitted for verification
+      </span>
+    )
     : sanitizedStatus === 'inactive' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 font-[500] w-fit capitalize rounded-full text-white bg-o-status-gray'>
         Inactive

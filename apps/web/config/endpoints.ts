@@ -66,7 +66,6 @@ export const getAPIEndpoints = ({ id }: GetSingleProps) =>
 
 
 // COMPANY
-export const updateCompanyDetails = () => 
-  `${BASE_URL}/company/kyb`;
-export const getCompanyDetails = () => 
-  `${BASE_URL}/company/me`;
+export const updateCompanyDetails = () => `${BASE_URL}/company/kyb`;
+export const getCompanyTypes = () => `${BASE_URL}/company/types`;
+export const getCompanyDetails = () => `${BASE_URL}/company/me`;

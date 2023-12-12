@@ -9,6 +9,7 @@ const DragAndUploadElement = ({
   label,
   name,
   changeValue,
+  file,
   value,
   containerStyle,
   labelStyle,
@@ -29,6 +30,7 @@ const DragAndUploadElement = ({
       <DragAndUploadFile 
         name={name}
         selectedFile={value}
+        file={file}
         setSelectedFile={changeValue}
       />
     </section>

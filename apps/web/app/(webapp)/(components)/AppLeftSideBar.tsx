@@ -61,7 +61,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
             </div>
           </div>
 
-          <svg 
+          {/* <svg 
             width="18" 
             height="18" 
             viewBox="0 0 18 18" 
@@ -76,7 +76,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
               strokeLinejoin="round"
               fill='transparent'
             />
-          </svg>
+          </svg> */}
         </div>
       </div>
 

@@ -382,8 +382,11 @@ export const BUSINESS_INFORMATION_DATA = ({
   cac,
   tin,
   regulator_license,
+  regulator_license_file,
   certificate_of_incorporation,
-  company_status_report
+  certificate_of_incorporation_file,
+  company_status_report,
+  company_status_report_file
 }: BusinessInformationDataProps) => [
   {
     id: 1,
@@ -411,6 +414,7 @@ export const BUSINESS_INFORMATION_DATA = ({
     description: '',
     name: 'regulator_license',
     type: 'file',
+    file: regulator_license_file,
     rightLabel: '',
     value: regulator_license
   },
@@ -420,6 +424,7 @@ export const BUSINESS_INFORMATION_DATA = ({
     description: '',
     name: 'certificate_of_incorporation',
     type: 'file',
+    file: certificate_of_incorporation_file,
     rightLabel: '',
     value: certificate_of_incorporation
   },
@@ -429,6 +434,7 @@ export const BUSINESS_INFORMATION_DATA = ({
     description: '',
     name: 'company_status_report',
     type: 'file',
+    file: company_status_report_file,
     rightLabel: '',
     value: company_status_report
   },
