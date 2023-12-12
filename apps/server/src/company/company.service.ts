@@ -16,6 +16,7 @@ import {
   CompanyApprovedEvent,
   CompanyDeniedEvent,
 } from '@shared/events/company.event';
+import { CompanyTypes } from '@common/database/constants';
 import { UpdateKybStatusDto } from './dto/update-company-details.dto';
 
 @Injectable()
@@ -262,6 +263,15 @@ export class CompanyService {
 
     return ResponseFormatter.success(
       `Successfully ${action === 'approve' ? 'approved' : 'denied'} business.`,
+    );
+  }
+
+  async getCompanyTypes() {
+    return ResponseFormatter.success(
+      'Successfully fetched company types.',
+      Object.values(CompanyTypes).filter(
+        (type) => type !== CompanyTypes.API_PROVIDER,
+      ),
     );
   }
 }
