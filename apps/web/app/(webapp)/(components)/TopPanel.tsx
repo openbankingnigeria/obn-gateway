@@ -16,6 +16,7 @@ const TopPanel = ({
 }: TopPanelContainerProps) => {
   const router = useRouter();
   const [details, setDetails] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   async function fetchDetails() {
     const result: any = await clientAxiosRequest({
@@ -29,11 +30,24 @@ const TopPanel = ({
     setDetails(result?.data);
   }
 
+  async function fetchprofile() {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setProfile(result?.data);
+  }
+
   useEffect(() => {
+    fetchprofile();
     fetchDetails();
   }, []);
 
-  let showBanner = Boolean(!details?.isVerified)
+  let showBanner = Boolean(profile?.user?.role?.parent?.slug == 'api-consumer' && !details?.isVerified)
   
   const handleClick = (value: string) => {
     if (value) {
