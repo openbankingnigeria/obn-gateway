@@ -1,5 +1,5 @@
 import { RoleStatuses } from '@common/database/entities';
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateRoleDto {
   @IsNotEmpty()
@@ -16,6 +16,8 @@ export class CreateRoleDto {
 
   @IsArray()
   @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  @ArrayNotEmpty()
   permissions: string[];
 }
 
@@ -32,5 +34,7 @@ export class UpdateRoleDto {
 export class SetRolePermissionsDto {
   @IsArray()
   @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  @ArrayNotEmpty()
   permissions: string[];
 }
