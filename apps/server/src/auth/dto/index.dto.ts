@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsMobilePhone,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsStrongPassword,
   Length,
@@ -140,11 +141,9 @@ export class SignupDto extends ForgotPasswordDto {
   })
   lastName: string;
 
-  @IsNotEmpty({
-    message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
-  country: string;
+  country?: string;
 
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
