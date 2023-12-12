@@ -44,10 +44,11 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
     return ({
       ...role,
       role_name: role?.name,
-      date_created: role?.createdAt
+      date_created: new Date(role?.createdAt)
     })
   });
- 
+
+  let sorted_list = role_list.sort((a: any, b: any) => b.date_created - a.date_created );
   const filters = [search_query, status, role];
 
   const headers = ROLES_TABLE_HEADERS;
@@ -118,7 +119,7 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
           <section className='w-full min-h-full flex flex-col items-center'>
             <RolesTable
               tableHeaders={headers}
-              rawData={role_list}
+              rawData={sorted_list}
               altData={permission_list}
               filters={filters}
               rows={rows}

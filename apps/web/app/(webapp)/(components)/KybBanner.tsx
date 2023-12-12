@@ -44,7 +44,7 @@ const KybBanner = ({
               (!rawData?.isVerified && rawData?.kybData?.taxIdentificationNumber) ?
               `Verification in progress. Your account will be verified once your 
               business information is confirmed.` :
-              `Complete your account setup by provide your business information 
+              `Complete your account setup by providing your business information 
               to get your Aperta account up and running.`
           }
           &#160;
