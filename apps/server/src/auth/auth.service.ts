@@ -117,7 +117,7 @@ export class AuthService {
         companyId: companyCreated.id,
         emailVerificationOtp: otp.toString(),
         emailVerificationExpires: moment()
-          .add(this.config.get('auth.default_otp_expires_minutes'), 'minutes')
+          .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
           .toDate(),
         profile: {
           firstName,
@@ -378,10 +378,16 @@ export class AuthService {
       });
     }
 
+    console.log(
+      '🪄🪄🪄',
+      user.emailVerificationExpires,
+      user.emailVerificationOtp,
+    );
     if (
       user.emailVerificationOtp !== otp ||
       (user.emailVerificationExpires &&
-        user.emailVerificationExpires?.getTime() < new Date().getTime())
+        new Date(user.emailVerificationExpires).getTime() <
+          new Date().getTime())
     ) {
       throw new IBadRequestException({
         message: `Invalid OTP.`,
