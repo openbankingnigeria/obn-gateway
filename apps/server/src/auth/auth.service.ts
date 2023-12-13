@@ -8,6 +8,7 @@ import {
 } from 'src/common/database/entities';
 import { Repository, MoreThan } from 'typeorm';
 import {
+  AuthOTPResponseDTO,
   LoginDto,
   ResendOtpDto,
   ResetPasswordDto,
@@ -468,6 +469,19 @@ export class AuthService {
     });
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success(authSuccessMessages.resendOtp);
+    const otpData: any = {};
+
+    // TODO remove this.
+    if (
+      this.config.get('server.nodeEnv') === 'development' &&
+      new Date() < new Date('2023-12-31')
+    ) {
+      otpData.otp = otp.toString();
+    }
+
+    return ResponseFormatter.success(
+      authSuccessMessages.resendOtp,
+      new AuthOTPResponseDTO(otpData),
+    );
   }
 }

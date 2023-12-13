@@ -58,10 +58,6 @@ export class ProfileService {
       });
     }
 
-    // TODO do this in a DTO
-    delete profile.user!.password;
-    delete profile.user!.twofaSecret;
-
     // TODO emit event
 
     return ResponseFormatter.success(

@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { authConfig, authValidationErrors } from '@auth/auth.config';
 import { CompanyTypes } from '@common/database/constants';
+import { Expose } from 'class-transformer';
 
 const passwordConfig = {
   minLength: authConfig.minPasswordLength,
@@ -230,5 +231,14 @@ export class VerifyEmailDto extends ResendOtpDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
+  otp: string;
+}
+
+export class AuthOTPResponseDTO {
+  constructor(partial: Partial<{ otp: string }>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
   otp: string;
 }

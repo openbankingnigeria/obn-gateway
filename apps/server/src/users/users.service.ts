@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   CreateUserDto,
+  GetStatsResponseDTO,
   GetUserResponseDTO,
   UpdateUserDto,
 } from './dto/index.dto';
@@ -143,7 +144,10 @@ export class UsersService {
 
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success(userSuccessMessages.sentInvite, user);
+    return ResponseFormatter.success(
+      userSuccessMessages.sentInvite,
+      new GetUserResponseDTO(user),
+    );
   }
 
   async listUsers({ limit, page }: PaginationParameters, filters?: any) {
@@ -315,7 +319,10 @@ export class UsersService {
     );
     return ResponseFormatter.success(
       userSuccessMessages.fetchedUsersStats,
-      stats,
+      stats.map(
+        (stat: { count: number; value: string }) =>
+          new GetStatsResponseDTO(stat),
+      ),
     );
   }
 }
