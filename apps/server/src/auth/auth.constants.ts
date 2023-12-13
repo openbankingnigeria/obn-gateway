@@ -1,5 +1,6 @@
 export const authSuccessMessages = {
-  signup: 'You have successfully signed up.',
+  signup:
+    'You have successfully signed up, kindly verify your email to access the dashboard.',
   verifyEmail: 'You have successfully verified your email address.',
   login: (isFirstLogin: boolean) =>
     `Welcome${
