@@ -43,6 +43,20 @@ export class CompanyService {
       });
     }
 
+    if (data.rcNumber) {
+      const rcExists = await this.companyRepository.count({
+        where: {
+          rcNumber: data.rcNumber,
+        },
+      });
+
+      if (rcExists > 0) {
+        throw new IBadRequestException({
+          message: `A business with RC Number - ${data.rcNumber} already exists.`,
+        });
+      }
+    }
+
     const savedKybSettings = await this.settingsRepository.findOne({
       where: { name: 'kyb_settings' },
     });
@@ -199,12 +213,19 @@ export class CompanyService {
     }
     // TODO remove dummy registry
     const business = dummyRegistry.find(
-      (business) => business.rcNumber === rcNumber && business.name === name,
+      (business) => business.rcNumber === rcNumber,
     );
 
     if (!business) {
       throw new IBadRequestException({
         message: companyErrors.businessNotFoundOnRegistry(rcNumber),
+      });
+    }
+    const nameMatches = business.name === name;
+
+    if (!nameMatches) {
+      throw new IBadRequestException({
+        message: `RC Number does not match business name`,
       });
     }
 
