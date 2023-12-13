@@ -1,14 +1,15 @@
 'use client'
 
-import { postAddBusinessInfo } from '@/actions/profileActions'
-// import { DragAndUploadFile } from '@/app/(webapp)/(components)'
+// import { postAddBusinessInfo } from '@/actions/profileActions'
 import { DragAndUploadElement, InputElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import { AddBusinessInformationProps } from '@/types/webappTypes/appTypes'
-import React, { useState } from 'react'
+import React, { FormEvent, useState } from 'react'
 import { ConfirmCancel } from '.'
-import { useServerAction } from '@/hooks'
+// import { useServerAction } from '@/hooks'
 import { useRouter } from 'next/navigation'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import * as API from '@/config/endpoints';
 
 const AddBusinessInformation = ({
   close,
@@ -16,6 +17,7 @@ const AddBusinessInformation = ({
   setOpenModal,
   next
 }: AddBusinessInformationProps) => {
+  const [loading, setLoading] = useState(false);
   const [cac, setCac] = useState('');
   const router = useRouter();
   const [regulator_license, setRegulatorLicense] = useState('');
@@ -43,11 +45,37 @@ const AddBusinessInformation = ({
     }
   }
 
-  const initialState = {}
-  const [state, formAction] = useServerAction(postAddBusinessInfo, initialState);
-  if(state?.response?.status == 200) {
-    next();
-    router.refresh();
+  // const initialState = {}
+  // const [state, formAction] = useServerAction(postAddBusinessInfo, initialState);
+  // if(state?.response?.status == 200) {
+  //   next();
+  //   router.refresh();
+  // }
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    const formData = new FormData();
+
+    formData.append('registryLicense', regulator_license);
+    formData.append('certificateOfIncorporation', certificate_of_incorporation);
+    formData.append('companyStatusReport', company_status_report);
+    formData.append('taxIdentificationNumber', tin);
+    formData.append('rcNumber', cac);
+
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.updateCompanyDetails(),
+      method: 'PATCH',
+      data: formData
+    })
+
+    console.log(result?.status == 200)
+    setLoading(false);
+    if (result?.status == 200) {
+      next();
+      router?.refresh();
+    }
   }
 
   return (
@@ -61,7 +89,7 @@ const AddBusinessInformation = ({
       }
 
       <form
-        action={incorrect ? '' : formAction}
+        onSubmit={(e) => handleSubmit(e)}
         className='gap-[32px] flex flex-col h-full w-full relative'
       >
         <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
@@ -156,8 +184,9 @@ const AddBusinessInformation = ({
           <Button 
             type='submit'
             title='Submit'
+            loading={loading}
             containerStyle='!w-[80px]'
-            disabled={incorrect}
+            disabled={incorrect || loading}
             small
           />
         </div>
