@@ -1,5 +1,8 @@
 import { Collection } from '@common/database/entities/collection.entity';
-import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
 import {
   IBadRequestException,
   INotFoundException,
@@ -47,12 +50,12 @@ export class CollectionsService {
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollections,
       collections,
-      {
+      new ResponseMetaDTO({
         totalNumberOfRecords,
         totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
         pageNumber: page,
         pageSize: limit,
-      },
+      }),
     );
   }
 
@@ -220,12 +223,12 @@ export class CollectionsService {
           },
         };
       }),
-      {
+      new ResponseMetaDTO({
         totalNumberOfRecords,
         totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
         pageNumber: page,
         pageSize: limit,
-      },
+      }),
     );
   }
 

@@ -9,6 +9,7 @@ import {
 import { ErrorResponse } from './types/exception.types';
 import { ConfigService } from '@nestjs/config';
 
+// TODO error response data structure different from success'
 export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
   const timestamp = new Date().toISOString();
   const logger = new Logger();

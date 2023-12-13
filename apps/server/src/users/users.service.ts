@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto, UpdateUserDto } from './dto/index.dto';
+import {
+  CreateUserDto,
+  GetUserResponseDTO,
+  UpdateUserDto,
+} from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Profile,
@@ -10,7 +14,10 @@ import {
 import { Repository } from 'typeorm';
 import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
-import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
 import { userErrors } from '@users/user.errors';
 import { roleErrors } from '@roles/role.errors';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -94,7 +101,10 @@ export class UsersService {
 
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success(userSuccessMessages.createdUser, user);
+    return ResponseFormatter.success(
+      userSuccessMessages.createdUser,
+      new GetUserResponseDTO(user),
+    );
   }
 
   async resendInvite(id: string) {
@@ -151,12 +161,16 @@ export class UsersService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(userSuccessMessages.fetchedUsers, users, {
-      totalNumberOfRecords: totalUsers,
-      totalNumberOfPages: Math.ceil(totalUsers / limit),
-      pageNumber: page,
-      pageSize: limit,
-    });
+    return ResponseFormatter.success(
+      userSuccessMessages.fetchedUsers,
+      users.map((user) => new GetUserResponseDTO(user)),
+      new ResponseMetaDTO({
+        totalNumberOfRecords: totalUsers,
+        totalNumberOfPages: Math.ceil(totalUsers / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
   }
 
   async getUser(id: string) {
@@ -173,7 +187,10 @@ export class UsersService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(userSuccessMessages.fetchedUser, user);
+    return ResponseFormatter.success(
+      userSuccessMessages.fetchedUser,
+      new GetUserResponseDTO(user),
+    );
   }
 
   async updateUser(id: string, data: UpdateUserDto) {
@@ -250,7 +267,7 @@ export class UsersService {
 
     return ResponseFormatter.success(
       userSuccessMessages.updatedUser,
-      updatedUser,
+      new GetUserResponseDTO(updatedUser),
     );
   }
 

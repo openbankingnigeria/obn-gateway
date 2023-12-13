@@ -6,7 +6,10 @@ import { AuditLog } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
-import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
 import { INotFoundException } from '@common/utils/exceptions/exceptions';
 import { auditLogErrors } from '@auditLogs/auditLogs.errors';
 import { BaseEvent } from '@shared/events/base.event';
@@ -63,12 +66,16 @@ export class AuditLogsService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(auditLogsSuccessMessages.fetchLogs, logs, {
-      totalNumberOfRecords: totalLogs,
-      totalNumberOfPages: Math.ceil(totalLogs / limit),
-      pageNumber: page,
-      pageSize: limit,
-    });
+    return ResponseFormatter.success(
+      auditLogsSuccessMessages.fetchLogs,
+      logs,
+      new ResponseMetaDTO({
+        totalNumberOfRecords: totalLogs,
+        totalNumberOfPages: Math.ceil(totalLogs / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
   }
 
   async getSingleLog(id: string) {
