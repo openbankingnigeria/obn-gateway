@@ -40,7 +40,6 @@ export class UsersService {
     private readonly profileRepository: Repository<Profile>,
   ) {}
 
-  // TODO confirm that this roleId belongs to the comapny.
   async createUser(data: CreateUserDto) {
     const { email, roleId } = data;
 
@@ -96,6 +95,45 @@ export class UsersService {
     this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(userSuccessMessages.createdUser, user);
+  }
+
+  async resendInvite(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id, companyId: this.requestContext.user!.companyId },
+    });
+
+    if (!user) {
+      throw new IBadRequestException({
+        message: userErrors.userNotFound,
+      });
+    }
+
+    if (user.status !== UserStatuses.PENDING) {
+      throw new IBadRequestException({
+        message: userErrors.cannotResendInvite(user.status!),
+      });
+    }
+
+    const token = await this.auth.getToken();
+    const hashedToken = await this.auth.hashToken(token);
+
+    await this.userRepository.update(
+      { id: user.id },
+      {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: moment().add(24, 'hours').toDate(),
+      },
+    );
+
+    const event = new UserCreatedEvent(this.requestContext.user!, user, {
+      pre: null,
+      post: user,
+      token,
+    });
+
+    this.eventEmitter.emit(event.name, event);
+
+    return ResponseFormatter.success(userSuccessMessages.sentInvite, user);
   }
 
   async listUsers({ limit, page }: PaginationParameters, filters?: any) {

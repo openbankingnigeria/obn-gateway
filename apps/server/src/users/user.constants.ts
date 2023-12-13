@@ -5,6 +5,7 @@ export const userSuccessMessages = {
   updatedUser: 'Successfully updated user',
   deletedUser: 'Successfully deleted user',
   createdUser: 'Successfully created user',
+  sentInvite: 'Successfully sent user invite',
 };
 
 export const userErrorMessages = {};

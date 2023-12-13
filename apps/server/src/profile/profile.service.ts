@@ -21,6 +21,9 @@ import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import { AuthSetPasswordEvent } from '@shared/events/auth.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { isNumberString } from 'class-validator';
+import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
+import { generateRandomCode } from '@common/utils/helpers/auth.helpers';
 
 @Injectable()
 export class ProfileService {
@@ -30,6 +33,8 @@ export class ProfileService {
     private readonly profileRepository: Repository<Profile>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(TwoFaBackupCode)
+    private readonly backupCodesRepository: Repository<TwoFaBackupCode>,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -182,23 +187,63 @@ export class ProfileService {
       });
     }
 
+    const backupCodes = new Array(12)
+      .fill(null)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      .map((_) => generateRandomCode(6));
+
+    await this.backupCodesRepository.insert(
+      backupCodes.map((backupCode) => ({
+        userId: this.requestContext.user!.id,
+        value: hashSync(backupCode, 12),
+      })),
+    );
+
     await this.userRepository.update(
       { id: this.requestContext.user!.id },
       {
         twofaEnabled: true,
       },
     );
-    return ResponseFormatter.success(profileSuccessMessages.twoFaEnabled);
+    return ResponseFormatter.success(
+      profileSuccessMessages.twoFaEnabled,
+      backupCodes,
+    );
   }
 
-  async disableTwoFA() {
+  async disableTwoFA(data: UpdateTwoFADto) {
     // TODO emit event
-    // TODO delete all recovery codes
 
     if (!this.requestContext.user!.twofaEnabled) {
       throw new IBadRequestException({
         message: profileErrorMessages.twoFaAlreadyDisabled,
       });
+    }
+
+    if (!isNumberString(data.code)) {
+      const backupCodes = await this.backupCodesRepository.findBy({
+        userId: this.requestContext.user!.id,
+      });
+      const match = backupCodes.find((backupCode) => {
+        return compareSync(data.code, backupCode.value);
+      });
+      if (!match) {
+        throw new IBadRequestException({
+          message: profileErrorMessages.incorrectTwoFaCode,
+        });
+      }
+      await this.backupCodesRepository.softDelete({ id: match.id });
+    } else {
+      const verified = speakeasy.totp.verify({
+        secret: this.requestContext.user!.twofaSecret!,
+        encoding: 'base32',
+        token: data.code,
+      });
+      if (!verified) {
+        throw new IBadRequestException({
+          message: profileErrorMessages.incorrectTwoFaCode,
+        });
+      }
     }
 
     await this.userRepository.update(
@@ -207,6 +252,11 @@ export class ProfileService {
         twofaEnabled: false,
       },
     );
+
+    await this.backupCodesRepository.softDelete({
+      userId: this.requestContext.user!.id,
+    });
+
     return ResponseFormatter.success(
       profileSuccessMessages.twoFaDisabled,
       null,

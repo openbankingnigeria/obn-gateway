@@ -6,10 +6,13 @@ import { Company, Profile, User } from 'src/common/database/entities';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/common/database/entities/role.entity';
+import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
 
 @Module({
   controllers: [AuthController],
   providers: [AuthService, Auth, JwtService],
-  imports: [TypeOrmModule.forFeature([User, Profile, Company, Role])],
+  imports: [
+    TypeOrmModule.forFeature([User, Profile, Company, Role, TwoFaBackupCode]),
+  ],
 })
 export class AuthModule {}

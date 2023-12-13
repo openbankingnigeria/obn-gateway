@@ -25,6 +25,8 @@ export const userErrors = {
   cannotUpdateSelf: `You cannot update your user.`,
   cannotDeleteSelf: `You cannot deleted your user.`,
   provide2FACode: `Please provide 2FA code`,
+  cannotResendInvite: (status: string) =>
+    `Cannot resend invite to a ${status} user`,
   dto: {
     valueMustContainOnlyType: (
       propertyName: string,

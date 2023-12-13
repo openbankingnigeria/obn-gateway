@@ -49,6 +49,7 @@ export class AuthController {
     return this.authService.verifyEmail(data);
   }
 
+  // TODO rate limit
   @Post('otp/resend')
   @HttpCode(HttpStatus.OK)
   @SkipAuthGuard()

@@ -91,7 +91,7 @@ export class RolesService {
         ...filters,
       },
       {
-        parentId: IsNull(),
+        id: this.requestContext.user!.role.id,
         companyId: IsNull(),
         ...filters,
       },
@@ -126,7 +126,6 @@ export class RolesService {
         },
         {
           id,
-          parentId: IsNull(),
           companyId: IsNull(),
         },
       ],
@@ -171,7 +170,7 @@ export class RolesService {
 
     return ResponseFormatter.success(
       roleSuccessMessages.updatedRole,
-      updatedRole,
+      Object.assign({}, role, updatedRole),
     );
   }
 
@@ -207,7 +206,6 @@ export class RolesService {
         },
         {
           id,
-          parentId: IsNull(),
           companyId: IsNull(),
         },
       ],

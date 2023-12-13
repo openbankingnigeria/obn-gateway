@@ -37,8 +37,8 @@ export class ProfileController {
 
   @Patch('/two-fa/disable')
   @UsePipes(IValidationPipe)
-  disableTwoFA() {
-    return this.profileService.disableTwoFA();
+  disableTwoFA(@Body() data: UpdateTwoFADto) {
+    return this.profileService.disableTwoFA(data);
   }
 
   @Patch('password')

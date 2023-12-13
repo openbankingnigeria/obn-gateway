@@ -43,6 +43,9 @@ import * as speakeasy from 'speakeasy';
 import { ROLES } from '@common/database/constants';
 import { generateOtp } from '@common/utils/helpers/auth.helpers';
 import { ConfigService } from '@nestjs/config';
+import { isNumberString } from 'class-validator';
+import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -54,6 +57,8 @@ export class AuthService {
     private readonly profileRepository: Repository<Profile>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    @InjectRepository(TwoFaBackupCode)
+    private readonly backupCodesRepository: Repository<TwoFaBackupCode>,
     private readonly auth: Auth,
     private readonly eventEmitter: EventEmitter2,
     private readonly config: ConfigService,
@@ -201,15 +206,30 @@ export class AuthService {
           message: userErrors.provide2FACode,
         });
       }
-      const verified = speakeasy.totp.verify({
-        secret: user.twofaSecret!,
-        encoding: 'base32',
-        token: code,
-      });
-      if (!verified) {
-        throw new IBadRequestException({
-          message: authErrors.invalidTwoFA,
+      if (!isNumberString(code)) {
+        const backupCodes = await this.backupCodesRepository.findBy({
+          userId: user.id,
         });
+        const match = backupCodes.find((backupCode) => {
+          return compareSync(code, backupCode.value);
+        });
+        if (!match) {
+          throw new IBadRequestException({
+            message: authErrors.invalidTwoFA,
+          });
+        }
+        await this.backupCodesRepository.softDelete({ id: match.id });
+      } else {
+        const verified = speakeasy.totp.verify({
+          secret: user.twofaSecret!,
+          encoding: 'base32',
+          token: code,
+        });
+        if (!verified) {
+          throw new IBadRequestException({
+            message: authErrors.invalidTwoFA,
+          });
+        }
       }
     }
 

@@ -35,6 +35,13 @@ export class UsersController {
     return this.usersService.createUser(data);
   }
 
+  @Post(':id/resend')
+  @UsePipes(IValidationPipe)
+  @RequireTwoFA()
+  resendInvite(@Param('id') id: string) {
+    return this.usersService.resendInvite(id);
+  }
+
   @Get()
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.LIST_TEAM_MEMBERS)
