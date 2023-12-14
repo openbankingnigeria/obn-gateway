@@ -325,6 +325,7 @@ export class AuthService {
         resetPasswordExpires: null as any,
         password: hashSync(password, 12),
         lastPasswordChange: moment().toDate(),
+        emailVerified: true,
       },
     );
 
@@ -366,6 +367,7 @@ export class AuthService {
         password: hashSync(password, 12),
         lastPasswordChange: moment().toDate(),
         status: UserStatuses.ACTIVE,
+        emailVerified: true,
       },
     );
 

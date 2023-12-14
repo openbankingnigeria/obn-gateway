@@ -108,7 +108,7 @@ export class SignupDto extends ForgotPasswordDto {
         authConfig.minNameLength,
       ),
   })
-  @Matches(/^[A-Za-z]+$/gi, {
+  @Matches(/^[A-Za-z\-]+$/gi, {
     message: ({ property }) =>
       authValidationErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
   })
