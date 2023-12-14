@@ -94,3 +94,15 @@ export class GetProfileResponseDTO {
   @Expose()
   createdAt: Date;
 }
+
+export class GenerateTwoFaResponseDTO {
+  constructor(partial: Partial<{ otpAuthURL: string; qrCodeImage: string }>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  otpAuthURL: string;
+
+  @Expose()
+  qrCodeImage: string;
+}

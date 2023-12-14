@@ -143,10 +143,20 @@ export class AuthService {
 
       this.eventEmitter.emit(event.name, event);
 
+      const otpData: any = {};
+      // TODO remove this.
+      if (
+        this.config.get('server.nodeEnv') === 'development' &&
+        new Date() < new Date('2023-12-31')
+      ) {
+        otpData.otp = otp.toString();
+      }
+
       return ResponseFormatter.success(
         authSuccessMessages.signup,
         new GetUserResponseDTO({
           ...user,
+          ...otpData,
           company: companyCreated,
         }),
       );

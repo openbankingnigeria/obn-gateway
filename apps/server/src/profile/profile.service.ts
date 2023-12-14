@@ -6,6 +6,7 @@ import { RequestContextService } from 'src/common/utils/request/request-context.
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import {
+  GenerateTwoFaResponseDTO,
   GetProfileResponseDTO,
   UpdatePasswordDto,
   UpdateProfileDto,
@@ -159,10 +160,13 @@ export class ProfileService {
         twofaSecret: base32,
       },
     );
-    return ResponseFormatter.success(profileSuccessMessages.generatedTwoFA, {
-      otpAuthURL,
-      qrCodeImage,
-    });
+    return ResponseFormatter.success(
+      profileSuccessMessages.generatedTwoFA,
+      new GenerateTwoFaResponseDTO({
+        otpAuthURL,
+        qrCodeImage,
+      }),
+    );
   }
 
   async verifyTwoFA(data: UpdateTwoFADto) {
@@ -254,9 +258,6 @@ export class ProfileService {
       userId: this.requestContext.user!.id,
     });
 
-    return ResponseFormatter.success(
-      profileSuccessMessages.twoFaDisabled,
-      null,
-    );
+    return ResponseFormatter.success(profileSuccessMessages.twoFaDisabled);
   }
 }

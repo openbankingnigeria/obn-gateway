@@ -1,6 +1,6 @@
 import { settingsErrors } from '@settings/settings.errors';
-import { KybDataTypes } from '@settings/types';
-import { Type } from 'class-transformer';
+import { KybDataTypes, KybSettings } from '@settings/types';
+import { Expose, Type } from 'class-transformer';
 import {
   IsArray,
   IsEnum,
@@ -42,4 +42,25 @@ export class UpdateKybRequirementsDto {
   @Type(() => String)
   @IsArray()
   removedKybRequirements: string[];
+}
+
+export class KybRequirementsResponse {
+  constructor(partial: Partial<KybSettings['kybRequirements'][0]>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  name: string;
+
+  @Expose()
+  label: string;
+
+  @Expose()
+  type: string;
+
+  @Expose()
+  editable: boolean;
+
+  @Expose()
+  maxCount: number;
 }

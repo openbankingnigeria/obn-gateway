@@ -11,16 +11,12 @@ import { ConfigService } from '@nestjs/config';
 
 // TODO error response data structure different from success'
 export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
-  const timestamp = new Date().toISOString();
   const logger = new Logger();
-  const nodeEnv = config.get<'development' | 'production'>('server.nodeEnv');
 
   logger.error(exception);
 
   let errorResponse: ErrorResponse = {
-    timestamp,
     status: 500,
-    success: false,
   };
 
   if (
@@ -43,11 +39,6 @@ export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
           : exceptionResponse.message || exception.message,
       data: exceptionResponse.data,
     };
-  }
-
-  if (nodeEnv !== 'production') {
-    errorResponse.stack = (exception as any).stack;
-    errorResponse._meta = (exception as any)?.getResponse?.()?._meta;
   }
 
   return errorResponse;

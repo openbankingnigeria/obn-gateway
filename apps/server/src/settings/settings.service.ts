@@ -1,6 +1,9 @@
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { Injectable } from '@nestjs/common';
-import { UpdateKybRequirementsDto } from './dto/index.dto';
+import {
+  KybRequirementsResponse,
+  UpdateKybRequirementsDto,
+} from './dto/index.dto';
 import { KybSettings } from './types';
 import { Settings } from '@common/database/entities';
 import { Repository } from 'typeorm';
@@ -30,9 +33,13 @@ export class SettingsService {
 
     const kybSettings: KybSettings = JSON.parse(savedKybSettings.value);
 
+    console.log(kybSettings.kybRequirements);
+
     return ResponseFormatter.success(
       'KYB Requirements fetched successfully',
-      kybSettings.kybRequirements,
+      kybSettings.kybRequirements.map(
+        (kybRequirement) => new KybRequirementsResponse(kybRequirement),
+      ),
     );
   }
 

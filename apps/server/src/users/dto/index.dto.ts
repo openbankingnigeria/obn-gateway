@@ -83,6 +83,9 @@ export class GetUserResponseDTO {
   emailVerified: boolean;
 
   @Expose()
+  otp: string;
+
+  @Expose()
   @IsObject()
   @Type(() => GetRoleResponseDTO)
   role: GetRoleResponseDTO;

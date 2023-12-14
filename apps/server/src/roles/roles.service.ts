@@ -7,6 +7,7 @@ import {
   CreateRoleDto,
   GetPermissionResponseDTO,
   GetRoleResponseDTO,
+  GetStatsResponseDTO,
   SetRolePermissionsDto,
   UpdateRoleDto,
 } from './dto/index.dto';
@@ -208,7 +209,7 @@ export class RolesService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(roleSuccessMessages.deletedRole, null);
+    return ResponseFormatter.success(roleSuccessMessages.deletedRole);
   }
 
   async getRolePermissions(id: string) {
@@ -326,7 +327,10 @@ export class RolesService {
     );
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRolesStats,
-      stats,
+      stats.map(
+        (stat: { count: number; value: string }) =>
+          new GetStatsResponseDTO(stat),
+      ),
     );
   }
 }

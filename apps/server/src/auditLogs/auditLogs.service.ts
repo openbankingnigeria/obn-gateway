@@ -14,6 +14,7 @@ import { INotFoundException } from '@common/utils/exceptions/exceptions';
 import { auditLogErrors } from '@auditLogs/auditLogs.errors';
 import { BaseEvent } from '@shared/events/base.event';
 import { ROLES } from '@common/database/constants';
+import { GetAuditLogResponseDTO } from './dto/index.dto';
 
 @Injectable()
 export class AuditLogsService {
@@ -68,7 +69,7 @@ export class AuditLogsService {
 
     return ResponseFormatter.success(
       auditLogsSuccessMessages.fetchLogs,
-      logs,
+      logs.map((log) => new GetAuditLogResponseDTO(log)),
       new ResponseMetaDTO({
         totalNumberOfRecords: totalLogs,
         totalNumberOfPages: Math.ceil(totalLogs / limit),
@@ -98,6 +99,9 @@ export class AuditLogsService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(auditLogsSuccessMessages.fetchLog, log);
+    return ResponseFormatter.success(
+      auditLogsSuccessMessages.fetchLog,
+      new GetAuditLogResponseDTO(log),
+    );
   }
 }

@@ -101,3 +101,15 @@ export class GetRoleResponseDTO {
   @Expose()
   createdAt: Date;
 }
+
+export class GetStatsResponseDTO {
+  constructor(partial: Partial<{ count: number; value: string }>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  count: number;
+
+  @Expose()
+  value: string;
+}
