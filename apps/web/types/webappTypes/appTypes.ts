@@ -26,6 +26,7 @@ export interface searchParamsProps {
   role?: string;
   two_fa?: string;
   token?: string;
+  alt_data?: any;
 }
 
 export interface ParamsProps {
