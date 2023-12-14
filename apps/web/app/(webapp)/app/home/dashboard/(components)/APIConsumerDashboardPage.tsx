@@ -8,7 +8,7 @@ import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 
 const APIConsumerDashboardPage = async ({
-  search_query, request_method, tier, rows, page
+  search_query, request_method, tier, rows, page, alt_data
 }: searchParamsProps) => {
 
   const fetchedDetails : any = await applyAxiosRequest({
@@ -53,7 +53,7 @@ const APIConsumerDashboardPage = async ({
   return (
     <section className='flex flex-col gap-[24px] w-full'>
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
-        {`${greetByTime()}, John Ajayi!`}
+        {`${greetByTime()}, ${alt_data?.firstName + ' ' + alt_data?.lastName}!`}
       </h2>
 
       <section className='w-full flex'>

@@ -79,22 +79,21 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
     }
   });
 
-  const active_memebers = teams?.map((data: any) => {
-    if (data?.status != 'pending') {
-      return({
-        ...data,
-        email_address: data?.email,
-        member_name: `${data?.profile?.firstName} ${data?.profile?.lastName}`,
-        role: data?.role?.name,
-        two_fa: data?.twofaEnabled,
-      });
-    }
+  const all_memebers = teams?.map((data: any) => {
+    return({
+      ...data,
+      email_address: data?.email,
+      member_name: `${data?.profile?.firstName} ${data?.profile?.lastName}`,
+      role: data?.role?.name,
+      two_fa: data?.twofaEnabled,
+      status: data?.status == 'pending' ? 'invited' : data?.status
+    });
   });
 
   const headers = status == 'pending' ? INVITED_MEMBERS_TABLE_HEADERS : MEMBERS_TABLE_HEADERS;
   const members = status == 'pending' ? 
     invited_members?.filter((x: any) => x) : 
-    active_memebers?.filter((x: any) => x);
+    all_memebers?.filter((x: any) => x);
     const total_pages = meta_data?.totalNumberOfPages;
     const total_elements_in_page = members?.length || meta_data?.pageSize;
     const total_elements = meta_data?.totalNumberOfRecords;

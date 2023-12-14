@@ -36,10 +36,12 @@ const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
     (profile?.user?.role?.parent?.slug == 'api-provider') ?
       <APIProviderDashboardPage
         date_filter={date_filter}
+        alt_data={profile}
       />
       :
       <APIConsumerDashboardPage 
         search_query={search_query}
+        alt_data={profile}
         request_method={request_method}
         tier={tier}
         rows={rows}

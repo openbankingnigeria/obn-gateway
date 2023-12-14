@@ -5,13 +5,13 @@ import { API_CALLS_DATA, API_CONSUMERS_TABLE_DATA } from '@/data/dashboardData'
 import { DatePicker } from '@/app/(webapp)/(components)'
 import { DashboardMetricCard } from '.'
 
-const APIProviderDashboardPage = ({ date_filter }: searchParamsProps) => {
+const APIProviderDashboardPage = ({ date_filter, alt_data }: searchParamsProps) => {
   const dateFilter = date_filter;
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
-        {`${greetByTime()}, John Ajayi!`}
+        {`${greetByTime()}, ${alt_data?.firstName + ' ' + alt_data?.lastName}!`}
       </h2>
 
       <DatePicker 
