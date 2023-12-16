@@ -29,7 +29,7 @@ axios.interceptors.response.use(
         message: response?.data?.message || response?.message,
         status: response?.status,
         data: response?.data?.data,
-        meta_data: response?.data?._meta,
+        meta_data: response?.data?.meta || response?.data?._meta,
         request_date: new Date()
       });
     } else {

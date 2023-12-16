@@ -2,10 +2,12 @@
 
 import { AppCenterModal, AppRightModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
 import { Button } from '@/components/globalComponents'
-import React, { useState } from 'react'
+import React, { FormEvent, useEffect, useState } from 'react'
 import CreateRolePage from './CreateRolePage';
-import { toast } from 'react-toastify';
-import { CreateRoleButtonProps } from '@/types/webappTypes/appTypes';
+import { CreateRoleButtonProps, PermissionValue } from '@/types/webappTypes/appTypes';
+import clientAxiosRequest from '@/hooks/clientAxiosRequest';
+import { useRouter } from 'next/navigation';
+import * as API from '@/config/endpoints';
 
 const CreateRoleButton = ({
   permissions_list
@@ -13,20 +15,69 @@ const CreateRoleButton = ({
   const [openModal, setOpenModal] = useState(false);
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [role_name, setRoleName] = useState('');
+  const [description, setDescription] = useState('');
+  const [permissions, setPermissions] = useState<PermissionValue[]>([]);
+  const router = useRouter();
 
-  const handleCreate = () => {
-    setOpen2FA(true);
-  };
+  const fetchProfile = async () => {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setProfile(result?.data);
+  }
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const refreshData = () => {
+    setDescription('');
+    setPermissions([]);
+    setRoleName('');
+  }
 
   const close2FAModal = () => {
     setOpen2FA(false);
     setOpenModal(false);
   };
 
-  const handle2FA = () => {
-    close2FAModal();
-    toast.success('[role_name] has been created successfully.')
-  };
+  const handleCreate = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+    e && e.preventDefault();
+
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      // @ts-ignore
+      let sanitizedPermissions = permissions?.flatMap(item => item.options.map(option => option.id));
+
+      const result: any = await clientAxiosRequest({
+        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        apiEndpoint: API.postRole(),
+        method: 'POST',
+        data: {
+          name: role_name, 
+          description,
+          permissions: sanitizedPermissions,
+          status: "active",
+        }
+      });
+
+      setLoading(false);
+      if (result?.status == 201) {
+        close2FAModal();
+        refreshData();
+        router.refresh();
+      } 
+    }
+  }
 
   return (
     <>
@@ -41,6 +92,13 @@ const CreateRoleButton = ({
               close={() => setOpenModal(false)}
               data={permissions_list}
               next={handleCreate}
+              loading={loading}
+              role_name={role_name}
+              description={description}
+              permissions={permissions}
+              setRoleName={setRoleName}
+              setDescription={setDescription}
+              setPermissions={setPermissions}
             />
           </AppRightModal>
       }
@@ -54,7 +112,7 @@ const CreateRoleButton = ({
             <TwoFactorAuthModal
               close={close2FAModal}
               loading={loading}
-              next={handle2FA}
+              next={(value: string) => handleCreate(value, undefined)}
             />
           </AppCenterModal>
       }

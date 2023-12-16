@@ -1,25 +1,25 @@
 'use client'
 
-import { postInviteMember } from '@/actions/teamActions'
 import { InputElement, SelectElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import { InviteMembersProps } from '@/types/webappTypes/appTypes'
 import { dataToPermissions } from '@/utils/dataToPermissions'
 import React, { useEffect, useState } from 'react'
-import { useServerAction } from '@/hooks';
 import * as API from '@/config/endpoints';
-import { useRouter } from 'next/navigation'
 
 const InviteMemberPage = ({
   roles,
-  close
+  close,
+  email,
+  role,
+  setEmail,
+  setRole,
+  next,
+  loading
 }: InviteMembersProps) => {
-  const [role, setRole] = useState('');
   const [permissions, setPermissions] = useState<any[]>([]);
-  const [email, setEmail] = useState('');
   const [show_role, setShowRole] = useState(false);
-  const router = useRouter();
 
   async function FetchData(id: string) {
     const result: any = id && await clientAxiosRequest({
@@ -31,7 +31,6 @@ const InviteMemberPage = ({
     });
 
     let permits = dataToPermissions(result?.data?.map((data: any) => data), 'string');
-    // console.log(result, permits)
     setPermissions(permits);
   }
 
@@ -52,20 +51,13 @@ const InviteMemberPage = ({
     })
   })
 
-  const initialState = {}
-  const [state, formAction] = useServerAction(postInviteMember, initialState);
-  if (state?.response?.status == 200 || state?.response?.status == 201) {
-    close();
-    router.refresh();
-  }
-
   const handleShowRole = () => {
     setShowRole(prev => !prev);
   };
 
   return (
     <form
-      action={incorrect ? '' : formAction}
+      onSubmit={(e) => next('', e)}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
       <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
@@ -144,6 +136,7 @@ const InviteMemberPage = ({
 
         <Button 
           type='submit'
+          loading={loading}
           title='Send invite'
           containerStyle='!w-[100px]'
           disabled={incorrect}

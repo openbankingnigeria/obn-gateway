@@ -4,7 +4,7 @@ import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
 import { ROLES_MEMBERS } from '@/data/rolesData'
-import { CreateRolePageProps } from '@/types/webappTypes/appTypes'
+import { RoleComponentsProps } from '@/types/webappTypes/appTypes'
 import React, { useEffect, useState } from 'react'
 import { RolesMemberCard } from '.'
 import * as API from '@/config/endpoints';
@@ -15,7 +15,7 @@ const ViewRolePage = ({
   close,
   data,
   next
-}: CreateRolePageProps) => {
+}: RoleComponentsProps) => {
   const members = ROLES_MEMBERS;
   const [permission, setPermissions] = useState<any[]>([]);
 

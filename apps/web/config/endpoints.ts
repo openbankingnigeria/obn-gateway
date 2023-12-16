@@ -31,6 +31,7 @@ export const putRolePermission = ({ id }: GetSingleProps) =>
 
 // TEAMS
 export const postTeam = () => `${BASE_URL}/users`;
+export const postReinviteMember = ({ id }: GetSingleProps) => `${BASE_URL}/users/${id}/resend`;
 export const getTeamStats = () => `${BASE_URL}/users/stats`;
 export const getTeams = ({ page, limit, name, status, email, role }: GetListProps) => 
   `${BASE_URL}/users?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${role ? `&filter[role]=${role}`: ''}${email ? `&filter[email]=${email}`: ''}${status ? `&filter[status]=${status}`: ''}`;

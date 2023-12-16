@@ -27,14 +27,14 @@ const Button = ({
     <button 
       type={type || 'button'}
       onClick={effect}
-      disabled={disabled || pending || loading}
+      disabled={type == 'submit' ? (disabled || pending || loading) : (disabled || loading)}
       className={`group gap-[6px] flex items-center justify-center rounded-[6px]
       ${small ? 'py-[6px] px-[12px]' : 'py-[12px] px-[20px]'} 
       ${outlined ? 'outlined-button' : danger ? 'bg-[#DF1C41] text-white' : 'default-button'}
       ${containerStyle}`}
     >
       {
-        (pending || loading) ?
+        (type == 'submit' ? (pending || loading) : loading) ?
           <Loader lightGreen={!outlined} /> :
           <>
             {leftIcon}

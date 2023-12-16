@@ -93,7 +93,8 @@ export interface TabelElmentProps extends TableProps {
 export interface TwoFactorAuthModalProps {
   close: () => void;
   loading?: boolean;
-  next: () => void;
+  next: any;
+  set2faCode?: Dispatch<SetStateAction<string>>;
 }
 
 export interface MultipleSelectOptionsProps {

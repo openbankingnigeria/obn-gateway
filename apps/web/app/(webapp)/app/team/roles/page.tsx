@@ -48,7 +48,7 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
     })
   });
 
-  let sorted_list = role_list.sort((a: any, b: any) => b.date_created - a.date_created );
+  let sorted_list = role_list?.sort((a: any, b: any) => b.date_created - a.date_created );
   const filters = [search_query, status, role];
 
   const headers = ROLES_TABLE_HEADERS;

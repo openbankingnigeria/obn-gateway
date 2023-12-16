@@ -1,6 +1,6 @@
 'use client'
 
-import { AppCenterModal, AppRightModal } from '@/app/(webapp)/(components)'
+import { AppCenterModal, AppRightModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
 import { ToggleSwitch } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import React, { useState } from 'react'
@@ -24,19 +24,7 @@ const SecurityDetails = ({
   const [qrcode_key, setQRCodeKey] = useState('');
   const [qrcode_image, setQRCodeImage] = useState('');
   const [code, setCode] = useState('');
-
-  // const QRCODE_KEY = '3489323SHJ90A';
-  const BACKUP_CODES = [
-    '58tip84yj0p',
-    '58tip84zj0p',
-    '58tip94yj0p',
-    '58top84yj0p',
-    '58tpp84yj0p',
-    '58ti784yj0p',
-    '58tip84y50p',
-    '5tip84yj0p',
-    '58tip84y90p',
-  ]
+  const [backup_codes, setBackupCodes] = useState([]);
 
   const handleOpenModal = (type: string) => {
     setOpenModal(type)
@@ -46,18 +34,27 @@ const SecurityDetails = ({
     setOpenModal('')
   }
 
-  const handleToggle2FA = async () => {
+  const handleToggle2FA = async (code: string) => {
     if (enable2FA) {
       // DISABLE 2FA
-      const result: any = await clientAxiosRequest({
-        headers: {},
-        apiEndpoint: API.disable2FA(),
-        method: 'PATCH',
-        data: null
-      });
+      if (!code) {
+        handleOpenModal('disable2fa');
+      } else {
+        setLoading(true);
+        const result: any = await clientAxiosRequest({
+          headers: {},
+          apiEndpoint: API.disable2FA(),
+          method: 'PATCH',
+          data: {
+            code: code,
+          }
+        });
 
-      if (result?.status == 200) {
-        setToggle2FA((prev: boolean) => !prev);
+        setLoading(false);
+        if (result?.status == 200) {
+          setToggle2FA((prev: boolean) => !prev);
+          handleCloseModal();
+        }
       }
     } else {
       // ENABLE 2FA
@@ -87,8 +84,9 @@ const SecurityDetails = ({
 
     if (result?.status == 200) {
       setToggle2FA(true);
-      setOpenModal('');
-      // setOpenModal('2fa');
+      setLoading(false);
+      setBackupCodes(result?.data);
+      setOpenModal('backupcode');
     } else {
       setLoading(false);
     }
@@ -120,7 +118,7 @@ const SecurityDetails = ({
       }
 
       {
-        (openModal == 'enable2fa' || openModal == '2fa') &&
+        (openModal == 'enable2fa' || openModal == 'backupcode') &&
         <AppCenterModal
           title={
             openModal == 'enable2fa' ? 
@@ -141,11 +139,25 @@ const SecurityDetails = ({
               /> 
               :
               <TwoFactoAuthEnabled 
-                backup_codes={BACKUP_CODES}
+                backup_codes={backup_codes}
                 close={handleCloseModal}
               />
           }
         </AppCenterModal>
+      }
+
+      {
+        openModal == 'disable2fa' &&
+          <AppCenterModal
+            title={'Two-Factor Authentication'}
+            effect={handleCloseModal}
+          >
+            <TwoFactorAuthModal
+              close={handleCloseModal}
+              loading={loading}
+              next={handleToggle2FA}
+            />
+          </AppCenterModal>
       }
 
       <section className='gap-[20px] flex flex-col w-full'>
@@ -206,7 +218,7 @@ const SecurityDetails = ({
 
             <div className='w-full flex items-start justify-end'>
               <ToggleSwitch 
-                setToggle={handleToggle2FA}
+                setToggle={() => handleToggle2FA('')}
                 toggle={enable2FA}
               />
             </div>

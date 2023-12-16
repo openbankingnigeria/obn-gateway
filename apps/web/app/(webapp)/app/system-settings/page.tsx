@@ -22,7 +22,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   }
 
   let profile = fetchedProfile?.data;
-  const panel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => path?.type == profile?.user?.role?.parent?.slug);
+  const panel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => path?.type == profile?.user?.role?.parent?.slug || path?.type == 'all');
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
@@ -34,6 +34,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
       
       <div className='w-full flex flex-col'>
         {
+          path == '' ? <GeneralSettingsPage /> :
           profile?.user?.role?.parent?.slug == 'api-provider' ?
             (
               path == 'email_service' ?
@@ -44,15 +45,13 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                     <ExternalServicesPage /> :
                     path == 'mock_services' ? 
                       <MockServicesPage /> :
-                      path == '' ? 
-                        <GeneralSettingsPage /> :
-                        null
+                      null
             ) : (
               path == 'test_mode_configuration' ? 
                 <TestModeConfigurationPage /> :
                   path == 'live_mode_configuration' ? 
                   <LiveModeConfigurationPage /> :
-                  path == '' ? 
+                  path == 'business_information' ? 
                     <BusinessInformationPage /> :
                     null
             )

@@ -1,46 +1,38 @@
-// @ts-nocheck
 'use client'
 
-import { postCreateRole } from '@/actions/teamActions'
 import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
-// import { ROLES_PERMISSIONS } from '@/data/rolesData'
-import { CreateRolePageProps, PermissionValue } from '@/types/webappTypes/appTypes'
-import React, { useState } from 'react'
-import { useServerAction } from '@/hooks';
+import { CreateRolePageProps } from '@/types/webappTypes/appTypes'
+import React from 'react'
 import { PermissionCard } from '.'
 import { dataToPermissions } from '@/utils/dataToPermissions'
-import { useRouter } from 'next/navigation'
 
 const CreateRolePage = ({
   close,
   data,
-  next
+  next,
+  loading,
+  role_name,
+  description,
+  permissions,
+  setRoleName,
+  setDescription,
+  setPermissions
 }: CreateRolePageProps) => {
-  const [role_name, setRoleName] = useState('');
-  const [description, setDescription] = useState('');
-  const router = useRouter();
-  const [permissions, setPermissions] = useState<PermissionValue[]>([]);
-
   const ROLES_PERMISSIONS = dataToPermissions(data);
 
   const incorrect = (
     !role_name ||
     !description ||
-    permissions?.length <= 0
+    ( permissions && 
+      permissions?.length <= 0 
+    )
   );
-
-  const initialState = {}
-  const [state, formAction] = useServerAction(postCreateRole, initialState);
-  if (state?.response?.status == 200 || state?.response?.status == 201) {
-    close();
-    router.refresh();
-  }
 
   return (
     <form
-      action={incorrect ? '' : formAction}
+      onSubmit={(e) => next('', e)}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
       <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
@@ -69,13 +61,6 @@ const CreateRolePage = ({
             Permissions
           </h3>
 
-          <input 
-            className='opacity-0 hidden'
-            readOnly
-            value={JSON.stringify(permissions)}
-            name='permissions'
-          />
-
           <div className='flex flex-col w-full gap-[16px]'>
             {
               ROLES_PERMISSIONS?.map((data) => (
@@ -103,6 +88,7 @@ const CreateRolePage = ({
 
         <Button 
           type='submit'
+          loading={loading}
           title='Create'
           containerStyle='!w-[70px]'
           disabled={incorrect}
