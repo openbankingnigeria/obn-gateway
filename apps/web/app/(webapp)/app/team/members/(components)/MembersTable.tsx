@@ -5,11 +5,12 @@ import { MEMBERS_ACTIONS_DATA } from '@/data/membersData'
 import { TableProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import * as API from '@/config/endpoints';
 import { ActivateDeactivateMember } from '.'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import { Loader } from '@/components/globalComponents'
 
 const MembersTable = ({
   tableHeaders,
@@ -23,33 +24,76 @@ const MembersTable = ({
   path
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
+  const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
   const [openModal, setOpenModal] = useState('');
   const [id, setId] = useState('');
   const [member, setMember] = useState<any>(null);
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingReinvitation, setLoadingReinvitation] = useState(false);
   const actions = MEMBERS_ACTIONS_DATA;
 
-  const handleReInvite = (id: number) => {
-    toast.success('You resent an Invite to [email_address]')
+  const fetchProfile = async () => {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setProfile(result?.data);
+  }
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const close2FAModal = () => {
+    setOpen2FA(false);
+    setOpenModal('');
+  }
+
+  const handleReInvite: any = async (id: string, code: string) => {
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoadingReinvitation(true);
+      setLoading(true);
+      const result: any = await clientAxiosRequest({
+        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        apiEndpoint: API.postReinviteMember({ id: id || member?.id }),
+        method: 'POST',
+        data: null
+      });
+
+      if (result?.status == 201) {
+        setLoadingReinvitation(false);
+        setLoading(false);
+        close2FAModal();
+        router.refresh();
+      } else {
+        setLoadingReinvitation(false);
+        setLoading(false);
+      }
+    } 
   };
 
   const getAction = (status: string) => {
     return actions.filter(action => {
-      return (
-        action?.type == status?.toLowerCase() ||
-        action?.type == 'all'
-      );
+      if(status == 'invited') { 
+        return action?.type == status?.toLowerCase()
+      } else {
+        return (
+          action?.type == status?.toLowerCase() ||
+          action?.type == 'all'
+        );
+      }
     });
   }
 
   const closeModal = () => {
-    setOpenModal('');
-  }
-
-  const close2FAModal = () => {
-    setOpen2FA(false);
     setOpenModal('');
   }
 
@@ -93,10 +137,13 @@ const MembersTable = ({
       path == 'pending' ?
         <button 
           id={row.original.id} 
-          onClick={() => handleReInvite(row.original.id)}
+          onClick={() => {
+            handleReInvite(row.original.id, '');
+            setMember(rawData?.find(data => data?.id == row.original.id));
+          }}
           className='text-f14 whitespace-nowrap !text-[#5277C7] cursor-pointer capitalize'
         >
-          Reinvite
+          { loadingReinvitation ? <Loader /> : 'Reinvite' }
         </button>
         :
         <div id={row.original.id} className='relative block'>
@@ -115,11 +162,16 @@ const MembersTable = ({
                   key={action.id}
                   className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
                   onClick={() => {
-                    setId(row.original.id);
-                    setMember(rawData?.find(data => data?.id == row.original.id));
-                    action.name == 'view' ?
-                      router.push(`/app/team/members/${row.original.id}`) :
-                      setOpenModal(action.name);
+                    if (action?.name == 'reinvite' ) {
+                      handleReInvite(row.original.id, '');
+                      setMember(rawData?.find(data => data?.id == row.original.id));
+                    } else {
+                      setId(row.original.id);
+                      setMember(rawData?.find(data => data?.id == row.original.id));
+                      action.name == 'view' ?
+                        router.push(`/app/team/members/${row.original.id}`) :
+                        setOpenModal(action.name);
+                    }
                   }}
                 >
                   {action.icon}
@@ -161,7 +213,7 @@ const MembersTable = ({
             <TwoFactorAuthModal
               close={close2FAModal}
               loading={loading}
-              next={handle2FA}
+              next={(value: string) => handleReInvite('', value)}
             />
           </AppCenterModal>
       }

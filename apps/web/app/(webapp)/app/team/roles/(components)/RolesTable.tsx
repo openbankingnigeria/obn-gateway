@@ -5,11 +5,12 @@ import { ROLES_ACTIONS_DATA } from '@/data/rolesData'
 import { TableProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { FormEvent, useEffect, useState } from 'react'
 import * as API from '@/config/endpoints';
 import { toast } from 'react-toastify'
 import { ActivateDeactivateRole, EditRolePage, ViewRolePage } from '.'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import { dataToPermissions } from '@/utils/dataToPermissions'
 
 const RolesTable = ({
   tableHeaders,
@@ -29,7 +30,55 @@ const RolesTable = ({
   const [role, setRole] = useState<any>(null);
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [role_name, setRoleName] = useState('');
+  const [description, setDescription] = useState('');
+  const [permissions, setPermissions] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
+
   const actions = ROLES_ACTIONS_DATA;
+
+  useEffect(() => {
+    setRoleName(role?.name);
+    setDescription(role?.description);
+  }, [role])
+
+  const refreshData = () => {
+    setRoleName('');
+    setDescription('');
+    setPermissions([]);
+  };
+
+  const fetchProfile = async () => {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+    setProfile(result?.data);
+  }
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  async function FetchData() {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getRolePermission({ id: role?.id }),
+      method: 'GET',
+      data: null,
+      noToast: true,
+    });
+
+    let permits = dataToPermissions(result?.data?.map((data: any) => data), 'answer');
+    setPermissions(permits);
+  }
+
+  useEffect(() => {
+    role?.id && FetchData();
+  }, [role]);
 
   const getAction = (status: string) => {
     return actions.filter(action => {
@@ -42,6 +91,7 @@ const RolesTable = ({
 
   const closeModal = () => {
     setOpenModal('');
+    refreshData();
   }
 
   const close2FAModal = () => {
@@ -49,40 +99,83 @@ const RolesTable = ({
     setOpenModal('');
   }
 
-  const handleActivateDeactivateRole = async () => {
-    setLoading(true);
-    const result: any = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.updateRole({ id: role?.id }),
-      method: 'PATCH',
-      data: {
-        description: role?.description,
-        status: openModal == 'deactivate' ? 'inactive' : 'active'
-      }
-    });
+  const handleActivateDeactivateRole = async (code: string,) => {
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      const result: any = await clientAxiosRequest({
+        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        apiEndpoint: API.updateRole({ id: role?.id }),
+        method: 'PATCH',
+        data: {
+          description: role?.description,
+          status: openModal == 'deactivate' ? 'inactive' : 'active'
+        }
+      });
 
-    if (result?.message) {
-      setOpenModal('');
-      setLoading(false);
-      router.refresh();
-      // setOpen2FA(true);
+      if (result?.message) {
+        close2FAModal();
+        setLoading(false);
+        router.refresh();
+      }
     }
   }
 
-  const handleEdit = () => {
-    // setLoading(true);
-    setOpen2FA(true);
+  const handleEdit = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+    e && e.preventDefault();
+
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      const result: any = await clientAxiosRequest({
+        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        apiEndpoint: API.updateRole({
+          id: role?.id
+        }),
+        method: 'PATCH',
+        data: {
+          description,
+          status: "active",
+        }
+      });
+
+      if (permissions?.length >= 3 && result?.status == 200) {
+        // @ts-ignore
+        let sanitizedPermissions = permissions?.flatMap(item => item.options.map(option => option.id));
+        const result2: any = await clientAxiosRequest({
+          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          apiEndpoint: API.putRolePermission({
+            id: role?.id
+          }),
+          method: 'PUT',
+          data: {
+            permissions: sanitizedPermissions
+          }
+        });
+
+        setLoading(false);
+        if (result2?.status == 200) {
+          close2FAModal();
+          refreshData();
+          router.refresh();
+        }
+      } else {
+        setLoading(false);
+        if (result?.status == 200) {
+          close2FAModal();
+          refreshData();
+          router.refresh();
+        }
+      }
+    }
   }
 
-  const handle2FA = () => {
-    close2FAModal();
-    toast.success(
-      openModal == 'deactivate' ?
-        '[role_name] has been deactivated successfully.' :
-        openModal == 'activate' ?
-          '[role_name] has been activated successfully.' :
-          null
-    )
+  const handle2FA = (value: string) => {
+    openModal == 'edit' ?
+      handleEdit(value, undefined) :
+      handleActivateDeactivateRole(value)
   };
 
   const actionColumn = columnHelper.accessor('actions', {
@@ -132,22 +225,29 @@ const RolesTable = ({
                 'Role Details' :
                 'Edit Role'
             }
-            effect={() => setOpenModal('')}
+            effect={closeModal}
             childrenStyle='!px-0'
           >
             {
               openModal == 'view' ?
                 <ViewRolePage 
-                  close={() => setOpenModal('')}
+                  close={closeModal}
                   data={role}
                   next={() => setOpenModal('edit')}
                 /> 
                 :
                 <EditRolePage 
-                  close={() => setOpenModal('')}
+                  close={closeModal}
                   data={role}
                   list={altData}
                   next={handleEdit}
+                  loading={loading}
+                  role_name={role_name}
+                  description={description}
+                  permissions={permissions}
+                  setRoleName={setRoleName}
+                  setDescription={setDescription}
+                  setPermissions={setPermissions}
                 /> 
             }
           </AppRightModal>
@@ -163,7 +263,7 @@ const RolesTable = ({
               close={closeModal}
               type={openModal}
               loading={loading}
-              next={handleActivateDeactivateRole}
+              next={() => handleActivateDeactivateRole('')}
             />
           </AppCenterModal>
       }
@@ -177,7 +277,7 @@ const RolesTable = ({
             <TwoFactorAuthModal
               close={close2FAModal}
               loading={loading}
-              next={handle2FA}
+              next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
       }

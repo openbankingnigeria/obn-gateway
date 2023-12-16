@@ -1,14 +1,10 @@
 'use client'
 
-import { postApp2FAVerification } from '@/actions/consumerActions'
 import { InputElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import { TwoFactorAuthModalProps } from '@/types/webappTypes/componentsTypes'
 import { usePathname } from 'next/navigation'
-import React, { useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
-import { toast } from 'react-toastify'
+import React, { FormEvent, useState } from 'react'
 
 const TwoFactorAuthForm = ({
   close,
@@ -22,26 +18,19 @@ const TwoFactorAuthForm = ({
 
   const handleCode = (value: string) => {
     if (value?.length <= 6 ) {
-      setCode(value?.toString()?.replace(/[^0-9.]/g, ''));
+      // setCode(value?.toString()?.replace(/[^0-9.]/g, ''));
+      setCode(value);
     }
   }
 
-  const initialState = {
-    message: null,
-    location: pathname
-  }
-
-  const [state, formAction] = useFormState(postApp2FAVerification, initialState);
-
-  if (state?.message == 'success') {
-    next();
-  } else {
-    toast.error(state?.message);
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    next(code);
   }
 
   return (
     <form 
-      action={incorrect ? '' : formAction}
+      onSubmit={handleSubmit}
       className='flex w-full flex-col gap-[24px]'
     >
       <InputElement 

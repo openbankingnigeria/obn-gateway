@@ -1,66 +1,38 @@
 'use client'
 
-import { updateRole } from '@/actions/teamActions'
 import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
-import { EDIT_ROLE_DETAILS, ROLES_PERMISSIONS } from '@/data/rolesData'
-import { CreateRolePageProps, MemberCardProps, PermissionValue } from '@/types/webappTypes/appTypes'
-import React, { useEffect, useState } from 'react'
-import { PermissionCard, RolesMemberCard } from '.'
-import * as API from '@/config/endpoints';
-import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import { CreateRolePageProps } from '@/types/webappTypes/appTypes'
+import React from 'react'
+import { PermissionCard } from '.'
 import { dataToPermissions } from '@/utils/dataToPermissions'
-import { useServerAction } from '@/hooks'
-import { useRouter } from 'next/navigation'
 
 const EditRolePage = ({
   close,
   data,
   list,
-  next
+  next,
+  loading,
+  role_name,
+  description,
+  permissions,
+  setRoleName,
+  setDescription,
+  setPermissions
 }: CreateRolePageProps) => {
-  const details = EDIT_ROLE_DETAILS;
   const ROLES_PERMISSIONS = dataToPermissions(list);
+  // const details = EDIT_ROLE_DETAILS;
+  // const [members, setMembers] = useState<MemberCardProps[]>([...details.members])
 
-  const router = useRouter();
-  const [role_name, setRoleName] = useState(data?.name);
-  const [description, setDescription] = useState(data?.description);
-  const [permissions, setPermissions] = useState<any[]>([]);
-  const [members, setMembers] = useState<MemberCardProps[]>([...details.members])
-
-  async function FetchData() {
-    const result = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getRolePermission({ id: data?.id }),
-      method: 'GET',
-      data: null,
-      noToast: true,
-    });
-
-    let permits = dataToPermissions(result?.data?.map((data: any) => data), 'answer');
-    setPermissions(permits);
-  }
-
-  useEffect(() => {
-    FetchData();
-  }, [data])
-  
   const incorrect = (
     !role_name ||
     !description
   );
 
-  const initialState = { role_id: data?.id }
-  const [state, formAction] = useServerAction(updateRole, initialState);
-  if (state?.response?.status == 200 || state?.response?.status == 201) {
-    close();
-    router.refresh();
-  }
-
   return (
     <form
-      action={incorrect ? '' : formAction}
+    onSubmit={(e) => next('', e)}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
       <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
@@ -143,6 +115,7 @@ const EditRolePage = ({
 
         <Button 
           type='submit'
+          loading={loading}
           title='Save changes'
           containerStyle='!w-[120px]'
           disabled={incorrect}

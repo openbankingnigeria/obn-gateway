@@ -18,7 +18,8 @@ const TwoFactorAuthForm = () => {
 
   const handleCode = (value: string) => {
     if (value?.length <= 6 ) {
-      setCode(value?.toString()?.replace(/[^0-9.]/g, ''));
+      // setCode(value?.toString()?.replace(/[^0-9.]/g, ''));
+      setCode(value);
     }
   }
 

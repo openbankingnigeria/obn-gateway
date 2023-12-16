@@ -107,17 +107,38 @@ export interface ApiConfigurationProps {
 export interface InviteMembersProps {
   roles: any[];
   close: () => void;
+  email: string;
+  role: string;
+  setEmail: Dispatch<SetStateAction<string>>;
+  setRole: Dispatch<SetStateAction<string>>;
+  next: any;
+  loading: boolean;
 }
 
 export interface InviteMembersButtonProps {
   roles: any[];
 }
 
-export interface CreateRolePageProps {
+export interface PermissionValue {
+  permission: string;
+  options: PermissionOptionsProps[]
+}
+
+export interface RoleComponentsProps {
   close: () => void;
   data?: any;
   list?: any;
-  next: () => void;
+  next: any;
+}
+
+export interface CreateRolePageProps extends RoleComponentsProps {
+  role_name: string;
+  description: string;
+  loading?: boolean;
+  permissions: PermissionValue[];
+  setRoleName: Dispatch<SetStateAction<string>>;
+  setDescription: Dispatch<SetStateAction<string>>;
+  setPermissions: Dispatch<SetStateAction<PermissionValue[]>>;
 }
 
 export interface AddBusinessInformationProps {
@@ -138,10 +159,6 @@ export interface PermissionOptionsProps {
   value: string;
 }
 
-export interface PermissionValue {
-  permission: string;
-  options: PermissionOptionsProps[]
-}
 export interface PermissionSelectorProps {
   placeholder?: string;
   parentIsSelected: boolean;
