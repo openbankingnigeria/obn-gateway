@@ -14,6 +14,9 @@ import { KongServiceService } from '@shared/integrations/kong/service/service.ko
 import { Not, Repository } from 'typeorm';
 import {
   CreateCollectionDto,
+  GETAPIRouteResponseDTO,
+  GetAPIResponseDTO,
+  GetCollectionResponseDTO,
   UpdateAPIDto,
   UpdateCollectionDto,
 } from './dto/index.dto';
@@ -49,7 +52,7 @@ export class CollectionsService {
     // TODO emit event
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollections,
-      collections,
+      collections.map((collection) => new GetCollectionResponseDTO(collection)),
       new ResponseMetaDTO({
         totalNumberOfRecords,
         totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
@@ -74,7 +77,7 @@ export class CollectionsService {
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollection,
-      collection,
+      new GetCollectionResponseDTO(collection),
     );
   }
 
@@ -103,7 +106,7 @@ export class CollectionsService {
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.createdCollection,
-      collection,
+      new GetCollectionResponseDTO(collection),
     );
   }
 
@@ -131,7 +134,7 @@ export class CollectionsService {
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.updatedCollection,
-      collection,
+      new GetCollectionResponseDTO(collection),
     );
   }
 
@@ -164,7 +167,6 @@ export class CollectionsService {
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.deletedCollection,
-      null,
     );
   }
 
@@ -206,7 +208,7 @@ export class CollectionsService {
         const gatewayService = gatewayServices.data.find(
           (gatewayService) => gatewayService.id === route.serviceId,
         )!;
-        return {
+        return new GetAPIResponseDTO({
           id: route.id,
           name: route.name,
           enabled: route.enabled,
@@ -217,11 +219,11 @@ export class CollectionsService {
           url: gatewayService
             ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
             : null,
-          route: {
+          route: new GETAPIRouteResponseDTO({
             paths: gatewayRoute?.paths || [],
             methods: gatewayRoute?.methods || [],
-          },
-        };
+          }),
+        });
       }),
       new ResponseMetaDTO({
         totalNumberOfRecords,
@@ -251,20 +253,23 @@ export class CollectionsService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(collectionsSuccessMessages.fetchedAPI, {
-      id: route.id,
-      name: route.name,
-      enabled: route.enabled,
-      host: gatewayService.host,
-      protocol: gatewayService.protocol,
-      port: gatewayService.port,
-      path: gatewayService.path,
-      url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
-      route: {
-        paths: gatewayRoutes.data[0]?.paths || [],
-        methods: gatewayRoutes.data[0]?.methods || [],
-      },
-    });
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.fetchedAPI,
+      new GetAPIResponseDTO({
+        id: route.id,
+        name: route.name,
+        enabled: route.enabled,
+        host: gatewayService.host,
+        protocol: gatewayService.protocol,
+        port: gatewayService.port,
+        path: gatewayService.path,
+        url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+        route: new GETAPIRouteResponseDTO({
+          paths: gatewayRoutes.data[0]?.paths || [],
+          methods: gatewayRoutes.data[0]?.methods || [],
+        }),
+      }),
+    );
   }
 
   async deleteAPI(id: string) {
@@ -286,10 +291,7 @@ export class CollectionsService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(
-      collectionsSuccessMessages.deletedAPI,
-      null,
-    );
+    return ResponseFormatter.success(collectionsSuccessMessages.deletedAPI);
   }
 
   async createAPI(collectionId: string, data: UpdateAPIDto) {
@@ -356,17 +358,20 @@ export class CollectionsService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(collectionsSuccessMessages.createdAPI, {
-      id: createdRoute.id,
-      name: createdRoute.name,
-      enabled: createdRoute.enabled,
-      host: gatewayService.host,
-      protocol: gatewayService.protocol,
-      port: gatewayService.port,
-      path: gatewayService.path,
-      url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
-      route: data.route,
-    });
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.createdAPI,
+      new GetAPIResponseDTO({
+        id: createdRoute.id,
+        name: createdRoute.name,
+        enabled: createdRoute.enabled,
+        host: gatewayService.host,
+        protocol: gatewayService.protocol,
+        port: gatewayService.port,
+        path: gatewayService.path,
+        url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+        route: data.route,
+      }),
+    );
   }
 
   async updateAPI(routeId: string, data: UpdateAPIDto) {
@@ -436,16 +441,19 @@ export class CollectionsService {
 
     // TODO emit event
 
-    return ResponseFormatter.success(collectionsSuccessMessages.updatedAPI, {
-      id: route.id,
-      name: route.name,
-      enabled: route.enabled,
-      host: gatewayService.host,
-      protocol: gatewayService.protocol,
-      port: gatewayService.port,
-      path: gatewayService.path,
-      url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
-      route: data.route,
-    });
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.updatedAPI,
+      new GetAPIResponseDTO({
+        id: route.id,
+        name: route.name,
+        enabled: route.enabled,
+        host: gatewayService.host,
+        protocol: gatewayService.protocol,
+        port: gatewayService.port,
+        path: gatewayService.path,
+        url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+        route: data.route,
+      }),
+    );
   }
 }
