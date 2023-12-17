@@ -3,15 +3,17 @@
 import { AppCenterModal, AppRightModal, ConfigurationBox, EmptyState, TableElement, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { COLLECTION_ACTIONS_DATA } from '@/data/collectionDatas'
-import { SectionsProps } from '@/types/webappTypes/appTypes'
+import { HeadersProps, HostsProps, SectionsProps, SnisProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React, { FormEvent, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import ApiConfiguration from './ApiConfiguration'
 import ModifyApiConfiguration from './ModifyApiConfiguration'
 import { updateSearchParams } from '@/utils/searchParams'
 import { getJsCookies } from '@/config/jsCookie'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import * as API from '@/config/endpoints';
 
 const CollectionSection = ({
   rawData,
@@ -20,6 +22,7 @@ const CollectionSection = ({
   rows,
   page,
   details,
+  altData,
   totalElements,
   totalElementsInPage,
   totalPages,
@@ -33,15 +36,46 @@ const CollectionSection = ({
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const actions = COLLECTION_ACTIONS_DATA;
+  const profile = altData;
+  const userType = profile?.user?.role?.parent?.slug;
+  const [api_endpoint, setApiEndpoint] = useState<any>(null);
 
-  const getUserProfile = getJsCookies('aperta-user-profile');
-  const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
-  const userType = userProfile?.userType;
+  const [endpoint_url, setEndpointUrl] = useState('');
+  const [parameters, setParameters] = useState('');
+  const [snis, setSnis] = useState<SnisProps[]>([]);
+  const [hosts, setHost] = useState<HostsProps[]>([]);
+  const [headers, setHeaders] = useState<HeadersProps[]>([]);
+
+  // const getUserProfile = getJsCookies('aperta-user-profile');
+  // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
+  // const userType = userProfile?.userType;
+  const refreshData = () => {
+    setEndpointUrl('');
+    setParameters('');
+    setSnis([]);
+    setHost([]);
+    setHeaders([]);
+  }
+
+  async function FetchData() {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getAPIEndpoint({ id }),
+      method: 'GET',
+      data: null,
+      noToast: true,
+    });
+    setApiEndpoint(result?.data);
+  }
+
+  useEffect(() => {
+    id && FetchData();
+  }, [id]);
 
   useEffect(() => {
     const slug = updateSearchParams('slug', details?.name);
     router.push(slug);
-  }, [router, details]);
+  }, [details?.name]);
 
   const getAction = (status: boolean) => {
     return actions.filter(action => {
@@ -61,25 +95,60 @@ const CollectionSection = ({
     setOpenModal('');
   }
 
-  const handleApiConfiguration = () => {
-    // setLoading(true);
-    setOpen2FA(true);
+  const handleApiConfiguration = (code: string, e?: FormEvent<HTMLFormElement>) => {
+    e && e.preventDefault();
+
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      // TODO: GET CONFIGURATION ENDPOINT
+    }
   }
 
-  const handleApiModification = () => {
-    // setLoading(true);
-    setOpen2FA(true);
+  const handleApiModification = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+    e && e.preventDefault();
+
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      const result: any = await clientAxiosRequest({
+        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        apiEndpoint: API.updateAPIEndpoint({
+          id: api_endpoint?.id
+        }),
+        method: 'PATCH',
+        data: {
+          "name": api_endpoint?.name,
+          "enabled": true,
+          "url": endpoint_url,
+          "route": {
+              "paths": [
+                  "/transactions"
+              ],
+              "methods": [
+                  "GET"
+              ]
+          }
+        }
+      });
+
+      setLoading(false);
+        if (result?.status == 200) {
+          close2FAModal();
+          refreshData();
+          router.refresh();
+        }
+    }
   }
 
-  const handle2FA = () => {
-    close2FAModal();
-    toast.success(
-      openModal == 'configure' ?
-        'You have successfully mapped [API_NAME]' :
-        openModal == 'modify' ?
-          'Your changes to [API_NAME] have been saved successfully.' :
-          null
-    )
+  const handle2FA = (value: string) => {
+    openModal == 'configure' ?
+      handleApiConfiguration(value, undefined) :
+      openModal == 'modify' ?
+        handleApiModification(value, undefined) :
+        null
   };
 
   const actionColumn = columnHelper.accessor('actions', {
@@ -136,13 +205,35 @@ const CollectionSection = ({
                 <ApiConfiguration 
                   close={closeModal}
                   loading={loading}
+                  data={api_endpoint}
                   next={handleApiConfiguration}
+                  endpoint_url={endpoint_url}
+                  parameters={parameters}
+                  snis={snis}
+                  hosts={hosts}
+                  headers={headers}
+                  setEndpointUrl={setEndpointUrl}
+                  setParameters={setParameters}
+                  setSnis={setSnis}
+                  setHost={setHost}
+                  setHeaders={setHeaders}
                 />
                 :
                 <ModifyApiConfiguration 
                   close={closeModal}
                   loading={loading}
                   next={handleApiModification}
+                  data={api_endpoint}
+                  endpoint_url={endpoint_url}
+                  parameters={parameters}
+                  snis={snis}
+                  hosts={hosts}
+                  headers={headers}
+                  setEndpointUrl={setEndpointUrl}
+                  setParameters={setParameters}
+                  setSnis={setSnis}
+                  setHost={setHost}
+                  setHeaders={setHeaders}
                 />
             }
           </AppRightModal>
@@ -157,7 +248,7 @@ const CollectionSection = ({
             <TwoFactorAuthModal
               close={close2FAModal}
               loading={loading}
-              next={handle2FA}
+              next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
       }

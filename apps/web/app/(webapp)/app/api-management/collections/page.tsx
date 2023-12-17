@@ -1,10 +1,11 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
-import { COLLECTIONS_TABLE_DATA, COLLECTIONS_TABLE_HEADERS } from '@/data/collectionDatas'
+import { COLLECTIONS_TABLE_HEADERS } from '@/data/collectionDatas'
 import { SearchBar } from '@/components/forms'
 import { CollectionsTable } from './(components)'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout'
 
 const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
@@ -20,6 +21,10 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   })
 
+  if (fetchedCollections?.status == 401) {
+    return <Logout />
+  }
+
   let meta_data = fetchedCollections?.meta_data;
   let collection_list = fetchedCollections?.data
 
@@ -31,7 +36,6 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
     })
   })
   const headers = COLLECTIONS_TABLE_HEADERS;
-  // const collections = COLLECTIONS_TABLE_DATA;
   const total_pages = meta_data?.totalNumberOfPages;
   const total_elements_in_page = collection_list?.length || meta_data?.pageSize;
   const total_elements = meta_data?.totalNumberOfRecords;

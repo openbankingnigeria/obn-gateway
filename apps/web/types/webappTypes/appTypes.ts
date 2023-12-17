@@ -76,6 +76,7 @@ export interface ConsumerDetailsProps {
 
 export interface SectionsProps {
   rawData: any[];
+  altData?: any;
   tableHeaders: any[];
   filters: any[];
   rows: number;
@@ -101,7 +102,18 @@ export interface ActivitySectionsProps {
 export interface ApiConfigurationProps {
   close: () => void;
   loading?: boolean;
-  next: () => void;
+  next: any;
+  data?: any;
+  endpoint_url: string;
+  parameters: string;
+  snis: SnisProps[];
+  hosts: HostsProps[];
+  headers: HeadersProps[];
+  setEndpointUrl: Dispatch<SetStateAction<string>>;
+  setParameters: Dispatch<SetStateAction<string>>;
+  setSnis: Dispatch<SetStateAction<SnisProps[]>>;
+  setHost: Dispatch<SetStateAction<HostsProps[]>>;
+  setHeaders: Dispatch<SetStateAction<HeadersProps[]>>;
 };
 
 export interface InviteMembersProps {
