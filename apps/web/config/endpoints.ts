@@ -64,7 +64,10 @@ export const getCollection = ({ id }: GetSingleProps) =>
   `${BASE_URL}/collections/${id}`;
 export const getAPIEndpoints = ({ id }: GetSingleProps) => 
   `${BASE_URL}/collections/${id}/apis`;
-
+export const getAPIEndpoint = ({ id }: GetSingleProps) => 
+  `${BASE_URL}/collections/apis/${id}`;
+export const updateAPIEndpoint = ({ id }: GetSingleProps) => 
+  `${BASE_URL}/collections/apis/${id}`;
 
 // COMPANY
 export const updateCompanyDetails = () => `${BASE_URL}/company/kyb`;

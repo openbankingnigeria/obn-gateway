@@ -15,27 +15,20 @@ import { HeadersContainer, HostsContainer, SnisContainer } from '.'
 const ApiConfiguration = ({
   close,
   loading,
+  data,
   next,
+  endpoint_url,
+  parameters,
+  snis,
+  hosts,
+  headers,
+  setEndpointUrl,
+  setParameters,
+  setSnis,
+  setHost,
+  setHeaders,
 }: ApiConfigurationProps) => {
-  const [endpoint_url, setEndpointUrl] = useState('');
-  const [parameters, setParameters] = useState('');
-  const [snis, setSnis] = useState<SnisProps[]>([]);
-  const [hosts, setHost] = useState<HostsProps[]>([]);
-  const [headers, setHeaders] = useState<HeadersProps[]>([]);
-
   const incorrect = !endpoint_url;
-
-  const initialState = {
-    message: null,
-  }
-
-  const [state, formAction] = useFormState(postConfigureAPI, initialState);
-
-  if (state?.message == 'success') {
-    next();
-  } else {
-    toast.error(state?.message);
-  }
 
   const handleRemove = (type: string, value: string | number) => {
     type == 'hosts' ?
@@ -102,7 +95,7 @@ const ApiConfiguration = ({
 
   return (
     <form
-      action={incorrect ? '' : formAction}
+      onSubmit={(e) => next('', e)}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
       <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
@@ -114,7 +107,7 @@ const ApiConfiguration = ({
             </div>
 
             <div className='w-fit text-o-text-dark text-f14 font-[500]'>
-              Get Transactions
+              {data?.name}
             </div>
           </div>
 
@@ -126,7 +119,7 @@ const ApiConfiguration = ({
 
             <div className='w-fit text-f14 font-[500]'>
               <RequestMethodText 
-                method={'GET'}
+                method={data?.route?.methods?.toString()}
               />
             </div>
           </div>
@@ -138,7 +131,7 @@ const ApiConfiguration = ({
             </div>
 
             <div className='w-fit text-o-text-dark text-f14 font-[500]'>
-              Tier 1
+              {data?.tier}
             </div>
           </div>
         </section>
@@ -146,7 +139,7 @@ const ApiConfiguration = ({
         <div className='w-full border-b border-o-border pb-[16px]'>
           <InputElement 
             name='endpoint_url'
-            placeholder='https://api.example.com/api_name'
+            placeholder='Endpoint url'
             label='Endpoint URL'
             value={endpoint_url}
             changeValue={setEndpointUrl}
@@ -203,6 +196,7 @@ const ApiConfiguration = ({
 
         <Button 
           type='submit'
+          loading={loading}
           title='Configure'
           containerStyle='!w-[100px]'
           disabled={incorrect}

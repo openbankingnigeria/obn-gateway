@@ -4,6 +4,7 @@ import { CollectionSection } from '../(components)';
 import { COLLECTIONS_API_HEADERS, COLLECTIONS_REQUEST_METHOD, COLLECTIONS_TIER } from '@/data/collectionDatas';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout';
 
 const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
   const collectionId = params?.id;
@@ -31,7 +32,19 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
     data: null
   })
 
+  const fetchedProfile: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getProfile(),
+    method: 'GET',
+    data: null
+  });
+
+  if (fetchedCollection?.status == 401) {
+    return <Logout />
+  }
+
   let collection = fetchedCollection?.data;
+  let profile = fetchedProfile?.data;
   let collections_api_list = fetchedEndpoints?.data;
   let meta_data = fetchedEndpoints?.meta_data;
   let collections_api = collections_api_list?.map((endpoint: any) => {
@@ -83,6 +96,7 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
       <div className='w-full flex flex-col'>
         <CollectionSection 
           rawData={collections_api}
+          altData={profile}
           tableHeaders={table_headers}
           requestMethodList={request_method_list}
           tierList={tier_list}

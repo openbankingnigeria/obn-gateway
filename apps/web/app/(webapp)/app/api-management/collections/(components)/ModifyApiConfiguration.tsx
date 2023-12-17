@@ -1,41 +1,30 @@
 'use client'
 
-import { modifyConfigureAPI, postConfigureAPI } from '@/actions/collectionsActions'
 import { RequestMethodText } from '@/app/(webapp)/(components)'
 import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
-import { ApiConfigurationProps, HeadersProps, HostsProps, SnisProps } from '@/types/webappTypes/appTypes'
-import React, { useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
-import { toast } from 'react-toastify'
+import { ApiConfigurationProps } from '@/types/webappTypes/appTypes'
+import React from 'react'
 import { HeadersContainer, HostsContainer, SnisContainer } from '.'
 
 const ModifyApiConfiguration = ({
   close,
   loading,
+  data,
   next,
+  endpoint_url,
+  parameters,
+  snis,
+  hosts,
+  headers,
+  setEndpointUrl,
+  setParameters,
+  setSnis,
+  setHost,
+  setHeaders,
 }: ApiConfigurationProps) => {
-  const [endpoint_url, setEndpointUrl] = useState('https://api.lendsqr.com/account_balance');
-  const [parameters, setParameters] = useState('user_id, account_id');
-  const [snis, setSnis] = useState<SnisProps[]>([]);
-  const [hosts, setHost] = useState<HostsProps[]>([]);
-  const [headers, setHeaders] = useState<HeadersProps[]>([]);
-
   const incorrect = !endpoint_url;
-
-  const initialState = {
-    message: null,
-  }
-
-  const [state, formAction] = useFormState(modifyConfigureAPI, initialState);
-
-  if (state?.message == 'success') {
-    next();
-  } else {
-    toast.error(state?.message);
-  }
 
   const handleRemove = (type: string, value: string | number) => {
     type == 'hosts' ?
@@ -102,7 +91,7 @@ const ModifyApiConfiguration = ({
 
   return (
     <form
-      action={incorrect ? '' : formAction}
+      onSubmit={(e) => next('', e)}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
       <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
@@ -121,7 +110,7 @@ const ModifyApiConfiguration = ({
             </div>
 
             <div className='w-fit text-o-text-dark text-f14 font-[500]'>
-              Get Transactions
+              {data?.name}
             </div>
           </div>
 
@@ -133,7 +122,7 @@ const ModifyApiConfiguration = ({
 
             <div className='w-fit text-f14 font-[500]'>
               <RequestMethodText 
-                method={'GET'}
+                method={data?.route?.methods?.toString()}
               />
             </div>
           </div>
@@ -145,7 +134,7 @@ const ModifyApiConfiguration = ({
             </div>
 
             <div className='w-fit text-o-text-dark text-f14 font-[500]'>
-              Tier 1
+              {data?.tier}
             </div>
           </div>
         </section>
@@ -153,7 +142,7 @@ const ModifyApiConfiguration = ({
         <div className='w-full border-b border-o-border pb-[16px]'>
           <InputElement 
             name='endpoint_url'
-            placeholder='https://api.example.com/api_name'
+            placeholder='Endpoint url'
             label='Endpoint URL'
             value={endpoint_url}
             changeValue={setEndpointUrl}
@@ -210,6 +199,7 @@ const ModifyApiConfiguration = ({
 
         <Button 
           type='submit'
+          loading={loading}
           title='Update'
           containerStyle='!w-[100px]'
           disabled={incorrect}
