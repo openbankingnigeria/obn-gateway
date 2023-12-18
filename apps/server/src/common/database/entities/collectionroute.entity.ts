@@ -18,11 +18,19 @@ export class CollectionRoute {
   @Column()
   name: string;
 
-  @Column()
-  serviceId: string;
+  @Column({
+    name: 'environment',
+    type: 'varchar',
+    default: 'development',
+    nullable: false,
+  })
+  environment: string;
 
-  @Column()
-  routeId: string;
+  @Column({ name: 'service_id', type: 'varchar', nullable: true })
+  serviceId: string | null;
+
+  @Column({ name: 'route_id', type: 'varchar', nullable: true })
+  routeId: string | null;
 
   @Column({
     type: 'boolean',

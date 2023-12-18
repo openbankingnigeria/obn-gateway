@@ -1,7 +1,7 @@
 export interface ListRequest {
   size?: number;
   offset?: number;
-  tags?: string;
+  tags?: string | string[];
 }
 
 export interface ListResponse<T> {

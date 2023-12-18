@@ -25,6 +25,7 @@ import { HttpModule } from '@nestjs/axios';
 import { SettingsModule } from './settings/settings.module';
 import { CompanyModule } from './company/company.module';
 import { EmailModule } from '@shared/email/email.module';
+import { APIModule } from './apis/apis.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { EmailModule } from '@shared/email/email.module';
     ProfileModule,
     AuditLogsModule,
     CollectionsModule,
+    APIModule,
     HttpModule,
     SettingsModule,
     CompanyModule,

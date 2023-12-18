@@ -34,7 +34,7 @@ export class User {
   password?: string;
 
   @Column({
-    // name: 'twofa_secret',
+    name: 'twofa_secret',
     type: 'varchar',
     nullable: true,
     default: null,
@@ -42,7 +42,7 @@ export class User {
   twofaSecret?: string;
 
   @Column({
-    // name: 'twofa_enabled',
+    name: 'twofa_enabled',
     type: 'boolean',
     nullable: false,
     default: false,

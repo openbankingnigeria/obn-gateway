@@ -2,7 +2,6 @@ import * as Joi from 'joi';
 
 export const validationSchema = Joi.object({
   SERVER_PORT: Joi.string().optional(),
-  NODE_ENV: Joi.string().optional(),
   DATABASE_HOST: Joi.string().required(),
   DATABASE_TYPE: Joi.string().optional(),
   DATABASE_PORT: Joi.string().required(),
