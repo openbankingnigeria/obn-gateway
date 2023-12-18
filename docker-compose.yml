@@ -196,7 +196,7 @@ services:
       - node.name=es
       - cluster.name=${CLUSTER_NAME:-docker-cluster}
       - discovery.type=single-node
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
@@ -242,7 +242,7 @@ services:
     environment:
       - xpack.monitoring.enabled=false
       - ELASTIC_USER=elastic
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - ELASTIC_HOSTS=https://es:9200
     networks:
       - elastic-net
@@ -312,6 +312,10 @@ services:
       KONG_ADMIN_API_URL: ${KONG_ADMIN_API_URL:-http://kong:8001}
       MANAGEMENT_URL: ${MANAGEMENT_URL:-http://localhost:3000}
       LOGSTASH_ENDPOINT: ${LOGSTASH_ENDPOINT:-http://obn-logstash:8080}
+      ELASTICSEARCH_ENDPOINT: ${ELASTICSEARCH_ENDPOINT:-https://es:9200}
+      ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
+
     secrets:
       - mysql_password
       - jwt_secret

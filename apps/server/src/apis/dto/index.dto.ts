@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsEnum,
   IsIn,
+  IsInt,
   IsNotEmpty,
   IsObject,
   IsString,
@@ -140,4 +141,83 @@ export class GetAPIResponseDTO {
   @IsObject()
   @Type(() => GETAPIRouteResponseDTO)
   route: GETAPIRouteResponseDTO;
+}
+
+class APILogResponseDto {
+  @Type(() => Map)
+  @Expose()
+  headers: Map<string, any>;
+
+  @IsInt()
+  @Expose()
+  status: number;
+
+  @IsInt()
+  @Expose()
+  size: number;
+}
+
+class APILogLatenciesDto {
+  @IsInt()
+  @Expose()
+  kong: number;
+
+  @IsInt()
+  @Expose()
+  request: number;
+
+  @IsInt()
+  @Expose()
+  proxy: number;
+}
+
+class APILogRequestDto {
+  @Type(() => Map)
+  @Expose()
+  querystring: Record<string, any>;
+
+  @IsString()
+  @Expose()
+  method: string;
+
+  @IsString()
+  @Expose()
+  uri: string;
+
+  @IsString()
+  @Expose()
+  url: string;
+
+  @Type(() => Map)
+  @Expose()
+  headers: Map<string, any>;
+
+  @IsInt()
+  @Expose()
+  size: number;
+}
+
+export class APILogResponseDTO {
+  constructor(partial: any) {
+    Object.assign(this, partial);
+  }
+
+  @IsString()
+  @Expose({ name: 'client_ip' })
+  clientIp: string;
+
+  @ValidateNested()
+  @Type(() => APILogResponseDto)
+  @Expose()
+  response: APILogResponseDto;
+
+  @ValidateNested()
+  @Type(() => APILogLatenciesDto)
+  @Expose()
+  latencies: APILogLatenciesDto;
+
+  @ValidateNested()
+  @Type(() => APILogRequestDto)
+  @Expose()
+  request: APILogRequestDto;
 }

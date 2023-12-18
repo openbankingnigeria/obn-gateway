@@ -1,3 +1,4 @@
+import { ElasticsearchModuleOptions } from '@nestjs/elasticsearch';
 import * as fs from 'fs';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { DataSourceOptions } from 'typeorm';
@@ -11,6 +12,7 @@ export const globalConfig = (): {
     [k: string]: any;
     email: SMTPTransport.Options;
     database: DataSourceOptions;
+    elasticsearch: ElasticsearchModuleOptions;
   } = {
     server: {
       port: parseInt(process.env.SERVER_PORT as string, 10) || 8089,
@@ -55,6 +57,15 @@ export const globalConfig = (): {
     },
     logging: {
       endpoint: process.env.LOGSTASH_ENDPOINT,
+    },
+    elasticsearch: {
+      node: process.env.ELASTICSEARCH_ENDPOINT!,
+      auth: {
+        apiKey: process.env.ELASTICSEARCH_APIKEY!,
+        bearer: process.env.ELASTICSEARCH_BEARER!,
+        username: process.env.ELASTICSEARCH_USERNAME!,
+        password: process.env.ELASTICSEARCH_PASSWORD!,
+      },
     },
     uploads: {
       maxFileUploadSize:
