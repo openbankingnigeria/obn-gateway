@@ -18,6 +18,14 @@ export class CollectionRoute {
   @Column()
   name: string;
 
+  @Column({
+    name: 'environment',
+    type: 'varchar',
+    default: 'development',
+    nullable: false,
+  })
+  environment: string;
+
   @Column({ name: 'service_id', type: 'varchar', nullable: true })
   serviceId: string | null;
 
