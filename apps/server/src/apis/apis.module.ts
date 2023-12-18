@@ -8,6 +8,8 @@ import { KongRouteService } from '@shared/integrations/kong/route/route.kong.ser
 
 import { Collection } from '@common/database/entities/collection.entity';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
+import { ElasticsearchModule } from '@nestjs/elasticsearch';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [APIController],
@@ -15,6 +17,11 @@ import { CollectionRoute } from '@common/database/entities/collectionroute.entit
   imports: [
     TypeOrmModule.forFeature([Collection, CollectionRoute]),
     HttpModule,
+    ElasticsearchModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => config.get('elasticsearch')!,
+      inject: [ConfigService],
+    }),
   ],
 })
 export class APIModule {}

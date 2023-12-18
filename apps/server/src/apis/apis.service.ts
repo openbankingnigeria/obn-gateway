@@ -10,6 +10,7 @@ import { KongRouteService } from '@shared/integrations/kong/route/route.kong.ser
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
 import { Not, Repository } from 'typeorm';
 import {
+  APILogResponseDTO,
   CreateAPIDto,
   GETAPIRouteResponseDTO,
   GetAPIResponseDTO,
@@ -21,6 +22,7 @@ import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.inter
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { apiErrorMessages, apiSuccessMessages } from './apis.constants';
+import { ElasticsearchService } from '@nestjs/elasticsearch';
 
 // TODO return DTO based on parent type, i.e. we dont want to return sensitive API info data to API consumer for e.g.
 @Injectable()
@@ -32,6 +34,7 @@ export class APIService {
     private readonly routeRepository: Repository<CollectionRoute>,
     private readonly kongService: KongServiceService,
     private readonly kongRouteService: KongRouteService,
+    private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
   async viewAPIs(
@@ -371,6 +374,22 @@ export class APIService {
         url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
         route: data.route,
       }),
+    );
+  }
+
+  // TODO ensure only AP can view logs for all users;
+  async getAPILogs() {
+    const logs = await this.elasticsearchService.search({
+      query: {
+        wildcard: {
+          'consumer.id.keyword': '*',
+        },
+      },
+    });
+
+    return ResponseFormatter.success(
+      '',
+      logs.hits.hits.map((i) => new APILogResponseDTO(i._source)),
     );
   }
 }

@@ -42,6 +42,12 @@ export class APIController {
     return this.apiService.createAPI(params.environment, data);
   }
 
+  @Get('logs')
+  @UsePipes(IValidationPipe)
+  getAPILogs() {
+    return this.apiService.getAPILogs();
+  }
+
   @Get(':id')
   @UsePipes(IValidationPipe)
   viewAPI(@Param() params: APIParam, @Param('id') id: string) {
