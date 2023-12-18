@@ -129,6 +129,7 @@ export class CompanyService {
     );
   }
 
+  // TODO ensure only APs can get any company details like this.
   async getCompanyDetails(companyId?: string) {
     const company = companyId
       ? await this.companyRepository.findOne({ where: { id: companyId } })

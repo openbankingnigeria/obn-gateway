@@ -1,13 +1,26 @@
 export interface CreateConsumerRequest {
   username: string;
   custom_id: string;
-  tags: string[];
+  tags?: string[];
 }
 
 export interface CreateConsumerResponse extends CreateConsumerRequest {
   id: string;
   created_at: number;
 }
+
+export interface ConsumerKey {
+  key: string;
+  created_at: number;
+  tags: string[] | null;
+  ttl: number | null;
+  id: string;
+  consumer: {
+    id: string;
+  } | null;
+}
+
+export interface CreateConsumerKeyResponse extends ConsumerKey {}
 
 export interface Consumer {
   custom_id: string;
@@ -25,10 +38,13 @@ export interface Consumer {
   preserve_host: true;
   service: {
     id: string;
-  };
+  } | null;
 }
 
-export interface ListConsumersResponse {
+export interface ListResponse<T> {
+  data: T[];
   next: string;
-  data: Consumer[];
 }
+
+export interface ListConsumersResponse extends ListResponse<Consumer> {}
+export interface ListConsumerKeysResponse extends ListResponse<ConsumerKey> {}

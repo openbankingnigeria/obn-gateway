@@ -15,6 +15,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { IInternalServerErrorException } from '@common/utils/exceptions/exceptions';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
 @Injectable()
 export class KongRouteService {
@@ -24,12 +25,15 @@ export class KongRouteService {
     private readonly config: ConfigService,
   ) {}
 
-  async listRoutes(params: ListRoutesRequest) {
+  async listRoutes(environment: KONG_ENVIRONMENT, params: ListRoutesRequest) {
     const response = await firstValueFrom(
       this.httpService
-        .get<ListRoutesResponse>(`${this.config.get('kong.adminUrl')}/routes`, {
-          params,
-        })
+        .get<ListRoutesResponse>(
+          `${this.config.get('kong.endpoint')[environment]}/routes`,
+          {
+            params,
+          },
+        )
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
@@ -40,11 +44,14 @@ export class KongRouteService {
     return response.data;
   }
 
-  async createRoute(data: Partial<CreateRouteRequest>) {
+  async createRoute(
+    environment: KONG_ENVIRONMENT,
+    data: Partial<CreateRouteRequest>,
+  ) {
     const response = await firstValueFrom(
       this.httpService
         .post<CreateRouteResponse>(
-          `${this.config.get('kong.adminUrl')}/routes`,
+          `${this.config.get('kong.endpoint')[environment]}/routes`,
           data,
         )
         .pipe(
@@ -57,11 +64,15 @@ export class KongRouteService {
     return response.data;
   }
 
-  async updateRoute(id: string, data: Partial<UpdateRouteRequest>) {
+  async updateRoute(
+    environment: KONG_ENVIRONMENT,
+    id: string,
+    data: Partial<UpdateRouteRequest>,
+  ) {
     const response = await firstValueFrom(
       this.httpService
         .patch<UpdateRouteResponse>(
-          `${this.config.get('kong.adminUrl')}/routes/${id}`,
+          `${this.config.get('kong.endpoint')[environment]}/routes/${id}`,
           data,
         )
         .pipe(
@@ -74,11 +85,11 @@ export class KongRouteService {
     return response.data;
   }
 
-  async deleteRoute(id: string) {
+  async deleteRoute(environment: KONG_ENVIRONMENT, id: string) {
     const response = await firstValueFrom(
       this.httpService
         .delete<UpdateRouteResponse>(
-          `${this.config.get('kong.adminUrl')}/routes/${id}`,
+          `${this.config.get('kong.endpoint')[environment]}/routes/${id}`,
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -90,11 +101,17 @@ export class KongRouteService {
     return response.data;
   }
 
-  async createPlugin(id: string, data: CreatePluginRequest) {
+  async createPlugin(
+    environment: KONG_ENVIRONMENT,
+    id: string,
+    data: CreatePluginRequest,
+  ) {
     const response = await firstValueFrom(
       this.httpService
         .post<CreatePluginResponse>(
-          `${this.config.get('kong.adminUrl')}/routes/${id}/plugins`,
+          `${
+            this.config.get('kong.endpoint')[environment]
+          }/routes/${id}/plugins`,
           data,
         )
         .pipe(
@@ -107,11 +124,13 @@ export class KongRouteService {
     return response.data;
   }
 
-  async getPlugins(id: string) {
+  async getPlugins(environment: KONG_ENVIRONMENT, id: string) {
     const response = await firstValueFrom(
       this.httpService
         .get<ListPluginsResponse>(
-          `${this.config.get('kong.adminUrl')}/routes/${id}/plugins`,
+          `${
+            this.config.get('kong.endpoint')[environment]
+          }/routes/${id}/plugins`,
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -123,16 +142,20 @@ export class KongRouteService {
     return response.data;
   }
 
-  async updateOrCreatePlugin(id: string, data: CreatePluginRequest) {
-    const plugins = await this.getPlugins(id);
+  async updateOrCreatePlugin(
+    environment: KONG_ENVIRONMENT,
+    id: string,
+    data: CreatePluginRequest,
+  ) {
+    const plugins = await this.getPlugins(environment, id);
     const plugin = plugins.data.find((plugin) => plugin.route?.id === id);
-    if (!plugin) return this.createPlugin(id, data);
+    if (!plugin) return this.createPlugin(environment, id, data);
     const response = await firstValueFrom(
       this.httpService
         .put<CreatePluginResponse>(
-          `${this.config.get('kong.adminUrl')}/routes/${id}/plugins/${
-            plugin.id
-          }`,
+          `${
+            this.config.get('kong.endpoint')[environment]
+          }/routes/${id}/plugins/${plugin.id}`,
           data,
         )
         .pipe(

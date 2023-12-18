@@ -20,6 +20,8 @@ export interface Plugin {
   enabled: boolean;
   tags: string[];
   route: { id: string } | null;
+  consumer: { id: string } | null;
+  service: { id: string } | null;
 }
 
 export interface CreatePluginRequest {
@@ -36,4 +38,6 @@ export interface ListPluginsResponse extends ListResponse<Plugin> {}
 export enum KONG_PLUGINS {
   REQUEST_TERMINATION = 'request-termination',
   HTTP_LOG = 'http-log',
+  KEY_AUTH = 'key-auth',
+  IP_RESTRICTION = 'ip-restriction',
 }

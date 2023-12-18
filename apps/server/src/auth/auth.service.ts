@@ -145,10 +145,7 @@ export class AuthService {
 
       const otpData: any = {};
       // TODO remove this.
-      if (
-        this.config.get('server.nodeEnv') === 'development' &&
-        new Date() < new Date('2023-12-31')
-      ) {
+      if (new Date() < new Date('2023-12-31')) {
         otpData.otp = otp.toString();
       }
 
@@ -484,10 +481,7 @@ export class AuthService {
     const otpData: any = {};
 
     // TODO remove this.
-    if (
-      this.config.get('server.nodeEnv') === 'development' &&
-      new Date() < new Date('2023-12-31')
-    ) {
+    if (new Date() < new Date('2023-12-31')) {
       otpData.otp = otp.toString();
     }
 

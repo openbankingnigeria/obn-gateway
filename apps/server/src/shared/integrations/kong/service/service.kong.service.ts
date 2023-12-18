@@ -12,6 +12,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { IInternalServerErrorException } from 'src/common/utils/exceptions/exceptions';
 import { ConfigService } from '@nestjs/config';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
 @Injectable()
 // ;-)
@@ -22,11 +23,14 @@ export class KongServiceService {
     private readonly config: ConfigService,
   ) {}
 
-  async listServices(params: Partial<ListServicesRequest>) {
+  async listServices(
+    environment: KONG_ENVIRONMENT,
+    params: Partial<ListServicesRequest>,
+  ) {
     const response = await firstValueFrom(
       this.httpService
         .get<ListServicesResponse>(
-          `${this.config.get('kong.adminUrl')}/services`,
+          `${this.config.get('kong.endpoint')[environment]}/services`,
           { params },
         )
         .pipe(
@@ -39,11 +43,11 @@ export class KongServiceService {
     return response.data;
   }
 
-  async getService(id: string) {
+  async getService(environment: KONG_ENVIRONMENT, id: string) {
     const response = await firstValueFrom(
       this.httpService
         .get<GetServiceResponse>(
-          `${this.config.get('kong.adminUrl')}/services/${id}`,
+          `${this.config.get('kong.endpoint')[environment]}/services/${id}`,
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -55,11 +59,13 @@ export class KongServiceService {
     return response.data;
   }
 
-  async getServiceRoutes(id: string) {
+  async getServiceRoutes(environment: KONG_ENVIRONMENT, id: string) {
     const response = await firstValueFrom(
       this.httpService
         .get<ListRoutesResponse>(
-          `${this.config.get('kong.adminUrl')}/services/${id}/routes`,
+          `${
+            this.config.get('kong.endpoint')[environment]
+          }/services/${id}/routes`,
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -71,11 +77,16 @@ export class KongServiceService {
     return response.data;
   }
 
-  async updateOrCreateService(data: Partial<CreateServiceRequest>) {
+  async updateOrCreateService(
+    environment: KONG_ENVIRONMENT,
+    data: Partial<CreateServiceRequest>,
+  ) {
     const response = await firstValueFrom(
       this.httpService
         .put<CreateServiceResponse>(
-          `${this.config.get('kong.adminUrl')}/services/${data.name}`,
+          `${this.config.get('kong.endpoint')[environment]}/services/${
+            data.name
+          }`,
           data,
         )
         .pipe(

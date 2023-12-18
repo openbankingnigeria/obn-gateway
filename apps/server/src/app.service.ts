@@ -1,5 +1,6 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
 import * as moment from 'moment';
@@ -12,13 +13,42 @@ export class AppService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    this.kongPluginService
-      .updateOrCreatePlugin({
-        name: KONG_PLUGINS.HTTP_LOG,
-        enabled: true,
-        config: { http_endpoint: this.config.get('logging.endpoint') },
-      })
-      .catch(console.error);
+    for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
+      'kong.endpoint',
+    )) {
+      this.kongPluginService
+        .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
+          name: KONG_PLUGINS.HTTP_LOG,
+          enabled: true,
+          config: { http_endpoint: this.config.get('logging.endpoint') },
+        })
+        .catch(console.error);
+
+      this.kongPluginService
+        .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
+          name: KONG_PLUGINS.KEY_AUTH,
+          enabled: true,
+          config: {
+            key_names: ['x-api-key'],
+            key_in_header: true,
+            key_in_query: false,
+            key_in_body: false,
+            hide_credentials: true,
+          },
+        })
+        .catch(console.error);
+
+      this.kongPluginService
+        .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
+          name: KONG_PLUGINS.IP_RESTRICTION,
+          enabled: true,
+          config: {
+            // disables API accesses globally, each consumer must set their IP whitelists
+            deny: ['0.0.0.0/0'],
+          },
+        })
+        .catch(console.error);
+    }
   }
 
   health() {

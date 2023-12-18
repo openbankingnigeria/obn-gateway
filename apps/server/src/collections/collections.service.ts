@@ -28,7 +28,9 @@ import {
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
+// TODO return DTO based on parent type, i.e. we dont want to return sensitive API info data to API consumer for e.g.
 @Injectable()
 export class CollectionsService {
   constructor(
@@ -193,8 +195,12 @@ export class CollectionsService {
       });
 
     const [gatewayServices, gatewayRoutes] = await Promise.all([
-      this.kongService.listServices({ tags: collection.slug }),
-      this.kongRouteService.listRoutes({ tags: collection.slug }),
+      this.kongService.listServices(KONG_ENVIRONMENT.DEVELOPMENT, {
+        tags: collection.slug,
+      }),
+      this.kongRouteService.listRoutes(KONG_ENVIRONMENT.DEVELOPMENT, {
+        tags: collection.slug,
+      }),
     ]);
 
     // TODO emit event
@@ -212,10 +218,10 @@ export class CollectionsService {
           id: route.id,
           name: route.name,
           enabled: route.enabled,
-          host: gatewayService?.host,
-          protocol: gatewayService?.protocol,
-          port: gatewayService?.port,
-          path: gatewayService?.path,
+          host: gatewayService?.host || null,
+          protocol: gatewayService?.protocol || null,
+          port: gatewayService?.port || null,
+          path: gatewayService?.path || null,
           url: gatewayService
             ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
             : null,
@@ -246,10 +252,18 @@ export class CollectionsService {
       });
     }
 
-    const gatewayService = await this.kongService.getService(route.serviceId);
-    const gatewayRoutes = await this.kongService.getServiceRoutes(
-      route.serviceId,
-    );
+    let gatewayService = null;
+    let gatewayRoutes = null;
+    if (route.serviceId) {
+      gatewayService = await this.kongService.getService(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        route.serviceId,
+      );
+      gatewayRoutes = await this.kongService.getServiceRoutes(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        route.serviceId,
+      );
+    }
 
     // TODO emit event
 
@@ -259,14 +273,16 @@ export class CollectionsService {
         id: route.id,
         name: route.name,
         enabled: route.enabled,
-        host: gatewayService.host,
-        protocol: gatewayService.protocol,
-        port: gatewayService.port,
-        path: gatewayService.path,
-        url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+        host: gatewayService?.host || null,
+        protocol: gatewayService?.protocol || null,
+        port: gatewayService?.port || null,
+        path: gatewayService?.path || null,
+        url: gatewayService
+          ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+          : null,
         route: new GETAPIRouteResponseDTO({
-          paths: gatewayRoutes.data[0]?.paths || [],
-          methods: gatewayRoutes.data[0]?.methods || [],
+          paths: gatewayRoutes?.data[0]?.paths || [],
+          methods: gatewayRoutes?.data[0]?.methods || [],
         }),
       }),
     );
@@ -283,7 +299,12 @@ export class CollectionsService {
       });
     }
 
-    await this.kongRouteService.deleteRoute(route.routeId);
+    if (route.routeId) {
+      await this.kongRouteService.deleteRoute(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        route.routeId,
+      );
+    }
 
     await this.routeRepository.softDelete({
       id,
@@ -316,23 +337,29 @@ export class CollectionsService {
     }
 
     const hostname = new URL(url).hostname;
-    const gatewayService = await this.kongService.updateOrCreateService({
-      name: hostname,
-      enabled: true,
-      url,
-      retries: 1,
-      tags: [collection.slug!],
-    });
-
-    const gatewayRoute = await this.kongRouteService.createRoute({
-      name: slugify(name, { lower: true, strict: true }),
-      tags: [collection.slug!],
-      paths,
-      methods,
-      service: {
-        id: gatewayService.id,
+    const gatewayService = await this.kongService.updateOrCreateService(
+      KONG_ENVIRONMENT.DEVELOPMENT,
+      {
+        name: hostname,
+        enabled: true,
+        url,
+        retries: 1,
+        tags: [collection.slug!],
       },
-    });
+    );
+
+    const gatewayRoute = await this.kongRouteService.createRoute(
+      KONG_ENVIRONMENT.DEVELOPMENT,
+      {
+        name: slugify(name, { lower: true, strict: true }),
+        tags: [collection.slug!],
+        paths,
+        methods,
+        service: {
+          id: gatewayService.id,
+        },
+      },
+    );
 
     const createdRoute = await this.routeRepository.save(
       this.routeRepository.create({
@@ -345,15 +372,23 @@ export class CollectionsService {
     );
 
     if (enabled === true) {
-      await this.kongRouteService.updateOrCreatePlugin(gatewayRoute.id, {
-        name: KONG_PLUGINS.REQUEST_TERMINATION,
-        enabled: false,
-      });
+      await this.kongRouteService.updateOrCreatePlugin(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.REQUEST_TERMINATION,
+          enabled: false,
+        },
+      );
     } else if (enabled === false) {
-      await this.kongRouteService.updateOrCreatePlugin(gatewayRoute.id, {
-        name: KONG_PLUGINS.REQUEST_TERMINATION,
-        enabled: true,
-      });
+      await this.kongRouteService.updateOrCreatePlugin(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.REQUEST_TERMINATION,
+          enabled: true,
+        },
+      );
     }
 
     // TODO emit event
@@ -400,22 +435,42 @@ export class CollectionsService {
     }
 
     const hostname = new URL(url).hostname;
-    const gatewayService = await this.kongService.updateOrCreateService({
-      name: hostname,
-      enabled: true,
-      url,
-      retries: 1,
-      tags: [route.collection.slug!],
-    });
-
-    const gatewayRoute = await this.kongRouteService.updateRoute(
-      route.routeId,
+    const gatewayService = await this.kongService.updateOrCreateService(
+      KONG_ENVIRONMENT.DEVELOPMENT,
       {
-        name: slugify(name, { lower: true, strict: true }),
-        paths,
-        methods,
+        name: hostname,
+        enabled: true,
+        url,
+        retries: 1,
+        tags: [route.collection.slug!],
       },
     );
+
+    let gatewayRoute;
+    if (route.routeId) {
+      gatewayRoute = await this.kongRouteService.updateRoute(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        route.routeId,
+        {
+          name: slugify(name, { lower: true, strict: true }),
+          paths,
+          methods,
+        },
+      );
+    } else {
+      gatewayRoute = await this.kongRouteService.createRoute(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        {
+          name: slugify(name, { lower: true, strict: true }),
+          tags: [route.collection.slug!],
+          paths,
+          methods,
+          service: {
+            id: gatewayService.id,
+          },
+        },
+      );
+    }
 
     await this.routeRepository.update(
       { id: route.id },
@@ -428,15 +483,23 @@ export class CollectionsService {
     );
 
     if (enabled === true) {
-      await this.kongRouteService.updateOrCreatePlugin(gatewayRoute.id, {
-        name: KONG_PLUGINS.REQUEST_TERMINATION,
-        enabled: false,
-      });
+      await this.kongRouteService.updateOrCreatePlugin(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.REQUEST_TERMINATION,
+          enabled: false,
+        },
+      );
     } else if (enabled === false) {
-      await this.kongRouteService.updateOrCreatePlugin(gatewayRoute.id, {
-        name: KONG_PLUGINS.REQUEST_TERMINATION,
-        enabled: true,
-      });
+      await this.kongRouteService.updateOrCreatePlugin(
+        KONG_ENVIRONMENT.DEVELOPMENT,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.REQUEST_TERMINATION,
+          enabled: true,
+        },
+      );
     }
 
     // TODO emit event
