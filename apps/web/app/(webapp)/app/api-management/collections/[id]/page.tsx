@@ -13,6 +13,7 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
+  const environment = 'development';
 
   const fetchedCollection: any = await applyAxiosRequest({
     headers: {},
@@ -23,10 +24,10 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
     data: null
   })
 
-  const fetchedEndpoints: any = await applyAxiosRequest({
+  const fetchedAPIs: any = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getAPIEndpoints({
-      id: `${collectionId}`
+    apiEndpoint: API.getAPIs({
+      environment
     }),
     method: 'GET',
     data: null
@@ -45,8 +46,8 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
 
   let collection = fetchedCollection?.data;
   let profile = fetchedProfile?.data;
-  let collections_api_list = fetchedEndpoints?.data;
-  let meta_data = fetchedEndpoints?.meta_data;
+  let collections_api_list = fetchedAPIs?.data;
+  let meta_data = fetchedAPIs?.meta_data;
   let collections_api = collections_api_list?.map((endpoint: any) => {
     return({
       ...endpoint,

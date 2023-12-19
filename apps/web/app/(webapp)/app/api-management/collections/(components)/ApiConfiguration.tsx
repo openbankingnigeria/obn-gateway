@@ -1,15 +1,11 @@
 'use client'
 
-import { postConfigureAPI } from '@/actions/collectionsActions'
 import { RequestMethodText } from '@/app/(webapp)/(components)'
 import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
-import { ApiConfigurationProps, HeadersProps, HostsProps, SnisProps } from '@/types/webappTypes/appTypes'
-import React, { useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
-import { toast } from 'react-toastify'
+import { ApiConfigurationProps } from '@/types/webappTypes/appTypes'
+import React from 'react'
 import { HeadersContainer, HostsContainer, SnisContainer } from '.'
 
 const ApiConfiguration = ({
