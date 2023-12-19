@@ -7,13 +7,12 @@ import { HeadersProps, HostsProps, SectionsProps, SnisProps } from '@/types/weba
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
 import React, { FormEvent, useEffect, useState } from 'react'
-import { toast } from 'react-toastify'
 import ApiConfiguration from './ApiConfiguration'
 import ModifyApiConfiguration from './ModifyApiConfiguration'
 import { updateSearchParams } from '@/utils/searchParams'
-import { getJsCookies } from '@/config/jsCookie'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
+import { ActivateDeactivateDeleteApi } from '.'
 
 const CollectionSection = ({
   rawData,
@@ -29,6 +28,7 @@ const CollectionSection = ({
   requestMethodList,
   tierList
 }: SectionsProps) => {
+
   const columnHelper = createColumnHelper<any>();
   const router = useRouter();
   const [openModal, setOpenModal] = useState('');
@@ -36,9 +36,13 @@ const CollectionSection = ({
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const actions = COLLECTION_ACTIONS_DATA;
+  const [api, setApi] = useState<any>(null);
   const profile = altData;
   const userType = profile?.user?.role?.parent?.slug;
   const [api_endpoint, setApiEndpoint] = useState<any>(null);
+  const environment = 'development';
+
+  // console.log(rawData);
 
   const [endpoint_url, setEndpointUrl] = useState('');
   const [parameters, setParameters] = useState('');
@@ -57,10 +61,18 @@ const CollectionSection = ({
     setHeaders([]);
   }
 
+  const updateFields = (value: any) => {
+    setEndpointUrl(value?.endpoint_url);
+    setParameters(value?.parameters);
+  }
+
   async function FetchData() {
     const result = await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.getAPIEndpoint({ id }),
+      apiEndpoint: API.getAPI({ 
+        environment, 
+        id: api?.id
+      }),
       method: 'GET',
       data: null,
       noToast: true,
@@ -69,18 +81,18 @@ const CollectionSection = ({
   }
 
   useEffect(() => {
-    id && FetchData();
-  }, [id]);
+    api?.id && FetchData();
+  }, [api?.id]);
 
   useEffect(() => {
     const slug = updateSearchParams('slug', details?.name);
     router.push(slug);
   }, [details?.name]);
 
-  const getAction = (status: boolean) => {
+  const getAction = (enabled: boolean) => {
     return actions.filter(action => {
       return (
-        action?.type == (status ? 'configured' : 'not_configured') ||
+        action?.type == (enabled ? 'enabled' : 'disabled') ||
         action?.type == 'all'
       );
     });
@@ -93,6 +105,45 @@ const CollectionSection = ({
   const close2FAModal = () => {
     setOpen2FA(false);
     setOpenModal('');
+  }
+
+  const handleActivateDeactivateDeleteApi = async (code: string,) => {
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      const result: any = openModal == 'delete' ?
+        await clientAxiosRequest({
+          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          apiEndpoint: API.deleteAPI({ 
+            environment, 
+            id: api?.id
+          }),
+          method: 'DELETE',
+          data: null
+        })
+        :
+        await clientAxiosRequest({
+          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          apiEndpoint: API.updateAPI({ 
+            environment, 
+            id: api?.id
+          }),
+          method: 'PATCH',
+          data: {
+            "name": api?.name,
+            "enabled": Boolean(openModal == 'activate'),
+            "url": api?.url,
+            "route": api?.route
+          }
+        });
+
+      if (result?.message) {
+        close2FAModal();
+        setLoading(false);
+        router.refresh();
+      }
+    }
   }
 
   const handleApiConfiguration = (code: string, e?: FormEvent<HTMLFormElement>) => {
@@ -115,21 +166,20 @@ const CollectionSection = ({
       setLoading(true);
       const result: any = await clientAxiosRequest({
         headers: code ? { 'X-TwoFA-Code' : code, } : {},
-        apiEndpoint: API.updateAPIEndpoint({
-          id: api_endpoint?.id
+        apiEndpoint: API.updateAPI({ 
+          environment, 
+          id: api?.id
         }),
         method: 'PATCH',
         data: {
-          "name": api_endpoint?.name,
+          "name": api?.name,
           "enabled": true,
           "url": endpoint_url,
           "route": {
               "paths": [
-                  "/transactions"
+                  parameters
               ],
-              "methods": [
-                  "GET"
-              ]
+              "methods": api?.route?.methods
           }
         }
       });
@@ -148,7 +198,7 @@ const CollectionSection = ({
       handleApiConfiguration(value, undefined) :
       openModal == 'modify' ?
         handleApiModification(value, undefined) :
-        null
+        handleActivateDeactivateDeleteApi(value);
   };
 
   const actionColumn = columnHelper.accessor('actions', {
@@ -170,7 +220,14 @@ const CollectionSection = ({
                 key={action.id}
                 className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
                 onClick={() => {
+                  const api = rawData?.find(data => data?.id == row.original.id);
+
                   setId(row.original.id);
+                  setApi(api)
+                  updateFields({
+                    endpoint_url: api?.url,
+                    parameters: api?.route?.paths
+                  })
                   setOpenModal(action.name);
                 }}
               >
@@ -237,6 +294,25 @@ const CollectionSection = ({
                 />
             }
           </AppRightModal>
+      }
+
+      {
+        (
+          openModal == 'delete' || 
+          openModal == 'activate' || 
+          openModal == 'deactivate'
+        ) &&
+          <AppCenterModal
+            title={'Confirm Action'}
+            effect={closeModal}
+          >
+            <ActivateDeactivateDeleteApi 
+              close={closeModal}
+              type={openModal}
+              loading={loading}
+              next={() => handleActivateDeactivateDeleteApi('')}
+            />
+          </AppCenterModal>
       }
 
       {
@@ -332,7 +408,7 @@ const CollectionSection = ({
                   tableHeaders={tableHeaders}
                   rawData={rawData}
                   filters={filters}
-                  actionColumn={actionColumn}
+                  actionColumn={userType == 'api-consumer' ? undefined : actionColumn}
                   totalElementsInPage={totalElementsInPage}
                   rows={rows}
                   page={page}

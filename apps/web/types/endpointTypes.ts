@@ -14,6 +14,11 @@ export interface GetSingleProps {
   id: string;
 }
 
+export interface GetEnvironmentProps {
+  environment: string;
+  id?: string;
+}
+
 export interface PostTokenProps {
   token: string;
 }

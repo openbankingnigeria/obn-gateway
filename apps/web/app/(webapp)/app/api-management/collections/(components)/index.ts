@@ -5,6 +5,7 @@ import ApiConfiguration from "./ApiConfiguration";
 import HostsContainer from "./HostsContainer";
 import SnisContainer from "./SnisContainer";
 import HeadersContainer from "./HeadersContainer";
+import ActivateDeactivateDeleteApi from "./ActivateDeactivateDeleteApi";
 
 export {
   CollectionsTable,
@@ -13,5 +14,6 @@ export {
   ModifyApiConfiguration,
   HostsContainer,
   SnisContainer,
-  HeadersContainer
+  HeadersContainer,
+  ActivateDeactivateDeleteApi
 }

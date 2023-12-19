@@ -1,4 +1,4 @@
-import { GetListProps, GetSingleProps, PostTokenProps, 
+import { GetEnvironmentProps, GetListProps, GetSingleProps, PostTokenProps, 
 } from "@/types/endpointTypes";
 
 const BASE_URL = 'http://3.134.253.153:4000';
@@ -62,12 +62,19 @@ export const getCollections = () =>
   `${BASE_URL}/collections`;
 export const getCollection = ({ id }: GetSingleProps) => 
   `${BASE_URL}/collections/${id}`;
-export const getAPIEndpoints = ({ id }: GetSingleProps) => 
-  `${BASE_URL}/collections/${id}/apis`;
-export const getAPIEndpoint = ({ id }: GetSingleProps) => 
-  `${BASE_URL}/collections/apis/${id}`;
-export const updateAPIEndpoint = ({ id }: GetSingleProps) => 
-  `${BASE_URL}/collections/apis/${id}`;
+
+
+
+// APIS
+export const getAPIs = ({ environment }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}`;
+export const getAPI = ({ environment, id }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/${id}`;
+export const deleteAPI = ({ environment, id }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/${id}`;
+export const updateAPI = ({ environment, id }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/${id}`;
+
 
 // COMPANY
 export const updateCompanyDetails = () => `${BASE_URL}/company/kyb`;
