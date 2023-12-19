@@ -4,5 +4,3 @@ build
 .env
 
 .vscode
-
-server.settings
