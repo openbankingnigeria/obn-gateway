@@ -10,10 +10,16 @@ import { Collection } from '@common/database/entities/collection.entity';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RequestContextService } from '@common/utils/request/request-context.service';
 
 @Module({
   controllers: [APIController],
-  providers: [APIService, KongServiceService, KongRouteService],
+  providers: [
+    APIService,
+    KongServiceService,
+    KongRouteService,
+    RequestContextService,
+  ],
   imports: [
     TypeOrmModule.forFeature([Collection, CollectionRoute]),
     HttpModule,

@@ -178,6 +178,8 @@ services:
       interval: 1s
       timeout: 5s
       retries: 120
+    environment:
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
     networks:
       - elastic-net
 

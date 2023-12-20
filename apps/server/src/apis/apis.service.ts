@@ -23,6 +23,7 @@ import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe'
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { apiErrorMessages, apiSuccessMessages } from './apis.constants';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
+import { RequestContextService } from '@common/utils/request/request-context.service';
 
 // TODO return DTO based on parent type, i.e. we dont want to return sensitive API info data to API consumer for e.g.
 @Injectable()
@@ -35,6 +36,7 @@ export class APIService {
     private readonly kongService: KongServiceService,
     private readonly kongRouteService: KongRouteService,
     private readonly elasticsearchService: ElasticsearchService,
+    private readonly requestContext: RequestContextService,
   ) {}
 
   async viewAPIs(
@@ -378,18 +380,68 @@ export class APIService {
   }
 
   // TODO ensure only AP can view logs for all users;
-  async getAPILogs() {
+  async getAPILogs(
+    environment: KONG_ENVIRONMENT,
+    { limit, page }: PaginationParameters,
+  ) {
     const logs = await this.elasticsearchService.search({
+      from: page - 1,
+      size: limit,
       query: {
-        wildcard: {
-          'consumer.id.keyword': '*',
+        bool: {
+          must: [
+            { term: { 'environment.keyword': environment } },
+            {
+              wildcard: {
+                'consumer.id.keyword':
+                  this.requestContext.user!.companyId || '*',
+              },
+            },
+          ],
+        },
+      },
+      sort: [{ '@timestamp': { order: 'desc' } }],
+    });
+
+    return ResponseFormatter.success(
+      apiSuccessMessages.fetchedAPILogs,
+      logs.hits.hits.map((i) => new APILogResponseDTO(i._source)),
+    );
+  }
+
+  // TODO ensure only AP can view logs for all users;
+  async getAPILog(environment: KONG_ENVIRONMENT, requestId: string) {
+    const logs = await this.elasticsearchService.search({
+      size: 1,
+      query: {
+        bool: {
+          must: [
+            {
+              term: { 'request.headers.request-id.keyword': requestId },
+            },
+            {
+              term: { 'environment.keyword': environment },
+            },
+            {
+              wildcard: {
+                'consumer.id.keyword':
+                  this.requestContext.user!.companyId || '*',
+              },
+            },
+          ],
         },
       },
     });
 
+    if (!logs.hits.hits.length) {
+      throw new IBadRequestException({
+        message: apiErrorMessages.logNotFound(requestId),
+      });
+    }
+
     return ResponseFormatter.success(
-      '',
-      logs.hits.hits.map((i) => new APILogResponseDTO(i._source)),
+      apiSuccessMessages.fetchedAPILogs,
+      new APILogResponseDTO(logs.hits.hits[0]._source),
     );
   }
 }

@@ -40,4 +40,5 @@ export enum KONG_PLUGINS {
   HTTP_LOG = 'http-log',
   KEY_AUTH = 'key-auth',
   IP_RESTRICTION = 'ip-restriction',
+  CORRELATION_ID = 'correlation-id',
 }

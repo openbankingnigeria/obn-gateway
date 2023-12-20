@@ -12,7 +12,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { HTTP_METHODS } from '../types';
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
 class CreateRouteDTO {
@@ -202,9 +202,21 @@ export class APILogResponseDTO {
     Object.assign(this, partial);
   }
 
+  @Expose()
+  @Transform(({ obj }) => obj.request.headers['request-id'] || '')
+  id: string;
+
+  @Expose()
+  @Transform(({ obj }) => obj.route?.name)
+  name: string;
+
   @IsString()
-  @Expose({ name: 'client_ip' })
-  clientIp: string;
+  @Expose({ name: 'clientIp' })
+  'client_ip': string;
+
+  @IsString()
+  @Expose({ name: 'timestamp' })
+  '@timestamp': string;
 
   @ValidateNested()
   @Type(() => APILogResponseDto)
