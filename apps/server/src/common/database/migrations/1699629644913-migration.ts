@@ -21,8 +21,12 @@ export class Migration1699629644913 implements MigrationInterface {
       `SELECT child.* FROM roles child INNER JOIN roles parent ON child.parent = parent.id WHERE parent.slug = ? AND child.slug = ? AND child.deleted_at IS NULL;`,
       [ROLES.API_PROVIDER, ROLES.ADMIN],
     );
+    await queryRunner.query(`
+            ALTER TABLE \`users\`
+            ADD \`email_verified\` tinyint NOT NULL DEFAULT 0
+        `);
     await queryRunner.query(
-      `INSERT INTO users (id, email, role, password, company, status) VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO users (id, email, role, password, company, status, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         this.userId,
         process.env.COMPANY_EMAIL,
@@ -30,8 +34,10 @@ export class Migration1699629644913 implements MigrationInterface {
         hashSync(process.env.DEFAULT_PASSWORD!, 12),
         this.companyId,
         UserStatuses.ACTIVE,
+        1,
       ],
     );
+
     await queryRunner.query(
       `INSERT INTO profiles (id, first_name, last_name, user) VALUES (?, ?, ?, ?)`,
       [this.profileId, '', '', this.userId],

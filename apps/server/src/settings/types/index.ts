@@ -3,7 +3,12 @@ export enum KybDataTypes {
   STRING = 'string',
 }
 
-export interface KybSettings {
+export type CompanySubtypes = Record<
+  'individual' | 'licensedEntity' | 'business',
+  string[]
+>;
+
+export interface SystemSettings {
   uneditableFields: string[];
   kybRequirements: {
     name: string;
@@ -12,4 +17,5 @@ export interface KybSettings {
     editable: boolean;
     length?: number;
   }[];
+  companySubtypes: CompanySubtypes;
 }

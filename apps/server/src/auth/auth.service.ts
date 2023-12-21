@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   Company,
   Profile,
+  Settings,
   User,
   UserStatuses,
 } from 'src/common/database/entities';
@@ -48,11 +49,16 @@ import { isNumberString } from 'class-validator';
 import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
 
 import { GetUserResponseDTO } from '@users/dto/index.dto';
+import { SYSTEM_SETTINGS_NAME } from '@settings/settings.constants';
+import { commonErrors } from '@common/constants';
+import { SystemSettings } from '@settings/types';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Settings)
+    private readonly settingsRepository: Repository<Settings>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(Profile)
@@ -86,6 +92,7 @@ export class AuthService {
       companyName,
       companyRole,
       companyType,
+      companySubtype,
       country,
       email,
       firstName,
@@ -99,6 +106,34 @@ export class AuthService {
       throw new IBadRequestException({
         message: authErrors.passwordMismatch,
       });
+    }
+
+    // Validate company type
+    const systemSettings = await this.settingsRepository.findOne({
+      where: {
+        name: SYSTEM_SETTINGS_NAME,
+      },
+    });
+
+    if (systemSettings) {
+      const parsedSystemSettings: SystemSettings = JSON.parse(
+        systemSettings.value,
+      );
+
+      const allowedSubTypesForType: string[] = (
+        parsedSystemSettings.companySubtypes as any
+      )[companyType];
+
+      if (
+        !allowedSubTypesForType.some((subtype) =>
+          subtype.includes(companySubtype),
+        ) &&
+        allowedSubTypesForType.length
+      ) {
+        throw new IBadRequestException({
+          message: commonErrors.invalidValue(companyType, companySubtype),
+        });
+      }
     }
 
     const apiConsumerRole = await this.roleRepository.findOne({
@@ -115,6 +150,7 @@ export class AuthService {
       const companyCreated = await this.companyRepository.save({
         name: companyName,
         type: companyType,
+        subtype: companySubtype,
       });
 
       const otp = generateOtp(6);

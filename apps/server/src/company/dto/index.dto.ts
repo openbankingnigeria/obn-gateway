@@ -11,6 +11,7 @@ import { companyValidationErrors } from '../company.config';
 import { Company } from '@common/database/entities';
 import { CompanyTypes } from '@common/database/constants';
 import { Expose } from 'class-transformer';
+import { CompanySubtypes } from '@settings/types';
 
 export enum KybStatusActions {
   APPROVE = 'approve',
@@ -70,5 +71,55 @@ export class GetCompanyResponseDTO {
   type: CompanyTypes;
 
   @Expose()
+  subtype: string;
+
+  @Expose()
+  tier: string;
+
+  @Expose()
   createdAt: Date;
+}
+
+export class GetCompanySubTypesResponseDTO {
+  constructor(partial: Partial<CompanySubtypes>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  individual: string[];
+
+  @Expose()
+  licensedEntity: string[];
+
+  @Expose()
+  business: string[];
+}
+
+export class GetCompanyTypesResponseDTO {
+  constructor(
+    partial: Partial<{
+      companyTypes: string[];
+      companySubtypes: CompanySubtypes;
+    }>,
+  ) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  companyTypes: string[];
+
+  @Expose()
+  companySubtypes: GetCompanySubTypesResponseDTO;
+}
+export class UpdateCompanyKybStatusResponseDTO {
+  constructor(
+    partial: Partial<{
+      tier: string;
+    }>,
+  ) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  tier: string;
 }

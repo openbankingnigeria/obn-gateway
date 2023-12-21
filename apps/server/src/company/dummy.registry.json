@@ -1,42 +1,194 @@
 [
-  { "rcNumber": "123456789012300", "name": "Innovate Co." },
-  { "rcNumber": "098765432109800", "name": "Global Ventures" },
-  { "rcNumber": "234567890123400", "name": "Smart Industries" },
-  { "rcNumber": "987654321098700", "name": "Tech Solutions" },
-  { "rcNumber": "345678901234500", "name": "Future Enterprises" },
-  { "rcNumber": "210987654321000", "name": "Pioneer Systems" },
-  { "rcNumber": "456789012345600", "name": "Eco Innovations" },
-  { "rcNumber": "543210987654300", "name": "Summit Technologies" },
-  { "rcNumber": "678901234567800", "name": "Digital Dynamics" },
-  { "rcNumber": "321098765432100", "name": "Creative Concepts" },
-  { "rcNumber": "789012345678900", "name": "Synergy Solutions" },
-  { "rcNumber": "432109876543200", "name": "Innovative Insights" },
-  { "rcNumber": "567890123456700", "name": "Sustainable Systems" },
-  { "rcNumber": "890123456789000", "name": "Strategic Solutions" },
-  { "rcNumber": "109876543210900", "name": "Dynamic Developments" },
-  { "rcNumber": "345678901234500", "name": "Progressive Platforms" },
-  { "rcNumber": "432109876543200", "name": "Visionary Ventures" },
-  { "rcNumber": "567890123456700", "name": "Unified Innovations" },
-  { "rcNumber": "890123456789000", "name": "Advanced Analytics" },
-  { "rcNumber": "109876543210900", "name": "Precision Technologies" },
-  { "rcNumber": "987654321012300", "name": "NexGen Innovations" },
-  { "rcNumber": "876543210123400", "name": "Global Nexus Ventures" },
-  { "rcNumber": "765432109234500", "name": "Innovative Solutions Inc." },
-  { "rcNumber": "654321098345600", "name": "Tech Innovate Hub" },
-  { "rcNumber": "543210987456700", "name": "Quantum Dynamics" },
-  { "rcNumber": "432109876567800", "name": "Pinnacle Tech Ventures" },
-  { "rcNumber": "321098765678900", "name": "EcoTech Innovations" },
-  { "rcNumber": "210987654789000", "name": "Future Nexus Systems" },
-  { "rcNumber": "109876543890100", "name": "Digital Evolution Dynamics" },
-  { "rcNumber": "012345678901200", "name": "Creative Nexus Concepts" },
-  { "rcNumber": "123456789012300", "name": "Synergize Solutions" },
-  { "rcNumber": "234567890123400", "name": "Innovate Insights Group" },
-  { "rcNumber": "345678901234500", "name": "SustainTech Solutions" },
-  { "rcNumber": "456789012345600", "name": "Strategic Tech Innovations" },
-  { "rcNumber": "567890123456700", "name": "Dynamic Tech Developments" },
-  { "rcNumber": "678901234567800", "name": "Progressive Nexus Platforms" },
-  { "rcNumber": "789012345678900", "name": "Visionary Tech Ventures" },
-  { "rcNumber": "890123456789000", "name": "Unified Nexus Innovations" },
-  { "rcNumber": "901234567890100", "name": "Advanced Nexus Analytics" },
-  { "rcNumber": "012345678901200", "name": "Precision Nexus Technologies" }
+  { "rcNumber": "123456789012300", "name": "Innovate Co.", "tier": "TIER 0" },
+  {
+    "rcNumber": "098765432109800",
+    "name": "Global Ventures",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "234567890123400",
+    "name": "Smart Industries",
+    "tier": "TIER 2"
+  },
+  { "rcNumber": "987654321098700", "name": "Tech Solutions", "tier": "TIER 0" },
+  {
+    "rcNumber": "345678901234500",
+    "name": "Future Enterprises",
+    "tier": "TIER 3"
+  },
+  {
+    "rcNumber": "210987654321000",
+    "name": "Pioneer Systems",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "456789012345600",
+    "name": "Eco Innovations",
+    "tier": "TIER 1"
+  },
+  {
+    "rcNumber": "543210987654300",
+    "name": "Summit Technologies",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "678901234567800",
+    "name": "Digital Dynamics",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "321098765432100",
+    "name": "Creative Concepts",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "789012345678900",
+    "name": "Synergy Solutions",
+    "tier": "TIER 2"
+  },
+  {
+    "rcNumber": "432109876543200",
+    "name": "Innovative Insights",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "567890123456700",
+    "name": "Sustainable Systems",
+    "tier": "TIER 1"
+  },
+  {
+    "rcNumber": "890123456789000",
+    "name": "Strategic Solutions",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "109876543210900",
+    "name": "Dynamic Developments",
+    "tier": "TIER 2"
+  },
+  {
+    "rcNumber": "345678901234500",
+    "name": "Progressive Platforms",
+    "tier": "TIER 2"
+  },
+  {
+    "rcNumber": "432109876543200",
+    "name": "Visionary Ventures",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "567890123456700",
+    "name": "Unified Innovations",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "890123456789000",
+    "name": "Advanced Analytics",
+    "tier": "TIER 1"
+  },
+  {
+    "rcNumber": "109876543210900",
+    "name": "Precision Technologies",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "987654321012300",
+    "name": "NexGen Innovations",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "876543210123400",
+    "name": "Global Nexus Ventures",
+    "tier": "TIER 1"
+  },
+  {
+    "rcNumber": "765432109234500",
+    "name": "Innovative Solutions Inc.",
+    "tier": "TIER 2"
+  },
+  {
+    "rcNumber": "654321098345600",
+    "name": "Tech Innovate Hub",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "543210987456700",
+    "name": "Quantum Dynamics",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "432109876567800",
+    "name": "Pinnacle Tech Ventures",
+    "tier": "TIER 1"
+  },
+  {
+    "rcNumber": "321098765678900",
+    "name": "EcoTech Innovations",
+    "tier": "TIER 2"
+  },
+  {
+    "rcNumber": "210987654789000",
+    "name": "Future Nexus Systems",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "109876543890100",
+    "name": "Digital Evolution Dynamics",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "012345678901200",
+    "name": "Creative Nexus Concepts",
+    "tier": "TIER 1"
+  },
+  {
+    "rcNumber": "123456789012300",
+    "name": "Synergize Solutions",
+    "tier": "TIER 1"
+  },
+  {
+    "rcNumber": "234567890123400",
+    "name": "Innovate Insights Group",
+    "tier": "TIER 2"
+  },
+  {
+    "rcNumber": "345678901234500",
+    "name": "SustainTech Solutions",
+    "tier": "TIER 3"
+  },
+  {
+    "rcNumber": "456789012345600",
+    "name": "Strategic Tech Innovations",
+    "tier": "TIER 3"
+  },
+  {
+    "rcNumber": "567890123456700",
+    "name": "Dynamic Tech Developments",
+    "tier": "TIER 3"
+  },
+  {
+    "rcNumber": "678901234567800",
+    "name": "Progressive Nexus Platforms",
+    "tier": "TIER 3"
+  },
+  {
+    "rcNumber": "789012345678900",
+    "name": "Visionary Tech Ventures",
+    "tier": "TIER 2"
+  },
+  {
+    "rcNumber": "890123456789000",
+    "name": "Unified Nexus Innovations",
+    "tier": "TIER 0"
+  },
+  {
+    "rcNumber": "901234567890100",
+    "name": "Advanced Nexus Analytics",
+    "tier": "TIER 1"
+  },
+  {
+    "rcNumber": "012345678901200",
+    "name": "Precision Nexus Technologies",
+    "tier": "TIER 0"
+  }
 ]

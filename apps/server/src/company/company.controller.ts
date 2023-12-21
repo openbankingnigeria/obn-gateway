@@ -11,10 +11,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import {
-  UpdateCompanyDetailsDto,
-  UpdateKybStatusDto,
-} from './dto/index.dto';
+import { UpdateCompanyDetailsDto, UpdateKybStatusDto } from './dto/index.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {

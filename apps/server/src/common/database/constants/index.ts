@@ -1,22 +1,14 @@
 export enum CompanyTypes {
-  BANK = 'Bank',
-  BNPL = 'BNPL',
-  LENDING = 'Lending',
-  FINTECH = 'Fintech',
-  INSURANCE = 'Insurance',
-  OTHERS = 'Others',
-  API_PROVIDER = 'API_PROVIDER',
+  INDIVIDUAL = 'individual',
+  LICENSED_ENTITY = 'licensedEntity',
+  BUSINESS = 'business',
+  API_PROVIDER = 'api-provider',
 }
 
-export const CompanyTypesObject = {
-  bank: 'BANK',
-  apiProvider: 'API_PROVIDER',
-};
-
 export enum CompanyRoles {
-  SOFTWARE_ENGINEER = 'SOFTWARE_ENGINEER',
-  CEO = 'CEO',
-  API_PROVIDER = 'API_PROVIDER',
+  SOFTWARE_ENGINEER = 'software-engineer',
+  CEO = 'ceo',
+  API_PROVIDER = 'api-provider',
 }
 
 export enum ROLES {

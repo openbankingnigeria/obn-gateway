@@ -5,9 +5,10 @@ import {
   IPRestrictionRequest,
   IPRestrictionResponse,
   KybRequirementsResponse,
+  UpdateCompanySubtypesRequest,
   UpdateKybRequirementsDto,
 } from './dto/index.dto';
-import { KybSettings } from './types';
+import { CompanySubtypes, SystemSettings } from './types';
 import { Settings } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { settingsErrors } from './settings.errors';
@@ -17,6 +18,7 @@ import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { RequestContextService } from '@common/utils/request/request-context.service';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
+import { SYSTEM_SETTINGS_NAME } from './settings.constants';
 
 @Injectable()
 export class SettingsService {
@@ -28,25 +30,25 @@ export class SettingsService {
   ) {}
 
   async getKybRequirements() {
-    const savedKybSettings = await this.settingsRepository.findOne({
+    const systemSettings = await this.settingsRepository.findOne({
       where: {
-        name: 'kyb_settings',
+        name: SYSTEM_SETTINGS_NAME,
       },
     });
 
-    if (!savedKybSettings) {
+    if (!systemSettings) {
       throw new IBadRequestException({
-        message: settingsErrors.settingNotFound('kyb_settings'),
+        message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
       });
     }
 
-    const kybSettings: KybSettings = JSON.parse(savedKybSettings.value);
-
-    console.log(kybSettings.kybRequirements);
+    const parsedSystemSettings: SystemSettings = JSON.parse(
+      systemSettings.value,
+    );
 
     return ResponseFormatter.success(
       'KYB Requirements fetched successfully',
-      kybSettings.kybRequirements.map(
+      parsedSystemSettings.kybRequirements.map(
         (kybRequirement) => new KybRequirementsResponse(kybRequirement),
       ),
     );
@@ -56,29 +58,31 @@ export class SettingsService {
     newKybRequirements,
     removedKybRequirements,
   }: UpdateKybRequirementsDto) {
-    const cleanData: KybSettings['kybRequirements'] = [];
+    const cleanData: SystemSettings['kybRequirements'] = [];
 
     const validRemovedRequirements: string[] = [];
 
-    const savedKybSettings = await this.settingsRepository.findOne({
+    const systemSettings = await this.settingsRepository.findOne({
       where: {
-        name: 'kyb_settings',
+        name: SYSTEM_SETTINGS_NAME,
       },
     });
 
-    if (!savedKybSettings) {
+    if (!systemSettings) {
       throw new IBadRequestException({
-        message: settingsErrors.settingNotFound('kyb_settings'),
+        message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
       });
     }
 
-    const kybSettings: KybSettings = JSON.parse(savedKybSettings.value);
+    const parsedSystemSettings: SystemSettings = JSON.parse(
+      systemSettings.value,
+    );
 
     if (newKybRequirements) {
       newKybRequirements.forEach((requirement) => {
         if (
-          !kybSettings.uneditableFields.includes(requirement.name) &&
-          !kybSettings.kybRequirements.some(
+          !parsedSystemSettings.uneditableFields.includes(requirement.name) &&
+          !parsedSystemSettings.kybRequirements.some(
             (existingRequirement) =>
               existingRequirement.name === requirement.name,
           )
@@ -90,7 +94,7 @@ export class SettingsService {
 
     if (removedKybRequirements) {
       removedKybRequirements.forEach((requirement) => {
-        const existingRequirement = kybSettings.kybRequirements.find(
+        const existingRequirement = parsedSystemSettings.kybRequirements.find(
           (existingRequirement) => existingRequirement.name === requirement,
         );
         if (existingRequirement && existingRequirement.editable) {
@@ -99,7 +103,7 @@ export class SettingsService {
       });
     }
 
-    const previousKybSettings = kybSettings.kybRequirements;
+    const previousKybSettings = parsedSystemSettings.kybRequirements;
 
     const updatedKybSettings = [
       ...previousKybSettings.filter(
@@ -110,16 +114,80 @@ export class SettingsService {
     ];
 
     await this.settingsRepository.update(
-      { id: savedKybSettings.id },
+      { id: systemSettings.id },
       {
         value: JSON.stringify({
-          ...kybSettings,
+          ...parsedSystemSettings,
           kybRequirements: updatedKybSettings,
         }),
       },
     );
 
     return ResponseFormatter.success('Updated KYB settings successfully');
+  }
+
+  async updateCompanySubTypes({
+    newCompanySubtypes,
+    removedCompanySubtypes,
+  }: UpdateCompanySubtypesRequest) {
+    const systemSettings = await this.settingsRepository.findOne({
+      where: {
+        name: SYSTEM_SETTINGS_NAME,
+      },
+    });
+
+    if (!systemSettings) {
+      throw new IBadRequestException({
+        message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
+      });
+    }
+
+    const parsedSystemSettings: SystemSettings = JSON.parse(
+      systemSettings.value,
+    );
+
+    const prevCompanySubtypes = parsedSystemSettings.companySubtypes || {
+      business: [],
+      individual: [],
+      licensedEntity: [],
+    };
+
+    const updatedCompanySubtypes: CompanySubtypes = {
+      business: [],
+      individual: [],
+      licensedEntity: [],
+    };
+
+    Object.keys(newCompanySubtypes).forEach((companyType) => {
+      (updatedCompanySubtypes as any)[companyType] = [
+        ...(prevCompanySubtypes as any)[companyType],
+        ...(newCompanySubtypes as any)[companyType],
+      ];
+    });
+
+    Object.keys(removedCompanySubtypes).forEach((companyType) => {
+      const existingCompanySubtypes: string[] = (prevCompanySubtypes as any)[
+        companyType
+      ];
+
+      (updatedCompanySubtypes as any)[companyType] =
+        existingCompanySubtypes.filter(
+          (subtype) =>
+            !(removedCompanySubtypes as any)[companyType].includes(subtype),
+        );
+    });
+
+    await this.settingsRepository.update(
+      { id: systemSettings.id },
+      {
+        value: JSON.stringify({
+          ...systemSettings,
+          companySubtypes: updatedCompanySubtypes,
+        }),
+      },
+    );
+
+    return ResponseFormatter.success('Updated company subtypes successfully');
   }
 
   async getApiKey(environment: KONG_ENVIRONMENT) {

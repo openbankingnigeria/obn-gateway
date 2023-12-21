@@ -1,6 +1,6 @@
 import {
   IsEmail,
-  IsEnum,
+  IsIn,
   IsMobilePhone,
   IsNotEmpty,
   IsOptional,
@@ -165,8 +165,18 @@ export class SignupDto extends ForgotPasswordDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @IsEnum(CompanyTypes)
+  @IsIn(
+    Object.values(CompanyTypes).filter(
+      (type) => type !== CompanyTypes.API_PROVIDER,
+    ),
+  )
   companyType: CompanyTypes;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  companySubtype: string;
 
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),

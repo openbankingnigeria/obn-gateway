@@ -35,6 +35,12 @@ export class Company {
   @Column('enum', { enum: CompanyTypes })
   type: CompanyTypes;
 
+  @Column()
+  subtype: string;
+
+  @Column({ nullable: true })
+  tier?: string;
+
   @OneToMany(() => User, (user) => user.company)
   users?: User[];
 
