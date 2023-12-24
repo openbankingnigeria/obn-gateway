@@ -258,22 +258,27 @@ export class CompanyService {
       });
     }
 
-    if (!company.rcNumber) {
+    if (!company.rcNumber && company.type === CompanyTypes.LICENSED_ENTITY) {
       throw new IBadRequestException({
         message: 'RC Number is yet to be provided',
       });
     }
 
-    const businessDetails = this.verifyCompanyRC(
-      company.rcNumber,
-      company.name,
-    );
+    let businessDetails: {
+      rcNumber?: string;
+      name?: string;
+      tier?: string;
+    } = { name: company.name };
+
+    if (company.rcNumber) {
+      businessDetails = this.verifyCompanyRC(company.rcNumber, company.name);
+    }
 
     switch (action) {
       case 'approve':
         await this.companyRepository.update(
           { id: companyId },
-          { isVerified: true, tier: businessDetails.tier },
+          { isVerified: true, tier: businessDetails?.tier },
         );
         const event = new CompanyApprovedEvent(
           this.requestContext.user!,
@@ -300,7 +305,7 @@ export class CompanyService {
 
     return ResponseFormatter.success(
       `Successfully ${action === 'approve' ? 'approved' : 'denied'} business.`,
-      new UpdateCompanyKybStatusResponseDTO({ tier: businessDetails.tier }),
+      new UpdateCompanyKybStatusResponseDTO({ tier: businessDetails?.tier }),
     );
   }
 
@@ -335,6 +340,41 @@ export class CompanyService {
         companySubtypes: new GetCompanySubTypesResponseDTO(companySubtypes),
         companyTypes,
       }),
+    );
+  }
+
+  async toggleCompanyAccess(companyId: string, isActive: boolean) {
+    const company = await this.companyRepository.findOne({
+      where: {
+        id: companyId,
+      },
+    });
+
+    if (!company) {
+      throw new IBadRequestException({
+        message: companyErrors.companyNotFound(companyId!),
+      });
+    }
+
+    if (company.isActive === isActive) {
+      throw new IBadRequestException({
+        message: `Cannot set company access to ${
+          isActive ? 'active' : 'inactive'
+        } because company is already ${isActive ? 'active' : 'inactive'}`,
+      });
+    }
+
+    await this.companyRepository.update(
+      {
+        id: company.id,
+      },
+      {
+        isActive,
+      },
+    );
+
+    return ResponseFormatter.success(
+      `Successfully ${isActive ? 'activated' : 'deactivated'} business.`,
     );
   }
 }

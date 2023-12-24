@@ -84,4 +84,16 @@ export class CompanyController {
   ) {
     return this.companyService.updateKYBStatus(companyId, data);
   }
+
+  @Patch('companies/:id/activate')
+  @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_ACCESS)
+  activateCompanyAccess(@Param('id') companyId: string) {
+    return this.companyService.toggleCompanyAccess(companyId, true);
+  }
+
+  @Patch('companies/:id/deactivate')
+  @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_ACCESS)
+  deactivateCompanyAccess(@Param('id') companyId: string) {
+    return this.companyService.toggleCompanyAccess(companyId, false);
+  }
 }

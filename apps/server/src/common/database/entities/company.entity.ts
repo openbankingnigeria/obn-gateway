@@ -11,6 +11,7 @@ import { User } from './user.entity';
 import { AuditLog } from './auditlog.entity';
 import { Settings } from './settings.entity';
 import { CompanyTypes } from '../constants';
+import { ConsumerAcl } from './consumeracl.entity';
 
 @Entity({ name: 'companies' })
 export class Company {
@@ -26,6 +27,9 @@ export class Company {
   @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified: boolean;
 
+  @Column({ name: 'consumer_id', nullable: true })
+  consumerId?: string;
+
   @Column({ name: 'is_active', type: 'boolean', default: false })
   isActive: boolean;
 
@@ -40,6 +44,9 @@ export class Company {
 
   @Column({ nullable: true })
   tier?: string;
+
+  @OneToMany(() => ConsumerAcl, (consumerAcl) => consumerAcl.company)
+  acls: ConsumerAcl[];
 
   @OneToMany(() => User, (user) => user.company)
   users?: User[];

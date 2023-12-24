@@ -10,6 +10,7 @@ import {
 import { SettingsService } from './settings.service';
 import {
   IPRestrictionRequest,
+  UpdateCompanySubtypesRequest,
   UpdateKybRequirementsDto,
 } from './dto/index.dto';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
@@ -29,6 +30,13 @@ export class SettingsController {
   @UsePipes(IValidationPipe)
   updateKybRequirements(@Body() data: UpdateKybRequirementsDto) {
     return this.settingsService.updateKybRequirements(data);
+  }
+
+  @Patch('company/types')
+  @UsePipes(IValidationPipe)
+  updateCompanySubtypes(@Body() data: UpdateCompanySubtypesRequest) {
+    console.log({ data });
+    return this.settingsService.updateCompanySubTypes(data);
   }
 
   @Get('api-key/:environment')

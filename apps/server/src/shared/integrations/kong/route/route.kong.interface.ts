@@ -66,6 +66,10 @@ export interface CreatePluginRequest {
   name: string;
   enabled: boolean;
   route?: { id: string };
+  config?: {
+    allow: string[];
+    hide_groups_header: boolean;
+  };
 }
 export interface CreatePluginResponse extends Plugin {}
 

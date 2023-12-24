@@ -9,6 +9,11 @@ export interface CreateConsumerResponse extends CreateConsumerRequest {
   created_at: number;
 }
 
+export interface UpdateConsumerAclResponse {
+  id: string;
+  created_at: number;
+}
+
 export interface ConsumerKey {
   key: string;
   created_at: number;
