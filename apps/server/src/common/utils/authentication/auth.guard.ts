@@ -17,6 +17,7 @@ import { User } from 'src/common/database/entities';
 import { IsNull, Not, Repository } from 'typeorm';
 import { PERMISSIONS } from 'src/permissions/types';
 import * as speakeasy from 'speakeasy';
+import * as moment from 'moment';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -54,7 +55,7 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    let decoded: { id: string };
+    let decoded: { id: string; iat: number };
     try {
       decoded = await this.auth.verify(accessToken);
     } catch (err) {
@@ -86,6 +87,12 @@ export class AuthGuard implements CanActivate {
     });
 
     if (!user || !user.company) {
+      throw new IUnauthorizedException({
+        message: authErrors.invalidCredentials,
+      });
+    }
+
+    if (!moment(user.lastLogin).isSame(decoded?.iat * 1000, 'second')) {
       throw new IUnauthorizedException({
         message: authErrors.invalidCredentials,
       });

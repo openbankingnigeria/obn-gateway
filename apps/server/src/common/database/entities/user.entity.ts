@@ -92,6 +92,7 @@ export class User {
   @Column({ name: 'last_password_change', nullable: true })
   lastPasswordChange?: Date;
 
+  // TODO TZ for dates
   @Column({ name: 'last_login', nullable: true })
   lastLogin?: Date;
 
