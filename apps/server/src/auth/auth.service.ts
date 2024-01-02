@@ -278,10 +278,12 @@ export class AuthService {
 
     const isFirstLogin = !user.lastLogin;
 
-    user.lastLogin = moment().toDate();
-
-    await this.userRepository.save(user);
     const accessToken = await this.auth.sign({ id: user.id });
+
+    const verifyToken = await this.auth.verify<{ iat: number }>(accessToken);
+
+    user.lastLogin = moment(verifyToken.iat * 1000).toDate();
+    await this.userRepository.save(user);
 
     const event = new AuthLoginEvent(user);
     this.eventEmitter.emit(event.name, event);

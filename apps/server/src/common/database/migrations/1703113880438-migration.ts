@@ -8,14 +8,6 @@ export class Migration1703113880438 implements MigrationInterface {
             ALTER TABLE \`companies\`
             ADD \`subtype\` varchar(255) NOT NULL
         `);
-    // await queryRunner.query(`
-    //         ALTER TABLE \`companies\` CHANGE \`type\` \`type\` enum (
-    //                 'individual',
-    //                 'licensedEntity',
-    //                 'business',
-    //                 'api-provider'
-    //             ) NOT NULL
-    //     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

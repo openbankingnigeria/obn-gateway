@@ -27,18 +27,6 @@ export class Migration1702353120168 implements MigrationInterface {
             ALTER TABLE \`companies\`
             ADD \`tier\` varchar(255) NULL
         `);
-    // await queryRunner.query(`
-    //         ALTER TABLE \`companies\`
-    //         ADD \`type\` enum (
-    //                 'Bank',
-    //                 'BNPL',
-    //                 'Lending',
-    //                 'Fintech',
-    //                 'Insurance',
-    //                 'Others',
-    //                 'API_PROVIDER'
-    //             ) NOT NULL
-    //     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

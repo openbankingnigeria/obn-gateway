@@ -12,6 +12,7 @@ import { In, Not, Repository } from 'typeorm';
 import {
   APILogResponseDTO,
   AssignAPIsDto,
+  APILogStatsResponseDTO,
   CreateAPIDto,
   GETAPIRouteResponseDTO,
   GetAPIResponseDTO,
@@ -629,6 +630,49 @@ export class APIService {
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogs,
       new APILogResponseDTO(logs.hits.hits[0]._source),
+    );
+  }
+
+  // TODO ensure only AP can view logs for all users;
+  async getAPILogsStats(environment: KONG_ENVIRONMENT) {
+    const stats = await this.elasticsearchService.search({
+      size: 0,
+      query: {
+        bool: {
+          must: [
+            { term: { 'environment.keyword': environment } },
+            {
+              wildcard: {
+                'consumer.id.keyword':
+                  this.requestContext.user!.companyId || '*',
+              },
+            },
+          ],
+        },
+      },
+      aggs: {
+        avgRequestLatency: {
+          avg: {
+            field: 'latencies.request',
+          },
+        },
+        avgGatewayLatency: {
+          avg: {
+            field: 'latencies.kong',
+          },
+        },
+        avgProxyLatency: {
+          avg: {
+            field: 'latencies.proxy',
+          },
+        },
+        totalCount: { value_count: { field: 'environment.keyword' } },
+      },
+    });
+
+    return ResponseFormatter.success(
+      apiSuccessMessages.fetchedAPILogs,
+      new APILogStatsResponseDTO(stats.aggregations),
     );
   }
 }

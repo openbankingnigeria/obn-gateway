@@ -244,3 +244,24 @@ export class AssignAPIsDto {
   @IsUUID('all', { each: true })
   apiIds: string[];
 }
+export class APILogStatsResponseDTO {
+  constructor(partial: any) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  @Transform(({ obj }) => obj.totalCount?.value)
+  totalCount: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.avgRequestLatency?.value)
+  avgRequestLatency: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.avgGatewayLatency?.value)
+  avgGatewayLatency: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.avgProxyLatency?.value)
+  avgProxyLatency: number;
+}
