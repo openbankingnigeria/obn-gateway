@@ -2,7 +2,7 @@ import { IBadRequestException } from '@common/utils/exceptions/exceptions';
 import { Injectable } from '@nestjs/common';
 import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
-import { KybDataTypes, KybSettings } from '@settings/types';
+import { KybDataTypes, SystemSettings } from '@settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company, Settings, User } from '@common/database/entities';
 import { Repository } from 'typeorm';
@@ -19,8 +19,17 @@ import {
   CompanyApprovedEvent,
   CompanyDeniedEvent,
 } from '@shared/events/company.event';
+import {
+  GetCompanyCustomFieldsResponseDTO,
+  GetCompanyResponseDTO,
+  GetCompanySubTypesResponseDTO,
+  GetCompanyTypesResponseDTO,
+  UpdateCompanyKybStatusResponseDTO,
+  UpdateKybStatusDto,
+} from './dto/index.dto';
+import { SYSTEM_SETTINGS_NAME } from '@settings/settings.constants';
 import { CompanyTypes } from '@common/database/constants';
-import { GetCompanyResponseDTO, UpdateKybStatusDto } from './dto/index.dto';
+import { companyCustomFields } from './company.constants';
 
 @Injectable()
 export class CompanyService {
@@ -58,16 +67,16 @@ export class CompanyService {
     }
 
     const savedKybSettings = await this.settingsRepository.findOne({
-      where: { name: 'kyb_settings' },
+      where: { name: SYSTEM_SETTINGS_NAME },
     });
 
     if (!savedKybSettings) {
       throw new IBadRequestException({
-        message: settingsErrors.settingNotFound('kyb_settings'),
+        message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
       });
     }
 
-    const kybSettings: KybSettings = JSON.parse(
+    const systemSettings: SystemSettings = JSON.parse(
       Buffer.from(savedKybSettings.value).toString('utf-8'),
     );
 
@@ -89,7 +98,7 @@ export class CompanyService {
     > = {};
 
     // Select only valid fields from the request payload
-    kybSettings.kybRequirements
+    systemSettings.kybRequirements
       .filter((requirement) => requirement.type === KybDataTypes.STRING)
       .forEach((requirement) => {
         if (dataKeys.includes(requirement.name)) {
@@ -188,6 +197,8 @@ export class CompanyService {
         updatedAt: true,
         rcNumber: true,
         type: true,
+        subtype: true,
+        tier: true,
         isVerified: true,
         deletedAt: true,
         id: true,
@@ -230,10 +241,7 @@ export class CompanyService {
       });
     }
 
-    return ResponseFormatter.success(
-      'Successfully fetched business details',
-      business,
-    );
+    return business;
   }
 
   async updateKYBStatus(
@@ -252,19 +260,27 @@ export class CompanyService {
       });
     }
 
-    if (!company.rcNumber) {
+    if (!company.rcNumber && company.type === CompanyTypes.LICENSED_ENTITY) {
       throw new IBadRequestException({
         message: 'RC Number is yet to be provided',
       });
     }
 
-    this.verifyCompanyRC(company.rcNumber, company.name);
+    let businessDetails: {
+      rcNumber?: string;
+      name?: string;
+      tier?: string;
+    } = { name: company.name };
+
+    if (company.rcNumber) {
+      businessDetails = this.verifyCompanyRC(company.rcNumber, company.name);
+    }
 
     switch (action) {
       case 'approve':
         await this.companyRepository.update(
           { id: companyId },
-          { isVerified: true },
+          { isVerified: true, tier: businessDetails?.tier },
         );
         const event = new CompanyApprovedEvent(
           this.requestContext.user!,
@@ -287,20 +303,103 @@ export class CompanyService {
           },
         );
         this.eventEmitter.emit(deniedEvent.name, deniedEvent);
-      // Send message to company with reason
     }
 
     return ResponseFormatter.success(
       `Successfully ${action === 'approve' ? 'approved' : 'denied'} business.`,
+      new UpdateCompanyKybStatusResponseDTO({ tier: businessDetails?.tier }),
     );
   }
 
   async getCompanyTypes() {
+    const companyTypes = Object.values(CompanyTypes).filter(
+      (type) => type !== CompanyTypes.API_PROVIDER,
+    );
+
+    const systemSettings = await this.settingsRepository.findOne({
+      where: {
+        name: SYSTEM_SETTINGS_NAME,
+      },
+    });
+
+    if (!systemSettings) {
+      throw new IBadRequestException({ message: 'System settings not found.' });
+    }
+
+    const parsedSystemSettings: SystemSettings = JSON.parse(
+      systemSettings.value,
+    );
+
+    const companySubtypes = parsedSystemSettings.companySubtypes || {
+      business: [],
+      individual: [],
+      licensedEntity: [],
+    };
+
     return ResponseFormatter.success(
-      'Successfully fetched company types.',
-      Object.values(CompanyTypes).filter(
-        (type) => type !== CompanyTypes.API_PROVIDER,
-      ),
+      'Company types fetched successfully',
+      new GetCompanyTypesResponseDTO({
+        companySubtypes: new GetCompanySubTypesResponseDTO(companySubtypes),
+        companyTypes,
+      }),
+    );
+  }
+
+  async getCompanyCustomFields(companyType: CompanyTypes) {
+    let customFields: Record<string, { type: string; label: string }> = {};
+
+    switch (companyType) {
+      case CompanyTypes.BUSINESS:
+        customFields = companyCustomFields.business;
+        break;
+      case CompanyTypes.INDIVIDUAL:
+        customFields = companyCustomFields.individual;
+        break;
+      case CompanyTypes.LICENSED_ENTITY:
+        customFields = companyCustomFields.licensedEntity;
+        break;
+    }
+
+    console.log({ customFields });
+
+    return ResponseFormatter.success(
+      'Company custom fields fetched successfully',
+      new GetCompanyCustomFieldsResponseDTO(customFields),
+    );
+  }
+
+  async toggleCompanyAccess(companyId: string, isActive: boolean) {
+    const company = await this.companyRepository.findOne({
+      where: {
+        id: companyId,
+      },
+    });
+
+    if (!company) {
+      throw new IBadRequestException({
+        message: companyErrors.companyNotFound(companyId!),
+      });
+    }
+
+    if (company.isActive === isActive) {
+      throw new IBadRequestException({
+        message: `Cannot set company access to ${
+          isActive ? 'active' : 'inactive'
+        } because company is already ${isActive ? 'active' : 'inactive'}`,
+      });
+    }
+
+    await this.companyRepository.update(
+      {
+        id: company.id,
+      },
+      {
+        isActive,
+      },
+    );
+
+    return ResponseFormatter.success(
+      `Successfully ${isActive ? 'activated' : 'deactivated'} business.`,
     );
   }
 }

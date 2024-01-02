@@ -6,15 +6,13 @@ import {
   Patch,
   // Post,
   Query,
+  SerializeOptions,
   UploadedFiles,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import {
-  UpdateCompanyDetailsDto,
-  UpdateKybStatusDto,
-} from './dto/index.dto';
+import { UpdateCompanyDetailsDto, UpdateKybStatusDto } from './dto/index.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {
@@ -28,6 +26,7 @@ import {
   SkipAuthGuard,
 } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
+import { CompanyTypes } from '@common/database/constants';
 
 @Controller()
 export class CompanyController {
@@ -53,6 +52,15 @@ export class CompanyController {
   @SkipAuthGuard()
   getCompanyTypes() {
     return this.companyService.getCompanyTypes();
+  }
+
+  @Get('company/:companyType/fields')
+  @SkipAuthGuard()
+  @SerializeOptions({
+    strategy: 'exposeAll',
+  })
+  getCompanyCustomFields(@Param('companyType') companyType: CompanyTypes) {
+    return this.companyService.getCompanyCustomFields(companyType);
   }
 
   @Get('companies')
@@ -86,5 +94,17 @@ export class CompanyController {
     @Param('id') companyId: string,
   ) {
     return this.companyService.updateKYBStatus(companyId, data);
+  }
+
+  @Patch('companies/:id/activate')
+  @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_ACCESS)
+  activateCompanyAccess(@Param('id') companyId: string) {
+    return this.companyService.toggleCompanyAccess(companyId, true);
+  }
+
+  @Patch('companies/:id/deactivate')
+  @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_ACCESS)
+  deactivateCompanyAccess(@Param('id') companyId: string) {
+    return this.companyService.toggleCompanyAccess(companyId, false);
   }
 }

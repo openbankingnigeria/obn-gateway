@@ -10,6 +10,7 @@ import {
   CreateConsumerRequest,
   CreateConsumerResponse,
   ListConsumerKeysResponse,
+  UpdateConsumerAclResponse,
 } from './consumer.kong.interface';
 import {
   CreatePluginRequest,
@@ -54,6 +55,54 @@ export class KongConsumerService {
             data.custom_id || data.username
           }`,
           data,
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            this.logger.error(error);
+            throw new IInternalServerErrorException({});
+          }),
+        ),
+    );
+    return response.data;
+  }
+
+  async updateConsumerAcl(
+    environment: KONG_ENVIRONMENT,
+    {
+      aclAllowedGroupName,
+      consumerId,
+    }: { aclAllowedGroupName: string; consumerId: string },
+  ) {
+    const response = await firstValueFrom(
+      this.httpService
+        .post<UpdateConsumerAclResponse>(
+          `${
+            this.config.get('kong.endpoint')[environment]
+          }/consumers/${consumerId}/acls`,
+          {
+            group: aclAllowedGroupName,
+          },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            this.logger.error(error.response);
+            throw new IInternalServerErrorException({});
+          }),
+        ),
+    );
+    return response.data;
+  }
+
+  async deleteConsumerAcl(
+    environment: KONG_ENVIRONMENT,
+    { aclId, consumerId }: { aclId: string; consumerId: string },
+  ) {
+    const response = await firstValueFrom(
+      this.httpService
+        .delete<any>(
+          `${
+            this.config.get('kong.endpoint')[environment]
+          }/consumers/${consumerId}/acls/${aclId}`,
         )
         .pipe(
           catchError((error: AxiosError) => {

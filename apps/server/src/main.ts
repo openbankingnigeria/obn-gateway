@@ -8,7 +8,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  // TODO propery configure cors
+  // TODO properly configure cors
   const app = await NestFactory.create(AppModule, { cors: { origin: '*' } });
 
   // Config

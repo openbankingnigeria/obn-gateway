@@ -6,12 +6,18 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UsePipes,
 } from '@nestjs/common';
 import { APIService } from './apis.service';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
-import { APIParam, CreateAPIDto, UpdateAPIDto } from './dto/index.dto';
+import {
+  APIParam,
+  AssignAPIsDto,
+  CreateAPIDto,
+  UpdateAPIDto,
+} from './dto/index.dto';
 import {
   PaginationParameters,
   PaginationPipe,
@@ -40,6 +46,28 @@ export class APIController {
   @RequireTwoFA()
   createAPI(@Param() params: APIParam, @Body() data: CreateAPIDto) {
     return this.apiService.createAPI(params.environment, data);
+  }
+
+  @Put('company/:companyId/assign')
+  @UsePipes(IValidationPipe)
+  @RequireTwoFA()
+  assignAPIs(
+    @Param() params: APIParam,
+    @Param('companyId') companyId: string,
+    @Body() data: AssignAPIsDto,
+  ) {
+    return this.apiService.assignAPIs(params.environment, companyId, data);
+  }
+
+  @Put('company/:companyId/unassign')
+  @UsePipes(IValidationPipe)
+  @RequireTwoFA()
+  unassignAPIs(
+    @Param() params: APIParam,
+    @Param('companyId') companyId: string,
+    @Body() data: AssignAPIsDto,
+  ) {
+    return this.apiService.unassignAPIs(params.environment, companyId, data);
   }
 
   @Get('logs')

@@ -37,6 +37,7 @@ export interface ListPluginsResponse extends ListResponse<Plugin> {}
 
 export enum KONG_PLUGINS {
   REQUEST_TERMINATION = 'request-termination',
+  ACL = 'acl',
   HTTP_LOG = 'http-log',
   KEY_AUTH = 'key-auth',
   IP_RESTRICTION = 'ip-restriction',

@@ -14,23 +14,32 @@ import {
   ResendOtpDto,
   ResetPasswordDto,
   SetupDto,
-  SignupDto,
+  signupDtos,
   TwoFADto,
   VerifyEmailDto,
 } from './dto/index.dto';
 import { SkipAuthGuard } from 'src/common/utils/authentication/auth.decorator';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
+import { CompanyTypes } from '@common/database/constants';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signup')
+  @Post('signup/:companyType')
   @SkipAuthGuard()
-  // TODO Write custom validation pipe
-  @UsePipes(IValidationPipe)
-  signup(@Body() data: SignupDto) {
-    return this.authService.signup(data);
+  async signup(
+    @Body() data: any,
+    @Param('companyType') companyType: CompanyTypes,
+  ) {
+    const validationPipe = new IValidationPipe();
+
+    await validationPipe.transform(data, {
+      type: 'body',
+      metatype: signupDtos[companyType],
+    });
+
+    return this.authService.signup(data, companyType);
   }
 
   @Post('login')

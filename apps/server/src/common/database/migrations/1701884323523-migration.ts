@@ -2,6 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Company } from '../entities';
 import { CompanyTypes } from '../constants';
+import { SYSTEM_SETTINGS_NAME } from '../../../settings/settings.constants';
 
 export class Migration1701884323523 implements MigrationInterface {
   private readonly defaultSettings = {
@@ -36,6 +37,38 @@ export class Migration1701884323523 implements MigrationInterface {
         maxCount: 1,
       },
     ],
+    companySubtypes: {
+      individual: [],
+      licensedEntity: [
+        'Commercial Bank',
+        'Merchant Bank',
+        'Non-interest Bank',
+        'Microfinance Bank',
+        'Finance House',
+        'Payments Solutions Services Provider',
+        'Super Agent',
+        'Mobile Money Operator',
+        'Switch and Processor',
+        'Payments Solutions Services',
+        'Payments Terminal Services Provider',
+        'Insurance',
+        'Capital Market Operator',
+        'Others',
+      ],
+      business: [
+        'Telecommunications',
+        'Manufacturer',
+        'Healthcare',
+        'Logistics',
+        'Real Estate',
+        'Entertainment',
+        'Hospitality',
+        'Technology',
+        'Medical',
+        'Public Sector',
+        'Others',
+      ],
+    },
   };
   public async up(queryRunner: QueryRunner): Promise<void> {
     const [apiProvider]: Company[] = await queryRunner.query(
@@ -45,7 +78,7 @@ export class Migration1701884323523 implements MigrationInterface {
     const parameters = [
       [
         uuidv4(),
-        'kyb_settings',
+        SYSTEM_SETTINGS_NAME,
         apiProvider.id,
         JSON.stringify(this.defaultSettings),
       ],

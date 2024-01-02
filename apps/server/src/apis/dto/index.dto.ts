@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsObject,
   IsString,
+  IsUUID,
   IsUrl,
   ValidateNested,
 } from 'class-validator';
@@ -138,6 +139,9 @@ export class GetAPIResponseDTO {
   url: string;
 
   @Expose()
+  aclAllowedGroupName: string;
+
+  @Expose()
   @IsObject()
   @Type(() => GETAPIRouteResponseDTO)
   route: GETAPIRouteResponseDTO;
@@ -234,6 +238,12 @@ export class APILogResponseDTO {
   request: APILogRequestDto;
 }
 
+export class AssignAPIsDto {
+  @IsNotEmpty()
+  @IsString({ each: true })
+  @IsUUID('all', { each: true })
+  apiIds: string[];
+}
 export class APILogStatsResponseDTO {
   constructor(partial: any) {
     Object.assign(this, partial);

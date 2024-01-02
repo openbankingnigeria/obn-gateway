@@ -67,6 +67,8 @@ export class IValidationPipe implements PipeTransform<any> {
     }
 
     const object = plainToInstance(metatype, value);
+
+    console.log({ value });
     const errors = await validate(object, {});
 
     if (errors.length > 0) {

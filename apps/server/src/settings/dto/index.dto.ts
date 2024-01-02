@@ -1,5 +1,5 @@
 import { settingsErrors } from '@settings/settings.errors';
-import { KybDataTypes, KybSettings } from '@settings/types';
+import { KybDataTypes, SystemSettings } from '@settings/types';
 import { Expose, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
@@ -46,8 +46,22 @@ export class UpdateKybRequirementsDto {
   removedKybRequirements: string[];
 }
 
+export class UpdateCompanySubtypesRequest {
+  @IsOptional()
+  newCompanySubtypes: Record<
+    'individual' | 'licensedEntity' | 'business',
+    string[]
+  >;
+
+  @IsOptional()
+  removedCompanySubtypes: Record<
+    'individual' | 'licensedEntity' | 'business',
+    string[]
+  >;
+}
+
 export class KybRequirementsResponse {
-  constructor(partial: Partial<KybSettings['kybRequirements'][0]>) {
+  constructor(partial: Partial<SystemSettings['kybRequirements'][0]>) {
     Object.assign(this, partial);
   }
 

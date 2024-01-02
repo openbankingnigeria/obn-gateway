@@ -4,6 +4,8 @@ export const apiSuccessMessages = {
   updatedAPI: 'Successfully updated API',
   deletedAPI: 'Successfully deleted API',
   createdAPI: 'Successfully created API',
+  assignAPIs: 'Successfully assigned APIs',
+  unassignAPIs: 'Successfully unassigned APIs',
   fetchedAPILogs: 'Successfully fetched API logs',
 };
 
