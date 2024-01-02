@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UsePipes,
 } from '@nestjs/common';
@@ -47,7 +48,7 @@ export class APIController {
     return this.apiService.createAPI(params.environment, data);
   }
 
-  @Post('company/:companyId/assign')
+  @Put('company/:companyId/assign')
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
   assignAPIs(
@@ -58,7 +59,7 @@ export class APIController {
     return this.apiService.assignAPIs(params.environment, companyId, data);
   }
 
-  @Post('company/:companyId/unassign')
+  @Put('company/:companyId/unassign')
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
   unassignAPIs(
