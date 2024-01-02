@@ -20,6 +20,7 @@ import {
   CompanyDeniedEvent,
 } from '@shared/events/company.event';
 import {
+  GetCompanyCustomFieldsResponseDTO,
   GetCompanyResponseDTO,
   GetCompanySubTypesResponseDTO,
   GetCompanyTypesResponseDTO,
@@ -28,6 +29,7 @@ import {
 } from './dto/index.dto';
 import { SYSTEM_SETTINGS_NAME } from '@settings/settings.constants';
 import { CompanyTypes } from '@common/database/constants';
+import { companyCustomFields } from './company.constants';
 
 @Injectable()
 export class CompanyService {
@@ -340,6 +342,29 @@ export class CompanyService {
         companySubtypes: new GetCompanySubTypesResponseDTO(companySubtypes),
         companyTypes,
       }),
+    );
+  }
+
+  async getCompanyCustomFields(companyType: CompanyTypes) {
+    let customFields: Record<string, { type: string; label: string }> = {};
+
+    switch (companyType) {
+      case CompanyTypes.BUSINESS:
+        customFields = companyCustomFields.business;
+        break;
+      case CompanyTypes.INDIVIDUAL:
+        customFields = companyCustomFields.individual;
+        break;
+      case CompanyTypes.LICENSED_ENTITY:
+        customFields = companyCustomFields.licensedEntity;
+        break;
+    }
+
+    console.log({ customFields });
+
+    return ResponseFormatter.success(
+      'Company custom fields fetched successfully',
+      new GetCompanyCustomFieldsResponseDTO(customFields),
     );
   }
 

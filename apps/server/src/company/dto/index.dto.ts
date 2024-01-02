@@ -95,6 +95,14 @@ export class GetCompanySubTypesResponseDTO {
   business: string[];
 }
 
+export class GetCompanyCustomFieldsResponseDTO {
+  constructor(
+    partial: Partial<Record<string, { type: string; label: string }>>,
+  ) {
+    Object.assign(this, partial);
+  }
+}
+
 export class GetCompanyTypesResponseDTO {
   constructor(
     partial: Partial<{

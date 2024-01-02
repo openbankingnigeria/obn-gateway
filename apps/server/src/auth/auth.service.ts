@@ -10,11 +10,13 @@ import {
 import { Repository, MoreThan } from 'typeorm';
 import {
   AuthOTPResponseDTO,
+  BusinessSignupDto,
+  IndividualSignupDto,
+  LicensedEntitySignupDto,
   LoginDto,
   ResendOtpDto,
   ResetPasswordDto,
   SetupDto,
-  SignupDto,
   TwoFADto,
   VerifyEmailDto,
 } from './dto/index.dto';
@@ -42,7 +44,7 @@ import {
   AuthSignupEvent,
 } from '@shared/events/auth.event';
 import * as speakeasy from 'speakeasy';
-import { ROLES } from '@common/database/constants';
+import { CompanyTypes, ROLES } from '@common/database/constants';
 import { generateOtp } from '@common/utils/helpers/auth.helpers';
 import { ConfigService } from '@nestjs/config';
 import { isNumberString } from 'class-validator';
@@ -72,7 +74,7 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  async signup(data: SignupDto) {
+  async signup(data: any, companyType: CompanyTypes) {
     // Check if user with this email already exists
     const userExists = await this.userRepository.count({
       where: {
@@ -88,19 +90,8 @@ export class AuthService {
       });
     }
 
-    const {
-      companyName,
-      companyRole,
-      companyType,
-      companySubtype,
-      country,
-      email,
-      firstName,
-      lastName,
-      password,
-      confirmPassword,
-      phone,
-    } = data;
+    const { email, firstName, lastName, password, confirmPassword, phone } =
+      data;
 
     if (password !== confirmPassword) {
       throw new IBadRequestException({
@@ -115,27 +106,6 @@ export class AuthService {
       },
     });
 
-    if (systemSettings) {
-      const parsedSystemSettings: SystemSettings = JSON.parse(
-        systemSettings.value,
-      );
-
-      const allowedSubTypesForType: string[] = (
-        parsedSystemSettings.companySubtypes as any
-      )[companyType];
-
-      if (
-        !allowedSubTypesForType.some((subtype) =>
-          subtype.includes(companySubtype),
-        ) &&
-        allowedSubTypesForType.length
-      ) {
-        throw new IBadRequestException({
-          message: commonErrors.invalidValue(companyType, companySubtype),
-        });
-      }
-    }
-
     const apiConsumerRole = await this.roleRepository.findOne({
       where: {
         slug: ROLES.ADMIN,
@@ -146,57 +116,223 @@ export class AuthService {
       },
     });
 
-    if (apiConsumerRole) {
-      const companyCreated = await this.companyRepository.save({
-        name: companyName,
-        type: companyType,
-        subtype: companySubtype,
-      });
+    switch (companyType) {
+      case CompanyTypes.BUSINESS:
+        const {
+          accountNumber,
+          companyName: businessName,
+          companySubtype,
+          rcNumber,
+        } = data as BusinessSignupDto;
+        if (systemSettings) {
+          const parsedSystemSettings: SystemSettings = JSON.parse(
+            systemSettings.value,
+          );
 
-      const otp = generateOtp(6);
+          const allowedSubTypesForType: string[] = (
+            parsedSystemSettings.companySubtypes as any
+          )[companyType];
 
-      const user = await this.userRepository.save({
-        email: email.trim().toLowerCase(),
-        password: hashSync(password, 12),
-        roleId: apiConsumerRole.id,
-        companyId: companyCreated.id,
-        emailVerificationOtp: otp.toString(),
-        emailVerificationExpires: moment()
-          .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
-          .toDate(),
-        profile: {
-          firstName,
-          lastName,
-          phone,
-          country,
+          if (
+            !allowedSubTypesForType.some((subtype) =>
+              subtype.includes(companySubtype),
+            ) &&
+            allowedSubTypesForType.length
+          ) {
+            throw new IBadRequestException({
+              message: commonErrors.invalidValue(companyType, companySubtype),
+            });
+          }
+        }
+
+        if (apiConsumerRole) {
+          const companyCreated = await this.companyRepository.save({
+            name: businessName,
+            type: companyType,
+            subtype: companySubtype,
+            rcNumber,
+          });
+
+          const otp = generateOtp(6);
+
+          const user = await this.userRepository.save({
+            email: email.trim().toLowerCase(),
+            password: hashSync(password, 12),
+            roleId: apiConsumerRole.id,
+            companyId: companyCreated.id,
+            emailVerificationOtp: otp.toString(),
+            emailVerificationExpires: moment()
+              .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
+              .toDate(),
+            profile: {
+              firstName,
+              lastName,
+              phone,
+            },
+            accountNumber,
+          });
+
+          const event = new AuthSignupEvent(user, { otp });
+
+          user.company = companyCreated;
+
+          this.eventEmitter.emit(event.name, event);
+
+          const otpData: any = {};
+          // TODO remove this.
+          if (new Date() < new Date('2023-12-31')) {
+            otpData.otp = otp.toString();
+          }
+
+          return ResponseFormatter.success(
+            authSuccessMessages.signup,
+            new GetUserResponseDTO({
+              ...user,
+              ...otpData,
+              company: companyCreated,
+            }),
+          );
+        } else {
+          throw new IBadRequestException({
+            message: authErrors.errorOccurredCreatingUser,
+          });
+        }
+      case CompanyTypes.INDIVIDUAL:
+        const { accountNumber: iAccountNumber, bvn } =
+          data as IndividualSignupDto;
+
+        if (apiConsumerRole) {
+          const companyCreated = await this.companyRepository.save({
+            name: `${firstName} ${lastName}`,
+            type: companyType,
+          });
+
+          const otp = generateOtp(6);
+
+          const user = await this.userRepository.save({
+            email: email.trim().toLowerCase(),
+            password: hashSync(password, 12),
+            roleId: apiConsumerRole.id,
+            companyId: companyCreated.id,
+            emailVerificationOtp: otp.toString(),
+            emailVerificationExpires: moment()
+              .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
+              .toDate(),
+            profile: {
+              firstName,
+              lastName,
+              phone,
+            },
+            accountNumber: iAccountNumber,
+            bvn,
+          });
+
+          const event = new AuthSignupEvent(user, { otp });
+
+          user.company = companyCreated;
+
+          this.eventEmitter.emit(event.name, event);
+
+          const otpData: any = {};
+          // TODO remove this.
+          if (new Date() < new Date('2023-12-31')) {
+            otpData.otp = otp.toString();
+          }
+
+          return ResponseFormatter.success(
+            authSuccessMessages.signup,
+            new GetUserResponseDTO({
+              ...user,
+              ...otpData,
+              company: companyCreated,
+            }),
+          );
+        } else {
+          throw new IBadRequestException({
+            message: authErrors.errorOccurredCreatingUser,
+          });
+        }
+      case CompanyTypes.LICENSED_ENTITY:
+        const {
+          companySubtype: licensedEntityCompanySubtype,
+          companyName: companyName,
           companyRole,
-        },
-      });
+        } = data as LicensedEntitySignupDto;
+        if (systemSettings) {
+          const parsedSystemSettings: SystemSettings = JSON.parse(
+            systemSettings.value,
+          );
 
-      const event = new AuthSignupEvent(user, { otp });
+          const allowedSubTypesForType: string[] = (
+            parsedSystemSettings.companySubtypes as any
+          )[companyType];
 
-      user.company = companyCreated;
+          if (
+            !allowedSubTypesForType.some((subtype) =>
+              subtype.includes(companySubtype),
+            ) &&
+            allowedSubTypesForType.length
+          ) {
+            throw new IBadRequestException({
+              message: commonErrors.invalidValue(
+                companyType,
+                licensedEntityCompanySubtype,
+              ),
+            });
+          }
+        }
 
-      this.eventEmitter.emit(event.name, event);
+        if (apiConsumerRole) {
+          const companyCreated = await this.companyRepository.save({
+            name: companyName,
+            type: companyType,
+            subtype: licensedEntityCompanySubtype,
+          });
 
-      const otpData: any = {};
-      // TODO remove this.
-      if (new Date() < new Date('2023-12-31')) {
-        otpData.otp = otp.toString();
-      }
+          const otp = generateOtp(6);
 
-      return ResponseFormatter.success(
-        authSuccessMessages.signup,
-        new GetUserResponseDTO({
-          ...user,
-          ...otpData,
-          company: companyCreated,
-        }),
-      );
-    } else {
-      throw new IBadRequestException({
-        message: authErrors.errorOccurredCreatingUser,
-      });
+          const user = await this.userRepository.save({
+            email: email.trim().toLowerCase(),
+            password: hashSync(password, 12),
+            roleId: apiConsumerRole.id,
+            companyId: companyCreated.id,
+            emailVerificationOtp: otp.toString(),
+            emailVerificationExpires: moment()
+              .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
+              .toDate(),
+            profile: {
+              firstName,
+              lastName,
+              phone,
+              companyRole,
+            },
+          });
+
+          const event = new AuthSignupEvent(user, { otp });
+
+          user.company = companyCreated;
+
+          this.eventEmitter.emit(event.name, event);
+
+          const otpData: any = {};
+          // TODO remove this.
+          if (new Date() < new Date('2023-12-31')) {
+            otpData.otp = otp.toString();
+          }
+
+          return ResponseFormatter.success(
+            authSuccessMessages.signup,
+            new GetUserResponseDTO({
+              ...user,
+              ...otpData,
+              company: companyCreated,
+            }),
+          );
+        } else {
+          throw new IBadRequestException({
+            message: authErrors.errorOccurredCreatingUser,
+          });
+        }
     }
   }
 

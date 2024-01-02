@@ -6,6 +6,7 @@ import {
   Patch,
   // Post,
   Query,
+  SerializeOptions,
   UploadedFiles,
   UseInterceptors,
   UsePipes,
@@ -25,6 +26,7 @@ import {
   SkipAuthGuard,
 } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
+import { CompanyTypes } from '@common/database/constants';
 
 @Controller()
 export class CompanyController {
@@ -50,6 +52,15 @@ export class CompanyController {
   @SkipAuthGuard()
   getCompanyTypes() {
     return this.companyService.getCompanyTypes();
+  }
+
+  @Get('company/:companyType/fields')
+  @SkipAuthGuard()
+  @SerializeOptions({
+    strategy: 'exposeAll',
+  })
+  getCompanyCustomFields(@Param('companyType') companyType: CompanyTypes) {
+    return this.companyService.getCompanyCustomFields(companyType);
   }
 
   @Get('companies')

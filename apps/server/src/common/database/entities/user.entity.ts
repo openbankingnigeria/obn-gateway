@@ -62,6 +62,14 @@ export class User {
   @Column({ name: 'role_id', nullable: false, default: null, length: 36 })
   roleId: string;
 
+  @Column({
+    name: 'account_number',
+  })
+  accountNumber: string;
+
+  @Column({ name: 'bvn' })
+  bvn: string;
+
   @ManyToOne(() => Company, (company) => company.users, { cascade: ['insert'] })
   @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
   company?: Company;
