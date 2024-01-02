@@ -39,11 +39,14 @@ const SignupSuccess = () => {
 
       <div className='w-full flex flex-col gap-[16px]'>
         <h2 className='text-o-text-dark text-[28px] font-[600]'>
-          Account Setup Successful
+          {/* Account Setup Successful */}
+          Verification successful
         </h2>
 
         <div className='text-o-text-medium3 text-f14'>
-          You have successfully completed your profile and your account is all set up. 
+          {/* You have successfully completed your profile and your account is all set up. 
+          You’ll be redirected to sign in with your credentials in&#160; */}
+          You have successfully verified your email address and your account is all set up. 
           You’ll be redirected to sign in with your credentials in&#160;
           <span className='text-o-dark-green'>
             5s
