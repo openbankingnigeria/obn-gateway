@@ -80,17 +80,22 @@ export async function postAccountSetUp(prevState: any, formData: FormData) {
 
 /* SIGN UP ACTION */
 export async function postSignup(prevState: any, formData: FormData) {
+  // TODO: Check if commented fields are present.
   const fullData = {
-    email: formData.get('email'),
-    password: formData.get('password'),
-    confirmPassword: formData.get('confirm_password'),
     firstName: formData.get('first_name'),
     lastName: formData.get('last_name'),
-    // country: formData.get('country'),
+    email: formData.get('email'),
     phone: formData.get('phone_number'),
-    companyName: formData.get('company_name'),
-    companyType: formData.get('company_type'),
+    country: formData.get('country'),
+    companyType: formData.get('user_type'),
+    companyName: formData.get('business_name'),
+    companySubtype: formData.get('business_type'),
+    // bvn: formData.get('bvn'),
+    // cac: formData.get('cac'),
+    // account_number: formData.get('account_number'),
     companyRole: formData.get('role'),
+    password: formData.get('password'),
+    confirmPassword: formData.get('confirm_password'),
   };
 
   let response = await axiosRequest({
