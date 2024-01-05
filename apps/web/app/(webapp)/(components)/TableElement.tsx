@@ -38,7 +38,7 @@ const TableElement = ({
       columnHelper.accessor(item?.accessor, {
         header: () => item?.header,
         cell: ({ column, cell, renderValue }) => {
-          if(column.id === 'status') {
+          if(column.id === 'status' || column.id === 'user_type') {
             return <StatusBox status={cell.getValue()} />
           } else {
             return renderValue();
@@ -92,6 +92,7 @@ const TableElement = ({
                     text-o-text-medium px-[16px] text-f12 font-[500] 
                     ${header.id == 'actions' && '!min-w-[60px] !max-w-0 !w-auto'}
                     ${header.id == 'status' && '!min-w-[100px] !max-w-0 !w-auto'}
+                    ${header.id == 'user_type' && '!min-w-[120px] !max-w-0 !w-auto'}
                     ${header.id == 'velocity' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'amount' && '!min-w-[100px] !max-w-0 !w-auto'}
                     ${header.id == 'no_of_apis' && '!min-w-[100px] !max-w-0 !w-auto'}
