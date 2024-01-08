@@ -31,6 +31,7 @@ import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer
 import { Company } from '@common/database/entities';
 import { companyErrors } from '@company/company.errors';
 import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
+import { CompanyTypes } from '@common/database/constants';
 
 // TODO return DTO based on parent type, i.e. we dont want to return sensitive API info data to API consumer for e.g.
 @Injectable()
@@ -582,7 +583,10 @@ export class APIService {
             {
               wildcard: {
                 'consumer.id.keyword':
-                  this.requestContext.user!.companyId || '*',
+                  this.requestContext.user!.company.type ===
+                  CompanyTypes.API_PROVIDER
+                    ? '*'
+                    : this.requestContext.user!.companyId,
               },
             },
           ],
@@ -613,7 +617,10 @@ export class APIService {
             {
               wildcard: {
                 'consumer.id.keyword':
-                  this.requestContext.user!.companyId || '*',
+                  this.requestContext.user!.company.type ===
+                  CompanyTypes.API_PROVIDER
+                    ? '*'
+                    : this.requestContext.user!.companyId,
               },
             },
           ],
