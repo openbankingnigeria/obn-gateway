@@ -1,6 +1,6 @@
 export enum CompanyTypes {
   INDIVIDUAL = 'individual',
-  LICENSED_ENTITY = 'licensedEntity',
+  LICENSED_ENTITY = 'licensed-entity',
   BUSINESS = 'business',
   API_PROVIDER = 'api-provider',
 }

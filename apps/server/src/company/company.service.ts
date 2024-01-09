@@ -356,7 +356,7 @@ export class CompanyService {
         customFields = companyCustomFields.individual;
         break;
       case CompanyTypes.LICENSED_ENTITY:
-        customFields = companyCustomFields.licensedEntity;
+        customFields = companyCustomFields['licensed-entity'];
         break;
     }
 

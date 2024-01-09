@@ -270,7 +270,7 @@ export class LicensedEntitySignupDto extends BaseSignupDto {
 export const signupDtos: Record<CompanyTypes, any> = {
   individual: IndividualSignupDto,
   business: BusinessSignupDto,
-  licensedEntity: LicensedEntitySignupDto,
+  ['licensed-entity']: LicensedEntitySignupDto,
   'api-provider': '',
 };
 

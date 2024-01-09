@@ -31,7 +31,7 @@ export const companyCustomFields: Omit<
     accountNumber: { label: 'Account Number', type: 'text' },
     bvn: { label: 'BVN', type: 'text' },
   },
-  licensedEntity: {
+  ['licensed-entity']: {
     email: { label: 'Official Email Address', type: 'email' },
     password: { label: 'Password', type: 'password' },
     confirmPassword: { label: 'Confirm Password', type: 'password' },
