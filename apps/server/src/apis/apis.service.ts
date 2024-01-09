@@ -573,6 +573,27 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     { limit, page }: PaginationParameters,
   ) {
+    console.log({
+      from: page - 1,
+      size: limit,
+      query: {
+        bool: {
+          must: [
+            { term: { 'environment.keyword': environment } },
+            {
+              wildcard: {
+                'consumer.id.keyword':
+                  this.requestContext.user!.company.type ===
+                  CompanyTypes.API_PROVIDER
+                    ? '*'
+                    : this.requestContext.user!.companyId,
+              },
+            },
+          ],
+        },
+      },
+      sort: [{ '@timestamp': { order: 'desc' } }],
+    });
     const logs = await this.elasticsearchService.search({
       from: page - 1,
       size: limit,
