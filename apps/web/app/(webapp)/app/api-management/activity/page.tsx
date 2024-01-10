@@ -5,21 +5,52 @@ import { SearchBar, SelectElement } from '@/components/forms'
 import { ActivityTable } from './(components)'
 import { APIS_DATA_WITH_ALL } from '@/data/apisData'
 import { ExportButton } from '@/app/(webapp)/(components)'
+import { applyAxiosRequest } from '@/hooks'
+import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout'
 
-const ActivityPage = ({ searchParams }: UrlParamsProps) => {
+const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
-  const search_apis = searchParams?.search_apis || ''
+  const search_apis = searchParams?.search_apis || '';
+  const environment = 'development';
 
   const filters = [status, search_query, search_apis];
 
+  const fetchedActivities: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getAPILogs({
+      environment
+    }),
+    method: 'GET',
+    data: null
+  });
+
+  if (fetchedActivities?.status == 401) {
+    return <Logout />
+  }
+
+  let meta_data = fetchedActivities?.meta_data;
+  let activity = fetchedActivities?.data?.map((activity: any) => {
+    return({
+      ...activity,
+      reference_id: activity?.id,
+      consumer_name: activity?.consumer_name,
+      email_address: activity?.email_address,
+      api_name: activity?.name,
+      status: activity?.status,
+      endpoint_url: activity?.request?.url,
+      timestamp: activity?.timestamp,
+    })
+  })
+
   const headers = ACTIVITY_TABLE_HEADERS;
-  const activity = ACTIVITY_TABLE_DATA;
-  const total_pages = activity?.length;
-  const total_elements_in_page = activity?.length;
-  const total_elements = activity?.length;
+  // const activity = ACTIVITY_TABLE_DATA;
+  const total_pages = meta_data?.totalNumberOfPages;
+  const total_elements_in_page = activity?.length || meta_data?.pageSize;
+  const total_elements = meta_data?.totalNumberOfRecords;
 
   const status_list = ACTIVITY_STATUS_DATA?.map(data => {
     return({

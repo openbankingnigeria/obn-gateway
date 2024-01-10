@@ -2,14 +2,19 @@
 
 import { ExportButton, StatusBox, ViewData } from '@/app/(webapp)/(components)';
 import { ACTIVITY_DETAILS } from '@/data/activityData';
+import { ActivitySectionsProps } from '@/types/webappTypes/appTypes';
 import { updateSearchParams } from '@/utils/searchParams';
 import { timestampFormatter } from '@/utils/timestampFormatter';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
-const ActivityDetails = () => {
+const ActivityDetails = ({
+  rawData,
+  path
+}: ActivitySectionsProps) => {
   const router = useRouter();
-  const activity_details = ACTIVITY_DETAILS;
+  const activity_details = rawData;
+  console.log(activity_details)
 
   useEffect(() => {
     const slug = updateSearchParams('slug', 'Activity Details');
@@ -22,10 +27,10 @@ const ActivityDetails = () => {
         <header className='w-full flex items-start justify-between gap-5'>
           <div className='w-full flex flex-col gap-[4px]'>
             <h2 className='w-full text-f18 text-o-text-dark font-[500]'>
-              {activity_details?.reference_id}
+              {activity_details?.id}
             </h2>
 
-            <StatusBox status={activity_details?.status} />
+            <StatusBox status={activity_details?.status || 'status'} />
           </div>
 
           <ExportButton 
@@ -53,7 +58,7 @@ const ActivityDetails = () => {
 
             <ViewData 
               label='API Name'
-              value={activity_details?.api_name}
+              value={activity_details?.name}
             />
 
             <ViewData 
@@ -67,7 +72,7 @@ const ActivityDetails = () => {
 
             <ViewData 
               label='Endpoint URL'
-              value={activity_details?.endpoint_url}
+              value={activity_details?.request?.url}
             />
 
             <ViewData 
@@ -77,12 +82,15 @@ const ActivityDetails = () => {
 
             <ViewData 
               label='Status Code'
-              value={activity_details?.status_code}
+              value={activity_details?.response?.status}
             />
 
             <ViewData 
               label='Response Time'
-              value={activity_details?.response_time + 'ms'}
+              value={
+                // activity_details?.response_time + 'ms'
+                activity_details?.response_time
+              }
             />
           </div>
         </div>

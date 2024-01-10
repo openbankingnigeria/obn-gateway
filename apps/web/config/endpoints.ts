@@ -74,6 +74,12 @@ export const deleteAPI = ({ environment, id }: GetEnvironmentProps) =>
   `${BASE_URL}/apis/${environment}/${id}`;
 export const updateAPI = ({ environment, id }: GetEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}`;
+export const getAPILogs = ({ environment }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs`;
+export const getAPILog = ({ environment, id }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs/${id}`;
+export const getAPILogStats = ({ environment }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs/stats`;
 
 
 // COMPANY
