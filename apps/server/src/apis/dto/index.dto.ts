@@ -264,4 +264,16 @@ export class APILogStatsResponseDTO {
   @Expose()
   @Transform(({ obj }) => obj.avgProxyLatency?.value)
   avgProxyLatency: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.avgCountPerSecond?.value)
+  avgCountPerSecond: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.successCount?.doc_count)
+  successCount: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.failedCount?.doc_count)
+  failedCount: number;
 }

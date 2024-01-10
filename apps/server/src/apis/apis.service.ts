@@ -572,30 +572,8 @@ export class APIService {
   async getAPILogs(
     environment: KONG_ENVIRONMENT,
     { limit, page }: PaginationParameters,
+    filters?: any,
   ) {
-    console.log(
-      JSON.stringify({
-        from: page - 1,
-        size: limit,
-        query: {
-          bool: {
-            must: [
-              { term: { 'environment.keyword': environment } },
-              {
-                wildcard: {
-                  'consumer.id.keyword':
-                    this.requestContext.user!.company.type ===
-                    CompanyTypes.API_PROVIDER
-                      ? '*'
-                      : this.requestContext.user!.companyId,
-                },
-              },
-            ],
-          },
-        },
-        sort: [{ '@timestamp': { order: 'desc' } }],
-      }),
-    );
     const logs = await this.elasticsearchService.search({
       from: page - 1,
       size: limit,
@@ -664,7 +642,7 @@ export class APIService {
   }
 
   // TODO ensure only AP can view logs for all users;
-  async getAPILogsStats(environment: KONG_ENVIRONMENT) {
+  async getAPILogsStats(environment: KONG_ENVIRONMENT, filters?: any) {
     const stats = await this.elasticsearchService.search({
       size: 0,
       query: {
@@ -674,7 +652,10 @@ export class APIService {
             {
               wildcard: {
                 'consumer.id.keyword':
-                  this.requestContext.user!.companyId || '*',
+                  this.requestContext.user!.company.type ===
+                  CompanyTypes.API_PROVIDER
+                    ? '*'
+                    : this.requestContext.user!.companyId,
               },
             },
           ],
@@ -696,7 +677,36 @@ export class APIService {
             field: 'latencies.proxy',
           },
         },
+        successCount: {
+          filter: {
+            range: {
+              'response.status': { lt: 400 },
+            },
+          },
+        },
+        failedCount: {
+          filter: {
+            range: {
+              'response.status': { gte: 400 },
+            },
+          },
+        },
         totalCount: { value_count: { field: 'environment.keyword' } },
+        countPerSecond: {
+          date_histogram: {
+            field: '@timestamp',
+            fixed_interval: '1s',
+            min_doc_count: 1,
+          },
+          aggs: {
+            totalCount: { value_count: { field: 'environment.keyword' } },
+          },
+        },
+        avgCountPerSecond: {
+          avg_bucket: {
+            buckets_path: 'countPerSecond>totalCount',
+          },
+        },
       },
     });
 

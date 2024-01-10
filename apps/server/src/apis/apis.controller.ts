@@ -75,14 +75,20 @@ export class APIController {
   getAPILogs(
     @Param() params: APIParam,
     @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query(new FilterPipe(APIFilters.listAPILogs))
+    filters: any,
   ) {
-    return this.apiService.getAPILogs(params.environment, pagination);
+    return this.apiService.getAPILogs(params.environment, pagination, filters);
   }
 
   @Get('logs/stats')
   @UsePipes(IValidationPipe)
-  getAPILogsStats(@Param() params: APIParam) {
-    return this.apiService.getAPILogsStats(params.environment);
+  getAPILogsStats(
+    @Param() params: APIParam,
+    @Query(new FilterPipe(APIFilters.listAPILogs))
+    filters: any,
+  ) {
+    return this.apiService.getAPILogsStats(params.environment, filters);
   }
 
   @Get('logs/:id')
