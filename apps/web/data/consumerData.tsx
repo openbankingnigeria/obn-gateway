@@ -127,8 +127,8 @@ export const CONSUMER_DETAILS_PANEL = [
 
 export const CONSUMERS_TABLE_HEADERS = [
   {
-    header: 'Company Name',
-    accessor: 'company_name'
+    header: 'Business Name',
+    accessor: 'business_name'
   },
   {
     header: 'Name',
@@ -137,6 +137,10 @@ export const CONSUMERS_TABLE_HEADERS = [
   {
     header: 'Email Address',
     accessor: 'email_address'
+  },
+  {
+    header: 'User Type',
+    accessor: 'user_type'
   },
   {
     header: 'Status',
@@ -287,70 +291,70 @@ export const CONSUMERS_TABLE_FULLDATA = [
     id: 1,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'ACTIVE',
   },
   {
     id: 2,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'PENDING',
   },
   {
     id: 3,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'ACTIVE',
   },
   {
     id: 4,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'INACTIVE',
   },
   {
     id: 5,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'ACTIVE',
   },
   {
     id: 6,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'ACTIVE',
   },
   {
     id: 7,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'REJECTED',
   },
   {
     id: 8,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'ACTIVE',
   },
   {
     id: 9,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'REJECTED',
   },
   {
     id: 10,
     name: 'John Ajayi',
     email_address: 'johnajayi@lendsqr.com',
-    company_name: 'Lendsqr',
+    business_name: 'Lendsqr',
     status: 'ACTIVE',
   },
 ];

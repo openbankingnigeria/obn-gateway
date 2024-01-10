@@ -5,8 +5,11 @@ import { CONSUMERS_TABLE_DATA, CONSUMERS_TABLE_HEADERS, CONSUMERS_STATUS_DATA } 
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ConsumersTable } from './(components)'
 import { APIS_DATA } from '@/data/apisData'
+import { applyAxiosRequest } from '@/hooks'
+import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout'
 
-const ConsumersPage = ({ searchParams }: UrlParamsProps) => {
+const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
@@ -14,6 +17,35 @@ const ConsumersPage = ({ searchParams }: UrlParamsProps) => {
   const search_apis = searchParams?.search_apis || ''
 
   const filters = [status, search_query];
+
+  const fetchedConsumers: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanies({
+      page: `${page}`,
+      limit: `${rows}`,
+      name: search_query,
+      status: status
+    }),
+    method: 'GET',
+    data: null
+  });
+
+  if (fetchedConsumers?.status == 401) {
+    return <Logout />
+  }
+
+  let meta_data = fetchedConsumers?.meta_data;
+  let consumers = fetchedConsumers?.data?.map((consumer: any) => {
+    return({
+      ...consumer,
+      user_type: consumer?.type,
+      business_name: consumer?.name || 'N/A',
+      name: consumer?.user_name,
+      // email_address: consumer,
+      // status: consumer
+    })
+  });
+
   const panel = CONSUMERS_STATUS_DATA({
     all: 1290, 
     pending: 28, 
@@ -23,10 +55,10 @@ const ConsumersPage = ({ searchParams }: UrlParamsProps) => {
   });
 
   const headers = CONSUMERS_TABLE_HEADERS;
-  const consumers = CONSUMERS_TABLE_DATA;
-  const total_pages = consumers?.length;
-  const total_elements_in_page = consumers?.length;
-  const total_elements = consumers?.length;
+  const total_pages = meta_data?.totalNumberOfPages;
+  const total_elements_in_page = consumers?.length || meta_data?.pageSize;
+  const total_elements = meta_data?.totalNumberOfRecords;
+
   const data_list = APIS_DATA;
 
   const status_list = CONSUMERS_STATUS_DATA({})?.map(data => {

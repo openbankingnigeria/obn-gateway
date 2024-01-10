@@ -74,9 +74,17 @@ export const deleteAPI = ({ environment, id }: GetEnvironmentProps) =>
   `${BASE_URL}/apis/${environment}/${id}`;
 export const updateAPI = ({ environment, id }: GetEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}`;
+export const getAPILogs = ({ environment }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs`;
+export const getAPILog = ({ environment, id }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs/${id}`;
+export const getAPILogStats = ({ environment }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs/stats`;
 
 
 // COMPANY
+export const getCompanies = ({ page, limit, createdAt_gt, createdAt_l, status }: GetListProps) => 
+  `${BASE_URL}/companies?page=${page}${limit ? `&limit=${limit}`: ''}${createdAt_gt ? `&filter[createdAt][gte]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lte]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}`;
 export const updateCompanyDetails = () => `${BASE_URL}/company/kyb`;
 export const getCompanyTypes = () => `${BASE_URL}/company/types`;
 export const getCompanyDetails = () => `${BASE_URL}/company/me`;
