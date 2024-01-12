@@ -21,7 +21,7 @@ export class Profile {
   @Column({ name: 'last_name' })
   lastName: string;
 
-  @Column({ name: 'company_role' })
+  @Column({ name: 'company_role', nullable: true })
   companyRole: string;
 
   @Column({ nullable: true })

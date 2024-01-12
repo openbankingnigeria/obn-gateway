@@ -6,7 +6,7 @@ export class Migration1703113880438 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
             ALTER TABLE \`companies\`
-            ADD \`subtype\` varchar(255) NOT NULL
+            ADD \`subtype\` varchar(255) NULL
         `);
   }
 

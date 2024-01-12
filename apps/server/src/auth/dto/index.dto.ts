@@ -143,10 +143,6 @@ export class BaseSignupDto {
   })
   lastName: string;
 
-  // @IsOptional()
-  // @IsString()
-  // country?: string;
-
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
@@ -155,12 +151,6 @@ export class BaseSignupDto {
     message: authValidationErrors.dto.invalidPhone,
   })
   phone: string;
-
-  // @IsNotEmpty({
-  //   message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  // })
-  // @IsString()
-  // companyName: string;
 
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
@@ -172,18 +162,6 @@ export class BaseSignupDto {
     ),
   )
   companyType: CompanyTypes;
-
-  // @IsNotEmpty({
-  //   message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  // })
-  // @IsString()
-  // companySubtype: string;
-
-  // @IsNotEmpty({
-  //   message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  // })
-  // @IsString()
-  // companyRole: string;
 }
 
 export class IndividualSignupDto extends BaseSignupDto {

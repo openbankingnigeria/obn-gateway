@@ -22,7 +22,7 @@ export class Migration1701884280574 implements MigrationInterface {
         `);
     await queryRunner.query(`
             ALTER TABLE \`profiles\`
-            ADD \`company_role\` varchar(255) NOT NULL
+            ADD \`company_role\` varchar(255) NULL
         `);
     await queryRunner.query(`
             ALTER TABLE \`settings\`
