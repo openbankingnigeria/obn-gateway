@@ -28,6 +28,7 @@ export class AuthController {
 
   @Post('signup')
   @SkipAuthGuard()
+  @UsePipes(IValidationPipe)
   async signup(@Body() data: BaseSignupDto) {
     const validationPipe = new IValidationPipe();
 

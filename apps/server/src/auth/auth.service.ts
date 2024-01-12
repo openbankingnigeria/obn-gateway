@@ -124,6 +124,7 @@ export class AuthService {
           companySubtype,
           rcNumber,
         } = data as BusinessSignupDto;
+
         if (systemSettings) {
           const parsedSystemSettings: SystemSettings = JSON.parse(
             systemSettings.value,
@@ -224,7 +225,7 @@ export class AuthService {
               phone,
             },
             accountNumber: iAccountNumber,
-            bvn,
+            bvn: hashSync(bvn, 12),
           });
 
           const event = new AuthSignupEvent(user, { otp });
@@ -269,7 +270,7 @@ export class AuthService {
 
           if (
             !allowedSubTypesForType.some((subtype) =>
-              subtype.includes(companySubtype),
+              subtype.includes(licensedEntityCompanySubtype),
             ) &&
             allowedSubTypesForType.length
           ) {
