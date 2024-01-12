@@ -15,7 +15,6 @@ import {
   Between,
   LessThan,
   LessThanOrEqual,
-  Like,
   MoreThan,
   MoreThanOrEqual,
 } from 'typeorm';
