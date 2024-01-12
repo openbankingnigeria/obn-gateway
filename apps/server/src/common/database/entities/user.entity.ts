@@ -64,11 +64,12 @@ export class User {
 
   @Column({
     name: 'account_number',
+    nullable: true,
   })
-  accountNumber: string;
+  accountNumber?: string;
 
-  @Column({ name: 'bvn' })
-  bvn: string;
+  @Column({ name: 'bvn', nullable: true })
+  bvn?: string;
 
   @ManyToOne(() => Company, (company) => company.users, { cascade: ['insert'] })
   @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
