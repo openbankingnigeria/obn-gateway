@@ -334,6 +334,8 @@ services:
         condition: service_healthy
       kong:
         condition: service_healthy
+      es:
+        condition: service_healthy
 
 secrets:
   kong_postgres_password:
