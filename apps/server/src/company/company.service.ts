@@ -1,4 +1,7 @@
-import { IBadRequestException } from '@common/utils/exceptions/exceptions';
+import {
+  IBadRequestException,
+  INotFoundException,
+} from '@common/utils/exceptions/exceptions';
 import { Injectable } from '@nestjs/common';
 import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
@@ -145,7 +148,7 @@ export class CompanyService {
       : this.requestContext.user!.company;
 
     if (!company) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: companyErrors.companyNotFound(companyId!),
       });
     }
@@ -255,7 +258,7 @@ export class CompanyService {
     });
 
     if (!company) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: companyErrors.companyNotFound(companyId!),
       });
     }
@@ -376,7 +379,7 @@ export class CompanyService {
     });
 
     if (!company) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: companyErrors.companyNotFound(companyId!),
       });
     }

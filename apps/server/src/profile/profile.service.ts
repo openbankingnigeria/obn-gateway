@@ -80,19 +80,21 @@ export class ProfileService {
       });
     }
 
+    const updatedProfile = this.profileRepository.create({
+      firstName,
+      lastName,
+    });
+
     await this.profileRepository.update(
       { userId: this.requestContext.user!.id },
-      this.profileRepository.create({
-        firstName,
-        lastName,
-      }),
+      updatedProfile,
     );
 
     // TODO emit event
 
     return ResponseFormatter.success(
       profileSuccessMessages.updatedProfile,
-      new GetProfileResponseDTO(profile),
+      new GetProfileResponseDTO(Object.assign({}, profile, updatedProfile)),
     );
   }
 

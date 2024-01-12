@@ -11,7 +11,10 @@ import {
   SetRolePermissionsDto,
   UpdateRoleDto,
 } from './dto/index.dto';
-import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
+import {
+  IBadRequestException,
+  INotFoundException,
+} from 'src/common/utils/exceptions/exceptions';
 import { roleErrors } from '@roles/role.errors';
 import {
   ResponseFormatter,
@@ -145,7 +148,7 @@ export class RolesService {
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }
@@ -168,7 +171,7 @@ export class RolesService {
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }
@@ -200,7 +203,7 @@ export class RolesService {
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }
@@ -229,7 +232,7 @@ export class RolesService {
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }
@@ -258,7 +261,7 @@ export class RolesService {
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }

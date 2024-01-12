@@ -2,11 +2,14 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
+  IsDate,
+  IsDateString,
   IsEnum,
   IsIn,
   IsInt,
   IsNotEmpty,
   IsObject,
+  IsOptional,
   IsString,
   IsUUID,
   IsUrl,
@@ -276,4 +279,32 @@ export class APILogStatsResponseDTO {
   @Expose()
   @Transform(({ obj }) => obj.failedCount?.doc_count)
   failedCount: number;
+}
+
+class GetAPILogsFilterCreatedAtDto {
+  @IsOptional()
+  @IsDateString()
+  'gt': string;
+
+  @IsOptional()
+  @IsDateString()
+  'lt': string;
+}
+
+export class GetAPILogsFilterDto {
+  @Expose({ name: 'createdAt' })
+  @ValidateNested()
+  @Type(() => GetAPILogsFilterCreatedAtDto)
+  '@timestamp': GetAPILogsFilterCreatedAtDto;
+
+  @Expose({ name: 'consumerId' })
+  @IsOptional()
+  @IsString()
+  'consumer.id': string;
+}
+
+export class GetAPILogsDto {
+  @ValidateNested()
+  @Type(() => GetAPILogsFilterDto)
+  filter: GetAPILogsFilterDto;
 }
