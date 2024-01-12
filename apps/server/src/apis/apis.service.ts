@@ -3,12 +3,15 @@ import {
   ResponseFormatter,
   ResponseMetaDTO,
 } from '@common/utils/response/response.formatter';
-import { IBadRequestException } from '@common/utils/exceptions/exceptions';
+import {
+  IBadRequestException,
+  INotFoundException,
+} from '@common/utils/exceptions/exceptions';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { In, Not, Repository } from 'typeorm';
+import { FindOperator, In, Not, Repository } from 'typeorm';
 import {
   APILogResponseDTO,
   AssignAPIsDto,
@@ -17,6 +20,8 @@ import {
   GETAPIRouteResponseDTO,
   GetAPIResponseDTO,
   UpdateAPIDto,
+  GetAPILogsDto,
+  GetAPILogsFilterDto,
 } from './dto/index.dto';
 import slugify from 'slugify';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
@@ -32,6 +37,7 @@ import { Company } from '@common/database/entities';
 import { companyErrors } from '@company/company.errors';
 import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
 import { CompanyTypes } from '@common/database/constants';
+import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 
 // TODO return DTO based on parent type, i.e. we dont want to return sensitive API info data to API consumer for e.g.
 @Injectable()
@@ -118,7 +124,7 @@ export class APIService {
     });
 
     if (!route) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: apiErrorMessages.routeNotFound(id),
       });
     }
@@ -165,7 +171,7 @@ export class APIService {
     });
 
     if (!route) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: apiErrorMessages.routeNotFound(id),
       });
     }
@@ -338,6 +344,7 @@ export class APIService {
       });
     }
 
+    // TODO consumer shouldnt be auto created for non development environments
     let consumerId = company.consumerId;
 
     // If the API consumer does not already have an associated consumer on the API gateway, create a new consumer for the API consumer
@@ -469,7 +476,7 @@ export class APIService {
     });
 
     if (!route) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: apiErrorMessages.routeNotFound(routeId),
       });
     }
@@ -568,11 +575,30 @@ export class APIService {
     );
   }
 
+  private convertFilterToSearchDSLQuery<T = any>(
+    filters?: T,
+  ): QueryDslQueryContainer[] {
+    const result: QueryDslQueryContainer[] = [];
+    for (const filter in filters) {
+      const item = filters[filter] as any;
+      if (item.gt || item.lt) {
+        result.push({
+          range: { [`${filter}`]: { lt: item.lt, gt: item.gt } },
+        });
+      } else if (typeof item === 'string') {
+        result.push({
+          term: { [`${filter}.keyword`]: item },
+        });
+      }
+    }
+    return result;
+  }
+
   // TODO ensure only AP can view logs for all users;
   async getAPILogs(
     environment: KONG_ENVIRONMENT,
     { limit, page }: PaginationParameters,
-    filters?: any,
+    filters?: GetAPILogsDto,
   ) {
     const logs = await this.elasticsearchService.search({
       from: page - 1,
@@ -590,6 +616,9 @@ export class APIService {
                     : this.requestContext.user!.companyId,
               },
             },
+            ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+              filters?.filter,
+            ),
           ],
         },
       },
@@ -630,19 +659,22 @@ export class APIService {
     });
 
     if (!logs.hits.hits.length) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: apiErrorMessages.logNotFound(requestId),
       });
     }
 
     return ResponseFormatter.success(
-      apiSuccessMessages.fetchedAPILogs,
+      apiSuccessMessages.fetchedAPILog,
       new APILogResponseDTO(logs.hits.hits[0]._source),
     );
   }
 
   // TODO ensure only AP can view logs for all users;
-  async getAPILogsStats(environment: KONG_ENVIRONMENT, filters?: any) {
+  async getAPILogsStats(
+    environment: KONG_ENVIRONMENT,
+    filters?: GetAPILogsDto,
+  ) {
     const stats = await this.elasticsearchService.search({
       size: 0,
       query: {
@@ -658,6 +690,9 @@ export class APIService {
                     : this.requestContext.user!.companyId,
               },
             },
+            ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+              filters?.filter,
+            ),
           ],
         },
       },
@@ -711,7 +746,7 @@ export class APIService {
     });
 
     return ResponseFormatter.success(
-      apiSuccessMessages.fetchedAPILogs,
+      apiSuccessMessages.fetchedAPILogsStats,
       new APILogStatsResponseDTO(stats.aggregations),
     );
   }

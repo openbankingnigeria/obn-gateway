@@ -7,6 +7,8 @@ export const apiSuccessMessages = {
   assignAPIs: 'Successfully assigned APIs',
   unassignAPIs: 'Successfully unassigned APIs',
   fetchedAPILogs: 'Successfully fetched API logs',
+  fetchedAPILog: 'Successfully fetched API log',
+  fetchedAPILogsStats: 'Successfully fetched API logs stats',
 };
 
 export const apiErrorMessages = {

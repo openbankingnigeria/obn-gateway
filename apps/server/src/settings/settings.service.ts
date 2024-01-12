@@ -12,7 +12,7 @@ import { CompanySubtypes, SystemSettings } from './types';
 import { Settings } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { settingsErrors } from './settings.errors';
-import { IBadRequestException } from '@common/utils/exceptions/exceptions';
+import { INotFoundException } from '@common/utils/exceptions/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
@@ -37,7 +37,7 @@ export class SettingsService {
     });
 
     if (!systemSettings) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
       });
     }
@@ -69,7 +69,7 @@ export class SettingsService {
     });
 
     if (!systemSettings) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
       });
     }
@@ -137,7 +137,7 @@ export class SettingsService {
     });
 
     if (!systemSettings) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
       });
     }

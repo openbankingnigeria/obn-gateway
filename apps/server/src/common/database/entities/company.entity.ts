@@ -39,7 +39,7 @@ export class Company {
   @Column('enum', { enum: CompanyTypes })
   type: CompanyTypes;
 
-  @Column()
+  @Column({ nullable: true })
   subtype: string;
 
   @Column({ nullable: true })

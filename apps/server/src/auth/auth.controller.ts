@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
+  BaseSignupDto,
   ForgotPasswordDto,
   LoginDto,
   ResendOtpDto,
@@ -20,26 +21,22 @@ import {
 } from './dto/index.dto';
 import { SkipAuthGuard } from 'src/common/utils/authentication/auth.decorator';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
-import { CompanyTypes } from '@common/database/constants';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signup/:companyType')
+  @Post('signup')
   @SkipAuthGuard()
-  async signup(
-    @Body() data: any,
-    @Param('companyType') companyType: CompanyTypes,
-  ) {
+  async signup(@Body() data: BaseSignupDto) {
     const validationPipe = new IValidationPipe();
 
     await validationPipe.transform(data, {
       type: 'body',
-      metatype: signupDtos[companyType],
+      metatype: signupDtos[data.companyType],
     });
 
-    return this.authService.signup(data, companyType);
+    return this.authService.signup(data, data.companyType);
   }
 
   @Post('login')

@@ -112,7 +112,7 @@ export class CollectionsService {
     });
 
     if (!collection) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: collectionErrorMessages.collectionNotFound(id),
       });
     }
@@ -140,7 +140,7 @@ export class CollectionsService {
     });
 
     if (!collection) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: collectionErrorMessages.collectionNotFound(id),
       });
     }

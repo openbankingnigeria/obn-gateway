@@ -79,7 +79,7 @@ export class IValidationPipe implements PipeTransform<any> {
       });
     }
 
-    return value;
+    return object;
   }
 
   private toValidate(metatype: any): boolean {
