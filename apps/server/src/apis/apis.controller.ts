@@ -16,6 +16,7 @@ import {
   APIParam,
   AssignAPIsDto,
   CreateAPIDto,
+  GetAPILogsDto,
   UpdateAPIDto,
 } from './dto/index.dto';
 import {
@@ -75,19 +76,14 @@ export class APIController {
   getAPILogs(
     @Param() params: APIParam,
     @Query(PaginationPipe) pagination: PaginationParameters,
-    @Query(new FilterPipe(APIFilters.listAPILogs))
-    filters: any,
+    @Query() filters: GetAPILogsDto,
   ) {
     return this.apiService.getAPILogs(params.environment, pagination, filters);
   }
 
   @Get('logs/stats')
   @UsePipes(IValidationPipe)
-  getAPILogsStats(
-    @Param() params: APIParam,
-    @Query(new FilterPipe(APIFilters.listAPILogs))
-    filters: any,
-  ) {
+  getAPILogsStats(@Param() params: APIParam, @Query() filters: GetAPILogsDto) {
     return this.apiService.getAPILogsStats(params.environment, filters);
   }
 

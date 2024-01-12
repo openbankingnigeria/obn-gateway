@@ -9,5 +9,4 @@ export const APIFilters: { [k: string]: AllowedFieldOptions[] } = {
     { key: 'collectionId', valueType: ValueTypes.string },
     { key: 'createdAt', valueType: ValueTypes.date },
   ],
-  listAPILogs: [{ key: 'createdAt', valueType: ValueTypes.date }],
 };
