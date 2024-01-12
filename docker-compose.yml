@@ -270,8 +270,6 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-obn}
       MYSQL_USER: ${MYSQL_USER:-obn}
       MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
-    ports:
-      - 3306:3306
     secrets:
       - mysql_password
       - mysql_root_password
