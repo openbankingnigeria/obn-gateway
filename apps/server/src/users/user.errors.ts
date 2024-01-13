@@ -19,7 +19,7 @@ export const userErrors = {
   userWithEmailNotFound: (email: string) =>
     `User with email '${email}' not found.`,
   userEmailNotVerified: 'User email not verified.',
-  companyExists: 'Company with already exists.',
+  companyExists: 'Company already exists.',
   userWithEmailAlreadyExists: (email: string) =>
     `A user with email '${email}' already exists.`,
   userNotFound: `User not found.`,
