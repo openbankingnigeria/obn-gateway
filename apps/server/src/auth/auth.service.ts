@@ -90,6 +90,20 @@ export class AuthService {
       });
     }
 
+    if (data.rcNumber) {
+      const companyExists = await this.companyRepository.findOne({
+        where: {
+          rcNumber: data.rcNumber,
+        },
+      });
+
+      if (companyExists) {
+        throw new IBadRequestException({
+          message: userErrors.companyExists,
+        });
+      }
+    }
+
     const { email, firstName, lastName, password, confirmPassword, phone } =
       data;
 
