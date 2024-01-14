@@ -38,8 +38,8 @@ export class Migration1701884323523 implements MigrationInterface {
       },
     ],
     companySubtypes: {
-      individual: [],
-      licensedEntity: [
+      [CompanyTypes.INDIVIDUAL]: [],
+      [CompanyTypes.LICENSED_ENTITY]: [
         'Commercial Bank',
         'Merchant Bank',
         'Non-interest Bank',
@@ -55,7 +55,7 @@ export class Migration1701884323523 implements MigrationInterface {
         'Capital Market Operator',
         'Others',
       ],
-      business: [
+      [CompanyTypes.BUSINESS]: [
         'Telecommunications',
         'Manufacturer',
         'Healthcare',

@@ -86,13 +86,13 @@ export class GetCompanySubTypesResponseDTO {
   }
 
   @Expose()
-  individual: string[];
+  [CompanyTypes.INDIVIDUAL]: string[];
 
   @Expose()
-  licensedEntity: string[];
+  [CompanyTypes.LICENSED_ENTITY]: string[];
 
   @Expose()
-  business: string[];
+  [CompanyTypes.BUSINESS]: string[];
 }
 
 export class GetCompanyCustomFieldsResponseDTO {
