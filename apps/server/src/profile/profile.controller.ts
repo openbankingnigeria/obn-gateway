@@ -6,6 +6,8 @@ import {
   UpdateTwoFADto,
 } from './dto/index.dto';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
+import { Ctx } from '@common/utils/authentication/auth.decorator';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Controller('profile')
 export class ProfileController {
@@ -13,37 +15,37 @@ export class ProfileController {
 
   @Get('')
   @UsePipes(IValidationPipe)
-  getProfile() {
-    return this.profileService.getProfile();
+  getProfile(@Ctx() ctx: RequestContext) {
+    return this.profileService.getProfile(ctx);
   }
 
   @Patch('')
   @UsePipes(IValidationPipe)
-  updateProfile(@Body() data: UpdateProfileDto) {
-    return this.profileService.updateProfile(data);
+  updateProfile(@Ctx() ctx: RequestContext, @Body() data: UpdateProfileDto) {
+    return this.profileService.updateProfile(ctx, data);
   }
 
   @Post('/two-fa')
   @UsePipes(IValidationPipe)
-  generateTwoFA() {
-    return this.profileService.generateTwoFA();
+  generateTwoFA(@Ctx() ctx: RequestContext) {
+    return this.profileService.generateTwoFA(ctx);
   }
 
   @Patch('/two-fa')
   @UsePipes(IValidationPipe)
-  verifyTwoFA(@Body() data: UpdateTwoFADto) {
-    return this.profileService.verifyTwoFA(data);
+  verifyTwoFA(@Ctx() ctx: RequestContext, @Body() data: UpdateTwoFADto) {
+    return this.profileService.verifyTwoFA(ctx, data);
   }
 
   @Patch('/two-fa/disable')
   @UsePipes(IValidationPipe)
-  disableTwoFA(@Body() data: UpdateTwoFADto) {
-    return this.profileService.disableTwoFA(data);
+  disableTwoFA(@Ctx() ctx: RequestContext, @Body() data: UpdateTwoFADto) {
+    return this.profileService.disableTwoFA(ctx, data);
   }
 
   @Patch('password')
   @UsePipes(IValidationPipe)
-  updatePassword(@Body() data: UpdatePasswordDto) {
-    return this.profileService.updatePassword(data);
+  updatePassword(@Ctx() ctx: RequestContext, @Body() data: UpdatePasswordDto) {
+    return this.profileService.updatePassword(ctx, data);
   }
 }

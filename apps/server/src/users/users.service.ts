@@ -13,7 +13,6 @@ import {
   UserStatuses,
 } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
-import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import {
   ResponseFormatter,
@@ -33,11 +32,11 @@ import * as moment from 'moment';
 import { userSuccessMessages } from '@users/user.constants';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { UserReactivatedEvent } from 'src/shared/events/user.event';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly requestContext: RequestContextService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
@@ -48,7 +47,7 @@ export class UsersService {
     private readonly profileRepository: Repository<Profile>,
   ) {}
 
-  async createUser(data: CreateUserDto) {
+  async createUser(ctx: RequestContext, data: CreateUserDto) {
     const { email, roleId } = data;
 
     const userExists = await this.userRepository.count({
@@ -64,8 +63,8 @@ export class UsersService {
     const role = await this.roleRepository.findOne({
       where: {
         id: roleId,
-        parentId: this.requestContext.user!.role.parentId,
-        companyId: this.requestContext.user!.companyId,
+        parentId: ctx.activeUser.role.parentId,
+        companyId: ctx.activeUser.companyId,
       },
     });
 
@@ -83,7 +82,7 @@ export class UsersService {
         email,
         roleId: role.id,
         password: '',
-        companyId: this.requestContext.user!.companyId,
+        companyId: ctx.activeUser.companyId,
         resetPasswordToken: hashedToken,
         resetPasswordExpires: moment().add(24, 'hours').toDate(),
         profile: {
@@ -94,7 +93,7 @@ export class UsersService {
       }),
     );
 
-    const event = new UserCreatedEvent(this.requestContext.user!, user, {
+    const event = new UserCreatedEvent(ctx.activeUser, user, {
       pre: null,
       post: user,
       token,
@@ -108,9 +107,9 @@ export class UsersService {
     );
   }
 
-  async resendInvite(id: string) {
+  async resendInvite(ctx: RequestContext, id: string) {
     const user = await this.userRepository.findOne({
-      where: { id, companyId: this.requestContext.user!.companyId },
+      where: { id, companyId: ctx.activeUser.companyId },
     });
 
     if (!user) {
@@ -136,7 +135,7 @@ export class UsersService {
       },
     );
 
-    const event = new UserCreatedEvent(this.requestContext.user!, user, {
+    const event = new UserCreatedEvent(ctx.activeUser, user, {
       pre: null,
       post: user,
       token,
@@ -150,13 +149,17 @@ export class UsersService {
     );
   }
 
-  async listUsers({ limit, page }: PaginationParameters, filters?: any) {
+  async listUsers(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
     const totalUsers = await this.userRepository.count({
-      where: { companyId: this.requestContext.user!.companyId, ...filters },
+      where: { companyId: ctx.activeUser.companyId, ...filters },
     });
 
     const users = await this.userRepository.find({
-      where: { companyId: this.requestContext.user!.companyId, ...filters },
+      where: { companyId: ctx.activeUser.companyId, ...filters },
       relations: { profile: true, role: true },
       skip: (page - 1) * limit,
       take: limit,
@@ -177,9 +180,9 @@ export class UsersService {
     );
   }
 
-  async getUser(id: string) {
+  async getUser(ctx: RequestContext, id: string) {
     const user = await this.userRepository.findOne({
-      where: { id, companyId: this.requestContext.user!.companyId },
+      where: { id, companyId: ctx.activeUser.companyId },
       relations: { profile: true, role: true },
     });
 
@@ -197,11 +200,11 @@ export class UsersService {
     );
   }
 
-  async updateUser(id: string, data: UpdateUserDto) {
+  async updateUser(ctx: RequestContext, id: string, data: UpdateUserDto) {
     const { firstName, lastName, status, roleId } = data;
 
     const user = await this.userRepository.findOne({
-      where: { id, companyId: this.requestContext.user!.companyId },
+      where: { id, companyId: ctx.activeUser.companyId },
       relations: { profile: true },
     });
 
@@ -211,7 +214,7 @@ export class UsersService {
       });
     }
 
-    if (user.id === this.requestContext.user!.id) {
+    if (user.id === ctx.activeUser.id) {
       throw new IBadRequestException({
         message: userErrors.cannotUpdateSelf,
       });
@@ -222,8 +225,8 @@ export class UsersService {
       role = await this.roleRepository.findOne({
         where: {
           id: roleId,
-          parentId: this.requestContext.user!.role.parentId,
-          companyId: this.requestContext.user!.companyId,
+          parentId: ctx.activeUser.role.parentId,
+          companyId: ctx.activeUser.companyId,
         },
       });
 
@@ -251,18 +254,18 @@ export class UsersService {
     );
     updatedUser.profile = updatedProfile;
 
-    const event = new UserUpdatedEvent(this.requestContext.user!, user, {
+    const event = new UserUpdatedEvent(ctx.activeUser, user, {
       pre: user,
       post: updatedUser,
     });
 
     if (updatedUser.status && user.status !== updatedUser.status) {
       if (updatedUser.status === UserStatuses.ACTIVE) {
-        const event = new UserReactivatedEvent(this.requestContext.user!, user);
+        const event = new UserReactivatedEvent(ctx.activeUser, user);
         this.eventEmitter.emit(event.name, event);
       }
       if (updatedUser.status === UserStatuses.INACTIVE) {
-        const event = new UserDeactivatedEvent(this.requestContext.user!, user);
+        const event = new UserDeactivatedEvent(ctx.activeUser, user);
         this.eventEmitter.emit(event.name, event);
       }
     }
@@ -275,9 +278,9 @@ export class UsersService {
     );
   }
 
-  async deleteUser(id: string) {
+  async deleteUser(ctx: RequestContext, id: string) {
     const user = await this.userRepository.findOne({
-      where: { id, companyId: this.requestContext.user!.companyId },
+      where: { id, companyId: ctx.activeUser.companyId },
     });
 
     if (!user) {
@@ -286,7 +289,7 @@ export class UsersService {
       });
     }
 
-    if (user.id === this.requestContext.user!.id) {
+    if (user.id === ctx.activeUser.id) {
       throw new IBadRequestException({
         message: userErrors.cannotDeleteSelf,
       });
@@ -294,7 +297,7 @@ export class UsersService {
 
     await this.userRepository.softDelete({ id: user.id });
 
-    const event = new UserDeletedEvent(this.requestContext.user!, user, {
+    const event = new UserDeletedEvent(ctx.activeUser, user, {
       pre: user,
       post: null,
     });
@@ -304,7 +307,7 @@ export class UsersService {
     return ResponseFormatter.success(userSuccessMessages.deletedUser, null);
   }
 
-  async getStats() {
+  async getStats(ctx: RequestContext) {
     const stats = await this.userRepository.query(
       `SELECT IFNULL(count, 0) count, definitions.value FROM definitions
               LEFT OUTER JOIN (
@@ -315,7 +318,7 @@ export class UsersService {
               AND definitions.type = 'status'
               WHERE definitions.entity = 'user'
         `,
-      [this.requestContext.user!.companyId],
+      [ctx.activeUser.companyId],
     );
     return ResponseFormatter.success(
       userSuccessMessages.fetchedUsersStats,

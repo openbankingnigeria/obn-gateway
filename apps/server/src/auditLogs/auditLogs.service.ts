@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { auditLogsSuccessMessages } from './auditLogs.constants';
 import { AuditLog } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
-import { RequestContextService } from '@common/utils/request/request-context.service';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import {
   ResponseFormatter,
@@ -15,11 +14,11 @@ import { auditLogErrors } from '@auditLogs/auditLogs.errors';
 import { BaseEvent } from '@shared/events/base.event';
 import { ROLES } from '@common/database/constants';
 import { GetAuditLogResponseDTO } from './dto/index.dto';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class AuditLogsService {
   constructor(
-    private readonly requestContext: RequestContextService,
     @InjectRepository(AuditLog)
     private readonly auditLogRepository: Repository<AuditLog>,
   ) {}
@@ -37,11 +36,15 @@ export class AuditLogsService {
     );
   }
 
-  async getLogs({ limit, page }: PaginationParameters, filters?: any) {
+  async getLogs(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
     const companyFilter: any = {};
 
-    if (this.requestContext.user!.role.parent?.slug === ROLES.API_CONSUMER) {
-      companyFilter.companyId = this.requestContext.user?.companyId;
+    if (ctx.activeUserType === ROLES.API_CONSUMER) {
+      companyFilter.companyId = ctx.activeUser.companyId;
     }
 
     const totalLogs = await this.auditLogRepository.count({
@@ -79,7 +82,7 @@ export class AuditLogsService {
     );
   }
 
-  async getSingleLog(id: string) {
+  async getSingleLog(ctx: RequestContext, id: string) {
     const log = await this.auditLogRepository.findOne({
       where: {
         id,

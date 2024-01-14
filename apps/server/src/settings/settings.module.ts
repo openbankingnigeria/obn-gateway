@@ -4,12 +4,11 @@ import { SettingsController } from './settings.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Settings } from '@common/database/entities';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
-import { RequestContextService } from '@common/utils/request/request-context.service';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Settings]), HttpModule],
   controllers: [SettingsController],
-  providers: [SettingsService, KongConsumerService, RequestContextService],
+  providers: [SettingsService, KongConsumerService],
 })
 export class SettingsModule {}

@@ -30,7 +30,6 @@ import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe'
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { apiErrorMessages, apiSuccessMessages } from './apis.constants';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
-import { RequestContextService } from '@common/utils/request/request-context.service';
 import { v4 as uuidV4 } from 'uuid';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { Company } from '@common/database/entities';
@@ -38,6 +37,7 @@ import { companyErrors } from '@company/company.errors';
 import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
 import { CompanyTypes } from '@common/database/constants';
 import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
+import { RequestContext } from '@common/utils/request/request-context';
 
 // TODO return DTO based on parent type, i.e. we dont want to return sensitive API info data to API consumer for e.g.
 @Injectable()
@@ -55,10 +55,10 @@ export class APIService {
     private readonly kongRouteService: KongRouteService,
     private readonly kongConsumerService: KongConsumerService,
     private readonly elasticsearchService: ElasticsearchService,
-    private readonly requestContext: RequestContextService,
   ) {}
 
   async viewAPIs(
+    ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     { limit, page }: PaginationParameters,
     filters?: any,
@@ -117,7 +117,11 @@ export class APIService {
     );
   }
 
-  async viewAPI(environment: KONG_ENVIRONMENT, id: string) {
+  async viewAPI(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    id: string,
+  ) {
     const route = await this.routeRepository.findOne({
       where: { id, environment },
       relations: { collection: true },
@@ -165,7 +169,11 @@ export class APIService {
     );
   }
 
-  async deleteAPI(environment: KONG_ENVIRONMENT, id: string) {
+  async deleteAPI(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    id: string,
+  ) {
     const route = await this.routeRepository.findOne({
       where: { id, environment },
     });
@@ -190,7 +198,11 @@ export class APIService {
     return ResponseFormatter.success(apiSuccessMessages.deletedAPI);
   }
 
-  async createAPI(environment: KONG_ENVIRONMENT, data: CreateAPIDto) {
+  async createAPI(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    data: CreateAPIDto,
+  ) {
     const { name, enabled, url } = data;
     const { paths, methods } = data.route;
 
@@ -241,7 +253,7 @@ export class APIService {
 
     const aclAllowedGroupName = uuidV4();
 
-    let apiProviderConsumerId = this.requestContext.user!.company.consumerId;
+    let apiProviderConsumerId = ctx.activeCompany.consumerId;
 
     // If the api provider does not already have an associated consumer on the API gateway, create a new consumer for the API provider
     if (!apiProviderConsumerId) {
@@ -249,7 +261,7 @@ export class APIService {
       const response = await this.kongConsumerService.updateOrCreateConsumer(
         environment,
         {
-          custom_id: this.requestContext.user!.company.id,
+          custom_id: ctx.activeCompany.id,
         },
       );
 
@@ -257,7 +269,7 @@ export class APIService {
 
       await this.companyRepository.update(
         {
-          id: this.requestContext.user!.company.id,
+          id: ctx.activeCompany.id,
         },
         { consumerId: apiProviderConsumerId },
       );
@@ -325,6 +337,7 @@ export class APIService {
   }
 
   async assignAPIs(
+    ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     companyId: string,
     { apiIds }: AssignAPIsDto,
@@ -353,7 +366,7 @@ export class APIService {
       const response = await this.kongConsumerService.updateOrCreateConsumer(
         environment,
         {
-          custom_id: this.requestContext.user!.company.id,
+          custom_id: ctx.activeCompany.id,
         },
       );
 
@@ -361,7 +374,7 @@ export class APIService {
 
       await this.companyRepository.update(
         {
-          id: this.requestContext.user!.company.id,
+          id: ctx.activeCompany.id,
         },
         { consumerId },
       );
@@ -412,6 +425,7 @@ export class APIService {
   }
 
   async unassignAPIs(
+    ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     companyId: string,
     { apiIds }: AssignAPIsDto,
@@ -463,6 +477,7 @@ export class APIService {
   }
 
   async updateAPI(
+    ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     routeId: string,
     data: UpdateAPIDto,
@@ -596,6 +611,7 @@ export class APIService {
 
   // TODO ensure only AP can view logs for all users;
   async getAPILogs(
+    ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     { limit, page }: PaginationParameters,
     filters?: GetAPILogsDto,
@@ -610,10 +626,9 @@ export class APIService {
             {
               wildcard: {
                 'consumer.id.keyword':
-                  this.requestContext.user!.company.type ===
-                  CompanyTypes.API_PROVIDER
+                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
                     ? '*'
-                    : this.requestContext.user!.companyId,
+                    : ctx.activeUser.companyId,
               },
             },
             ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
@@ -632,7 +647,11 @@ export class APIService {
   }
 
   // TODO ensure only AP can view logs for all users;
-  async getAPILog(environment: KONG_ENVIRONMENT, requestId: string) {
+  async getAPILog(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    requestId: string,
+  ) {
     const logs = await this.elasticsearchService.search({
       size: 1,
       query: {
@@ -647,10 +666,9 @@ export class APIService {
             {
               wildcard: {
                 'consumer.id.keyword':
-                  this.requestContext.user!.company.type ===
-                  CompanyTypes.API_PROVIDER
+                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
                     ? '*'
-                    : this.requestContext.user!.companyId,
+                    : ctx.activeUser.companyId,
               },
             },
           ],
@@ -672,6 +690,7 @@ export class APIService {
 
   // TODO ensure only AP can view logs for all users;
   async getAPILogsStats(
+    ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     filters?: GetAPILogsDto,
   ) {
@@ -684,10 +703,9 @@ export class APIService {
             {
               wildcard: {
                 'consumer.id.keyword':
-                  this.requestContext.user!.company.type ===
-                  CompanyTypes.API_PROVIDER
+                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
                     ? '*'
-                    : this.requestContext.user!.companyId,
+                    : ctx.activeUser.companyId,
               },
             },
             ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(

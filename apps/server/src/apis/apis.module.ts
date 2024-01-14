@@ -10,7 +10,6 @@ import { Collection } from '@common/database/entities/collection.entity';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RequestContextService } from '@common/utils/request/request-context.service';
 import { Company } from '@common/database/entities';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
@@ -22,7 +21,6 @@ import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
     KongServiceService,
     KongConsumerService,
     KongRouteService,
-    RequestContextService,
   ],
   imports: [
     TypeOrmModule.forFeature([

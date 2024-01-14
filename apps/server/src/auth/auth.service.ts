@@ -54,6 +54,7 @@ import { GetUserResponseDTO } from '@users/dto/index.dto';
 import { SYSTEM_SETTINGS_NAME } from '@settings/settings.constants';
 import { commonErrors } from '@common/constants';
 import { SystemSettings } from '@settings/types';
+
 @Injectable()
 export class AuthService {
   constructor(

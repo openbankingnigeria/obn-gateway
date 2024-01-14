@@ -1,4 +1,8 @@
-import { SetMetadata } from '@nestjs/common';
+import {
+  ExecutionContext,
+  SetMetadata,
+  createParamDecorator,
+} from '@nestjs/common';
 import { PERMISSIONS } from 'src/permissions/types';
 
 export const SKIP_AUTH_METADATA_KEY = 'skip_auth_guard';
@@ -12,3 +16,8 @@ export const RequiredPermission = (permission: PERMISSIONS) =>
 
 export const RequireTwoFA = (strict: boolean = false) =>
   SetMetadata(REQUIRE_TWO_FA_KEY, strict);
+
+export const Ctx = createParamDecorator((data, context: ExecutionContext) => {
+  const request = context.switchToHttp().getRequest();
+  return request.ctx;
+});

@@ -1,3 +1,5 @@
+import 'tsconfig-paths/register';
+
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { globalConfig } from '../config/config';
 

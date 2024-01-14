@@ -24,6 +24,7 @@ import {
 } from './collections.constants';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class CollectionsService {
@@ -36,7 +37,11 @@ export class CollectionsService {
     private readonly kongRouteService: KongRouteService,
   ) {}
 
-  async listCollections({ limit, page }: PaginationParameters, filters?: any) {
+  async listCollections(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
     const [collections, totalNumberOfRecords] =
       await this.collectionRepository.findAndCount({
         where: { ...filters },
@@ -58,7 +63,7 @@ export class CollectionsService {
     );
   }
 
-  async viewCollection(id: string) {
+  async viewCollection(ctx: RequestContext, id: string) {
     const collection = await this.collectionRepository.findOne({
       where: { id },
     });
@@ -77,7 +82,7 @@ export class CollectionsService {
     );
   }
 
-  async createCollection(data: CreateCollectionDto) {
+  async createCollection(ctx: RequestContext, data: CreateCollectionDto) {
     const collectionExists = await this.collectionRepository.countBy({
       name: data.name,
     });
@@ -106,7 +111,11 @@ export class CollectionsService {
     );
   }
 
-  async updateCollection(id: string, data: UpdateCollectionDto) {
+  async updateCollection(
+    ctx: RequestContext,
+    id: string,
+    data: UpdateCollectionDto,
+  ) {
     const collection = await this.collectionRepository.findOne({
       where: { id },
     });
@@ -134,7 +143,7 @@ export class CollectionsService {
     );
   }
 
-  async deleteCollection(id: string) {
+  async deleteCollection(ctx: RequestContext, id: string) {
     const collection = await this.collectionRepository.findOne({
       where: { id },
     });
