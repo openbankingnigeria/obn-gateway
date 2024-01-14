@@ -20,16 +20,15 @@ import {
   ResponseFormatter,
   ResponseMetaDTO,
 } from '@common/utils/response/response.formatter';
-import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { Permission } from 'src/common/database/entities/permission.entity';
 import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
 import { roleErrorMessages, roleSuccessMessages } from '@roles/role.constants';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class RolesService {
   constructor(
-    private readonly requestContext: RequestContextService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Permission)
@@ -38,11 +37,11 @@ export class RolesService {
     private readonly rolePermissionRepository: Repository<RolePermission>,
   ) {}
 
-  async createRole(data: CreateRoleDto) {
+  async createRole(ctx: RequestContext, data: CreateRoleDto) {
     const roleExists = await this.roleRepository.count({
       where: {
         name: data.name,
-        companyId: this.requestContext.user!.companyId,
+        companyId: ctx.activeUser.companyId,
       },
     });
 
@@ -57,7 +56,7 @@ export class RolesService {
     const permissionsData = await this.permissionRepository.find({
       where: {
         id: In(permissions),
-        roles: { roleId: this.requestContext.user!.role.parentId },
+        roles: { roleId: ctx.activeUser.role.parentId },
       },
     });
 
@@ -78,8 +77,8 @@ export class RolesService {
         slug: slugify(name, { lower: true, strict: true }),
         description,
         status,
-        parentId: this.requestContext.user!.role.parentId,
-        companyId: this.requestContext.user!.companyId,
+        parentId: ctx.activeUser.role.parentId,
+        companyId: ctx.activeUser.companyId,
       }),
     );
 
@@ -95,15 +94,19 @@ export class RolesService {
     );
   }
 
-  async listRoles({ limit, page }: PaginationParameters, filters?: any) {
+  async listRoles(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
     const where = [
       {
-        parentId: this.requestContext.user!.role.parentId,
-        companyId: this.requestContext.user!.companyId,
+        parentId: ctx.activeUser.role.parentId,
+        companyId: ctx.activeUser.companyId,
         ...filters,
       },
       {
-        id: this.requestContext.user!.role.id,
+        id: ctx.activeUser.role.id,
         companyId: IsNull(),
         ...filters,
       },
@@ -132,13 +135,13 @@ export class RolesService {
     );
   }
 
-  async getRole(id: string) {
+  async getRole(ctx: RequestContext, id: string) {
     const role = await this.roleRepository.findOne({
       where: [
         {
           id,
-          parentId: this.requestContext.user!.role.parentId,
-          companyId: this.requestContext.user!.companyId,
+          parentId: ctx.activeUser.role.parentId,
+          companyId: ctx.activeUser.companyId,
         },
         {
           id,
@@ -161,12 +164,12 @@ export class RolesService {
     );
   }
 
-  async updateRole(id: string, data: UpdateRoleDto) {
+  async updateRole(ctx: RequestContext, id: string, data: UpdateRoleDto) {
     const role = await this.roleRepository.findOne({
       where: {
         id,
-        parentId: this.requestContext.user!.role.parentId,
-        companyId: this.requestContext.user!.companyId,
+        parentId: ctx.activeUser.role.parentId,
+        companyId: ctx.activeUser.companyId,
       },
     });
 
@@ -193,12 +196,12 @@ export class RolesService {
     );
   }
 
-  async deleteRole(id: string) {
+  async deleteRole(ctx: RequestContext, id: string) {
     const role = await this.roleRepository.findOne({
       where: {
         id,
-        parentId: this.requestContext.user!.role.parentId,
-        companyId: this.requestContext.user!.companyId,
+        parentId: ctx.activeUser.role.parentId,
+        companyId: ctx.activeUser.companyId,
       },
     });
 
@@ -215,13 +218,13 @@ export class RolesService {
     return ResponseFormatter.success(roleSuccessMessages.deletedRole);
   }
 
-  async getRolePermissions(id: string) {
+  async getRolePermissions(ctx: RequestContext, id: string) {
     const role = await this.roleRepository.findOne({
       where: [
         {
           id,
-          parentId: this.requestContext.user!.role.parentId,
-          companyId: this.requestContext.user!.companyId,
+          parentId: ctx.activeUser.role.parentId,
+          companyId: ctx.activeUser.companyId,
         },
         {
           id,
@@ -248,14 +251,15 @@ export class RolesService {
   }
 
   async setRolePermissions(
+    ctx: RequestContext,
     id: string,
     permissions: SetRolePermissionsDto['permissions'],
   ) {
     const role = await this.roleRepository.findOne({
       where: {
         id,
-        parentId: this.requestContext.user!.role.parentId,
-        companyId: this.requestContext.user!.companyId,
+        parentId: ctx.activeUser.role.parentId,
+        companyId: ctx.activeUser.companyId,
       },
       relations: { rolePermissions: true },
     });
@@ -275,7 +279,7 @@ export class RolesService {
     const newPermissionsData = await this.permissionRepository.find({
       where: {
         id: In(newPermissions),
-        roles: { roleId: this.requestContext.user!.role.parentId },
+        roles: { roleId: ctx.activeUser.role.parentId },
       },
     });
 
@@ -305,9 +309,9 @@ export class RolesService {
   }
 
   // TODO how do we ensure that if a parents permission is leaked to a created role, that permission cannot be used.
-  async getPermissions() {
+  async getPermissions(ctx: RequestContext) {
     const permissions = await this.permissionRepository.find({
-      where: { roles: { roleId: this.requestContext.user!.role.parentId } },
+      where: { roles: { roleId: ctx.activeUser.role.parentId } },
     });
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedPermissions,
@@ -315,7 +319,7 @@ export class RolesService {
     );
   }
 
-  async getStats() {
+  async getStats(ctx: RequestContext) {
     const stats = await this.roleRepository.query(
       `SELECT IFNULL(count, 0) count, definitions.value FROM definitions
               LEFT OUTER JOIN (
@@ -326,7 +330,7 @@ export class RolesService {
               AND definitions.type = 'status'
               WHERE definitions.entity = 'role'
         `,
-      [this.requestContext.user!.companyId],
+      [ctx.activeUser.companyId],
     );
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRolesStats,

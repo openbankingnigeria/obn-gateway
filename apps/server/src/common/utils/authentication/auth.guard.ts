@@ -18,6 +18,7 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { PERMISSIONS } from 'src/permissions/types';
 import * as speakeasy from 'speakeasy';
 import * as moment from 'moment';
+import { RequestContext } from '../request/request-context';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -137,7 +138,9 @@ export class AuthGuard implements CanActivate {
       }
     }
 
-    request.user = user as IRequest['user'];
+    request.ctx = new RequestContext({
+      user,
+    });
 
     return true;
   }

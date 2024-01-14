@@ -16,9 +16,9 @@ import { INotFoundException } from '@common/utils/exceptions/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
-import { RequestContextService } from '@common/utils/request/request-context.service';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { SYSTEM_SETTINGS_NAME } from './settings.constants';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class SettingsService {
@@ -26,10 +26,9 @@ export class SettingsService {
     @InjectRepository(Settings)
     private readonly settingsRepository: Repository<Settings>,
     private readonly kongConsumerService: KongConsumerService,
-    private readonly requestContext: RequestContextService,
   ) {}
 
-  async getKybRequirements() {
+  async getKybRequirements(ctx: RequestContext) {
     const systemSettings = await this.settingsRepository.findOne({
       where: {
         name: SYSTEM_SETTINGS_NAME,
@@ -54,10 +53,10 @@ export class SettingsService {
     );
   }
 
-  async updateKybRequirements({
-    newKybRequirements,
-    removedKybRequirements,
-  }: UpdateKybRequirementsDto) {
+  async updateKybRequirements(
+    ctx: RequestContext,
+    { newKybRequirements, removedKybRequirements }: UpdateKybRequirementsDto,
+  ) {
     const cleanData: SystemSettings['kybRequirements'] = [];
 
     const validRemovedRequirements: string[] = [];
@@ -126,10 +125,13 @@ export class SettingsService {
     return ResponseFormatter.success('Updated KYB settings successfully');
   }
 
-  async updateCompanySubTypes({
-    newCompanySubtypes,
-    removedCompanySubtypes,
-  }: UpdateCompanySubtypesRequest) {
+  async updateCompanySubTypes(
+    ctx: RequestContext,
+    {
+      newCompanySubtypes,
+      removedCompanySubtypes,
+    }: UpdateCompanySubtypesRequest,
+  ) {
     const systemSettings = await this.settingsRepository.findOne({
       where: {
         name: SYSTEM_SETTINGS_NAME,
@@ -190,10 +192,10 @@ export class SettingsService {
     return ResponseFormatter.success('Updated company subtypes successfully');
   }
 
-  async getApiKey(environment: KONG_ENVIRONMENT) {
+  async getApiKey(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
     const consumer = await this.kongConsumerService.getConsumer(
       environment,
-      this.requestContext.user!.companyId,
+      ctx.activeUser.companyId,
     );
     const consumerKey = await this.kongConsumerService.getConsumerKeys(
       environment,
@@ -210,11 +212,11 @@ export class SettingsService {
   }
 
   // TODO ensure that non development api key can only be generated for non development environment until company is approved
-  async generateApiKey(environment: KONG_ENVIRONMENT) {
+  async generateApiKey(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
     const consumer = await this.kongConsumerService.updateOrCreateConsumer(
       environment,
       {
-        custom_id: this.requestContext.user!.companyId,
+        custom_id: ctx.activeUser.companyId,
       },
     );
     const consumerKey = await this.kongConsumerService.createConsumerKey(
@@ -241,10 +243,10 @@ export class SettingsService {
     );
   }
 
-  async getIPRestriction(environment: KONG_ENVIRONMENT) {
+  async getIPRestriction(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
     const consumer = await this.kongConsumerService.getConsumer(
       environment,
-      this.requestContext.user!.companyId,
+      ctx.activeUser.companyId,
     );
     const consumerPlugins = await this.kongConsumerService.getPlugins(
       environment,
@@ -267,13 +269,14 @@ export class SettingsService {
   }
 
   async setIPRestriction(
+    ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     data: IPRestrictionRequest,
   ) {
     const consumer = await this.kongConsumerService.updateOrCreateConsumer(
       environment,
       {
-        custom_id: this.requestContext.user!.companyId,
+        custom_id: ctx.activeUser.companyId,
       },
     );
     await this.kongConsumerService.updateOrCreatePlugin(

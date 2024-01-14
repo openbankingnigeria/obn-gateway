@@ -18,11 +18,13 @@ import {
 } from '@common/utils/pipes/query/pagination.pipe';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import {
+  Ctx,
   RequireTwoFA,
   RequiredPermission,
 } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
 import { UserFilters } from './users.filter';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Controller('users')
 export class UsersController {
@@ -31,52 +33,57 @@ export class UsersController {
   @Post()
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
-  createUser(@Body() data: CreateUserDto) {
-    return this.usersService.createUser(data);
+  createUser(@Ctx() ctx: RequestContext, @Body() data: CreateUserDto) {
+    return this.usersService.createUser(ctx, data);
   }
 
   @Post(':id/resend')
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
-  resendInvite(@Param('id') id: string) {
-    return this.usersService.resendInvite(id);
+  resendInvite(@Ctx() ctx: RequestContext, @Param('id') id: string) {
+    return this.usersService.resendInvite(ctx, id);
   }
 
   @Get()
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.LIST_TEAM_MEMBERS)
   listUsers(
+    @Ctx() ctx: RequestContext,
     @Query(PaginationPipe) pagination: PaginationParameters,
     @Query(new FilterPipe(UserFilters.listUsers))
     filters: any,
   ) {
-    return this.usersService.listUsers(pagination, filters);
+    return this.usersService.listUsers(ctx, pagination, filters);
   }
 
   @Get('stats')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.LIST_TEAM_MEMBERS)
-  getStats() {
-    return this.usersService.getStats();
+  getStats(@Ctx() ctx: RequestContext) {
+    return this.usersService.getStats(ctx);
   }
 
   @Get(':id')
   @UsePipes(IValidationPipe)
-  getUser(@Param('id') id: string) {
-    return this.usersService.getUser(id);
+  getUser(@Ctx() ctx: RequestContext, @Param('id') id: string) {
+    return this.usersService.getUser(ctx, id);
   }
 
   @Patch(':id')
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
-  updateUser(@Param('id') id: string, @Body() data: UpdateUserDto) {
-    return this.usersService.updateUser(id, data);
+  updateUser(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+    @Body() data: UpdateUserDto,
+  ) {
+    return this.usersService.updateUser(ctx, id, data);
   }
 
   @Delete(':id')
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
-  deleteUser(@Param('id') id: string) {
-    return this.usersService.deleteUser(id);
+  deleteUser(@Ctx() ctx: RequestContext, @Param('id') id: string) {
+    return this.usersService.deleteUser(ctx, id);
   }
 }

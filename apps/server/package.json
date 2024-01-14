@@ -19,9 +19,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "dotenv -e .env -- typeorm-ts-node-commonjs",
-    "migration:run": "npm run typeorm migration:run -- -d ./src/common/database/migration.config.ts",
-    "migration:generate": "npm run typeorm -- migration:generate ./src/common/database/migrations/migration -d ./src/common/database/migration.config.ts -p",
-    "migration:create": "npm run typeorm -- migration:create ./src/common/database/migrations/migration"
+    "migration:run": "pnpm typeorm migration:run -d ./src/common/database/migration.config.ts",
+    "migration:generate": "pnpm typeorm migration:generate ./src/common/database/migrations/migration -d ./src/common/database/migration.config.ts -p",
+    "migration:create": "pnpm typeorm migration:create ./src/common/database/migrations/migration"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.11.0",

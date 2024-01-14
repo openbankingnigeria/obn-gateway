@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile, User } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
-import { RequestContextService } from 'src/common/utils/request/request-context.service';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import {
@@ -26,11 +25,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { isNumberString } from 'class-validator';
 import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
 import { generateRandomCode } from '@common/utils/helpers/auth.helpers';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class ProfileService {
   constructor(
-    private readonly requestContext: RequestContextService,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
     @InjectRepository(User)
@@ -40,9 +39,9 @@ export class ProfileService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async getProfile() {
+  async getProfile(ctx: RequestContext) {
     const profile = await this.profileRepository.findOne({
-      where: { userId: this.requestContext.user!.id },
+      where: { userId: ctx.activeUser.id },
       relations: {
         user: {
           role: {
@@ -67,11 +66,11 @@ export class ProfileService {
     );
   }
 
-  async updateProfile(data: UpdateProfileDto) {
+  async updateProfile(ctx: RequestContext, data: UpdateProfileDto) {
     const { firstName, lastName } = data;
 
     const profile = await this.profileRepository.findOne({
-      where: { userId: this.requestContext.user!.id },
+      where: { userId: ctx.activeUser.id },
     });
 
     if (!profile) {
@@ -86,7 +85,7 @@ export class ProfileService {
     });
 
     await this.profileRepository.update(
-      { userId: this.requestContext.user!.id },
+      { userId: ctx.activeUser.id },
       updatedProfile,
     );
 
@@ -98,7 +97,7 @@ export class ProfileService {
     );
   }
 
-  async updatePassword(data: UpdatePasswordDto) {
+  async updatePassword(ctx: RequestContext, data: UpdatePasswordDto) {
     const { oldPassword, newPassword, confirmPassword } = data;
 
     if (oldPassword === newPassword) {
@@ -113,14 +112,14 @@ export class ProfileService {
       });
     }
 
-    if (!compareSync(oldPassword, this.requestContext.user!.password!)) {
+    if (!compareSync(oldPassword, ctx.activeUser.password!)) {
       throw new IBadRequestException({
         message: profileErrorMessages.incorrectOldPassword,
       });
     }
 
     await this.userRepository.update(
-      { id: this.requestContext.user!.id },
+      { id: ctx.activeUser.id },
       {
         resetPasswordToken: null as any,
         resetPasswordExpires: null as any,
@@ -129,17 +128,17 @@ export class ProfileService {
       },
     );
 
-    const event = new AuthSetPasswordEvent(this.requestContext.user!);
+    const event = new AuthSetPasswordEvent(ctx.activeUser);
     this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(profileSuccessMessages.updatedPassword);
   }
 
-  async generateTwoFA() {
+  async generateTwoFA(ctx: RequestContext) {
     // TODO emit event
     // TODO encrypt secret in DB
 
-    if (this.requestContext.user!.twofaEnabled) {
+    if (ctx.activeUser.twofaEnabled) {
       throw new IBadRequestException({
         message: profileErrorMessages.twoFaAlreadyEnabled,
       });
@@ -150,15 +149,16 @@ export class ProfileService {
     });
 
     const url = speakeasy.otpauthURL({
-      label: encodeURIComponent(this.requestContext.user!.email!),
+      label: encodeURIComponent(ctx.activeUser.email!),
       secret: base32,
       encoding: 'base32',
     });
     const qrCodeImage = await QRCode.toDataURL(url);
 
     await this.userRepository.update(
-      { id: this.requestContext.user!.id },
+      { id: ctx.activeUser.id },
       {
+        // TODO encrypt
         twofaSecret: base32,
       },
     );
@@ -171,15 +171,15 @@ export class ProfileService {
     );
   }
 
-  async verifyTwoFA(data: UpdateTwoFADto) {
-    if (this.requestContext.user!.twofaEnabled) {
+  async verifyTwoFA(ctx: RequestContext, data: UpdateTwoFADto) {
+    if (ctx.activeUser.twofaEnabled) {
       throw new IBadRequestException({
         message: profileErrorMessages.twoFaAlreadyEnabled,
       });
     }
 
     const verified = speakeasy.totp.verify({
-      secret: this.requestContext.user!.twofaSecret!,
+      secret: ctx.activeUser.twofaSecret!,
       encoding: 'base32',
       token: data.code,
     });
@@ -197,13 +197,13 @@ export class ProfileService {
 
     await this.backupCodesRepository.insert(
       backupCodes.map((backupCode) => ({
-        userId: this.requestContext.user!.id,
+        userId: ctx.activeUser.id,
         value: hashSync(backupCode, 12),
       })),
     );
 
     await this.userRepository.update(
-      { id: this.requestContext.user!.id },
+      { id: ctx.activeUser.id },
       {
         twofaEnabled: true,
       },
@@ -214,10 +214,10 @@ export class ProfileService {
     );
   }
 
-  async disableTwoFA(data: UpdateTwoFADto) {
+  async disableTwoFA(ctx: RequestContext, data: UpdateTwoFADto) {
     // TODO emit event
 
-    if (!this.requestContext.user!.twofaEnabled) {
+    if (!ctx.activeUser.twofaEnabled) {
       throw new IBadRequestException({
         message: profileErrorMessages.twoFaAlreadyDisabled,
       });
@@ -225,7 +225,7 @@ export class ProfileService {
 
     if (!isNumberString(data.code)) {
       const backupCodes = await this.backupCodesRepository.findBy({
-        userId: this.requestContext.user!.id,
+        userId: ctx.activeUser.id,
       });
       const match = backupCodes.find((backupCode) => {
         return compareSync(data.code, backupCode.value);
@@ -238,7 +238,7 @@ export class ProfileService {
       await this.backupCodesRepository.softDelete({ id: match.id });
     } else {
       const verified = speakeasy.totp.verify({
-        secret: this.requestContext.user!.twofaSecret!,
+        secret: ctx.activeUser.twofaSecret!,
         encoding: 'base32',
         token: data.code,
       });
@@ -250,14 +250,14 @@ export class ProfileService {
     }
 
     await this.userRepository.update(
-      { id: this.requestContext.user!.id },
+      { id: ctx.activeUser.id },
       {
         twofaEnabled: false,
       },
     );
 
     await this.backupCodesRepository.softDelete({
-      userId: this.requestContext.user!.id,
+      userId: ctx.activeUser.id,
     });
 
     return ResponseFormatter.success(profileSuccessMessages.twoFaDisabled);

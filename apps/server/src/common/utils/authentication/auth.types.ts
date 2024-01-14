@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { Company, User } from 'src/common/database/entities';
+import { RequestContext } from '../request/request-context';
 
 export interface IRequest extends Request {
-  user?: User & { company: Company };
+  ctx: RequestContext;
 }

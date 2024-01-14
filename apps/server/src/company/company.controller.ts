@@ -22,11 +22,13 @@ import {
 import { CompanyFilters } from './company.filter';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import {
+  Ctx,
   RequiredPermission,
   SkipAuthGuard,
 } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
 import { CompanyTypes } from '@common/database/constants';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Controller()
 export class CompanyController {
@@ -36,16 +38,17 @@ export class CompanyController {
   @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_DETAILS)
   @UseInterceptors(AnyFilesInterceptor({}))
   updateCompanyKybDetails(
+    @Ctx() ctx: RequestContext,
     @Body(IValidationPipe) data: UpdateCompanyDetailsDto,
     @UploadedFiles()
     files: Array<Express.Multer.File>,
   ) {
-    return this.companyService.updateCompanyKybDetails(data, files);
+    return this.companyService.updateCompanyKybDetails(ctx, data, files);
   }
 
   @Get('company/me')
-  getCompanyDetails() {
-    return this.companyService.getCompanyDetails();
+  getCompanyDetails(@Ctx() ctx: RequestContext) {
+    return this.companyService.getCompanyDetails(ctx);
   }
 
   @Get('company/types')
@@ -66,45 +69,56 @@ export class CompanyController {
   @Get('companies')
   @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
   listCompanies(
+    @Ctx() ctx: RequestContext,
     @Query(PaginationPipe) pagination: PaginationParameters,
     @Query(new FilterPipe(CompanyFilters.getCompanies))
     filters: any,
   ) {
-    return this.companyService.listCompanies(pagination, filters);
+    return this.companyService.listCompanies(ctx, pagination, filters);
   }
 
   @Get('companies/:id')
   @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
-  getCompanyDetailsById(@Param('id') companyId: string) {
-    return this.companyService.getCompanyDetails(companyId);
+  getCompanyDetailsById(
+    @Ctx() ctx: RequestContext,
+    @Param('id') companyId: string,
+  ) {
+    return this.companyService.getCompanyDetails(ctx, companyId);
   }
 
   // @Post('companies/rc/verify')
   // @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_STATUS)
   // @UsePipes(IValidationPipe)
-  // verifyCompanyRC(@Body() data: UpdateCompanyDetailsDto) {
-  //   return this.companyService.verifyCompanyRC(data.rcNumber);
+  // verifyCompanyRC(@Ctx() ctx: RequestContext, @Body() data: UpdateCompanyDetailsDto) {
+  //   return this.companyService.verifyCompanyRC(ctx, data.rcNumber);
   // }
 
   @Patch('companies/:id/kyb/status')
   @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_STATUS)
   @UsePipes(IValidationPipe)
   updateKybStatus(
+    @Ctx() ctx: RequestContext,
     @Body() data: UpdateKybStatusDto,
     @Param('id') companyId: string,
   ) {
-    return this.companyService.updateKYBStatus(companyId, data);
+    return this.companyService.updateKYBStatus(ctx, companyId, data);
   }
 
   @Patch('companies/:id/activate')
   @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_ACCESS)
-  activateCompanyAccess(@Param('id') companyId: string) {
-    return this.companyService.toggleCompanyAccess(companyId, true);
+  activateCompanyAccess(
+    @Ctx() ctx: RequestContext,
+    @Param('id') companyId: string,
+  ) {
+    return this.companyService.toggleCompanyAccess(ctx, companyId, true);
   }
 
   @Patch('companies/:id/deactivate')
   @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_ACCESS)
-  deactivateCompanyAccess(@Param('id') companyId: string) {
-    return this.companyService.toggleCompanyAccess(companyId, false);
+  deactivateCompanyAccess(
+    @Ctx() ctx: RequestContext,
+    @Param('id') companyId: string,
+  ) {
+    return this.companyService.toggleCompanyAccess(ctx, companyId, false);
   }
 }

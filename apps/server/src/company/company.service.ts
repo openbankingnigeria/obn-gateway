@@ -9,7 +9,6 @@ import { KybDataTypes, SystemSettings } from '@settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company, Settings, User } from '@common/database/entities';
 import { Repository } from 'typeorm';
-import { RequestContextService } from '@common/utils/request/request-context.service';
 import {
   ResponseFormatter,
   ResponseMetaDTO,
@@ -33,6 +32,7 @@ import {
 import { SYSTEM_SETTINGS_NAME } from '@settings/settings.constants';
 import { CompanyTypes } from '@common/database/constants';
 import { companyCustomFields } from './company.constants';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class CompanyService {
@@ -44,12 +44,15 @@ export class CompanyService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Settings)
     private readonly settingsRepository: Repository<Settings>,
-    private readonly requestContext: RequestContextService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async updateCompanyKybDetails(data: any, files: Express.Multer.File[]) {
-    if (this.requestContext.user!.company.isVerified) {
+  async updateCompanyKybDetails(
+    ctx: RequestContext,
+    data: any,
+    files: Express.Multer.File[],
+  ) {
+    if (ctx.activeCompany.isVerified) {
       throw new IBadRequestException({
         message: companyErrors.companyAlreadyVerified,
       });
@@ -117,8 +120,8 @@ export class CompanyService {
         }
       });
 
-    const previousKybDetails = this.requestContext.user!.company.kybData
-      ? JSON.parse(this.requestContext.user!.company.kybData)
+    const previousKybDetails = ctx.activeCompany.kybData
+      ? JSON.parse(ctx.activeCompany.kybData)
       : {};
 
     files.forEach((file) => {
@@ -129,7 +132,7 @@ export class CompanyService {
     });
 
     await this.companyRepository.update(
-      { id: this.requestContext.user!.company.id },
+      { id: ctx.activeCompany.id },
       {
         kybData: JSON.stringify({ ...previousKybDetails, ...validKybData }),
         rcNumber: data.rcNumber,
@@ -142,10 +145,10 @@ export class CompanyService {
   }
 
   // TODO ensure only APs can get any company details like this.
-  async getCompanyDetails(companyId?: string) {
+  async getCompanyDetails(ctx: RequestContext, companyId?: string) {
     const company = companyId
       ? await this.companyRepository.findOne({ where: { id: companyId } })
-      : this.requestContext.user!.company;
+      : ctx.activeCompany;
 
     if (!company) {
       throw new INotFoundException({
@@ -181,7 +184,11 @@ export class CompanyService {
     );
   }
 
-  async listCompanies({ limit, page }: PaginationParameters, filters?: any) {
+  async listCompanies(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
     const totalCompanies = await this.companyRepository.count({
       where: {
         ...filters,
@@ -248,6 +255,7 @@ export class CompanyService {
   }
 
   async updateKYBStatus(
+    ctx: RequestContext,
     companyId: string,
     { action, reason }: UpdateKybStatusDto,
   ) {
@@ -285,10 +293,7 @@ export class CompanyService {
           { id: companyId },
           { isVerified: true, tier: businessDetails?.tier },
         );
-        const event = new CompanyApprovedEvent(
-          this.requestContext.user!,
-          company,
-        );
+        const event = new CompanyApprovedEvent(ctx.activeUser, company);
         this.eventEmitter.emit(event.name, event);
         break;
       // Send mail to company with reason
@@ -298,13 +303,9 @@ export class CompanyService {
             message: companyErrors.reasonNotProvided,
           });
         }
-        const deniedEvent = new CompanyDeniedEvent(
-          this.requestContext.user!,
-          company,
-          {
-            reason: reason!,
-          },
-        );
+        const deniedEvent = new CompanyDeniedEvent(ctx.activeUser, company, {
+          reason: reason!,
+        });
         this.eventEmitter.emit(deniedEvent.name, deniedEvent);
     }
 
@@ -371,7 +372,11 @@ export class CompanyService {
     );
   }
 
-  async toggleCompanyAccess(companyId: string, isActive: boolean) {
+  async toggleCompanyAccess(
+    ctx: RequestContext,
+    companyId: string,
+    isActive: boolean,
+  ) {
     const company = await this.companyRepository.findOne({
       where: {
         id: companyId,

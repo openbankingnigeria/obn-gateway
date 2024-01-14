@@ -34,6 +34,10 @@ class CreateRouteDTO {
 }
 
 export class CreateAPIDto {
+  constructor(partial: CreateAPIDto) {
+    Object.assign(this, partial);
+  }
+
   @IsNotEmpty()
   @IsString()
   collectionId: string;
