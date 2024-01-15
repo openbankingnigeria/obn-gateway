@@ -12,11 +12,11 @@ export class AppService implements OnApplicationBootstrap {
     private readonly config: ConfigService,
   ) {}
 
-  onApplicationBootstrap() {
+  async onApplicationBootstrap() {
     for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
       'kong.endpoint',
     )) {
-      this.kongPluginService
+      await this.kongPluginService
         .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
           name: KONG_PLUGINS.HTTP_LOG,
           enabled: true,
@@ -29,7 +29,7 @@ export class AppService implements OnApplicationBootstrap {
         })
         .catch(console.error);
 
-      this.kongPluginService
+      await this.kongPluginService
         .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
           name: KONG_PLUGINS.KEY_AUTH,
           enabled: true,
@@ -43,7 +43,7 @@ export class AppService implements OnApplicationBootstrap {
         })
         .catch(console.error);
 
-      this.kongPluginService
+      await this.kongPluginService
         .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
           name: KONG_PLUGINS.IP_RESTRICTION,
           enabled: true,
@@ -54,7 +54,7 @@ export class AppService implements OnApplicationBootstrap {
         })
         .catch(console.error);
 
-      this.kongPluginService
+      await this.kongPluginService
         .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
           name: KONG_PLUGINS.CORRELATION_ID,
           enabled: true,

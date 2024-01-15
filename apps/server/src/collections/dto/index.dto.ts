@@ -3,6 +3,10 @@ import { Expose } from 'class-transformer';
 import { Collection } from '@common/database/entities/collection.entity';
 
 export class CreateCollectionDto {
+  constructor(collection: CreateCollectionDto) {
+    Object.assign(this, collection);
+  }
+
   @IsNotEmpty()
   @IsString()
   name: string;

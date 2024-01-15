@@ -36,7 +36,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error);
+            this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),
         ),
@@ -58,7 +58,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error);
+            this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),
         ),
@@ -85,7 +85,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error.response);
+            this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),
         ),
@@ -106,7 +106,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error);
+            this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),
         ),
@@ -124,7 +124,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error);
+            this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),
         ),
@@ -142,7 +142,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error);
+            this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),
         ),
@@ -164,7 +164,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            this.logger.error(error);
+            this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),
         ),
