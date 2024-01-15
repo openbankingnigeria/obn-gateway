@@ -16,7 +16,7 @@ export const companyCustomFields: Omit<
     confirmPassword: { label: 'Confirm Password', type: 'password' },
     phone: { label: 'Phone Number', type: 'text' },
     accountNumber: { label: 'Account Number', type: 'text' },
-    businessName: { label: 'Corporate Name', type: 'text' },
+    companyName: { label: 'Corporate Name', type: 'text' },
     rcNumber: {
       label: 'CAC (Corporate Affairs Commission) Number',
       type: 'text',
@@ -36,8 +36,7 @@ export const companyCustomFields: Omit<
     password: { label: 'Password', type: 'password' },
     confirmPassword: { label: 'Confirm Password', type: 'password' },
     phone: { label: 'Phone Number', type: 'text' },
-    businessName: { label: 'Company Name', type: 'text' },
+    companyName: { label: 'Company Name', type: 'text' },
     companySubType: { label: 'Company Type', type: 'dropdown' },
-    companyRole: { label: 'Company Role', type: 'text' },
   },
 };

@@ -237,12 +237,6 @@ export class LicensedEntitySignupDto extends BaseSignupDto {
   })
   @IsString()
   companySubtype: string;
-
-  @IsNotEmpty({
-    message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  })
-  @IsString()
-  companyRole: string;
 }
 
 export const signupDtos: Record<CompanyTypes, any> = {
