@@ -69,7 +69,7 @@ const SignupFullForm = () => {
     !user_type ||
     (user_type == 'individual' && (!bvn || !account_number)) ||
     (user_type == 'business' && (!business_name || !business_type || !cac || !account_number)) ||
-    (user_type == 'licensedEntity' && (!business_name || !business_type || !role)) ||
+    (user_type == 'licensed-entity' && (!business_name || !business_type || !role)) ||
     !terms_agreed
   );
 
@@ -86,7 +86,7 @@ const SignupFullForm = () => {
       subTypes?.individual :
       user_type == 'business' ? 
         subTypes?.business :
-        user_type == 'licensedEntity' ? 
+        user_type == 'licensed-entity' ? 
           subTypes?.licensedEntity :
           []
   )?.map((type?: string[]) => {
@@ -254,7 +254,7 @@ const SignupFullForm = () => {
         )}
 
         {
-          (user_type == 'business' || user_type == 'licensedEntity') && (
+          (user_type == 'business' || user_type == 'licensed-entity') && (
             <InputElement 
               name='business_name'
               placeholder='Enter business corporate name'
@@ -266,7 +266,7 @@ const SignupFullForm = () => {
         )}
 
         {
-          (user_type == 'business' || user_type == 'licensedEntity') && (
+          (user_type == 'business' || user_type == 'licensed-entity') && (
             <>
               <input 
                 name='business_type'
@@ -302,7 +302,7 @@ const SignupFullForm = () => {
         )}
 
         {
-          (user_type == 'licensedEntity') && (
+          (user_type == 'licensed-entity') && (
             <>
               <input 
                 name='role'
