@@ -92,10 +92,9 @@ export class Migration1705165841323 implements MigrationInterface {
 
     for (const folder in folders) {
       try {
-        let collection = await collectionService.viewCollection(
-          ctx,
-          slugify(folder),
-        );
+        let collection = await collectionService
+          .viewCollection(ctx, slugify(folder))
+          .catch(console.error);
 
         if (!collection) {
           collection = await collectionService.createCollection(
