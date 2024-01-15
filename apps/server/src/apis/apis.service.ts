@@ -32,7 +32,7 @@ import { apiErrorMessages, apiSuccessMessages } from './apis.constants';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { v4 as uuidV4 } from 'uuid';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
-import { Company } from '@common/database/entities';
+import { Company, User } from '@common/database/entities';
 import { companyErrors } from '@company/company.errors';
 import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
 import { CompanyTypes } from '@common/database/constants';
@@ -51,6 +51,9 @@ export class APIService {
     private readonly routeRepository: Repository<CollectionRoute>,
     @InjectRepository(ConsumerAcl)
     private readonly consumerAclRepository: Repository<ConsumerAcl>,
+    // TODO make private
+    @InjectRepository(User)
+    readonly userRepository: Repository<User>,
     private readonly kongService: KongServiceService,
     private readonly kongRouteService: KongRouteService,
     private readonly kongConsumerService: KongConsumerService,
@@ -275,6 +278,21 @@ export class APIService {
       );
     }
 
+    // Create an ACL on the route created and assign it an ACL group name
+    // TODO move to an event listener
+    await this.kongRouteService.updateOrCreatePlugin(
+      environment,
+      gatewayRoute.id,
+      {
+        config: {
+          allow: [aclAllowedGroupName],
+          hide_groups_header: true,
+        },
+        name: KONG_PLUGINS.ACL,
+        enabled: true,
+      },
+    );
+
     // Update API provider consumer to allow access to this new route
     await this.kongConsumerService.updateConsumerAcl(environment, {
       aclAllowedGroupName,
@@ -299,21 +317,6 @@ export class APIService {
       {
         name: KONG_PLUGINS.REQUEST_TERMINATION,
         enabled,
-      },
-    );
-
-    // Create an ACL on the route created and assign it an ACL group name
-    // TODO move to an event listener
-    await this.kongRouteService.updateOrCreatePlugin(
-      environment,
-      gatewayRoute.id,
-      {
-        config: {
-          allow: [aclAllowedGroupName],
-          hide_groups_header: true,
-        },
-        name: KONG_PLUGINS.ACL,
-        enabled: true,
       },
     );
 

@@ -63,14 +63,14 @@ export class CollectionsService {
     );
   }
 
-  async viewCollection(ctx: RequestContext, id: string) {
+  async viewCollection(ctx: RequestContext, idOrSlug: string) {
     const collection = await this.collectionRepository.findOne({
-      where: { id },
+      where: [{ id: idOrSlug }, { slug: idOrSlug }],
     });
 
     if (!collection) {
       throw new INotFoundException({
-        message: collectionErrorMessages.collectionNotFound(id),
+        message: collectionErrorMessages.collectionNotFound(idOrSlug),
       });
     }
 
