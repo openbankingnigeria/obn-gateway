@@ -19,6 +19,7 @@ import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { SYSTEM_SETTINGS_NAME } from './settings.constants';
 import { RequestContext } from '@common/utils/request/request-context';
+import { CompanyTypes } from '@common/database/constants';
 
 @Injectable()
 export class SettingsService {
@@ -155,17 +156,24 @@ export class SettingsService {
     };
 
     const updatedCompanySubtypes: CompanySubtypes = {
-      business: [],
-      individual: [],
-      licensedEntity: [],
+      [CompanyTypes.BUSINESS]: [],
+      [CompanyTypes.INDIVIDUAL]: [],
+      [CompanyTypes.LICENSED_ENTITY]: [],
     };
 
-    Object.keys(newCompanySubtypes).forEach((companyType) => {
-      (updatedCompanySubtypes as any)[companyType] = [
-        ...(prevCompanySubtypes as any)[companyType],
-        ...(newCompanySubtypes as any)[companyType],
-      ];
-    });
+    if (newCompanySubtypes && Object.keys(newCompanySubtypes).length > 0) {
+      Object.keys(newCompanySubtypes).forEach((companyType) => {
+        if ((newCompanySubtypes as any)[companyType].length) {
+          (updatedCompanySubtypes as any)[companyType] = [
+            ...(prevCompanySubtypes as any)[companyType],
+            ...(newCompanySubtypes as any)[companyType].filter(
+              (subtype: string) =>
+                !(prevCompanySubtypes as any)[companyType].includes(subtype),
+            ),
+          ];
+        }
+      });
+    }
 
     Object.keys(removedCompanySubtypes).forEach((companyType) => {
       const existingCompanySubtypes: string[] = (prevCompanySubtypes as any)[

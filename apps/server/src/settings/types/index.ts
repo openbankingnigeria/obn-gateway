@@ -1,10 +1,14 @@
+import { CompanyTypes } from '@common/database/constants';
+
 export enum KybDataTypes {
   FILE = 'file',
   STRING = 'string',
 }
 
 export type CompanySubtypes = Record<
-  'individual' | 'licensedEntity' | 'business',
+  | CompanyTypes.INDIVIDUAL
+  | CompanyTypes.LICENSED_ENTITY
+  | CompanyTypes.BUSINESS,
   string[]
 >;
 

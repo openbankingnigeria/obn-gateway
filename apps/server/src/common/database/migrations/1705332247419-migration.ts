@@ -1,10 +1,8 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
-import { Company } from '../entities';
-import { CompanyTypes } from '../constants';
 import { SYSTEM_SETTINGS_NAME } from '../../../settings/settings.constants';
+import { MigrationInterface, QueryRunner } from 'typeorm';
+import { CompanyTypes } from '../constants';
 
-export class Migration1701884323523 implements MigrationInterface {
+export class Migration1705332247419 implements MigrationInterface {
   private readonly defaultSettings = {
     uneditableFields: ['taxIdentificationNumber', 'registryLicense'],
     kybRequirements: [
@@ -71,26 +69,11 @@ export class Migration1701884323523 implements MigrationInterface {
     },
   };
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const [apiProvider]: Company[] = await queryRunner.query(
-      `SELECT * FROM companies WHERE type = '${CompanyTypes.API_PROVIDER}' ORDER BY created_at ASC`,
-    );
-
-    const parameters = [
-      [
-        uuidv4(),
-        SYSTEM_SETTINGS_NAME,
-        apiProvider.id,
-        JSON.stringify(this.defaultSettings),
-      ],
-    ];
-
     await queryRunner.query(
-      `INSERT INTO settings (id, name, company_id, value) VALUES ? ON DUPLICATE KEY UPDATE name = VALUES(name)`,
-      [parameters],
+      `UPDATE settings SET value = ? WHERE name = '${SYSTEM_SETTINGS_NAME}'`,
+      [JSON.stringify(this.defaultSettings)],
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`UPDATE settings SET deleted_at = NOW()`);
-  }
+  public async down(queryRunner: QueryRunner): Promise<void> {}
 }

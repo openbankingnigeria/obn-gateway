@@ -335,9 +335,9 @@ export class CompanyService {
     );
 
     const companySubtypes = parsedSystemSettings.companySubtypes || {
-      business: [],
-      individual: [],
-      licensedEntity: [],
+      [CompanyTypes.BUSINESS]: [],
+      [CompanyTypes.INDIVIDUAL]: [],
+      [CompanyTypes.LICENSED_ENTITY]: [],
     };
 
     return ResponseFormatter.success(
