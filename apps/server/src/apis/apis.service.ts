@@ -369,7 +369,7 @@ export class APIService {
       const response = await this.kongConsumerService.updateOrCreateConsumer(
         environment,
         {
-          custom_id: ctx.activeCompany.id,
+          custom_id: company.id,
         },
       );
 
