@@ -10,6 +10,7 @@ const TransparentPanel = ({
   panel,
   currentValue,
   containerStyle,
+  status,
   removeSearchParam
 }: PanelContainerProps) => {
   const router = useRouter();
@@ -34,25 +35,26 @@ const TransparentPanel = ({
     >
       {
         panel?.map((data) => (
-          <div 
-            key={data?.id} 
-            className='whitespace-nowrap cursor-pointer relative w-fit flex flex-col py-[9px]'
-            onClick={() => handleClick(data?.value)}
-          >
-            <div className={`${currentValue == data?.value ? 'text-o-blue font-[500]' : 'text-o-text-medium3'} 
-              capitalize text-f14 hover:text-o-blue`}
+          data?.type?.includes(status || '') &&
+            <div 
+              key={data?.id} 
+              className='whitespace-nowrap cursor-pointer relative w-fit flex flex-col py-[9px]'
+              onClick={() => handleClick(data?.value)}
             >
-              {data?.label}
-            </div>
+              <div className={`${currentValue == data?.value ? 'text-o-blue font-[500]' : 'text-o-text-medium3'} 
+                capitalize text-f14 hover:text-o-blue`}
+              >
+                {data?.label}
+              </div>
 
-            {
-              currentValue == data?.value &&
-              <motion.div
-                className='pane-underline'
-                layoutId='transparent-pane-underline'
-              ></motion.div>
-            }
-          </div>
+              {
+                currentValue == data?.value &&
+                <motion.div
+                  className='pane-underline'
+                  layoutId='transparent-pane-underline'
+                ></motion.div>
+              }
+            </div>
         ))
       }
     </div>

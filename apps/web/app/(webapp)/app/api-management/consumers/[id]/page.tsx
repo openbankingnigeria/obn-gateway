@@ -2,9 +2,14 @@ import React from 'react'
 import { ConsumerBusinessDetails, ConsumerDetails, ConsumerSections } from '../(components)'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { APIS_DATA } from '@/data/apisData';
-import { CONSUMER_API_ACTIVITIES, CONSUMER_API_ACTIVITIES_HEADERS, CONSUMER_API_ACTIVITIES_STATUS, CONSUMER_CONSENTS, CONSUMER_CONSENTS_HEADERS, CONSUMER_CONSENTS_STATUS } from '@/data/consumerData';
+import { CONSUMER_API_ACTIVITIES, CONSUMER_API_ACTIVITIES_HEADERS, 
+  CONSUMER_API_ACTIVITIES_STATUS, CONSUMER_CONSENTS, CONSUMER_CONSENTS_HEADERS, 
+  CONSUMER_COLLECTIONS, CONSUMER_COLLECTIONS_HEADERS, CONSUMER_CONSENTS_STATUS } from '@/data/consumerData';
+import { applyAxiosRequest } from '@/hooks';
+import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout';
 
-const ConsumerPage = ({ params, searchParams }: UrlParamsProps) => {
+const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || '';
   const path = searchParams?.path || '';
   const consumerId = params?.id;
@@ -14,17 +19,42 @@ const ConsumerPage = ({ params, searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const search_apis = searchParams?.search_apis || ''
 
+  const fetchedProfile: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getProfile(),
+    method: 'GET',
+    data: null
+  });
+
+  const fetchedConsumer: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompany({
+      id: `${consumerId}`,
+    }),
+    method: 'GET',
+    data: null
+  });
+
+  if (fetchedConsumer?.status == 401) {
+    return <Logout />
+  }
+
+  let consumer = fetchedConsumer?.data
+  let profile = fetchedProfile?.data;
+
   const apis_list = APIS_DATA;
   const api_activities = CONSUMER_API_ACTIVITIES;
   const consents = CONSUMER_CONSENTS;
+  const collections = CONSUMER_COLLECTIONS;
   const filters = [search_query, status, date_sent]
 
   let raw_data = path == 'consents' ? 
-    consents : api_activities;
+    consents : path == 'api_activities' ? 
+      api_activities : collections;
 
   let pathStatus = path == 'consents' ? 
-    CONSUMER_CONSENTS_STATUS : 
-    CONSUMER_API_ACTIVITIES_STATUS
+    CONSUMER_CONSENTS_STATUS : path == 'api_activities' ?
+      CONSUMER_API_ACTIVITIES_STATUS : [];
 
   let status_list = pathStatus?.map(status => {
     return ({
@@ -34,8 +64,9 @@ const ConsumerPage = ({ params, searchParams }: UrlParamsProps) => {
   });
 
   let table_headers = path == 'consents' ? 
-    CONSUMER_CONSENTS_HEADERS :
-    CONSUMER_API_ACTIVITIES_HEADERS;
+    CONSUMER_CONSENTS_HEADERS : path == 'api_activities' ?
+      CONSUMER_API_ACTIVITIES_HEADERS:
+      CONSUMER_COLLECTIONS_HEADERS;
 
   const total_pages = raw_data?.length;
   const total_elements_in_page = raw_data?.length;
@@ -45,13 +76,21 @@ const ConsumerPage = ({ params, searchParams }: UrlParamsProps) => {
     <section className='w-full h-full flex flex-col gap-[20px]'>
       <ConsumerDetails 
         status={status}
+        rawData={consumer}
         dataList={apis_list}
         searchQuery={search_apis}
       />
-      <ConsumerBusinessDetails  />
+      {
+        consumer?.type === 'licensed-entity' &&
+          <ConsumerBusinessDetails  
+            rawData={consumer}
+          />
+      }
       <ConsumerSections 
         path={path}
         rawData={raw_data}
+        altData={consumer}
+        profileData={profile}
         tableHeaders={table_headers}
         rows={rows}
         statusList={status_list}

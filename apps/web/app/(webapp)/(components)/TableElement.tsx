@@ -137,29 +137,44 @@ const TableElement = ({
                   >
                     {
                       (cell.id?.includes('date_created') || cell.id?.includes('date_invited')) ? 
-                        moment(cell.getValue() || '').format('LLL') :
+                        moment(cell.getValue() || '').format('LLL') 
+                        :
                         cell.id?.includes('timestamp') ? 
-                          timestampFormatter(cell.getValue()) :
+                          timestampFormatter(cell.getValue()) 
+                          :
                           cell.id?.includes('request_method') ?
                             <RequestMethodText 
                               method={cell.getValue()} 
-                            /> :
-                            (cell.id?.includes('configured') || cell.id?.includes('two_fa')) ?
-                              <BooleanBox 
-                                value={Boolean(cell.getValue())} 
-                              />
+                            /> 
+                            :
+                            cell.id?.includes('categories') ?
+                              // TODO: CHECK IF CATEGORIES IS AN ARRAY OR NOT
+                              // @ts-ignore
+                              cell.getValue()?.map((data: any) => (
+                                <div key={data} className='w-fit inline-block mr-1'>
+                                  <StatusBox status={data} />
+                                </div>
+                              ))
                               :
-                              cell.id?.includes('tier') ?
-                                <TierBox 
-                                  value={cell.getValue()} 
+                              (cell.id?.includes('configured') || cell.id?.includes('two_fa')) ?
+                                <BooleanBox 
+                                  value={Boolean(cell.getValue())} 
                                 />
                                 :
-                                cell.id?.includes('configuration') ? 
-                                  <ConfigurationBox 
-                                    value={cell.getValue()}
-                                    noOfApis={row.original?.no_of_apis}
-                                  /> :
-                                  flexRender(cell.column.columnDef.cell, cell.getContext())
+                                cell.id?.includes('tier') ?
+                                  <TierBox 
+                                    value={cell.getValue()} 
+                                  />
+                                  :
+                                  cell.id?.includes('configuration') ? 
+                                    <ConfigurationBox 
+                                      value={cell.getValue()}
+                                      noOfApis={row.original?.no_of_apis}
+                                    /> 
+                                    :
+                                    cell.id?.includes('description') ?
+                                      <div dangerouslySetInnerHTML={{ __html: cell.getValue() || '' }} /> :
+                                      flexRender(cell.column.columnDef.cell, cell.getContext())
                     }
                   </td>
                 ))}

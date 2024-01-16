@@ -62,6 +62,8 @@ export interface TableProps {
 export interface ConfirmActionProps {
   close: () => void;
   type?: string;
+  reason?: string;
+  setReason?: Dispatch<SetStateAction<string>>;
   loading?: boolean;
   dataList?: any[];
   searchQuery?: string;
@@ -69,6 +71,7 @@ export interface ConfirmActionProps {
 };
 
 export interface ConsumerDetailsProps {
+  rawData: any;
   status: string
   dataList: any[]
   searchQuery?: string
@@ -77,6 +80,7 @@ export interface ConsumerDetailsProps {
 export interface SectionsProps {
   rawData: any[];
   altData?: any;
+  profileData?: any;
   tableHeaders: any[];
   filters: any[];
   rows: number;
@@ -92,6 +96,10 @@ export interface SectionsProps {
 
 export interface ConsumerSectionsProps extends SectionsProps {
   path: string;
+}
+
+export interface ConsumerBusinessDetailsProps {
+  rawData: any;
 }
 
 export interface ActivitySectionsProps {

@@ -113,15 +113,24 @@ export const CONSUMER_ACTIONS_DATA = [
 export const CONSUMER_DETAILS_PANEL = [
   {
     id: 1,
-    label: 'API Activities',
+    label: 'Collections',
     value: '',
-    name: 'api_activities'
+    name: 'collections',
+    type: 'individual, business, licensed-entity'
   },
   {
     id: 2,
+    label: 'API Activities',
+    value: 'api_activities',
+    name: 'api_activities',
+    type: 'individual, business, licensed-entity'
+  },
+  {
+    id: 3,
     label: 'Consents',
     value: 'consents',
-    name: 'consents'
+    name: 'consents',
+    type: 'business, licensed-entity'
   },
 ];
 
@@ -209,8 +218,12 @@ export const CONSUMER_API_ACTIVITIES_STATUS = [
 
 export const CONSUMER_CONSENTS_HEADERS = [
   {
-    header: 'Name',
-    accessor: 'name'
+    header: 'Consent ID',
+    accessor: 'consent_id'
+  },
+  {
+    header: 'Consumer Name',
+    accessor: 'consumer_name'
   },
   {
     header: 'Email',
@@ -238,12 +251,69 @@ export const CONSUMER_CONSENTS_HEADERS = [
   },
 ];
 
+export const CONSUMER_COLLECTIONS_HEADERS = [
+  {
+    header: 'Collection Name',
+    accessor: 'collection_name'
+  },
+  {
+    header: 'Endpoints',
+    accessor: 'endpoints'
+  },
+  {
+    header: 'Categories',
+    accessor: 'categories'
+  },
+];
+
+export const CONSUMER_COLLECTIONS = [];
+
+export const CONSUMER_COLLECTIONS_FULLDATA = [
+  {
+    id: 1,
+    collection_name: 'Authorization',
+    endpoints: '/auth, /transactions, /users',
+    categories: [
+      'payments',
+      'auth'
+    ]
+  },
+  {
+    id: 2,
+    collection_name: 'Meta',
+    endpoints: '/auth, /transactions, /users',
+    categories: [
+      'payments',
+      'auth'
+    ]
+  },
+  {
+    id: 3,
+    collection_name: 'Customer',
+    endpoints: '/auth, /transactions, /users',
+    categories: [
+      'payments',
+      'auth'
+    ]
+  },
+  {
+    id: 4,
+    collection_name: 'Accounts',
+    endpoints: '/auth, /transactions, /users',
+    categories: [
+      'payments',
+      'auth'
+    ]
+  }
+];
+
 export const CONSUMER_CONSENTS = [];
 
 export const CONSUMER_CONSENTS_FULLDATA = [
   {
     id: 1,
-    name: 'Consent name',
+    consent_id: '#123456789GH',
+    consumer_name: 'Consent name',
     email: 'bob.julian@lendsqr.com',
     date_sent: '2023-09-25',
     status: 'Active',
@@ -253,7 +323,8 @@ export const CONSUMER_CONSENTS_FULLDATA = [
   },
   {
     id: 2,
-    name: 'Consent name',
+    consent_id: '#123456789GH',
+    consumer_name: 'Consent name',
     email: 'bob.julian@lendsqr.com',
     date_sent: '2023-09-25',
     status: 'Inactive',

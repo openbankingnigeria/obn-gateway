@@ -1,5 +1,6 @@
 import { EmptyStateProps } from '@/types/webappTypes/componentsTypes';
 import React from 'react';
+import { EmptyStateButton } from '.';
 
 const EmptyState = ({
   type,
@@ -9,7 +10,9 @@ const EmptyState = ({
   titleStyle,
   bodyStyle,
   iconStyle,
-  containerStyle
+  containerStyle,
+  button,
+  buttonType
 }: EmptyStateProps) => {
   return (
     <section className={`w-full h-full flex flex-col items-center ${parentStyle}`}>
@@ -69,9 +72,14 @@ const EmptyState = ({
           {title}
         </div>
 
-        <div className={`text-o-text-medium3 text-center text-f14 ${bodyStyle}`}>
+        <div className={`mb-[24px] text-o-text-medium3 text-center text-f14 ${bodyStyle}`}>
           {body}
         </div>
+        
+        { 
+          button &&
+          <EmptyStateButton type={buttonType} />
+        }
       </div>
     </section>
   );
