@@ -26,6 +26,8 @@ import {
   GetCompanyResponseDTO,
   GetCompanySubTypesResponseDTO,
   GetCompanyTypesResponseDTO,
+  PrimaryUserDto,
+  ProfileDto,
   UpdateCompanyKybStatusResponseDTO,
   UpdateKybStatusDto,
 } from './dto/index.dto';
@@ -147,7 +149,10 @@ export class CompanyService {
   // TODO ensure only APs can get any company details like this.
   async getCompanyDetails(ctx: RequestContext, companyId?: string) {
     const company = companyId
-      ? await this.companyRepository.findOne({ where: { id: companyId } })
+      ? await this.companyRepository.findOne({
+          where: { id: companyId },
+          relations: { primaryUser: { profile: true } },
+        })
       : ctx.activeCompany;
 
     if (!company) {
@@ -175,11 +180,16 @@ export class CompanyService {
       }
     }
 
+    console.log({ company });
     return ResponseFormatter.success(
       'Successfully fetched company details',
       new GetCompanyResponseDTO({
         ...company,
         kybData: kybDetails,
+        primaryUser: new PrimaryUserDto({
+          ...company.primaryUser,
+          profile: new ProfileDto(company.primaryUser?.profile),
+        }),
       }),
     );
   }
@@ -287,13 +297,15 @@ export class CompanyService {
       businessDetails = this.verifyCompanyRC(company.rcNumber, company.name);
     }
 
+    let event: CompanyDeniedEvent | CompanyApprovedEvent;
+
     switch (action) {
       case 'approve':
         await this.companyRepository.update(
           { id: companyId },
           { isVerified: true, tier: businessDetails?.tier },
         );
-        const event = new CompanyApprovedEvent(ctx.activeUser, company);
+        event = new CompanyApprovedEvent(ctx.activeUser, company);
         this.eventEmitter.emit(event.name, event);
         break;
       // Send mail to company with reason
@@ -303,10 +315,10 @@ export class CompanyService {
             message: companyErrors.reasonNotProvided,
           });
         }
-        const deniedEvent = new CompanyDeniedEvent(ctx.activeUser, company, {
-          reason: reason!,
+        event = new CompanyDeniedEvent(ctx.activeUser, company, {
+          reason: reason,
         });
-        this.eventEmitter.emit(deniedEvent.name, deniedEvent);
+        this.eventEmitter.emit(event.name, event);
     }
 
     return ResponseFormatter.success(
@@ -363,8 +375,6 @@ export class CompanyService {
         customFields = companyCustomFields['licensed-entity'];
         break;
     }
-
-    console.log({ customFields });
 
     return ResponseFormatter.success(
       'Company custom fields fetched successfully',

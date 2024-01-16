@@ -188,6 +188,11 @@ export class AuthService {
             accountNumber,
           });
 
+          await this.companyRepository.update(
+            { id: companyCreated.id },
+            { primaryUser: user.id as any },
+          );
+
           const event = new AuthSignupEvent(user, { otp });
 
           user.company = companyCreated;
@@ -272,7 +277,6 @@ export class AuthService {
         const {
           companySubtype: licensedEntityCompanySubtype,
           companyName: companyName,
-          companyRole,
         } = data as LicensedEntitySignupDto;
         if (systemSettings) {
           const parsedSystemSettings: SystemSettings = JSON.parse(
@@ -320,7 +324,6 @@ export class AuthService {
               firstName,
               lastName,
               phone,
-              companyRole,
             },
           });
 

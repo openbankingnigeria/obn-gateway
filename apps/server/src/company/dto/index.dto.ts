@@ -8,7 +8,6 @@ import {
   // Length,
 } from 'class-validator';
 import { companyValidationErrors } from '../company.config';
-import { Company } from '@common/database/entities';
 import { CompanyTypes } from '@common/database/constants';
 import { Expose } from 'class-transformer';
 import { CompanySubtypes } from '@settings/types';
@@ -44,8 +43,35 @@ export class UpdateKybStatusDto {
   reason: string;
 }
 
+export class ProfileDto {
+  constructor(partial: any) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  firstName: string;
+
+  @Expose()
+  lastName: string;
+}
+
+export class PrimaryUserDto {
+  constructor(partial: any) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  id: string;
+
+  @Expose()
+  email: string;
+
+  @Expose()
+  profile?: ProfileDto;
+}
+
 export class GetCompanyResponseDTO {
-  constructor(partial: Partial<Company>) {
+  constructor(partial: any) {
     Object.assign(this, partial);
   }
 
@@ -78,6 +104,9 @@ export class GetCompanyResponseDTO {
 
   @Expose()
   createdAt: Date;
+
+  @Expose()
+  primaryUser: PrimaryUserDto;
 }
 
 export class GetCompanySubTypesResponseDTO {

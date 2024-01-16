@@ -3,7 +3,9 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -50,6 +52,13 @@ export class Company {
 
   @OneToMany(() => User, (user) => user.company)
   users?: User[];
+
+  @JoinColumn({ referencedColumnName: 'id', name: 'primary_user_id' })
+  @OneToOne(() => User, {
+    cascade: true,
+    nullable: true,
+  })
+  primaryUser?: User;
 
   @OneToMany(() => AuditLog, (auditLog) => auditLog.company)
   auditLogs?: AuditLog[];
