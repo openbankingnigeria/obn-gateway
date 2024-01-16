@@ -27,6 +27,7 @@ import TierBox from "./TierBox";
 import DownloadButton from "./DownloadButton";
 import DragAndUploadFile from "./DragAndUploadFile";
 import KybBanner from "./KybBanner";
+import EmptyStateButton from "./EmptyStateButton";
 
 export {
   DatePicker,
@@ -57,5 +58,6 @@ export {
   BooleanBox,
   TierBox,
   DownloadButton,
-  DragAndUploadFile
+  DragAndUploadFile,
+  EmptyStateButton
 }

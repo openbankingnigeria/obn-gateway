@@ -57,6 +57,8 @@ export interface EmptyStateProps {
   bodyStyle?: string;
   iconStyle?: string;
   containerStyle?: string;
+  button?: boolean;
+  buttonType?: string;
 }
 
 export interface AvartarMenuProps {
@@ -69,6 +71,7 @@ export interface PanelProps {
   label: string
   amount?: number
   value: string
+  type?: string
 }
 
 export interface PanelContainerProps {
@@ -76,6 +79,7 @@ export interface PanelContainerProps {
   currentValue: string
   containerStyle?: string
   removeSearchParam?: string
+  status?: string;
 }
 
 export interface TopPanelContainerProps extends PanelContainerProps{
@@ -165,4 +169,9 @@ export interface DragAndUploadFileProps {
   selectedFile: any;
   file?: string;
   setSelectedFile: Dispatch<SetStateAction<any>>;
+}
+
+export interface EmptyStateButtonProps {
+  title: string;
+  effect: any;
 }
