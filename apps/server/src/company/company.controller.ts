@@ -57,15 +57,6 @@ export class CompanyController {
     return this.companyService.getCompanyTypes();
   }
 
-  @Get('company/:companyType/fields')
-  @SkipAuthGuard()
-  @SerializeOptions({
-    strategy: 'exposeAll',
-  })
-  getCompanyCustomFields(@Param('companyType') companyType: CompanyTypes) {
-    return this.companyService.getCompanyCustomFields(companyType);
-  }
-
   @Get('companies')
   @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
   listCompanies(
@@ -84,6 +75,15 @@ export class CompanyController {
     @Param('id') companyId: string,
   ) {
     return this.companyService.getCompanyDetails(ctx, companyId);
+  }
+
+  @Get('company/:companyType/fields')
+  @SkipAuthGuard()
+  @SerializeOptions({
+    strategy: 'exposeAll',
+  })
+  getCompanyCustomFields(@Param('companyType') companyType: CompanyTypes) {
+    return this.companyService.getCompanyCustomFields(companyType);
   }
 
   // @Post('companies/rc/verify')
