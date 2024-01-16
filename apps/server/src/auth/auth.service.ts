@@ -370,6 +370,9 @@ export class AuthService {
       where: {
         email,
       },
+      relations: {
+        company: true,
+      },
     });
 
     // TODO do not throw error if email not found
@@ -382,6 +385,12 @@ export class AuthService {
     if (!user.emailVerified) {
       throw new IBadRequestException({
         message: userErrors.userEmailNotVerified,
+      });
+    }
+
+    if (!user.company?.isActive) {
+      throw new IBadRequestException({
+        message: commonErrors.genericNoAccessError,
       });
     }
 
