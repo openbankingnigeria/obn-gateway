@@ -32,7 +32,6 @@ const CollectionSection = ({
   const columnHelper = createColumnHelper<any>();
   const router = useRouter();
   const [openModal, setOpenModal] = useState('');
-  const [id, setId] = useState('');
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const actions = COLLECTION_ACTIONS_DATA;
@@ -221,8 +220,6 @@ const CollectionSection = ({
                 className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
                 onClick={() => {
                   const api = rawData?.find(data => data?.id == row.original.id);
-
-                  setId(row.original.id);
                   setApi(api)
                   updateFields({
                     endpoint_url: api?.url,

@@ -10,6 +10,7 @@ import { ActivateDeactivateConsumer, ApproveConsumer, DeclineConsumer } from '.'
 import { ConsumerDetailsProps } from '@/types/webappTypes/appTypes'
 
 const ConsumerDetails = ({
+  rawData,
   status,
   dataList,
   searchQuery
@@ -17,6 +18,7 @@ const ConsumerDetails = ({
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [reason, setReason] = useState('');
   const [open2FA, setOpen2FA] = useState(false);
   const [openModal, setOpenModal] = useState('');
   const actions = CONSUMER_ACTIONS_DATA;
@@ -54,6 +56,7 @@ const ConsumerDetails = ({
 
   const handleDeclineConsumer = () => {
     // setLoading(true);
+    // reason
     setOpen2FA(true);
   }
 
@@ -91,10 +94,9 @@ const ConsumerDetails = ({
 
       {
         (openModal == 'approve' || openModal == 'decline') &&
-          <AppRightModal
+          <AppCenterModal
             title={'Confirm Action'}
             effect={closeModal}
-            childrenStyle='!px-0'
           >
             {
               openModal == 'approve' ?
@@ -102,17 +104,17 @@ const ConsumerDetails = ({
                   close={closeModal}
                   loading={loading}
                   next={handleApproveConsumer}
-                  searchQuery={searchQuery}
-                  dataList={dataList}
                 />
                 :
                 <DeclineConsumer 
                   close={closeModal}
+                  reason={reason}
+                  setReason={setReason}
                   loading={loading}
                   next={handleDeclineConsumer}
                 />
             }
-          </AppRightModal>
+          </AppCenterModal>
       }
 
       {
@@ -136,7 +138,7 @@ const ConsumerDetails = ({
               John Ajayi
             </h2>
 
-            <StatusBox status={consumerStatus} />
+            <StatusBox status={rawData?.type} />
           </div>
 
           {
@@ -174,33 +176,75 @@ const ConsumerDetails = ({
           <div className='w-full p-[20px] grid grid-cols-2 ms:grid-cols-3 lgg:grid-cols-4 gap-[16px] bg-white'>
             <ViewData 
               label='Name'
-              value='John Ajayi'
+              value=''
             />
 
             <ViewData 
-              label='Ap'
-              value='/auth, /transactions, /users'
+              label='Email Address'
+              value=''
             />
 
             <ViewData 
-              label='Name'
+              label='Phone Number'
+              value=''
+            />
+
+            <ViewData 
+              label='User Type'
               value={
-                <div className='w-fit flex items-center gap-[4px]'>
-                  <StatusBox status='payments' />
-                  <StatusBox status='auth' />
-                </div>
+                <StatusBox 
+                  status={rawData?.type} 
+                />
               }
             />
 
-            <ViewData 
-              label='Permissions'
-              value={
-                <div className='w-fit flex items-center gap-[4px]'>
-                  <StatusBox status='read' />
-                  <StatusBox status='write' />
-                </div>
-              }
-            />
+            {
+              (rawData?.type == 'business' || rawData?.type == 'licensed-entity') &&
+                <ViewData 
+                  label='Business Name'
+                  value=''
+                />
+            }
+
+            {
+              (rawData?.type == 'business' || rawData?.type == 'licensed-entity') &&
+                <ViewData 
+                  label='Business Type'
+                  value=''
+                />
+            }
+
+            {
+              rawData?.type == 'business' &&
+                <ViewData 
+                  label='CAC Number'
+                  value=''
+                />
+            }
+
+            {
+              rawData?.type == 'individual' &&
+                <ViewData 
+                  label='BVN'
+                  value=''
+                />
+            }
+
+            {
+              (rawData?.type == 'individual' || rawData?.type == 'business') &&
+                <ViewData 
+                  label='Account Number'
+                  value=''
+                />
+            }
+
+            {
+              rawData?.type == 'licensed-entity' &&
+                <ViewData 
+                  label='Role'
+                  value=''
+                />
+            }
 
             <ViewData 
               label='Status'

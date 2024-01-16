@@ -11,6 +11,7 @@ import { setStorage } from '@/config/webStorage';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
 import { COUNTRIES_DATA } from '@/data/countriesData';
+import { CONSUMER_ROLES } from '@/data/authData';
 // import { USER_TYPE_DATA } from '@/data/userTypeData';
 
 const SignupFullForm = () => {
@@ -96,16 +97,16 @@ const SignupFullForm = () => {
     });
   })
 
-  const role_list = [
-    {
-      label: 'Role',
-      value: 'role'
-    }
-  ];
+  const role_list = CONSUMER_ROLES?.map(role => {
+    return ({
+      label: role?.label || '',
+      value: role?.value || ''
+    });
+  })
 
   const user_type_list = companyTypes?.companyTypes?.map((type?: string[]) => {
     return ({
-      label: type || '',
+      label: type?.toString()?.replace(/-/g, ' ') || '',
       value: type || ''
     })
   })
