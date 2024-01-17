@@ -17,11 +17,12 @@ import {
   AssignAPIsDto,
   APILogStatsResponseDTO,
   CreateAPIDto,
-  GETAPIRouteResponseDTO,
   GetAPIResponseDTO,
   UpdateAPIDto,
   GetAPILogsDto,
   GetAPILogsFilterDto,
+  GETAPIDownstreamResponseDTO,
+  GETAPIUpstreamResponseDTO,
 } from './dto/index.dto';
 import slugify from 'slugify';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
@@ -102,17 +103,19 @@ export class APIService {
           id: route.id,
           name: route.name,
           enabled: route.enabled,
-          host: gatewayService?.host || null,
-          protocol: gatewayService?.protocol || null,
-          port: gatewayService?.port || null,
-          path: gatewayService?.path || null,
-          url: gatewayService
-            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
-            : null,
-          route: {
+          upstream: new GETAPIUpstreamResponseDTO({
+            host: gatewayService?.host || null,
+            protocol: gatewayService?.protocol || null,
+            port: gatewayService?.port || null,
+            path: gatewayService?.path || null,
+            url: gatewayService
+              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+              : null,
+          }),
+          downstream: new GETAPIDownstreamResponseDTO({
             paths: gatewayRoute?.paths || [],
             methods: gatewayRoute?.methods || [],
-          },
+          }),
         });
       }),
       new ResponseMetaDTO({
@@ -161,14 +164,16 @@ export class APIService {
         id: route.id,
         name: route.name,
         enabled: route.enabled,
-        host: gatewayService?.host || null,
-        protocol: gatewayService?.protocol || null,
-        port: gatewayService?.port || null,
-        path: gatewayService?.path || null,
-        url: gatewayService
-          ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
-          : null,
-        route: new GETAPIRouteResponseDTO({
+        upstream: new GETAPIUpstreamResponseDTO({
+          host: gatewayService?.host || null,
+          protocol: gatewayService?.protocol || null,
+          port: gatewayService?.port || null,
+          path: gatewayService?.path || null,
+          url: gatewayService
+            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+            : null,
+        }),
+        downstream: new GETAPIDownstreamResponseDTO({
           paths: gatewayRoutes?.data[0]?.paths || [],
           methods: gatewayRoutes?.data[0]?.methods || [],
         }),
@@ -210,8 +215,9 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     data: CreateAPIDto,
   ) {
-    const { name, enabled, url } = data;
-    const { paths, methods } = data.route;
+    const { name, enabled } = data;
+    const { paths, methods } = data.downstream;
+    const { url } = data.upstream;
 
     const collection = await this.collectionRepository.findOne({
       where: { id: data.collectionId },
@@ -233,13 +239,13 @@ export class APIService {
       });
     }
 
-    const hostname = new URL(url).hostname;
+    const { hostname, pathname } = new URL(url);
 
     // Create an upstream service on the API gateway
     const gatewayService = await this.kongService.updateOrCreateService(
       environment,
       {
-        name: hostname,
+        name: slugify(hostname + '-' + pathname),
         enabled: true,
         url,
         retries: 1,
@@ -332,13 +338,15 @@ export class APIService {
         id: createdRoute.id,
         name: createdRoute.name,
         enabled: createdRoute.enabled,
-        host: gatewayService.host,
-        protocol: gatewayService.protocol,
-        port: gatewayService.port,
-        path: gatewayService.path,
-        url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
-        route: data.route,
-        aclAllowedGroupName,
+        upstream: new GETAPIUpstreamResponseDTO({
+          ...data.upstream,
+          host: gatewayService.host,
+          protocol: gatewayService.protocol,
+          port: gatewayService.port,
+          path: gatewayService.path,
+          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+        }),
+        downstream: new GETAPIDownstreamResponseDTO(data.downstream),
       }),
     );
   }
@@ -489,8 +497,9 @@ export class APIService {
     routeId: string,
     data: UpdateAPIDto,
   ) {
-    const { name, enabled, url } = data;
-    const { paths, methods } = data.route;
+    const { name, enabled } = data;
+    const { paths, methods } = data.downstream;
+    const { url } = data.upstream;
 
     const route = await this.routeRepository.findOne({
       where: { id: routeId, environment },
@@ -514,11 +523,11 @@ export class APIService {
       });
     }
 
-    const hostname = new URL(url).hostname;
+    const { hostname, pathname } = new URL(url);
     const gatewayService = await this.kongService.updateOrCreateService(
       environment,
       {
-        name: hostname,
+        name: slugify(hostname + '-' + pathname),
         enabled: true,
         url,
         retries: 1,
@@ -587,12 +596,15 @@ export class APIService {
         id: route.id,
         name: route.name,
         enabled: route.enabled,
-        host: gatewayService.host,
-        protocol: gatewayService.protocol,
-        port: gatewayService.port,
-        path: gatewayService.path,
-        url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
-        route: data.route,
+        upstream: new GETAPIUpstreamResponseDTO({
+          ...data.upstream,
+          host: gatewayService.host,
+          protocol: gatewayService.protocol,
+          port: gatewayService.port,
+          path: gatewayService.path,
+          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+        }),
+        downstream: new GETAPIDownstreamResponseDTO(data.downstream),
       }),
     );
   }

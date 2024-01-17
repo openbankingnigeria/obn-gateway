@@ -114,8 +114,10 @@ export class Migration1705165841323 implements MigrationInterface {
               collectionId: collection.data.id,
               name,
               enabled: false,
-              url: request.url,
-              route: {
+              upstream: {
+                url: request.url,
+              },
+              downstream: {
                 paths: ['/' + request.urlObject.path.join('/')],
                 methods: [request.method],
               },
