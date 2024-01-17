@@ -23,9 +23,6 @@ import {
   GetAPILogsFilterDto,
   GETAPIDownstreamResponseDTO,
   GETAPIUpstreamResponseDTO,
-  GetStatsAggregateResponseDTO,
-  SetAPITransformationDTO,
-  GetAPITransformationResponseDTO,
 } from './dto/index.dto';
 import slugify from 'slugify';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';

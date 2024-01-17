@@ -104,6 +104,14 @@ export class UpdateAPIDto {
 
   @IsObject()
   @ValidateNested()
+<<<<<<< HEAD
+=======
+  @Type(() => UpdateAPIUpstreamDTO)
+  upstream: UpdateAPIUpstreamDTO;
+
+  @IsObject()
+  @ValidateNested()
+>>>>>>> 92fd5dd (modify api request format.)
   @Type(() => UpdateAPIDownstreamDTO)
   downstream: UpdateAPIDownstreamDTO;
 }
