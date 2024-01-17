@@ -6,7 +6,7 @@ import {
   UpdateTwoFADto,
 } from './dto/index.dto';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
-import { Ctx } from '@common/utils/authentication/auth.decorator';
+import { Ctx, RequireTwoFA } from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
 
 @Controller('profile')
@@ -44,6 +44,7 @@ export class ProfileController {
   }
 
   @Patch('password')
+  @RequireTwoFA()
   @UsePipes(IValidationPipe)
   updatePassword(@Ctx() ctx: RequestContext, @Body() data: UpdatePasswordDto) {
     return this.profileService.updatePassword(ctx, data);
