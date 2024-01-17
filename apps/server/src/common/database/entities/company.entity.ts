@@ -32,7 +32,7 @@ export class Company {
   @Column({ name: 'consumer_id', nullable: true })
   consumerId?: string;
 
-  @Column({ name: 'is_active', type: 'boolean', default: false })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
   @Column('longblob', { name: 'kyb_data', nullable: true })
