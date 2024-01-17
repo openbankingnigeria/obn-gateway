@@ -388,10 +388,7 @@ export class AuthService {
       });
     }
 
-    if (
-      !user.company?.isActive &&
-      user.company?.type !== CompanyTypes.API_PROVIDER
-    ) {
+    if (!user.company?.isActive) {
       throw new IBadRequestException({
         message: commonErrors.genericNoAccessError,
       });
