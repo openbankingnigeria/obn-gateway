@@ -18,7 +18,7 @@ import { HTTP_METHODS } from '../types';
 import { Expose, Transform, Type } from 'class-transformer';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
-class CreateRouteDTO {
+class CreateAPIDownstreamDTO {
   @IsArray()
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
@@ -31,6 +31,12 @@ class CreateRouteDTO {
   @IsEnum(HTTP_METHODS, { each: true })
   @ArrayNotEmpty()
   methods: string[];
+}
+
+class CreateAPIUpstreamDTO {
+  @IsNotEmpty()
+  @IsUrl()
+  url: string;
 }
 
 export class CreateAPIDto {
@@ -49,17 +55,18 @@ export class CreateAPIDto {
   @IsBoolean()
   enabled: boolean;
 
-  @IsNotEmpty()
-  @IsUrl()
-  url: string;
+  @IsObject()
+  @ValidateNested()
+  @Type(() => CreateAPIUpstreamDTO)
+  upstream: CreateAPIUpstreamDTO;
 
   @IsObject()
   @ValidateNested()
-  @Type(() => CreateRouteDTO)
-  route: CreateRouteDTO;
+  @Type(() => CreateAPIDownstreamDTO)
+  downstream: CreateAPIDownstreamDTO;
 }
 
-class UpdateRouteDTO {
+class UpdateAPIDownstreamDTO {
   @IsArray()
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
@@ -72,6 +79,12 @@ class UpdateRouteDTO {
   @IsEnum(HTTP_METHODS, { each: true })
   @ArrayNotEmpty()
   methods: string[];
+}
+
+class UpdateAPIUpstreamDTO {
+  @IsNotEmpty()
+  @IsUrl()
+  url: string;
 }
 
 export class UpdateAPIDto {
@@ -88,8 +101,13 @@ export class UpdateAPIDto {
 
   @IsObject()
   @ValidateNested()
-  @Type(() => UpdateRouteDTO)
-  route: UpdateRouteDTO;
+  @Type(() => UpdateAPIUpstreamDTO)
+  upstream: UpdateAPIUpstreamDTO;
+
+  @IsObject()
+  @ValidateNested()
+  @Type(() => UpdateAPIDownstreamDTO)
+  downstream: UpdateAPIDownstreamDTO;
 }
 
 export class APIParam {
@@ -99,8 +117,8 @@ export class APIParam {
   environment: KONG_ENVIRONMENT;
 }
 
-export class GETAPIRouteResponseDTO {
-  constructor(partial: Partial<any>) {
+export class GETAPIDownstreamResponseDTO {
+  constructor(partial: Partial<GETAPIDownstreamResponseDTO>) {
     Object.assign(this, partial);
   }
 
@@ -115,8 +133,29 @@ export class GETAPIRouteResponseDTO {
   methods: string[];
 }
 
+export class GETAPIUpstreamResponseDTO {
+  constructor(partial: Partial<GETAPIUpstreamResponseDTO>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  host: string | null;
+
+  @Expose()
+  protocol: string | null;
+
+  @Expose()
+  port: number | null;
+
+  @Expose()
+  path: string | null;
+
+  @Expose()
+  url: string | null;
+}
+
 export class GetAPIResponseDTO {
-  constructor(partial: Partial<any>) {
+  constructor(partial: GetAPIResponseDTO) {
     Object.assign(this, partial);
   }
 
@@ -130,27 +169,14 @@ export class GetAPIResponseDTO {
   enabled: boolean;
 
   @Expose()
-  host: string;
-
-  @Expose()
-  protocol: string;
-
-  @Expose()
-  port: string;
-
-  @Expose()
-  path: string;
-
-  @Expose()
-  url: string;
-
-  @Expose()
-  aclAllowedGroupName: string;
+  @IsObject()
+  @Type(() => GETAPIDownstreamResponseDTO)
+  downstream: GETAPIDownstreamResponseDTO;
 
   @Expose()
   @IsObject()
-  @Type(() => GETAPIRouteResponseDTO)
-  route: GETAPIRouteResponseDTO;
+  @Type(() => GETAPIUpstreamResponseDTO)
+  upstream: GETAPIUpstreamResponseDTO;
 }
 
 class APILogResponseDto {
