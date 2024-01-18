@@ -88,6 +88,21 @@ export class APIController {
     );
   }
 
+  @Put('company/:companyId')
+  @UsePipes(IValidationPipe)
+  @RequireTwoFA()
+  viewCompanyApis(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('companyId') companyId: string,
+  ) {
+    return this.apiService.getApisAssignedToCompany(
+      ctx,
+      params.environment,
+      companyId,
+    );
+  }
+
   @Get('logs')
   @UsePipes(IValidationPipe)
   getAPILogs(

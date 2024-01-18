@@ -768,4 +768,78 @@ export class APIService {
       new APILogStatsResponseDTO(stats.aggregations),
     );
   }
+
+  async getApisAssignedToCompany(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    companyId?: string,
+  ) {
+    const company = await this.companyRepository.findOneOrFail({
+      where: { id: companyId ?? ctx.activeCompany.id },
+      relations: {
+        acls: {
+          route: true,
+        },
+      },
+    });
+
+    if (!company) {
+      throw new IBadRequestException({
+        message: companyErrors.companyNotFound(
+          companyId ?? ctx.activeCompany.id,
+        ),
+      });
+    }
+
+    const acls = company.acls.map((acl) => ({
+      id: acl.id,
+      route: acl.route,
+    }));
+
+    const routes = acls.map(({ route }) => {
+      const { routeId, serviceId, name, id, enabled } = route;
+      return { routeId, serviceId, name, id, enabled };
+    });
+
+    const populatedRoutes: any[] = [];
+
+    for (const route of routes) {
+      let gatewayService = null;
+      let gatewayRoutes = null;
+      if (route.serviceId) {
+        gatewayService = await this.kongService.getService(
+          environment,
+          route.serviceId,
+        );
+        gatewayRoutes = await this.kongService.getServiceRoutes(
+          environment,
+          route.serviceId,
+        );
+      }
+
+      populatedRoutes.push(
+        new GetAPIResponseDTO({
+          id: route.id,
+          name: route.name,
+          enabled: route.enabled,
+          host: gatewayService?.host || null,
+          protocol: gatewayService?.protocol || null,
+          port: gatewayService?.port || null,
+          path: gatewayService?.path || null,
+          url: gatewayService
+            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+            : null,
+          route: new GETAPIRouteResponseDTO({
+            paths: gatewayRoutes?.data[0]?.paths || [],
+            methods: gatewayRoutes?.data[0]?.methods || [],
+          }),
+        }),
+      );
+    }
+
+    return ResponseFormatter.success(
+      apiSuccessMessages.fetchedAPIs,
+      populatedRoutes,
+    );
+  }
 }
