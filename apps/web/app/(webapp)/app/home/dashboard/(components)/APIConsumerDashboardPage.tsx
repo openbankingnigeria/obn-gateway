@@ -56,11 +56,14 @@ const APIConsumerDashboardPage = async ({
         {`${greetByTime()}, ${alt_data?.firstName + ' ' + alt_data?.lastName}!`}
       </h2>
 
-      <section className='w-full flex'>
-        <DashboardBanner 
-          rawData={details}
-        />
-      </section>
+      {
+        details?.type == 'licensed-entity' &&
+        <section className='w-full flex'>
+          <DashboardBanner 
+            rawData={details}
+          />
+        </section>
+      }
 
       <div className='w-full flex flex-col'>
         <APIConsumerDashboardTable 

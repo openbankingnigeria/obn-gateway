@@ -17,11 +17,19 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  const fetchedDetails : any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyDetails(),
+    method: 'GET',
+    data: null
+  });
+
   if (fetchedProfile?.status == 401) {
     return <Logout />
   }
 
   let profile = fetchedProfile?.data;
+  let details = fetchedDetails?.data;
   const panel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => path?.type == profile?.user?.role?.parent?.slug || path?.type == 'all');
 
   return (
