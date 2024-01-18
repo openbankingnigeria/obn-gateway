@@ -47,7 +47,7 @@ const TopPanel = ({
     fetchDetails();
   }, []);
 
-  let showBanner = Boolean(profile?.user?.role?.parent?.slug == 'api-consumer' && !details?.isVerified)
+  let showBanner = Boolean(details?.type == 'licensed-entity' && profile?.user?.role?.parent?.slug == 'api-consumer' && !details?.isVerified)
   
   const handleClick = (value: string) => {
     if (value) {

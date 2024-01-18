@@ -63,7 +63,7 @@ const PersonalDetails = ({
           </div>
         </div>
 
-        <div className='w-full flex items-start justify-between gap-[7px] pb-[20px] border-b border-o-border'>
+        <div className='w-full flex items-start justify-between gap-[7px] pb-[20px] border-o-border'>
           <div className='w-full flex flex-col gap-[8px]'>
             <label 
               className='text-f14 font-[500] text-o-text-dark'
@@ -89,7 +89,7 @@ const PersonalDetails = ({
           </div>
         </div>
 
-        <div className='w-full flex items-start justify-between gap-[7px]'>
+        {/* <div className='w-full flex items-start justify-between gap-[7px]'>
           <div className='w-full flex flex-col gap-[8px]'>
             <label 
               className='text-f14 font-[500] text-o-text-dark'
@@ -112,7 +112,7 @@ const PersonalDetails = ({
               required
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </form>
   )

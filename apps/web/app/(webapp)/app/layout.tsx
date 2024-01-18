@@ -38,7 +38,13 @@ export default async function RootLayout({
   
     let details = fetchedDetails?.data;
     let profile = fetchedProfile?.data;
-    let showBanner = Boolean(profile?.user?.role?.parent?.slug == 'api-consumer' && !details?.isVerified)
+    let showBanner = Boolean(
+      details?.type == 'licensed-entity' && 
+      profile?.user?.role?.parent?.slug == 'api-consumer' && 
+      !details?.isVerified
+    );
+
+    // console.log('details type >>>', details?.type);
 
     return (
       <section className='max-w-full min-h-screen relative bg-[#FCFDFD]'>
