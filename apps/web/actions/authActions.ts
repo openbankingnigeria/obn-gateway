@@ -80,20 +80,19 @@ export async function postAccountSetUp(prevState: any, formData: FormData) {
 
 /* SIGN UP ACTION */
 export async function postSignup(prevState: any, formData: FormData) {
-  // TODO: Check if commented fields are present.
   const fullData = {
     firstName: formData.get('first_name'),
     lastName: formData.get('last_name'),
     email: formData.get('email'),
     phone: formData.get('phone_number'),
-    country: formData.get('country'),
+    // country: formData.get('country'),
     companyType: formData.get('user_type'),
     companyName: formData.get('business_name'),
     companySubtype: formData.get('business_type'),
     bvn: formData.get('bvn'),
     rcNumber: formData.get('cac'),
     accountNumber: formData.get('account_number'),
-    companyRole: formData.get('role'),
+    // companyRole: formData.get('role'),
     password: formData.get('password'),
     confirmPassword: formData.get('confirm_password'),
   };

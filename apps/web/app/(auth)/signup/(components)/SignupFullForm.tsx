@@ -10,8 +10,8 @@ import { postSignup } from '@/actions/authActions';
 import { setStorage } from '@/config/webStorage';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
-import { COUNTRIES_DATA } from '@/data/countriesData';
-import { CONSUMER_ROLES } from '@/data/authData';
+// import { COUNTRIES_DATA } from '@/data/countriesData';
+// import { CONSUMER_ROLES } from '@/data/authData';
 // import { USER_TYPE_DATA } from '@/data/userTypeData';
 
 const SignupFullForm = () => {
@@ -19,7 +19,7 @@ const SignupFullForm = () => {
   const [bvn, setBvn] = useState(''); 
   const [account_number, setAccountNumber] = useState(''); 
   const [password, setPassword] = useState(''); 
-  const [country, setCountry] = useState(''); 
+  // const [country, setCountry] = useState(''); 
   const [user_type, setUserType] = useState('');
   const [confirm_password, setConfirmPassword] = useState(''); 
   const [first_name, setFirstName] = useState(''); 
@@ -29,7 +29,7 @@ const SignupFullForm = () => {
   const [business_name, setBusinessName] = useState(''); 
   const [business_type, setBusinessType] = useState(''); 
   const [cac, setCac] = useState(''); 
-  const [role, setRole] = useState(''); 
+  // const [role, setRole] = useState(''); 
 
   const [companyTypes, setCompanyTypes] = useState<any>(null);
 
@@ -65,21 +65,21 @@ const SignupFullForm = () => {
     !passwordMatch ||
     !correctFirstName ||
     !correctLastName ||
-    !country ||
+    // !country ||
     phone_number?.length !== 11 ||
     !user_type ||
     (user_type == 'individual' && (!bvn || !account_number)) ||
     (user_type == 'business' && (!business_name || !business_type || !cac || !account_number)) ||
-    (user_type == 'licensed-entity' && (!business_name || !business_type || !role)) ||
+    (user_type == 'licensed-entity' && (!business_name || !business_type /*|| !role */)) ||
     !terms_agreed
   );
 
-  const countries_list = COUNTRIES_DATA?.map(country => {
-    return ({
-      label: country?.name || '',
-      value: country?.name || ''
-    });
-  })
+  // const countries_list = COUNTRIES_DATA?.map(country => {
+  //   return ({
+  //     label: country?.name || '',
+  //     value: country?.name || ''
+  //   });
+  // })
 
   const subTypes = companyTypes?.companySubtypes;
   const business_type_list = (
@@ -88,7 +88,7 @@ const SignupFullForm = () => {
       user_type == 'business' ? 
         subTypes?.business :
         user_type == 'licensed-entity' ? 
-          subTypes?.licensedEntity :
+          subTypes?.['licensed-entity'] :
           []
   )?.map((type?: string[]) => {
     return ({
@@ -97,12 +97,12 @@ const SignupFullForm = () => {
     });
   })
 
-  const role_list = CONSUMER_ROLES?.map(role => {
-    return ({
-      label: role?.label || '',
-      value: role?.value || ''
-    });
-  })
+  // const role_list = CONSUMER_ROLES?.map(role => {
+  //   return ({
+  //     label: role?.label || '',
+  //     value: role?.value || ''
+  //   });
+  // })
 
   const user_type_list = companyTypes?.companyTypes?.map((type?: string[]) => {
     return ({
@@ -131,7 +131,7 @@ const SignupFullForm = () => {
 
   const handleAccountNumber = (value: string) => {
     if (value?.length <= 10) {
-      setAccountNumber(value?.toString()?.replace(/[^0-9a-zA-Z]/g, ''));
+      setAccountNumber(value?.toString()?.replace(/[^0-9]/g, ''));
     }
   }
 
@@ -199,7 +199,7 @@ const SignupFullForm = () => {
           required
         />
 
-        <>
+        {/* <>
           <input 
             name='country'
             value={country}
@@ -218,7 +218,7 @@ const SignupFullForm = () => {
             value={country}
             changeValue={setCountry}
           />
-        </>
+        </> */}
 
         <>
           <input 
@@ -302,7 +302,7 @@ const SignupFullForm = () => {
             />
         )}
 
-        {
+        {/* {
           (user_type == 'licensed-entity') && (
             <>
               <input 
@@ -324,7 +324,7 @@ const SignupFullForm = () => {
                 changeValue={setRole}
               />
             </>
-        )}
+        )} */}
 
         {
           (user_type == 'individual' || user_type == 'business') && (
