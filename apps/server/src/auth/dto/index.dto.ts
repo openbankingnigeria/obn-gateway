@@ -74,10 +74,6 @@ export class TwoFADto extends ForgotPasswordDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @IsStrongPassword(passwordConfig, {
-    message: ({ property }) =>
-      authValidationErrors.dto.passwordStrengthMismatch(property),
-  })
   password: string;
 
   @IsNotEmpty({

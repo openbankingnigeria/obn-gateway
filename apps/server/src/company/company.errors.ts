@@ -4,7 +4,7 @@ export const companyErrors = {
   companyAlreadyVerified:
     'Your business has already been verified. You cannot update this information',
   noKybDetailsFound: 'No KYB details were found for this company',
-  companyNotFound: (companyId: string) =>
+  companyNotFound: (companyId?: string) =>
     `No company found with ID - ${companyId}`,
   businessNotFoundOnRegistry: (rcNumber: string) =>
     `No business with RC number - ${rcNumber} found in registry.`,

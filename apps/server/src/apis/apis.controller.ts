@@ -25,8 +25,13 @@ import {
 } from '@common/utils/pipes/query/pagination.pipe';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { APIFilters } from './apis.filter';
-import { Ctx, RequireTwoFA } from '@common/utils/authentication/auth.decorator';
+import {
+  Ctx,
+  RequireTwoFA,
+  RequiredPermission,
+} from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
+import { PERMISSIONS } from '@permissions/types';
 
 @Controller('apis/:environment')
 export class APIController {
@@ -85,6 +90,27 @@ export class APIController {
       params.environment,
       companyId,
       data,
+    );
+  }
+
+  @Get('company')
+  @UsePipes(IValidationPipe)
+  viewMyCompanyApis(@Ctx() ctx: RequestContext, @Param() params: APIParam) {
+    return this.apiService.getApisAssignedToCompany(ctx, params.environment);
+  }
+
+  @Get('company/:companyId')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_COMPANY_APIS_BY_ID)
+  viewCompanyApis(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('companyId') companyId: string,
+  ) {
+    return this.apiService.getApisAssignedToCompany(
+      ctx,
+      params.environment,
+      companyId,
     );
   }
 
