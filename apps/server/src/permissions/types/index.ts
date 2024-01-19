@@ -44,6 +44,8 @@ export enum PERMISSIONS {
 
   UPDATE_KYB_REQUIREMENT_SETTINGS = 'update-kyb-requirement-setting',
   UPDATE_KYB_REQUIREMENTS = 'update-kyb-requirements',
+
+  VIEW_COMPANY_APIS_BY_ID = 'view-company-apis-by-id',
 }
 
 export enum PROVIDER_PERMISSIONS {
