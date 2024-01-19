@@ -93,14 +93,14 @@ export class APIController {
     );
   }
 
-  @Put('company')
+  @Get('company')
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
   viewMyCompanyApis(@Ctx() ctx: RequestContext, @Param() params: APIParam) {
     return this.apiService.getApisAssignedToCompany(ctx, params.environment);
   }
 
-  @Put('company/:companyId')
+  @Get('company/:companyId')
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
   @RequiredPermission(PERMISSIONS.VIEW_COMPANY_APIS_BY_ID)
