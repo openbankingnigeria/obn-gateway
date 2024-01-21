@@ -8,9 +8,12 @@ import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { ActivateDeactivateConsumer, ApproveConsumer, DeclineConsumer } from '.'
 import { ConsumerDetailsProps } from '@/types/webappTypes/appTypes'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import * as API from '@/config/endpoints';
 
 const ConsumerDetails = ({
   rawData,
+  profileData,
   status,
   dataList,
   searchQuery
@@ -44,21 +47,56 @@ const ConsumerDetails = ({
     setOpenModal('');
   }
 
-  const handleActivateDeactivateConsumer = () => {
-    // setLoading(true);
-    setOpen2FA(true);
+  const handleActivateDeactivateConsumer = async (action: string, id: string, code: string) => {
+    if (profileData?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+
+      const result: any = await clientAxiosRequest({
+        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        apiEndpoint: action == 'activate' ? 
+          API.activateCompany({ id: rawData?.id }) :
+          API.deactivateCompany({ id: rawData?.id }),
+        method: 'PATCH',
+        data: null
+      });
+
+      if (result?.status == 200) {
+        setLoading(false);
+        close2FAModal();
+        router.refresh();
+      } else {
+        setLoading(false);
+      }
+    }
   }
 
-  const handleApproveConsumer = () => {
-    // setLoading(true);
-    setOpen2FA(true);
-  }
+  const handleApproveDeclineConsumer = async (action: string, id: string, code: string) => {
+    if (profileData?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      const data = action == 'approve' ? 
+        { action } :
+        { action, reason }
 
-  const handleDeclineConsumer = () => {
-    // setLoading(true);
-    // reason
-    setOpen2FA(true);
-  }
+      const result: any = await clientAxiosRequest({
+        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        apiEndpoint: API.updateCompanyStatus({ id: rawData?.id }),
+        method: 'PATCH',
+        data
+      });
+
+      if (result?.status == 201) {
+        setLoading(false);
+        close2FAModal();
+        router.refresh();
+      } else {
+        setLoading(false);
+      }
+    }
+  };
 
   const handle2FA = () => {
     close2FAModal();
@@ -69,7 +107,7 @@ const ConsumerDetails = ({
           'You have successfully activated [api_consumer_name]’s access.' :
           openModal == 'approve' ?
             'You have successfully approved [api_consumer_name] access request.' :
-            openModal == 'decline' ?
+            openModal == 'deny' ?
             'You have successfully declined [api_consumer_name] access request.' :
             null
     )
@@ -87,13 +125,17 @@ const ConsumerDetails = ({
               close={closeModal}
               type={openModal}
               loading={loading}
-              next={handleActivateDeactivateConsumer}
+              next={() => handleActivateDeactivateConsumer(
+                openModal,
+                rawData?.id,
+                ''
+              )}
             />
           </AppCenterModal>
       }
 
       {
-        (openModal == 'approve' || openModal == 'decline') &&
+        (openModal == 'approve' || openModal == 'deny') &&
           <AppCenterModal
             title={'Confirm Action'}
             effect={closeModal}
@@ -103,7 +145,11 @@ const ConsumerDetails = ({
                 <ApproveConsumer 
                   close={closeModal}
                   loading={loading}
-                  next={handleApproveConsumer}
+                  next={() => handleApproveDeclineConsumer(
+                    'approve',
+                    rawData?.id, 
+                    ''
+                  )}
                 />
                 :
                 <DeclineConsumer 
@@ -111,7 +157,11 @@ const ConsumerDetails = ({
                   reason={reason}
                   setReason={setReason}
                   loading={loading}
-                  next={handleDeclineConsumer}
+                  next={() => handleApproveDeclineConsumer(
+                    'deny',
+                    rawData?.id, 
+                    ''
+                  )}
                 />
             }
           </AppCenterModal>
@@ -126,7 +176,11 @@ const ConsumerDetails = ({
             <TwoFactorAuthModal
               close={close2FAModal}
               loading={loading}
-              next={handle2FA}
+              next={(value: string) => 
+                openModal == 'activate' || openModal == 'deactivate' ?
+                  handleActivateDeactivateConsumer(openModal, '', value) :
+                  handleApproveDeclineConsumer(openModal, '', value)
+              }
             />
           </AppCenterModal>
       }
@@ -152,7 +206,9 @@ const ConsumerDetails = ({
                   <button
                     key={action.id}
                     className='cursor-pointer whitespace-nowrap hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
-                    onClick={() => setOpenModal(action.name)}
+                    onClick={() => {
+                      setOpenModal(action?.name == 'decline' ? 'deny' : action?.name);
+                    }}
                   >
                     {action.icon}
 

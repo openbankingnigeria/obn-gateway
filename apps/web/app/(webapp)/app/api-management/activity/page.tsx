@@ -22,6 +22,8 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const fetchedActivities: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPILogs({
+      page: `${page}`,
+      limit: `${rows}`,
       environment
     }),
     method: 'GET',

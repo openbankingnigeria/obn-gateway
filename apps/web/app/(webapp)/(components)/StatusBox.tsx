@@ -83,7 +83,7 @@ const StatusBox = ({ status }: StatusBoxProps) => {
         Business
       </span>
     )
-    : sanitizedStatus === 'licensedentity' ? (
+    : sanitizedStatus === 'licensed-entity' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-o-text-medium3 bg-[#E6E7EB]'>
         Licensed Entity
       </span>

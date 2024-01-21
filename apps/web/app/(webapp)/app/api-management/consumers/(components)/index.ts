@@ -8,6 +8,7 @@ import ConsumerDetails from "./ConsumerDetails";
 import ConsumerSections from "./ConsumerSections";
 import ConsumerBusinessDetails from "./ConsumerBusinessDetails";
 import EditPermissionButton from "./EditPermissionButton";
+import AddAPIPermissions from "./AddAPIPermissions";
 
 export {
   ConsumersTable,
@@ -19,5 +20,6 @@ export {
   ConsumerDetails,
   ConsumerSections,
   ConsumerBusinessDetails,
-  EditPermissionButton
+  EditPermissionButton,
+  AddAPIPermissions
 }

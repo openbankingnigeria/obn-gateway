@@ -279,7 +279,10 @@ const ConsumerSections = ({
 
                     {
                       (path == '') &&
-                      <EditPermissionButton />
+                      <EditPermissionButton 
+                        rawData={altData}
+                        searchQuery={filters[0]}
+                      />
                     }
                   </div>
 
