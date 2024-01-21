@@ -16,6 +16,7 @@ export class AppService implements OnApplicationBootstrap {
     for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
       'kong.endpoint',
     )) {
+      // TODO this should be done per route
       await this.kongPluginService
         .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
           name: KONG_PLUGINS.HTTP_LOG,

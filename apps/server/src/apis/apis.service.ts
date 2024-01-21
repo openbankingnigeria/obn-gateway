@@ -23,6 +23,7 @@ import {
   GetAPILogsFilterDto,
   GETAPIDownstreamResponseDTO,
   GETAPIUpstreamResponseDTO,
+  GetStatsAggregateResponseDTO,
 } from './dto/index.dto';
 import slugify from 'slugify';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
@@ -39,6 +40,7 @@ import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
 import { CompanyTypes } from '@common/database/constants';
 import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import { RequestContext } from '@common/utils/request/request-context';
+import * as moment from 'moment';
 
 // TODO return DTO based on parent type, i.e. we dont want to return sensitive API info data to API consumer for e.g.
 @Injectable()
@@ -615,6 +617,7 @@ export class APIService {
     const result: QueryDslQueryContainer[] = [];
     for (const filter in filters) {
       const item = filters[filter] as any;
+      if (!item) continue;
       if (item.gt || item.lt) {
         result.push({
           range: { [`${filter}`]: { lt: item.lt, gt: item.gt } },
@@ -635,7 +638,7 @@ export class APIService {
     { limit, page }: PaginationParameters,
     filters?: GetAPILogsDto,
   ) {
-    const logs = await this.elasticsearchService.search({
+    const logs = await this.elasticsearchService.search<any>({
       from: page - 1,
       size: limit,
       query: {
@@ -659,6 +662,28 @@ export class APIService {
       sort: [{ '@timestamp': { order: 'desc' } }],
     });
 
+    const companies = await this.companyRepository.find({
+      where: {
+        consumerId: In(
+          Array.from(
+            new Set(logs.hits.hits.map((hit) => hit._source.consumer?.id)),
+          ),
+        ),
+      },
+    });
+
+    const companiesDtoStore = companies.reduce<{ [k: string]: Company }>(
+      (acc, curr) => {
+        acc[curr.id!] = curr;
+        return acc;
+      },
+      {},
+    );
+
+    for (const hit of logs.hits.hits) {
+      hit._source.consumer = companiesDtoStore[hit._source.consumer?.id];
+    }
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogs,
       logs.hits.hits.map((i) => new APILogResponseDTO(i._source)),
@@ -671,7 +696,7 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     requestId: string,
   ) {
-    const logs = await this.elasticsearchService.search({
+    const logs = await this.elasticsearchService.search<any>({
       size: 1,
       query: {
         bool: {
@@ -700,6 +725,14 @@ export class APIService {
         message: apiErrorMessages.logNotFound(requestId),
       });
     }
+
+    const company = await this.companyRepository.findOne({
+      where: {
+        consumerId: logs.hits.hits[0]._source.consumer?.id,
+      },
+    });
+
+    logs.hits.hits[0]._source.consumer = company;
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILog,
@@ -791,8 +824,53 @@ export class APIService {
   async getAPILogsStatsAggregate(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
-    filters?: GetAPILogsDto,
-  ) {}
+    query: GetAPILogsDto,
+  ) {
+    const stats = await this.elasticsearchService.search<any, any>({
+      size: 0,
+      query: {
+        bool: {
+          must: [
+            { term: { 'environment.keyword': environment } },
+            {
+              wildcard: {
+                'consumer.id.keyword':
+                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
+                    ? '*'
+                    : ctx.activeUser.companyId,
+              },
+            },
+            ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+              query?.filter,
+            ),
+          ],
+        },
+      },
+      aggs: {
+        aggregated: {
+          date_histogram: {
+            field: '@timestamp',
+            calendar_interval: 'day',
+            min_doc_count: 0,
+            extended_bounds: {
+              min: query.filter?.['@timestamp'].gt
+                ? moment(query.filter['@timestamp'].gt).format('YYYY-MM-DD')
+                : moment(query.filter?.['@timestamp'].lt)
+                    .subtract(30, 'days')
+                    .format('YYYY-MM-DD'),
+              max: moment(query.filter?.['@timestamp'].lt).format('YYYY-MM-DD'),
+            },
+          },
+        },
+      },
+    });
+    return ResponseFormatter.success(
+      apiSuccessMessages.fetchedAPILogsStats,
+      stats.aggregations!['aggregated'].buckets.map(
+        (bucket: any) => new GetStatsAggregateResponseDTO(bucket),
+      ),
+    );
+  }
 
   async getApisAssignedToCompany(
     ctx: RequestContext,
@@ -847,14 +925,16 @@ export class APIService {
           id: route.id,
           name: route.name,
           enabled: route.enabled,
-          host: gatewayService?.host || null,
-          protocol: gatewayService?.protocol || null,
-          port: gatewayService?.port || null,
-          path: gatewayService?.path || null,
-          url: gatewayService
-            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
-            : null,
-          route: new GETAPIRouteResponseDTO({
+          upstream: new GETAPIUpstreamResponseDTO({
+            host: gatewayService?.host || null,
+            protocol: gatewayService?.protocol || null,
+            port: gatewayService?.port || null,
+            path: gatewayService?.path || null,
+            url: gatewayService
+              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+              : null,
+          }),
+          downstream: new GETAPIDownstreamResponseDTO({
             paths: gatewayRoutes?.data[0]?.paths || [],
             methods: gatewayRoutes?.data[0]?.methods || [],
           }),

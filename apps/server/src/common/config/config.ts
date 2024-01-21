@@ -75,7 +75,7 @@ export const globalConfig = (): {
   for (const env in process.env) {
     if (env.startsWith('KONG_ADMIN_API_ENDPOINT_')) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, environment] = env
+      const environment = env
         .split('KONG_ADMIN_API_ENDPOINT_')[1]
         .toLowerCase();
       config.kong.endpoint[environment] = process.env[env];
