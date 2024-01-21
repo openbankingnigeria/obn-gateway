@@ -1,13 +1,6 @@
 import { Expose } from 'class-transformer';
 import { IsArray, IsObject, ValidateIf, ValidateNested } from 'class-validator';
 
-export interface ApiResponse<T> {
-  status: string;
-  message: string;
-  data?: T;
-  meta?: any;
-}
-
 export class ResponseMetaDTO<
   T = {
     totalNumberOfRecords: number;
@@ -34,7 +27,7 @@ export class ResponseMetaDTO<
 }
 
 export class ResponseDTO<T> {
-  constructor(partial: Partial<T>) {
+  constructor(partial: ResponseDTO<T>) {
     Object.assign(this, partial);
   }
 
@@ -51,11 +44,11 @@ export class ResponseDTO<T> {
   @IsArray()
   @IsObject()
   @ValidateNested({ each: true })
-  data: any;
+  data?: T;
 
   @Expose()
   @IsObject()
-  meta: ResponseMetaDTO;
+  meta?: ResponseMetaDTO;
 }
 
 export class ResponseFormatter {
@@ -63,8 +56,8 @@ export class ResponseFormatter {
     message: string,
     data?: T,
     meta?: any,
-  ): ResponseDTO<ApiResponse<T>> {
-    return new ResponseDTO<ApiResponse<T>>({
+  ): ResponseDTO<T> {
+    return new ResponseDTO<T>({
       status: 'success',
       message,
       data,
@@ -72,7 +65,7 @@ export class ResponseFormatter {
     });
   }
 
-  static error(message: string): ApiResponse<null> {
+  static error(message: string): ResponseDTO<null> {
     return {
       status: 'error',
       message,

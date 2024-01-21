@@ -776,6 +776,12 @@ export class APIService {
     );
   }
 
+  async getAPILogsStatsAggregate(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    filters?: GetAPILogsDto,
+  ) {}
+
   async getApisAssignedToCompany(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,

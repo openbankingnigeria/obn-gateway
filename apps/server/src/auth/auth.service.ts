@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Company,
+  CompanyStatuses,
   Profile,
   Settings,
   User,
@@ -26,7 +27,7 @@ import {
 } from 'src/common/utils/exceptions/exceptions';
 import { userErrors } from '@users/user.errors';
 import {
-  ApiResponse,
+  ResponseDTO,
   ResponseFormatter,
 } from '@common/utils/response/response.formatter';
 import { compareSync, hashSync } from 'bcrypt';
@@ -355,17 +356,17 @@ export class AuthService {
     }
   }
 
-  async login({ email, password }: LoginDto): Promise<ApiResponse<string>>;
+  async login({ email, password }: LoginDto): Promise<ResponseDTO<string>>;
   async login({
     email,
     password,
     code,
-  }: TwoFADto): Promise<ApiResponse<string>>;
+  }: TwoFADto): Promise<ResponseDTO<string>>;
   async login({
     email,
     password,
     code,
-  }: LoginDto & TwoFADto): Promise<ApiResponse<string>> {
+  }: LoginDto & TwoFADto): Promise<ResponseDTO<string>> {
     const user = await this.userRepository.findOne({
       where: {
         email,
@@ -388,7 +389,7 @@ export class AuthService {
       });
     }
 
-    if (!user.company?.isActive) {
+    if (user.company?.status !== CompanyStatuses.ACTIVE) {
       throw new IBadRequestException({
         message: commonErrors.genericNoAccessError,
       });
@@ -491,11 +492,11 @@ export class AuthService {
   async resetPassword(
     { confirmPassword, password }: ResetPasswordDto,
     user: User,
-  ): Promise<ApiResponse<null>>;
+  ): Promise<ResponseDTO<null>>;
   async resetPassword(
     { confirmPassword, password }: ResetPasswordDto,
     resetToken: string,
-  ): Promise<ApiResponse<null>>;
+  ): Promise<ResponseDTO<null>>;
   async resetPassword(
     { confirmPassword, password }: any,
     userOrToken: any,

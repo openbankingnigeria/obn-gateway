@@ -1,15 +1,18 @@
 import {
   IsAlphanumeric,
+  IsDateString,
   IsEnum,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsString,
   Length,
+  ValidateNested,
   // Length,
 } from 'class-validator';
 import { companyValidationErrors } from '../company.config';
 import { CompanyTypes } from '@common/database/constants';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { CompanySubtypes } from '@settings/types';
 
 export enum KybStatusActions {
@@ -88,7 +91,7 @@ export class GetCompanyResponseDTO {
   isVerified: boolean;
 
   @Expose()
-  isActive: boolean;
+  status: string;
 
   @Expose()
   kybData: string;
@@ -159,4 +162,46 @@ export class UpdateCompanyKybStatusResponseDTO {
 
   @Expose()
   tier: string;
+}
+
+export class GetStatsResponseDTO {
+  constructor(partial: GetStatsResponseDTO) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  count: number;
+
+  @Expose()
+  value: string;
+
+  @Expose()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => GetStatsResponseDTO)
+  data?: GetStatsResponseDTO;
+}
+
+class GetStatsFilterCreatedAtDto {
+  @IsDateString()
+  @IsOptional()
+  'gt': string;
+
+  @IsDateString()
+  @IsOptional()
+  'lt': string;
+}
+
+export class GetStatsFilterDto {
+  @IsObject()
+  @ValidateNested()
+  @Type(() => GetStatsFilterCreatedAtDto)
+  'createdAt': GetStatsFilterCreatedAtDto;
+}
+
+export class GetStatsDto {
+  @IsObject()
+  @ValidateNested()
+  @Type(() => GetStatsFilterDto)
+  filter: GetStatsFilterDto;
 }

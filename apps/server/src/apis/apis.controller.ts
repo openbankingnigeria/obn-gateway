@@ -140,6 +140,20 @@ export class APIController {
     return this.apiService.getAPILogsStats(ctx, params.environment, filters);
   }
 
+  @Get('logs/stats/periodic-aggregate')
+  @UsePipes(IValidationPipe)
+  getAPILogsStatsAggregate(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Query() filters: GetAPILogsDto,
+  ) {
+    return this.apiService.getAPILogsStatsAggregate(
+      ctx,
+      params.environment,
+      filters,
+    );
+  }
+
   @Get('logs/:id')
   @UsePipes(IValidationPipe)
   getAPILog(

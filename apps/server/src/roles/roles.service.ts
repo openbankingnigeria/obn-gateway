@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Role } from 'src/common/database/entities';
+import { Role, RoleStatuses } from 'src/common/database/entities';
 import { In, IsNull, Not, Repository } from 'typeorm';
 import slugify from 'slugify';
 import {
@@ -321,14 +321,16 @@ export class RolesService {
 
   async getStats(ctx: RequestContext) {
     const stats = await this.roleRepository.query(
-      `SELECT IFNULL(count, 0) count, definitions.value FROM definitions
-              LEFT OUTER JOIN (
-              SELECT count(id) AS count, status
-              FROM roles WHERE deleted_at IS NULL AND company_id = ?
-              GROUP BY status
-            ) roles ON roles.status = definitions.value
-              AND definitions.type = 'status'
-              WHERE definitions.entity = 'role'
+      `SELECT IFNULL(count(roles.id), 0) count, definitions.value
+    FROM
+      roles
+      RIGHT OUTER JOIN (${Object.values(RoleStatuses)
+        .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
+        .join(' UNION ')}) definitions ON roles.status = definitions.key
+        AND roles.deleted_at IS NULL
+        AND roles.company_id = ?
+    GROUP BY
+      definitions.value
         `,
       [ctx.activeUser.companyId],
     );

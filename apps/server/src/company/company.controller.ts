@@ -12,7 +12,11 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import { UpdateCompanyDetailsDto, UpdateKybStatusDto } from './dto/index.dto';
+import {
+  GetStatsDto,
+  UpdateCompanyDetailsDto,
+  UpdateKybStatusDto,
+} from './dto/index.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {
@@ -92,6 +96,23 @@ export class CompanyController {
   // verifyCompanyRC(@Ctx() ctx: RequestContext, @Body() data: UpdateCompanyDetailsDto) {
   //   return this.companyService.verifyCompanyRC(ctx, data.rcNumber);
   // }
+
+  @Get('companies/stats')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
+  getCompaniesStats(@Ctx() ctx: RequestContext, @Query() query: GetStatsDto) {
+    return this.companyService.getCompaniesStats(ctx, query);
+  }
+
+  @Get('companies/stats/periodic-aggregate')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
+  getCompaniesStatsAggregate(
+    @Ctx() ctx: RequestContext,
+    @Query() filters: GetStatsDto,
+  ) {
+    return this.companyService.getCompaniesStatsAggregate(ctx, filters);
+  }
 
   @Patch('companies/:id/kyb/status')
   @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_KYB_STATUS)

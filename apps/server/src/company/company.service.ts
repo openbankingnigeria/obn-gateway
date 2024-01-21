@@ -7,7 +7,12 @@ import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
 import { KybDataTypes, SystemSettings } from '@settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Company, Settings, User } from '@common/database/entities';
+import {
+  Company,
+  CompanyStatuses,
+  Settings,
+  User,
+} from '@common/database/entities';
 import { Repository } from 'typeorm';
 import {
   ResponseFormatter,
@@ -26,6 +31,8 @@ import {
   GetCompanyResponseDTO,
   GetCompanySubTypesResponseDTO,
   GetCompanyTypesResponseDTO,
+  GetStatsDto,
+  GetStatsResponseDTO,
   PrimaryUserDto,
   ProfileDto,
   UpdateCompanyKybStatusResponseDTO,
@@ -35,6 +42,7 @@ import { SYSTEM_SETTINGS_NAME } from '@settings/settings.constants';
 import { CompanyTypes } from '@common/database/constants';
 import { companyCustomFields } from './company.constants';
 import { RequestContext } from '@common/utils/request/request-context';
+import * as moment from 'moment';
 
 @Injectable()
 export class CompanyService {
@@ -399,11 +407,15 @@ export class CompanyService {
       });
     }
 
-    if (company.isActive === isActive) {
+    if (company.status === CompanyStatuses.ACTIVE && isActive) {
       throw new IBadRequestException({
-        message: `Cannot set company access to ${
-          isActive ? 'active' : 'inactive'
-        } because company is already ${isActive ? 'active' : 'inactive'}`,
+        message: `Cannot set company access to active because company is already active`,
+      });
+    }
+
+    if (company.status === CompanyStatuses.INACTIVE && !isActive) {
+      throw new IBadRequestException({
+        message: `Cannot set company access to inactive because company is already inactive`,
       });
     }
 
@@ -412,12 +424,77 @@ export class CompanyService {
         id: company.id,
       },
       {
-        isActive,
+        status: isActive ? CompanyStatuses.ACTIVE : CompanyStatuses.INACTIVE,
       },
     );
 
     return ResponseFormatter.success(
       `Successfully ${isActive ? 'activated' : 'deactivated'} business.`,
+    );
+  }
+
+  async getCompaniesStats(ctx: RequestContext, query: GetStatsDto) {
+    const stats = await this.userRepository.query(
+      `SELECT IFNULL(count(companies.id), 0) count, definitions.value
+    FROM
+    companies
+    RIGHT OUTER JOIN (${Object.values(CompanyStatuses)
+      .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
+      .join(' UNION ')}) definitions ON companies.status = definitions.key
+        AND companies.deleted_at IS NULL AND (companies.created_at >= ? OR ? IS NULL) AND (companies.created_at < ? OR ? IS NULL)
+    GROUP BY
+      definitions.value
+        `,
+      [
+        query.filter.createdAt.gt || null,
+        query.filter.createdAt.gt || null,
+        query.filter.createdAt.lt || null,
+        query.filter.createdAt.lt || null,
+      ],
+    );
+    return ResponseFormatter.success<GetStatsResponseDTO[]>(
+      'Company stats fetched successfully',
+      stats.map(
+        (stat: { count: number; value: string }) =>
+          new GetStatsResponseDTO(stat),
+      ),
+    );
+  }
+
+  async getCompaniesStatsAggregate(ctx: RequestContext, query: GetStatsDto) {
+    const aggregates = [];
+    const stats = await this.getCompaniesStats(ctx, query);
+    for (const stat of stats.data!) {
+      const stats = await this.userRepository.query(
+        `WITH RECURSIVE date_series AS (
+            SELECT ? AS date UNION ALL
+            SELECT DATE_ADD(date, INTERVAL 1 DAY)
+            FROM date_series WHERE date < ?
+          )
+      SELECT
+        date_series.date value, COALESCE(COUNT(companies.created_at), 0) count
+      FROM
+        date_series LEFT JOIN companies ON date_series.date = DATE(companies.created_at) AND companies.status = ?
+        GROUP BY date_series.date ORDER BY date_series.date`,
+        [
+          query.filter.createdAt.gt
+            ? moment(query.filter.createdAt.gt).format('YYYY-MM-DD')
+            : moment(query.filter.createdAt.lt)
+                .subtract(30, 'days')
+                .format('YYYY-MM-DD'),
+          moment(query.filter.createdAt.lt).format('YYYY-MM-DD'),
+          stat.value,
+        ],
+      );
+      aggregates.push({
+        ...stat,
+        data: stats,
+      });
+    }
+
+    return ResponseFormatter.success<GetStatsResponseDTO[]>(
+      'Company stats fetched successfully',
+      aggregates.map((stat) => new GetStatsResponseDTO(stat)),
     );
   }
 }

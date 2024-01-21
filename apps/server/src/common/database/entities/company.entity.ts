@@ -15,6 +15,12 @@ import { Settings } from './settings.entity';
 import { CompanyTypes } from '../constants';
 import { ConsumerAcl } from './consumeracl.entity';
 
+export enum CompanyStatuses {
+  ACTIVE = 'active',
+  PENDING = 'pending',
+  INACTIVE = 'inactive',
+}
+
 @Entity({ name: 'companies' })
 export class Company {
   @PrimaryGeneratedColumn('uuid')
@@ -32,8 +38,12 @@ export class Company {
   @Column({ name: 'consumer_id', nullable: true })
   consumerId?: string;
 
-  @Column({ name: 'is_active', type: 'boolean', default: true })
-  isActive: boolean;
+  @Column({
+    default: CompanyStatuses.PENDING,
+    type: 'enum',
+    enum: CompanyStatuses,
+  })
+  status?: CompanyStatuses;
 
   @Column('longblob', { name: 'kyb_data', nullable: true })
   kybData?: string;
