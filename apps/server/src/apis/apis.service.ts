@@ -24,6 +24,8 @@ import {
   GETAPIDownstreamResponseDTO,
   GETAPIUpstreamResponseDTO,
   GetStatsAggregateResponseDTO,
+  SetAPITransformationDTO,
+  GetAPITransformationResponseDTO,
 } from './dto/index.dto';
 import slugify from 'slugify';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
@@ -945,6 +947,85 @@ export class APIService {
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPIs,
       populatedRoutes,
+    );
+  }
+
+  async getTransformation(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    routeId: string,
+  ) {
+    const route = await this.routeRepository.findOne({
+      where: { id: routeId, environment },
+      relations: { collection: true },
+    });
+
+    if (!route) {
+      throw new INotFoundException({
+        message: apiErrorMessages.routeNotFound(routeId),
+      });
+    }
+
+    // TODO emit event
+
+    const plugins = await this.kongRouteService.getPlugins(
+      environment,
+      route.routeId!,
+    );
+
+    const plugin = plugins.data.find(
+      (plugin) => plugin.name === KONG_PLUGINS.PRE_FUNCTION,
+    );
+
+    if (!plugin) {
+      throw new INotFoundException({
+        message: apiErrorMessages.functionNotFound(routeId),
+      });
+    }
+
+    return ResponseFormatter.success(
+      apiSuccessMessages.fetchedAPI,
+      new GetAPITransformationResponseDTO(plugin.config),
+    );
+  }
+
+  async setTransformation(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    routeId: string,
+    data: SetAPITransformationDTO,
+  ) {
+    const route = await this.routeRepository.findOne({
+      where: { id: routeId, environment },
+      relations: { collection: true },
+    });
+
+    if (!route) {
+      throw new INotFoundException({
+        message: apiErrorMessages.routeNotFound(routeId),
+      });
+    }
+
+    // TODO emit event
+
+    const plugin = await this.kongRouteService.updateOrCreatePlugin(
+      environment,
+      route.routeId!,
+      {
+        config: {
+          access: [data.upstream],
+          body_filter: [data.downstream],
+          // this is required to ensure that we dont send an invalid content length to the downstream/client
+          header_filter: ['kong.response.clear_header("Content-Length")'],
+        },
+        name: KONG_PLUGINS.PRE_FUNCTION,
+        enabled: true,
+      },
+    );
+
+    return ResponseFormatter.success(
+      apiSuccessMessages.updatedAPI,
+      new GetAPITransformationResponseDTO(plugin.config),
     );
   }
 }
