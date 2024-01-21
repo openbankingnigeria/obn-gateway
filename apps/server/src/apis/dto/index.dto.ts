@@ -17,6 +17,8 @@ import {
 import { HTTP_METHODS } from '../types';
 import { Expose, Transform, Type } from 'class-transformer';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { GetCompanyResponseDTO } from '@company/dto/index.dto';
+import * as moment from 'moment';
 
 class CreateAPIDownstreamDTO {
   @IsArray()
@@ -94,10 +96,6 @@ export class UpdateAPIDto {
 
   @IsBoolean()
   enabled: boolean;
-
-  @IsNotEmpty()
-  @IsUrl()
-  url: string;
 
   @IsObject()
   @ValidateNested()
@@ -268,6 +266,11 @@ export class APILogResponseDTO {
   @Type(() => APILogRequestDto)
   @Expose()
   request: APILogRequestDto;
+
+  @ValidateNested()
+  @Type(() => GetCompanyResponseDTO)
+  @Expose({ name: 'company' })
+  consumer: GetCompanyResponseDTO;
 }
 
 export class AssignAPIsDto {
@@ -326,7 +329,7 @@ export class GetAPILogsFilterDto {
   @Type(() => GetAPILogsFilterCreatedAtDto)
   '@timestamp': GetAPILogsFilterCreatedAtDto;
 
-  @Expose({ name: 'consumerId' })
+  @Expose({ name: 'companyId' })
   @IsOptional()
   @IsString()
   'consumer.id': string;
@@ -336,4 +339,17 @@ export class GetAPILogsDto {
   @ValidateNested()
   @Type(() => GetAPILogsFilterDto)
   filter: GetAPILogsFilterDto;
+}
+
+export class GetStatsAggregateResponseDTO {
+  constructor(partial: GetStatsAggregateResponseDTO) {
+    Object.assign(this, partial);
+  }
+
+  @Expose({ name: 'count' })
+  doc_count: number;
+
+  @Expose({ name: 'value' })
+  @Transform(({ obj }) => moment(obj.key_as_string).format('YYYY-MM-DD'))
+  key_as_string: string;
 }
