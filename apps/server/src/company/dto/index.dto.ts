@@ -1,7 +1,9 @@
 import {
   IsAlphanumeric,
+  IsDateString,
   IsEnum,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsString,
   Length,
@@ -97,6 +99,9 @@ export class GetCompanyResponseDTO {
   isActive: boolean;
 
   @Expose()
+  status: string;
+
+  @Expose()
   kybData: string;
 
   @Expose()
@@ -167,4 +172,46 @@ export class UpdateCompanyKybStatusResponseDTO {
 
   @Expose()
   tier: string;
+}
+
+export class GetStatsResponseDTO {
+  constructor(partial: GetStatsResponseDTO) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  count: number;
+
+  @Expose()
+  value: string;
+
+  @Expose()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => GetStatsResponseDTO)
+  data?: GetStatsResponseDTO;
+}
+
+class GetStatsFilterCreatedAtDto {
+  @IsDateString()
+  @IsOptional()
+  'gt': string;
+
+  @IsDateString()
+  @IsOptional()
+  'lt': string;
+}
+
+export class GetStatsFilterDto {
+  @IsObject()
+  @ValidateNested()
+  @Type(() => GetStatsFilterCreatedAtDto)
+  'createdAt': GetStatsFilterCreatedAtDto;
+}
+
+export class GetStatsDto {
+  @IsObject()
+  @ValidateNested()
+  @Type(() => GetStatsFilterDto)
+  filter: GetStatsFilterDto;
 }

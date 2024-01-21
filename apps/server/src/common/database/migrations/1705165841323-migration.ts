@@ -111,7 +111,7 @@ export class Migration1705165841323 implements MigrationInterface {
             ctx,
             KONG_ENVIRONMENT.DEVELOPMENT,
             new CreateAPIDto({
-              collectionId: collection.data.id,
+              collectionId: collection.data!.id,
               name,
               enabled: false,
               url: request.url,

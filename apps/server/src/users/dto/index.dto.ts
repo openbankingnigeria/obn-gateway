@@ -100,7 +100,7 @@ export class GetUserResponseDTO {
 }
 
 export class GetStatsResponseDTO {
-  constructor(partial: Partial<{ count: number; value: string }>) {
+  constructor(partial: GetStatsResponseDTO) {
     Object.assign(this, partial);
   }
 

@@ -309,14 +309,16 @@ export class UsersService {
 
   async getStats(ctx: RequestContext) {
     const stats = await this.userRepository.query(
-      `SELECT IFNULL(count, 0) count, definitions.value FROM definitions
-              LEFT OUTER JOIN (
-              SELECT count(id) AS count, status
-              FROM users WHERE deleted_at IS NULL AND company_id = ?
-              GROUP BY status
-            ) users ON users.status = definitions.value
-              AND definitions.type = 'status'
-              WHERE definitions.entity = 'user'
+      `SELECT IFNULL(count(users.id), 0) count, definitions.value
+    FROM
+      users
+      RIGHT OUTER JOIN (${Object.values(UserStatuses)
+        .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
+        .join(' UNION ')}) definitions ON users.status = definitions.key
+        AND users.deleted_at IS NULL
+        AND users.company_id = ?
+    GROUP BY
+      definitions.value
         `,
       [ctx.activeUser.companyId],
     );
