@@ -22,7 +22,6 @@ export enum CompanyStatuses {
   INACTIVE = 'inactive',
 }
 
-type KybStatus = 'approved' | 'pending' | 'denied';
 @Entity({ name: 'companies' })
 export class Company {
   @PrimaryGeneratedColumn('uuid')
