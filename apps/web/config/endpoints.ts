@@ -1,4 +1,4 @@
-import { GetEnvironmentProps, GetListProps, GetSingleProps, PostTokenProps, 
+import { GetEnvironmentProps, GetListProps, GetSingleEnvironmentProps, GetSingleProps, PostTokenProps, 
 } from "@/types/endpointTypes";
 
 const BASE_URL = 'http://3.134.253.153:4000';
@@ -65,28 +65,39 @@ export const getCollection = ({ id }: GetSingleProps) =>
 
 
 
-// APIS
-export const getAPIs = ({ environment }: GetEnvironmentProps) => 
-  `${BASE_URL}/apis/${environment}`;
-export const getAPI = ({ environment, id }: GetEnvironmentProps) => 
+// APIS 
+export const getAPIs = ({ page, limit, environment, collectionId }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}?page=${page}${limit ? `&limit=${limit}`: ''}${collectionId ? `&filter[collectionId]=${collectionId}` : ''}`;
+export const getAPI = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}`;
-export const deleteAPI = ({ environment, id }: GetEnvironmentProps) => 
+export const deleteAPI = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}`;
-export const updateAPI = ({ environment, id }: GetEnvironmentProps) => 
+export const updateAPI = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}`;
-export const getAPILogs = ({ environment }: GetEnvironmentProps) => 
-  `${BASE_URL}/apis/${environment}/logs`;
-export const getAPILog = ({ environment, id }: GetEnvironmentProps) => 
+export const getAPILogs = ({ page, limit, environment, companyId }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs?page=${page}${limit ? `&limit=${limit}`: ''}${companyId ? `&filter[companyId]=${companyId}` : ''}`;
+export const getAPILog = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/logs/${id}`;
-export const getAPILogStats = ({ environment }: GetEnvironmentProps) => 
+export const getAPILogStats = ({ environment }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/logs/stats`;
-
+export const postAssignAPIs = ({ environment, id }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/company/${id}/assign`;
+export const postUnassignAPIs = ({ environment, id }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/company/${id}/unassign`;
+export const getCompanyAPIs = ({ page, limit, environment, companyId }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/company/${companyId}?page=${page}${limit ? `&limit=${limit}`: ''}`;
 
 // COMPANY
 export const getCompanies = ({ page, limit, createdAt_gt, createdAt_l, status }: GetListProps) => 
   `${BASE_URL}/companies?page=${page}${limit ? `&limit=${limit}`: ''}${createdAt_gt ? `&filter[createdAt][gte]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lte]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}`;
 export const getCompany = ({ id }: GetSingleProps) => 
   `${BASE_URL}/companies/${id}`;
+export const activateCompany = ({ id }: GetSingleProps) => 
+  `${BASE_URL}/companies/${id}/activate`;
+export const deactivateCompany = ({ id }: GetSingleProps) => 
+  `${BASE_URL}/companies/${id}/deactivate`;
+export const updateCompanyStatus = ({ id }: GetSingleProps) => 
+  `${BASE_URL}/companies/${id}/kyb/status`;
 export const updateCompanyDetails = () => `${BASE_URL}/company/kyb`;
 export const getCompanyTypes = () => `${BASE_URL}/company/types`;
 export const getCompanyDetails = () => `${BASE_URL}/company/me`;

@@ -15,6 +15,15 @@ export interface GetSingleProps {
 }
 
 export interface GetEnvironmentProps {
+  page: string;
+  limit: string;
+  environment: string;
+  id?: string;
+  companyId?: string;
+  collectionId?: string;
+}
+
+export interface GetSingleEnvironmentProps {
   environment: string;
   id?: string;
 }

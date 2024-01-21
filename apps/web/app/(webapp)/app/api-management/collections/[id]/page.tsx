@@ -27,7 +27,10 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
   const fetchedAPIs: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPIs({
-      environment
+      page: `${page}`,
+      limit: `${rows}`,
+      collectionId,
+      environment,
     }),
     method: 'GET',
     data: null

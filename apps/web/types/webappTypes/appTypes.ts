@@ -74,6 +74,7 @@ export interface ConsumerDetailsProps {
   rawData: any;
   status: string
   dataList: any[]
+  profileData?: any;
   searchQuery?: string
 }
 
@@ -246,4 +247,17 @@ export interface EnableTwoFactorAuthProps {
   qrcode_image: string;
   setCode: Dispatch<React.SetStateAction<string>>;
   loading: boolean
+}
+
+export interface EditAPIPermissionProps {
+  rawData: any;
+  apiList?: any;
+  searchQuery?: string;
+}
+
+export interface AddAPIPermissionsProps extends RoleComponentsProps {
+  loading?: boolean;
+  api_ids: PermissionValue[];
+  searchQuery?: string;
+  setApiIds: Dispatch<SetStateAction<PermissionValue[]>>;
 }
