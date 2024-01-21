@@ -28,6 +28,8 @@ const CollectionSection = ({
   requestMethodList,
   tierList
 }: SectionsProps) => {
+  
+// console.log(rawData);
 
   const columnHelper = createColumnHelper<any>();
   const router = useRouter();
