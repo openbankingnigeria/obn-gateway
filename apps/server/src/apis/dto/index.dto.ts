@@ -353,3 +353,27 @@ export class GetStatsAggregateResponseDTO {
   @Transform(({ obj }) => moment(obj.key_as_string).format('YYYY-MM-DD'))
   key_as_string: string;
 }
+
+export class SetAPITransformationDTO {
+  @IsString()
+  upstream: string;
+
+  @IsString()
+  downstream: string;
+}
+
+export class GetAPITransformationResponseDTO {
+  constructor(partial: Partial<GetAPITransformationResponseDTO>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose({ name: 'upstream' })
+  @Transform(({ value }) => value[0])
+  @IsString()
+  access: string;
+
+  @Expose({ name: 'downstream' })
+  @Transform(({ value }) => value[0])
+  @IsString()
+  body_filter: string;
+}

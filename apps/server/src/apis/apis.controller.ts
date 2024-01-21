@@ -17,6 +17,7 @@ import {
   AssignAPIsDto,
   CreateAPIDto,
   GetAPILogsDto,
+  SetAPITransformationDTO,
   UpdateAPIDto,
 } from './dto/index.dto';
 import {
@@ -195,5 +196,27 @@ export class APIController {
     @Body() data: UpdateAPIDto,
   ) {
     return this.apiService.updateAPI(ctx, params.environment, id, data);
+  }
+
+  @Get(':id/transformation')
+  @UsePipes(IValidationPipe)
+  getTransformation(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('id') id: string,
+  ) {
+    return this.apiService.getTransformation(ctx, params.environment, id);
+  }
+
+  @Put(':id/transformation')
+  @UsePipes(IValidationPipe)
+  @RequireTwoFA(true)
+  setTransformation(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('id') id: string,
+    @Body() data: SetAPITransformationDTO,
+  ) {
+    return this.apiService.setTransformation(ctx, params.environment, id, data);
   }
 }
