@@ -23,6 +23,9 @@ import {
   GetAPILogsFilterDto,
   GETAPIDownstreamResponseDTO,
   GETAPIUpstreamResponseDTO,
+  GetStatsAggregateResponseDTO,
+  SetAPITransformationDTO,
+  GetAPITransformationResponseDTO,
 } from './dto/index.dto';
 import slugify from 'slugify';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
@@ -823,8 +826,53 @@ export class APIService {
   async getAPILogsStatsAggregate(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
-    filters?: GetAPILogsDto,
-  ) {}
+    query: GetAPILogsDto,
+  ) {
+    const stats = await this.elasticsearchService.search<any, any>({
+      size: 0,
+      query: {
+        bool: {
+          must: [
+            { term: { 'environment.keyword': environment } },
+            {
+              wildcard: {
+                'consumer.id.keyword':
+                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
+                    ? '*'
+                    : ctx.activeUser.companyId,
+              },
+            },
+            ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+              query?.filter,
+            ),
+          ],
+        },
+      },
+      aggs: {
+        aggregated: {
+          date_histogram: {
+            field: '@timestamp',
+            calendar_interval: 'day',
+            min_doc_count: 0,
+            extended_bounds: {
+              min: query.filter?.['@timestamp'].gt
+                ? moment(query.filter['@timestamp'].gt).format('YYYY-MM-DD')
+                : moment(query.filter?.['@timestamp'].lt)
+                    .subtract(30, 'days')
+                    .format('YYYY-MM-DD'),
+              max: moment(query.filter?.['@timestamp'].lt).format('YYYY-MM-DD'),
+            },
+          },
+        },
+      },
+    });
+    return ResponseFormatter.success(
+      apiSuccessMessages.fetchedAPILogsStats,
+      stats.aggregations!['aggregated'].buckets.map(
+        (bucket: any) => new GetStatsAggregateResponseDTO(bucket),
+      ),
+    );
+  }
 
   async getApisAssignedToCompany(
     ctx: RequestContext,

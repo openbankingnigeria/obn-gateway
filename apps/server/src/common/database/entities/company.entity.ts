@@ -16,6 +16,7 @@ import { CompanyTypes } from '../constants';
 import { ConsumerAcl } from './consumeracl.entity';
 
 type KybStatus = 'approved' | 'pending' | 'denied';
+
 export enum CompanyStatuses {
   ACTIVE = 'active',
   PENDING = 'pending',
