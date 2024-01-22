@@ -2,27 +2,33 @@ import { RequestMethodTextProps } from '@/types/webappTypes/componentsTypes'
 import React from 'react'
 
 const RequestMethodText = ({
-  method
+  method,
+  styles
 }: RequestMethodTextProps) => {
   const sanitizedMethod = method?.toUpperCase();
   return (
     sanitizedMethod == 'GET' ?
-      <div className='text-[#008000]'>
+      <div className={`${styles} text-[#008000]`}>
         {sanitizedMethod}
       </div>
       :
       sanitizedMethod == 'POST' ?
-        <div className='text-[#FF4500]'>
+        <div className={`${styles} text-[#FFAB1A]`}>
           {sanitizedMethod}
         </div>
         :
-        sanitizedMethod == 'PUT' ?
-          <div className='text-[#0000FF]'>
+        sanitizedMethod == 'PATCH' ?
+        <div className={`${styles} text-[#FF4500]`}>
+          {sanitizedMethod}
+        </div>
+        :
+        (sanitizedMethod == 'PUT') ?
+          <div className={`${styles} text-[#0000FF]`}>
             {sanitizedMethod}
           </div>
           :
           sanitizedMethod == 'DELETE' ?
-            <div className='text-[#FF0000]'>
+            <div className={`${styles} text-[#FF0000]`}>
               {sanitizedMethod}
             </div>
             :

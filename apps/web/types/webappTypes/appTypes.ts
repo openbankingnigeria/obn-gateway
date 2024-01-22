@@ -140,9 +140,26 @@ export interface InviteMembersButtonProps {
   roles: any[];
 }
 
+export interface PermissionOptionsProps {
+  id: string;
+  label: string;
+  value: string;
+}
+
 export interface PermissionValue {
   permission: string;
   options: PermissionOptionsProps[]
+}
+
+export interface ApiPermissionOptionsProps {
+  id: string;
+  label: string;
+  method: string;
+}
+
+export interface ApiPermissionValue {
+  collection: string;
+  api_options: ApiPermissionOptionsProps[]
 }
 
 export interface RoleComponentsProps {
@@ -174,12 +191,6 @@ export interface confirmCancelProps {
   next: () => void;
 }
 
-export interface PermissionOptionsProps {
-  id: string;
-  label: string;
-  value: string;
-}
-
 export interface PermissionSelectorProps {
   placeholder?: string;
   parentIsSelected: boolean;
@@ -194,11 +205,26 @@ export interface PermissionSelectorProps {
   changeValues: Dispatch<SetStateAction<PermissionOptionsProps[]>>;
 }
 
+export interface ApiPermissionSelectorProps {
+  name: string;
+  options: any[];
+  values: string[];
+  changeValues: Dispatch<SetStateAction<string[]>>;
+}
+
 export interface PermissionCardProps {
   label: string;
   permissions: PermissionValue[];
   value: string;
   changePermissions: Dispatch<SetStateAction<PermissionValue[]>>;
+  options: PermissionOptionsProps[];
+}
+
+export interface ApiPermissionCardProps {
+  label: string;
+  apiIds: string[];
+  value: string;
+  changeApiIds: Dispatch<SetStateAction<string[]>>;
   options: PermissionOptionsProps[];
 }
 
@@ -257,7 +283,7 @@ export interface EditAPIPermissionProps {
 
 export interface AddAPIPermissionsProps extends RoleComponentsProps {
   loading?: boolean;
-  api_ids: PermissionValue[];
+  api_ids: string[];
   searchQuery?: string;
-  setApiIds: Dispatch<SetStateAction<PermissionValue[]>>;
+  setApiIds: Dispatch<SetStateAction<string[]>>;
 }
