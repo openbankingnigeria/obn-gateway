@@ -33,7 +33,7 @@ const clientAxiosRequest = async ({
       removeJsCookies('aperta-user-accessToken');
       window.location.href = '/';
     } else {
-      toast.error(res?.message);
+      !noToast && toast.error(res?.message);
     }
 
     return res;
