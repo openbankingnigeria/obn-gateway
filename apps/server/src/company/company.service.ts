@@ -62,7 +62,7 @@ export class CompanyService {
     data: any,
     files: Express.Multer.File[],
   ) {
-    if (ctx.activeCompany.isVerified) {
+    if (ctx.activeCompany.kybStatus === 'approved') {
       throw new IBadRequestException({
         message: companyErrors.companyAlreadyVerified,
       });
@@ -188,7 +188,6 @@ export class CompanyService {
       }
     }
 
-    console.log({ company });
     return ResponseFormatter.success(
       'Successfully fetched company details',
       new GetCompanyResponseDTO({
@@ -229,6 +228,7 @@ export class CompanyService {
         tier: true,
         isVerified: true,
         kybStatus: true,
+        status: true,
         deletedAt: true,
         id: true,
         primaryUser: {
@@ -241,9 +241,11 @@ export class CompanyService {
         },
       },
       relations: {
-        primaryUser: true,
+        primaryUser: { profile: true },
       },
     });
+
+    console.log(companies);
 
     return ResponseFormatter.success(
       'Successfully fetched company',

@@ -22,6 +22,7 @@ export enum CompanyStatuses {
   INACTIVE = 'inactive',
 }
 
+type KybStatus = 'approved' | 'pending' | 'denied';
 @Entity({ name: 'companies' })
 export class Company {
   @PrimaryGeneratedColumn('uuid')
@@ -71,7 +72,7 @@ export class Company {
   })
   primaryUser?: User;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'kyb_status', default: 'pending' })
   kybStatus?: KybStatus;
 
   @OneToMany(() => AuditLog, (auditLog) => auditLog.company)
