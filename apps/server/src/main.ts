@@ -6,6 +6,7 @@ import {
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import { SetupService } from './setup';
 
 async function bootstrap() {
   // TODO properly configure cors
@@ -19,6 +20,8 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   const logger = new NestLogger();
 
+  await new SetupService().performSetupTasks().catch(logger.error);
+
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
       strategy: 'excludeAll',
@@ -29,4 +32,5 @@ async function bootstrap() {
     logger.log(`Server listening on PORT - ${port}`);
   });
 }
+
 bootstrap();
