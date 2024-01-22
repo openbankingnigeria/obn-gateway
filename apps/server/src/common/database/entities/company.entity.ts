@@ -15,6 +15,8 @@ import { Settings } from './settings.entity';
 import { CompanyTypes } from '../constants';
 import { ConsumerAcl } from './consumeracl.entity';
 
+type KybStatus = 'approved' | 'pending' | 'denied';
+
 export enum CompanyStatuses {
   ACTIVE = 'active',
   PENDING = 'pending',
@@ -69,6 +71,9 @@ export class Company {
     nullable: true,
   })
   primaryUser?: User;
+
+  @Column({ nullable: true, name: 'kyb_status', default: 'pending' })
+  kybStatus?: KybStatus;
 
   @OneToMany(() => AuditLog, (auditLog) => auditLog.company)
   auditLogs?: AuditLog[];

@@ -69,6 +69,8 @@ export class PrimaryUserDto {
   @Expose()
   email: string;
 
+  @ValidateNested()
+  @Type(() => ProfileDto)
   @Expose()
   profile?: ProfileDto;
 }
@@ -91,6 +93,21 @@ export class GetCompanyResponseDTO {
   isVerified: boolean;
 
   @Expose()
+  kybStatus: string;
+
+  @Expose()
+  isActive: boolean;
+
+  @Expose()
+  status: string;
+
+  @Expose()
+  kybStatus: string;
+
+  @Expose()
+  isActive: boolean;
+
+  @Expose()
   status: string;
 
   @Expose()
@@ -108,6 +125,8 @@ export class GetCompanyResponseDTO {
   @Expose()
   createdAt: Date;
 
+  @ValidateNested()
+  @Type(() => PrimaryUserDto)
   @Expose()
   primaryUser: PrimaryUserDto;
 }

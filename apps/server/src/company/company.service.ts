@@ -62,7 +62,7 @@ export class CompanyService {
     data: any,
     files: Express.Multer.File[],
   ) {
-    if (ctx.activeCompany.isVerified) {
+    if (ctx.activeCompany.kybStatus === 'approved') {
       throw new IBadRequestException({
         message: companyErrors.companyAlreadyVerified,
       });
@@ -188,7 +188,6 @@ export class CompanyService {
       }
     }
 
-    console.log({ company });
     return ResponseFormatter.success(
       'Successfully fetched company details',
       new GetCompanyResponseDTO({
@@ -228,10 +227,25 @@ export class CompanyService {
         subtype: true,
         tier: true,
         isVerified: true,
+        kybStatus: true,
+        status: true,
         deletedAt: true,
         id: true,
+        primaryUser: {
+          bvn: true,
+          email: true,
+          profile: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      relations: {
+        primaryUser: { profile: true },
       },
     });
+
+    console.log(companies);
 
     return ResponseFormatter.success(
       'Successfully fetched company',
@@ -311,7 +325,11 @@ export class CompanyService {
       case 'approve':
         await this.companyRepository.update(
           { id: companyId },
-          { isVerified: true, tier: businessDetails?.tier },
+          {
+            isVerified: true,
+            tier: businessDetails?.tier,
+            kybStatus: 'approved',
+          },
         );
         event = new CompanyApprovedEvent(ctx.activeUser, company);
         this.eventEmitter.emit(event.name, event);
@@ -323,6 +341,12 @@ export class CompanyService {
             message: companyErrors.reasonNotProvided,
           });
         }
+        await this.companyRepository.update(
+          { id: companyId },
+          {
+            kybStatus: 'denied',
+          },
+        );
         event = new CompanyDeniedEvent(ctx.activeUser, company, {
           reason: reason,
         });
