@@ -9,6 +9,8 @@ import ConsumerSections from "./ConsumerSections";
 import ConsumerBusinessDetails from "./ConsumerBusinessDetails";
 import EditPermissionButton from "./EditPermissionButton";
 import AddAPIPermissions from "./AddAPIPermissions";
+import ApiPermissionCard from "./ApiPermissionCard";
+import ApiPermissionSelector from "./ApiPermissionSelector";
 
 export {
   ConsumersTable,
@@ -21,5 +23,7 @@ export {
   ConsumerSections,
   ConsumerBusinessDetails,
   EditPermissionButton,
-  AddAPIPermissions
+  AddAPIPermissions,
+  ApiPermissionCard,
+  ApiPermissionSelector
 }

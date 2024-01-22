@@ -144,6 +144,7 @@ export interface CodeSnippetProps {
 
 export interface RequestMethodTextProps {
   method: any;
+  styles?: any;
 }
 
 export interface ConfigurationBoxProps {

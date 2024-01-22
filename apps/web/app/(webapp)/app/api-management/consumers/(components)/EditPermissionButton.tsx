@@ -6,7 +6,7 @@ import React, { FormEvent, useEffect, useState } from 'react'
 import * as API from '@/config/endpoints';
 import { AppCenterModal, AppRightModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
 import { useRouter } from 'next/navigation';
-import { EditAPIPermissionProps, PermissionValue } from '@/types/webappTypes/appTypes';
+import { ApiPermissionValue, EditAPIPermissionProps } from '@/types/webappTypes/appTypes';
 import { AddAPIPermissions } from '.';
 
 const EditPermissionButton = ({
@@ -18,23 +18,19 @@ const EditPermissionButton = ({
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
-  const [apiList, setApiList] = useState([]);
-  const [apiIds, setApiIds] = useState<PermissionValue[]>([]);
+  const [collections, setCollections] = useState([]);
+  const [apiIds, setApiIds] = useState<string[]>([]);
   const environment = 'development';
 
-  const fetchAPIs = async () => {
+  const fetchAPICollections = async () => {
     const result: any = await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.getAPIs({
-        page: `1`,
-        limit: `1000`,
-        environment
-      }),
+      apiEndpoint: API.getCollections(),
       method: 'GET',
       data: null,
       noToast: true
     });
-    setApiList(result?.data);
+    setCollections(result?.data);
   }
 
   const fetchProfile = async () => {
@@ -50,7 +46,7 @@ const EditPermissionButton = ({
 
   useEffect(() => {
     fetchProfile();
-    fetchAPIs();
+    fetchAPICollections();
   }, []);
 
   const close2FAModal = () => {
@@ -98,11 +94,11 @@ const EditPermissionButton = ({
           <AppRightModal
             title='Confirm Action'
             effect={() => setOpenModal(false)}
-            childrenStyle='!px-0'
+            childrenStyle='!px-0 !py-0 !pt-[20px]'
           >
             <AddAPIPermissions 
               close={() => setOpenModal(false)}
-              data={apiList}
+              data={collections}
               next={handleEdit}
               searchQuery={searchQuery}
               loading={loading}
