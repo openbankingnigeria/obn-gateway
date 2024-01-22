@@ -6,6 +6,7 @@ export const CompanyFilters = {
     { key: 'name', valueType: ValueTypes.string },
     { key: 'rcNumber', valueType: ValueTypes.string },
     { key: 'isVerified', valueType: ValueTypes.boolean },
+    { key: 'kybStatus', valueType: ValueTypes.string },
     { key: 'type', valueType: ValueTypes.string },
   ],
 };

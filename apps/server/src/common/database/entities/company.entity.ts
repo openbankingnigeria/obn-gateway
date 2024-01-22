@@ -15,6 +15,7 @@ import { Settings } from './settings.entity';
 import { CompanyTypes } from '../constants';
 import { ConsumerAcl } from './consumeracl.entity';
 
+type KybStatus = 'approved' | 'pending' | 'denied';
 @Entity({ name: 'companies' })
 export class Company {
   @PrimaryGeneratedColumn('uuid')
@@ -59,6 +60,9 @@ export class Company {
     nullable: true,
   })
   primaryUser?: User;
+
+  @Column({ nullable: true })
+  kybStatus?: KybStatus;
 
   @OneToMany(() => AuditLog, (auditLog) => auditLog.company)
   auditLogs?: AuditLog[];

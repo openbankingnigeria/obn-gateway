@@ -220,8 +220,20 @@ export class CompanyService {
         subtype: true,
         tier: true,
         isVerified: true,
+        kybStatus: true,
         deletedAt: true,
         id: true,
+        primaryUser: {
+          bvn: true,
+          email: true,
+          profile: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+      relations: {
+        primaryUser: true,
       },
     });
 
@@ -303,7 +315,11 @@ export class CompanyService {
       case 'approve':
         await this.companyRepository.update(
           { id: companyId },
-          { isVerified: true, tier: businessDetails?.tier },
+          {
+            isVerified: true,
+            tier: businessDetails?.tier,
+            kybStatus: 'approved',
+          },
         );
         event = new CompanyApprovedEvent(ctx.activeUser, company);
         this.eventEmitter.emit(event.name, event);
@@ -315,6 +331,12 @@ export class CompanyService {
             message: companyErrors.reasonNotProvided,
           });
         }
+        await this.companyRepository.update(
+          { id: companyId },
+          {
+            kybStatus: 'denied',
+          },
+        );
         event = new CompanyDeniedEvent(ctx.activeUser, company, {
           reason: reason,
         });

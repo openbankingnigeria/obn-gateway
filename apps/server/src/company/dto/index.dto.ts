@@ -5,11 +5,12 @@ import {
   IsOptional,
   IsString,
   Length,
+  ValidateNested,
   // Length,
 } from 'class-validator';
 import { companyValidationErrors } from '../company.config';
 import { CompanyTypes } from '@common/database/constants';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { CompanySubtypes } from '@settings/types';
 
 export enum KybStatusActions {
@@ -66,6 +67,8 @@ export class PrimaryUserDto {
   @Expose()
   email: string;
 
+  @ValidateNested()
+  @Type(() => ProfileDto)
   @Expose()
   profile?: ProfileDto;
 }
@@ -88,6 +91,9 @@ export class GetCompanyResponseDTO {
   isVerified: boolean;
 
   @Expose()
+  kybStatus: string;
+
+  @Expose()
   isActive: boolean;
 
   @Expose()
@@ -105,6 +111,8 @@ export class GetCompanyResponseDTO {
   @Expose()
   createdAt: Date;
 
+  @ValidateNested()
+  @Type(() => PrimaryUserDto)
   @Expose()
   primaryUser: PrimaryUserDto;
 }
