@@ -102,15 +102,6 @@ export class GetCompanyResponseDTO {
   status: string;
 
   @Expose()
-  kybStatus: string;
-
-  @Expose()
-  isActive: boolean;
-
-  @Expose()
-  status: string;
-
-  @Expose()
   kybData: string;
 
   @Expose()
