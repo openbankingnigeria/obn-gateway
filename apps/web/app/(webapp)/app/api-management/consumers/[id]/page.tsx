@@ -84,15 +84,15 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
   });
   const consents = CONSUMER_CONSENTS;
 
-  const collections = CONSUMER_COLLECTIONS_FULLDATA;
-  // const collections = fetchedCollection?.data?.map((collection: any) => {
-  //   return({
-  //     ...collection,
-  //     collection_name: collection?.name,
-  //     endpoints: collection?.endpoints,
-  //     categories: collection?.categories
-  //   })
-  // });
+  // const collections = CONSUMER_COLLECTIONS_FULLDATA;
+  const collections = fetchedCollection?.data?.map((collection: any) => {
+    return({
+      ...collection,
+      collection_name: collection?.name,
+      endpoints: collection?.endpoints,
+      categories: collection?.categories
+    })
+  });
 
   const filters = [search_query, status, date_sent]
 

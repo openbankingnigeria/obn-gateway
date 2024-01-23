@@ -53,8 +53,10 @@ export interface EmptyStateProps {
   title: string;
   body: string;
   parentStyle?: string;
+  altData?: any;
   titleStyle?: string;
   bodyStyle?: string;
+  searchQuery?: string;
   iconStyle?: string;
   containerStyle?: string;
   button?: boolean;
