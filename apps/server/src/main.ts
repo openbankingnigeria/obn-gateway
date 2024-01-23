@@ -20,7 +20,7 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   const logger = new NestLogger();
 
-  await new SetupService().performSetupTasks().catch(logger.error);
+  await new SetupService().performSetupTasks().catch(e => logger.error(e));
 
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
