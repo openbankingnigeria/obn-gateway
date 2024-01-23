@@ -40,9 +40,12 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
       ...consumer,
       user_type: consumer?.type,
       business_name: consumer?.name || 'N/A',
-      name: consumer?.user_name,
-      // email_address: consumer,
-      // status: consumer
+      name: consumer?.primaryUser?.profile?.firstName ? 
+        `${consumer?.primaryUser?.profile?.firstName} 
+        ${consumer?.primaryUser?.profile?.lastName}` :
+        null,
+      email_address: consumer?.primaryUser?.email,
+      status: consumer?.status
     })
   });
 

@@ -88,8 +88,8 @@ export const getCompanyAPIs = ({ page, limit, environment, companyId }: GetEnvir
   `${BASE_URL}/apis/${environment}/company/${companyId}?page=${page}${limit ? `&limit=${limit}`: ''}`;
 
 // COMPANY
-export const getCompanies = ({ page, limit, createdAt_gt, createdAt_l, status }: GetListProps) => 
-  `${BASE_URL}/companies?page=${page}${limit ? `&limit=${limit}`: ''}${createdAt_gt ? `&filter[createdAt][gte]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lte]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}`;
+export const getCompanies = ({ page, limit, name, createdAt_gt, createdAt_l, status }: GetListProps) => 
+  `${BASE_URL}/companies?page=${page}${limit ? `&limit=${limit}`: ''}${createdAt_gt ? `&filter[createdAt][gte]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lte]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}${name ? `&filter[name]=${name}`: ''}`;
 export const getCompany = ({ id }: GetSingleProps) => 
   `${BASE_URL}/companies/${id}`;
 export const activateCompany = ({ id }: GetSingleProps) => 
