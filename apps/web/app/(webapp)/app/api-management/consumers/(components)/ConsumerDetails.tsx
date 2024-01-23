@@ -25,7 +25,7 @@ const ConsumerDetails = ({
   const [open2FA, setOpen2FA] = useState(false);
   const [openModal, setOpenModal] = useState('');
   const actions = CONSUMER_ACTIONS_DATA;
-  const consumerStatus: 'pending' | 'active' | 'inactive' | 'rejected' = 'pending';
+  const consumerStatus: 'pending' | 'active' | 'inactive' | 'rejected' = rawData?.status;
 
   const getAction = (status: string) => {
     return actions.filter(action => 
@@ -189,7 +189,11 @@ const ConsumerDetails = ({
         <header className='w-full flex items-start justify-between gap-5'>
           <div className='w-full flex flex-col gap-[4px]'>
             <h2 className='w-full text-f18 text-o-text-dark font-[500]'>
-              John Ajayi
+              {
+                rawData?.primaryUser?.profile?.firstName ?
+                `${rawData?.primaryUser?.profile?.firstName} ${rawData?.primaryUser?.profile?.lastName}`
+                : rawData?.name
+              }
             </h2>
 
             <StatusBox status={rawData?.type} />
@@ -232,17 +236,26 @@ const ConsumerDetails = ({
           <div className='w-full p-[20px] grid grid-cols-2 ms:grid-cols-3 lgg:grid-cols-4 gap-[16px] bg-white'>
             <ViewData 
               label='Name'
-              value=''
+              value={
+                rawData?.primaryUser?.profile?.firstName ?
+                `${rawData?.primaryUser?.profile?.firstName} ${rawData?.primaryUser?.profile?.lastName}`
+                : null 
+              }
             />
 
             <ViewData 
               label='Email Address'
-              value=''
+              value={
+                rawData?.primaryUser?.email
+              }
             />
 
             <ViewData 
               label='Phone Number'
-              value=''
+              value={
+                rawData?.primaryUser?.phone ||
+                rawData?.primaryUser?.profile?.phone
+              }
             />
 
             <ViewData 
@@ -258,7 +271,7 @@ const ConsumerDetails = ({
               (rawData?.type == 'business' || rawData?.type == 'licensed-entity') &&
                 <ViewData 
                   label='Business Name'
-                  value=''
+                  value={rawData?.name}
                 />
             }
 
@@ -266,7 +279,7 @@ const ConsumerDetails = ({
               (rawData?.type == 'business' || rawData?.type == 'licensed-entity') &&
                 <ViewData 
                   label='Business Type'
-                  value=''
+                  value={rawData?.subtype}
                 />
             }
 
@@ -274,7 +287,7 @@ const ConsumerDetails = ({
               rawData?.type == 'business' &&
                 <ViewData 
                   label='CAC Number'
-                  value=''
+                  value={rawData?.rcNumber}
                 />
             }
 
