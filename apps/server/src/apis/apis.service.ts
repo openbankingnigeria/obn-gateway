@@ -1009,8 +1009,6 @@ export class APIService {
       });
     }
 
-    console.log({data})
-
     // TODO emit event
 
     const plugin = await this.kongRouteService.updateOrCreatePlugin(

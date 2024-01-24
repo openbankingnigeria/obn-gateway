@@ -19,7 +19,6 @@ type KybStatus = 'approved' | 'pending' | 'denied';
 
 export enum CompanyStatuses {
   ACTIVE = 'active',
-  PENDING = 'pending',
   INACTIVE = 'inactive',
 }
 
@@ -41,7 +40,7 @@ export class Company {
   consumerId?: string;
 
   @Column({
-    default: CompanyStatuses.PENDING,
+    default: CompanyStatuses.ACTIVE,
     type: 'enum',
     enum: CompanyStatuses,
   })
