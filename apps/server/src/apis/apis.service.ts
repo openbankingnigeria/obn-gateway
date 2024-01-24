@@ -63,7 +63,7 @@ export class APIService {
     private readonly kongRouteService: KongRouteService,
     private readonly kongConsumerService: KongConsumerService,
     private readonly elasticsearchService: ElasticsearchService,
-  ) {}
+  ) { }
 
   async viewAPIs(
     ctx: RequestContext,
@@ -113,7 +113,7 @@ export class APIService {
             port: gatewayService?.port || null,
             path: gatewayService?.path || null,
             url: gatewayService
-              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
               : null,
           }),
           downstream: new GETAPIDownstreamResponseDTO({
@@ -134,16 +134,16 @@ export class APIService {
   async viewAPI(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
-    id: string,
+    idOrSlug: string,
   ) {
     const route = await this.routeRepository.findOne({
-      where: { id, environment },
+      where: [{ id: idOrSlug, environment }, { name: idOrSlug, environment }],
       relations: { collection: true },
     });
 
     if (!route) {
       throw new INotFoundException({
-        message: apiErrorMessages.routeNotFound(id),
+        message: apiErrorMessages.routeNotFound(idOrSlug),
       });
     }
 
@@ -174,7 +174,7 @@ export class APIService {
           port: gatewayService?.port || null,
           path: gatewayService?.path || null,
           url: gatewayService
-            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
             : null,
         }),
         downstream: new GETAPIDownstreamResponseDTO({
@@ -249,7 +249,7 @@ export class APIService {
     const gatewayService = await this.kongService.updateOrCreateService(
       environment,
       {
-        name: slugify(hostname + '-' + pathname),
+        name: slugify(hostname + '-' + pathname, { strict: true }),
         enabled: true,
         url,
         retries: 1,
@@ -330,7 +330,7 @@ export class APIService {
       gatewayRoute.id,
       {
         name: KONG_PLUGINS.REQUEST_TERMINATION,
-        enabled,
+        enabled: !enabled,
       },
     );
 
@@ -348,7 +348,7 @@ export class APIService {
           protocol: gatewayService.protocol,
           port: gatewayService.port,
           path: gatewayService.path,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
         }),
         downstream: new GETAPIDownstreamResponseDTO(data.downstream),
       }),
@@ -531,7 +531,7 @@ export class APIService {
     const gatewayService = await this.kongService.updateOrCreateService(
       environment,
       {
-        name: slugify(hostname + '-' + pathname),
+        name: slugify(hostname + '-' + pathname, { strict: true }),
         enabled: true,
         url,
         retries: 1,
@@ -548,6 +548,9 @@ export class APIService {
           name: slugify(name, { lower: true, strict: true }),
           paths,
           methods,
+          service: {
+            id: gatewayService.id,
+          },
         },
       );
     } else {
@@ -606,7 +609,7 @@ export class APIService {
           protocol: gatewayService.protocol,
           port: gatewayService.port,
           path: gatewayService.path,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
         }),
         downstream: new GETAPIDownstreamResponseDTO(data.downstream),
       }),
@@ -858,8 +861,8 @@ export class APIService {
               min: query.filter?.['@timestamp'].gt
                 ? moment(query.filter['@timestamp'].gt).format('YYYY-MM-DD')
                 : moment(query.filter?.['@timestamp'].lt)
-                    .subtract(30, 'days')
-                    .format('YYYY-MM-DD'),
+                  .subtract(30, 'days')
+                  .format('YYYY-MM-DD'),
               max: moment(query.filter?.['@timestamp'].lt).format('YYYY-MM-DD'),
             },
           },
@@ -933,7 +936,7 @@ export class APIService {
             port: gatewayService?.port || null,
             path: gatewayService?.path || null,
             url: gatewayService
-              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
               : null,
           }),
           downstream: new GETAPIDownstreamResponseDTO({
@@ -1005,6 +1008,8 @@ export class APIService {
         message: apiErrorMessages.routeNotFound(routeId),
       });
     }
+
+    console.log({data})
 
     // TODO emit event
 
