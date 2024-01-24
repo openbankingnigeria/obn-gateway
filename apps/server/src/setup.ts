@@ -193,7 +193,8 @@ export class SetupService {
           .catch(console.error);
 
         if (!collection) {
-          const description = folders[folder].description?.slice('\n')[0];
+          // get collection description, and remove html tags.
+          const description = folders[folder].description?.split('\n')?.[0]?.replace(/(<([^>]+)>)/gi, "");
           if (!description) continue
 
           collection = await collectionService.createCollection(
