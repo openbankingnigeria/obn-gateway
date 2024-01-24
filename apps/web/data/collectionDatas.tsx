@@ -17,6 +17,29 @@ export const COLLECTIONS_TABLE_HEADERS = [
   }
 ];
 
+export const API_CONFIGURATION_PANEL = [
+  {
+    id: 1,
+    label: 'Request Body',
+    value: 'request_body'
+  },
+  {
+    id: 2,
+    label: 'Response Body',
+    value: 'response_body'
+  },
+  {
+    id: 3,
+    label: 'Request Header',
+    value: 'request_header'
+  },
+  {
+    id: 4,
+    label: 'Response Header',
+    value: 'response_header'
+  }
+];
+
 export const DASHBOARD_API_HEADERS = [
   {
     header: 'API Name',
@@ -74,31 +97,31 @@ export const COLLECTION_ACTIONS_DATA = [
       <path d="M8.00027 9.99967C9.10484 9.99967 10.0003 9.10424 10.0003 7.99967C10.0003 6.89511 9.10484 5.99967 8.00027 5.99967C6.8957 5.99967 6.00027 6.89511 6.00027 7.99967C6.00027 9.10424 6.8957 9.99967 8.00027 9.99967Z" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="transparent"/>
     </svg>
   },
-  // {
-  //   id: 2,
-  //   label: 'Configure',
-  //   name: 'configure',
-  //   type: 'not_configured',
-  //   icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-  //     <path d="M2 5.33301L10 5.33301M10 5.33301C10 6.43758 10.8954 7.33301 12 7.33301C13.1046 7.33301 14 6.43758 14 5.33301C14 4.22844 13.1046 3.33301 12 3.33301C10.8954 3.33301 10 4.22844 10 5.33301ZM6 10.6663L14 10.6663M6 10.6663C6 11.7709 5.10457 12.6663 4 12.6663C2.89543 12.6663 2 11.7709 2 10.6663C2 9.56177 2.89543 8.66634 4 8.66634C5.10457 8.66634 6 9.56177 6 10.6663Z" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="transparent"/>
-  //   </svg>    
-  // },
   {
-    id: 3,
-    label: 'Modify',
-    name: 'modify',
+    id: 2,
+    label: 'Configure',
+    name: 'configure',
     type: 'all',
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g clipPath="url(#clip0_1033_4975)">
-        <path d="M1.91744 12.0766C1.94807 11.801 1.96339 11.6632 2.00509 11.5343C2.04209 11.42 2.09437 11.3113 2.16051 11.211C2.23505 11.0979 2.33311 10.9999 2.52923 10.8037L11.3334 1.99955C12.0698 1.26317 13.2637 1.26317 14.0001 1.99955C14.7365 2.73593 14.7365 3.92984 14.0001 4.66622L5.1959 13.4704C4.99978 13.6665 4.90172 13.7646 4.78867 13.8391C4.68838 13.9053 4.57961 13.9575 4.46531 13.9945C4.33648 14.0362 4.19865 14.0516 3.92299 14.0822L1.66675 14.3329L1.91744 12.0766Z" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="transparent"/>
-      </g>
-      <defs>
-        <clipPath id="clip0_1033_4975">
-          <rect width="16" height="16" fill="white"/>
-        </clipPath>
-      </defs>
+      <path d="M2 5.33301L10 5.33301M10 5.33301C10 6.43758 10.8954 7.33301 12 7.33301C13.1046 7.33301 14 6.43758 14 5.33301C14 4.22844 13.1046 3.33301 12 3.33301C10.8954 3.33301 10 4.22844 10 5.33301ZM6 10.6663L14 10.6663M6 10.6663C6 11.7709 5.10457 12.6663 4 12.6663C2.89543 12.6663 2 11.7709 2 10.6663C2 9.56177 2.89543 8.66634 4 8.66634C5.10457 8.66634 6 9.56177 6 10.6663Z" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="transparent"/>
     </svg>    
   },
+  // {
+  //   id: 3,
+  //   label: 'Modify',
+  //   name: 'modify',
+  //   type: 'all',
+  //   icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  //     <g clipPath="url(#clip0_1033_4975)">
+  //       <path d="M1.91744 12.0766C1.94807 11.801 1.96339 11.6632 2.00509 11.5343C2.04209 11.42 2.09437 11.3113 2.16051 11.211C2.23505 11.0979 2.33311 10.9999 2.52923 10.8037L11.3334 1.99955C12.0698 1.26317 13.2637 1.26317 14.0001 1.99955C14.7365 2.73593 14.7365 3.92984 14.0001 4.66622L5.1959 13.4704C4.99978 13.6665 4.90172 13.7646 4.78867 13.8391C4.68838 13.9053 4.57961 13.9575 4.46531 13.9945C4.33648 14.0362 4.19865 14.0516 3.92299 14.0822L1.66675 14.3329L1.91744 12.0766Z" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="transparent"/>
+  //     </g>
+  //     <defs>
+  //       <clipPath id="clip0_1033_4975">
+  //         <rect width="16" height="16" fill="white"/>
+  //       </clipPath>
+  //     </defs>
+  //   </svg>    
+  // },
   {
     id: 4,
     label: 'Deactivate',

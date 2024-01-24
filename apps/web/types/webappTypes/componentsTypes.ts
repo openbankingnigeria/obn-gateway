@@ -84,6 +84,10 @@ export interface PanelContainerProps {
   status?: string;
 }
 
+export interface ListPanelContainerProps extends PanelContainerProps{
+  setCurrentValue: Dispatch<SetStateAction<string>>;
+}
+
 export interface TopPanelContainerProps extends PanelContainerProps{
   name: string;
 }
@@ -142,6 +146,11 @@ export interface CodeSnippetProps {
   containerStyle?: string;
   noCopy?: boolean;
   codeContainerStyle?: string;
+}
+
+export interface CodeEditorProps {
+  code: any;
+  setCode: Dispatch<SetStateAction<any>>;
 }
 
 export interface RequestMethodTextProps {
