@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react';
-// import dynamic from 'next/dynamic';
-import MonacoEditor from 'react-monaco-editor';
+import dynamic from 'next/dynamic';
+// import MonacoEditor from 'react-monaco-editor';
 import { CodeEditorProps } from '@/types/webappTypes/componentsTypes';
-// const MonacoEditor = dynamic(import('react-monaco-editor'), { ssr: false });
+const MonacoEditor = dynamic(import('react-monaco-editor'), { ssr: false });
 
 const CodeEditor = ({
   code, 
