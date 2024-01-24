@@ -304,8 +304,10 @@ const ConsumerSections = ({
                 title='Nothing to show'
                 type='DEFAULT'
                 parentStyle='!h-[calc(100vh-600px)]'
+                altData={altData?.id}
                 body='There’s no information to show for this user yet.'
                 button={path == ''}
+                searchQuery={filters[0]}
                 buttonType='ADD_PERMISSIONS'
               />
           }

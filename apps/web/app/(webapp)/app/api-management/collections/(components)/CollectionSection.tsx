@@ -1,14 +1,12 @@
 'use client'
 
-import { AppCenterModal, AppRightModal, ConfigurationBox, EmptyState, TableElement, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
+import { AppCenterModal, ConfigurationBox, EmptyState, TableElement, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { COLLECTION_ACTIONS_DATA } from '@/data/collectionDatas'
 import { HeadersProps, HostsProps, SectionsProps, SnisProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
 import React, { FormEvent, useEffect, useState } from 'react'
-import ApiConfiguration from './ApiConfiguration'
-import ModifyApiConfiguration from './ModifyApiConfiguration'
 import { updateSearchParams } from '@/utils/searchParams'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
@@ -40,50 +38,50 @@ const CollectionSection = ({
   const [api, setApi] = useState<any>(null);
   const profile = altData;
   const userType = profile?.user?.role?.parent?.slug;
-  const [api_endpoint, setApiEndpoint] = useState<any>(null);
+  // const [api_endpoint, setApiEndpoint] = useState<any>(null);
   const environment = 'development';
 
   // console.log(rawData);
 
-  const [endpoint_url, setEndpointUrl] = useState('');
-  const [parameters, setParameters] = useState('');
-  const [snis, setSnis] = useState<SnisProps[]>([]);
-  const [hosts, setHost] = useState<HostsProps[]>([]);
-  const [headers, setHeaders] = useState<HeadersProps[]>([]);
+  // const [endpoint_url, setEndpointUrl] = useState('');
+  // const [parameters, setParameters] = useState('');
+  // const [snis, setSnis] = useState<SnisProps[]>([]);
+  // const [hosts, setHost] = useState<HostsProps[]>([]);
+  // const [headers, setHeaders] = useState<HeadersProps[]>([]);
 
   // const getUserProfile = getJsCookies('aperta-user-profile');
   // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
   // const userType = userProfile?.userType;
-  const refreshData = () => {
-    setEndpointUrl('');
-    setParameters('');
-    setSnis([]);
-    setHost([]);
-    setHeaders([]);
-  }
+  // const refreshData = () => {
+  //   setEndpointUrl('');
+  //   setParameters('');
+  //   setSnis([]);
+  //   setHost([]);
+  //   setHeaders([]);
+  // }
 
-  const updateFields = (value: any) => {
-    setEndpointUrl(value?.endpoint_url);
-    setParameters(value?.parameters);
-  }
+  // const updateFields = (value: any) => {
+  //   setEndpointUrl(value?.endpoint_url);
+  //   setParameters(value?.parameters);
+  // }
 
-  async function FetchData() {
-    const result = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getAPI({ 
-        environment, 
-        id: api?.id
-      }),
-      method: 'GET',
-      data: null,
-      noToast: true,
-    });
-    setApiEndpoint(result?.data);
-  }
+  // async function FetchData() {
+  //   const result = await clientAxiosRequest({
+  //     headers: {},
+  //     apiEndpoint: API.getAPI({ 
+  //       environment, 
+  //       id: api?.id
+  //     }),
+  //     method: 'GET',
+  //     data: null,
+  //     noToast: true,
+  //   });
+  //   setApiEndpoint(result?.data);
+  // }
 
-  useEffect(() => {
-    api?.id && FetchData();
-  }, [api?.id]);
+  // useEffect(() => {
+  //   api?.id && FetchData();
+  // }, [api?.id]);
 
   useEffect(() => {
     const slug = updateSearchParams('slug', details?.name);
@@ -134,8 +132,8 @@ const CollectionSection = ({
           data: {
             "name": api?.name,
             "enabled": Boolean(openModal == 'activate'),
-            "url": api?.url,
-            "route": api?.route
+            "upstream": api?.upstream,
+            "downstream": api?.downstream
           }
         });
 
@@ -147,59 +145,59 @@ const CollectionSection = ({
     }
   }
 
-  const handleApiConfiguration = (code: string, e?: FormEvent<HTMLFormElement>) => {
-    e && e.preventDefault();
+  // const handleApiConfiguration = (code: string, e?: FormEvent<HTMLFormElement>) => {
+  //   e && e.preventDefault();
 
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
-      setLoading(true);
-      // TODO: GET CONFIGURATION ENDPOINT
-    }
-  }
+  //   if (profile?.user?.twofaEnabled && !code) {
+  //     setOpen2FA(true);
+  //   } else {
+  //     setLoading(true);
+  //     // TODO: GET CONFIGURATION ENDPOINT
+  //   }
+  // }
 
-  const handleApiModification = async (code: string, e?: FormEvent<HTMLFormElement>) => {
-    e && e.preventDefault();
+  // const handleApiModification = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+  //   e && e.preventDefault();
 
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
-      setLoading(true);
-      const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
-        apiEndpoint: API.updateAPI({ 
-          environment, 
-          id: api?.id
-        }),
-        method: 'PATCH',
-        data: {
-          "name": api?.name,
-          "enabled": true,
-          "url": endpoint_url,
-          "route": {
-              "paths": [
-                  parameters
-              ],
-              "methods": api?.route?.methods
-          }
-        }
-      });
+  //   if (profile?.user?.twofaEnabled && !code) {
+  //     setOpen2FA(true);
+  //   } else {
+  //     setLoading(true);
+  //     const result: any = await clientAxiosRequest({
+  //       headers: code ? { 'X-TwoFA-Code' : code, } : {},
+  //       apiEndpoint: API.updateAPI({ 
+  //         environment, 
+  //         id: api?.id
+  //       }),
+  //       method: 'PATCH',
+  //       data: {
+  //         "name": api?.name,
+  //         "enabled": true,
+  //         "url": endpoint_url,
+  //         "route": {
+  //             "paths": [
+  //                 parameters
+  //             ],
+  //             "methods": api?.route?.methods
+  //         }
+  //       }
+  //     });
 
-      setLoading(false);
-        if (result?.status == 200) {
-          close2FAModal();
-          refreshData();
-          router.refresh();
-        }
-    }
-  }
+  //     setLoading(false);
+  //       if (result?.status == 200) {
+  //         close2FAModal();
+  //         refreshData();
+  //         router.refresh();
+  //       }
+  //   }
+  // }
 
   const handle2FA = (value: string) => {
-    openModal == 'configure' ?
-      handleApiConfiguration(value, undefined) :
-      openModal == 'modify' ?
-        handleApiModification(value, undefined) :
-        handleActivateDeactivateDeleteApi(value);
+    // openModal == 'configure' ?
+    //   handleApiConfiguration(value, undefined) :
+    //   openModal == 'modify' ?
+    //     handleApiModification(value, undefined) :
+    handleActivateDeactivateDeleteApi(value);
   };
 
   const actionColumn = columnHelper.accessor('actions', {
@@ -223,11 +221,13 @@ const CollectionSection = ({
                 onClick={() => {
                   const api = rawData?.find(data => data?.id == row.original.id);
                   setApi(api)
-                  updateFields({
-                    endpoint_url: api?.url,
-                    parameters: api?.route?.paths
-                  })
-                  setOpenModal(action.name);
+                  // updateFields({
+                  //   endpoint_url: api?.url,
+                  //   parameters: api?.route?.paths
+                  // })
+                  action.name == 'configure' ?
+                    router.push(`/app/api-management/collections/${details?.id}/api-configuration?api_id=${row.original.id}`) :
+                    setOpenModal(action.name);
                 }}
               >
                 {action.icon}
@@ -245,7 +245,7 @@ const CollectionSection = ({
 
   return (
     <>
-      {
+      {/* {
         (openModal == 'configure' || openModal == 'modify') &&
           <AppRightModal
             title={
@@ -293,7 +293,7 @@ const CollectionSection = ({
                 />
             }
           </AppRightModal>
-      }
+      } */}
 
       {
         (

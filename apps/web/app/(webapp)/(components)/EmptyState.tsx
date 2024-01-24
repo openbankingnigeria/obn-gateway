@@ -1,6 +1,6 @@
 import { EmptyStateProps } from '@/types/webappTypes/componentsTypes';
 import React from 'react';
-import { EmptyStateButton } from '.';
+import { AddPermissionButton } from '../app/api-management/consumers/(components)';
 
 const EmptyState = ({
   type,
@@ -8,6 +8,8 @@ const EmptyState = ({
   body,
   parentStyle,
   titleStyle,
+  searchQuery,
+  altData,
   bodyStyle,
   iconStyle,
   containerStyle,
@@ -77,8 +79,14 @@ const EmptyState = ({
         </div>
         
         { 
-          button &&
-          <EmptyStateButton type={buttonType} />
+          button && (
+              buttonType == 'ADD_PERMISSIONS' ?
+              <AddPermissionButton 
+                searchQuery={searchQuery || ''}
+                customerId={altData} 
+              />
+              : null
+          )
         }
       </div>
     </section>
