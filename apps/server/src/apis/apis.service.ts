@@ -214,6 +214,25 @@ export class APIService {
     return ResponseFormatter.success(apiSuccessMessages.deletedAPI);
   }
 
+  private async updateConsumerId(companyId: string, environment: KONG_ENVIRONMENT) {
+    // Update API provider consumer to allow access to route
+    const response = await this.kongConsumerService.updateOrCreateConsumer(
+      environment,
+      {
+        custom_id: companyId,
+      },
+    );
+
+    await this.companyRepository.update(
+      {
+        id: companyId,
+      },
+      { consumerId: response.id },
+    );
+
+    return response.id
+  }
+
   async createAPI(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -270,27 +289,8 @@ export class APIService {
 
     const aclAllowedGroupName = uuidV4();
 
-    let apiProviderConsumerId = ctx.activeCompany.consumerId;
-
     // If the api provider does not already have an associated consumer on the API gateway, create a new consumer for the API provider
-    if (!apiProviderConsumerId) {
-      // Update API provider consumer to allow access to route
-      const response = await this.kongConsumerService.updateOrCreateConsumer(
-        environment,
-        {
-          custom_id: ctx.activeCompany.id,
-        },
-      );
-
-      apiProviderConsumerId = response.id;
-
-      await this.companyRepository.update(
-        {
-          id: ctx.activeCompany.id,
-        },
-        { consumerId: apiProviderConsumerId },
-      );
-    }
+    let apiProviderConsumerId = ctx.activeCompany.consumerId || await this.updateConsumerId(ctx.activeCompany.id!, environment);
 
     // Create an ACL on the route created and assign it an ACL group name
     // TODO move to an event listener
@@ -377,27 +377,7 @@ export class APIService {
     }
 
     // TODO consumer shouldnt be auto created for non development environments
-    let consumerId = company.consumerId;
-
-    // If the API consumer does not already have an associated consumer on the API gateway, create a new consumer for the API consumer
-    if (!consumerId) {
-      // Update API provider consumer to allow access to route
-      const response = await this.kongConsumerService.updateOrCreateConsumer(
-        environment,
-        {
-          custom_id: company.id,
-        },
-      );
-
-      consumerId = response.id;
-
-      await this.companyRepository.update(
-        {
-          id: ctx.activeCompany.id,
-        },
-        { consumerId },
-      );
-    }
+    let consumerId = company.consumerId || await this.updateConsumerId(company.id!, environment);
 
     const routes = await this.routeRepository.find({
       where: {
