@@ -40,6 +40,7 @@ function processItem(
         name: childrenKeys.join('/'),
         description: item.description,
         request: item.request,
+        response: item.response,
       });
     }
     if (item.item) {
@@ -48,6 +49,41 @@ function processItem(
   }
 
   return result;
+}
+
+function jsonToLua(jsonString: string) {
+  const obj = JSON.parse(jsonString);
+
+  function convertToLuaTable(obj: any, objKey = '', indentLevel = 0) {
+    if (typeof obj !== 'object' || obj === null) {
+      return `data${objKey}`
+    }
+
+    const isArray = Array.isArray(obj);
+    const indent = ' '.repeat(indentLevel * 4); // 4 spaces per indent level
+    const innerIndent = ' '.repeat((indentLevel + 1) * 4);
+    let luaTable = isArray ? "{\n" : "{\n";
+
+    if (isArray) {
+      obj.splice(1)
+    }
+
+    for (let [key, value] of Object.entries(obj)) {
+      if (isArray) {
+        luaTable += `${innerIndent}-- Refer to lua's documentation on how to access and use array(table) data\n`
+        key = String(Number(key) + 1)
+      } else if (!objKey) {
+        objKey = '.'
+      }
+      const formattedKey = isArray ? `` : `[${JSON.stringify(key)}] = `;
+      luaTable += `${innerIndent}${formattedKey}${convertToLuaTable(value, objKey + (isArray ? `[${key}]` : (!indentLevel ? key : `.${key}`)), indentLevel + 1)},\n`;
+    }
+
+    luaTable += `${indent}}`;
+    return luaTable;
+  }
+
+  return convertToLuaTable(obj, '');
 }
 
 export class SetupService {
@@ -159,32 +195,92 @@ export class SetupService {
           .catch(console.error);
 
         if (!collection) {
+          // get collection description, and remove html tags.
+          const description = folders[folder].description?.split('\n')?.[0]?.replace(/(<([^>]+)>)/gi, "");
+          if (!description) continue
+
           collection = await collectionService.createCollection(
             ctx,
             new CreateCollectionDto({
               name: folder,
-              description: folders[folder].description,
+              description,
             }),
           );
         }
 
-        for (const { name, request } of folders[folder].data) {
-          await apiService.createAPI(
-            ctx,
-            KONG_ENVIRONMENT.DEVELOPMENT,
-            new CreateAPIDto({
-              collectionId: collection.data!.id,
-              name,
-              enabled: false,
-              upstream: {
-                url: request.url,
-              },
-              downstream: {
-                paths: ['/' + request.urlObject.path.join('/')],
-                methods: [request.method],
-              },
-            }),
-          );
+        for (const { name, request, response } of folders[folder].data) {
+          try {
+            let api = await apiService.viewAPI(ctx, KONG_ENVIRONMENT.DEVELOPMENT, name).catch(console.error);
+            if (api) continue;
+
+            const regexPath = '~' + request.urlObject.path.reduce((acc: string, curr: string) => {
+              if (curr.startsWith(':')) {
+                curr = `(?P<${curr.slice(1)}>[^/]+)`
+              }
+              return acc + '/' + curr
+            }, '') + '$';
+            api = await apiService.createAPI(
+              ctx,
+              KONG_ENVIRONMENT.DEVELOPMENT,
+              new CreateAPIDto({
+                collectionId: collection.data!.id,
+                name,
+                enabled: false,
+                upstream: {
+                  url: request.url,
+                },
+                downstream: {
+                  paths: [regexPath],
+                  methods: [request.method],
+                },
+              }),
+            );
+            await apiService.setTransformation(ctx, KONG_ENVIRONMENT.DEVELOPMENT, api.data!.id, {
+              upstream: `
+              local function transform_upstream_request()
+              -- Read the request body
+              kong.service.request.enable_buffering()  -- Enable buffering to read body
+              local data, err = kong.request.get_body()
+              if err then
+                  kong.log.err(err)
+                  return
+              end
+              ${request.method !== "GET" && response?.[0]?.originalRequest?.body?.raw && (
+                  `-- Perform the transformation
+                  local transformed_data = ${jsonToLua(response?.[0]?.originalRequest?.body?.raw)}
+              
+                -- Set the transformed body
+                local ok, err = kong.service.request.set_body(transformed_data)
+                if err then
+                    kong.log.err(err)
+                    return
+                end`
+                ) || ""}
+            end
+            return transform_upstream_request
+            `,
+              downstream: `
+              local cjson = require 'cjson.safe'
+            
+              local function transform_downstream_response()
+                local data = kong.response.get_raw_body()
+                data = cjson.decode(data)
+                ${response?.[0]?.body && (
+                  `
+                  if data then
+                    data = cjson.encode(${jsonToLua(response?.[0]?.body)})
+                    kong.response.set_raw_body(data)
+                  end
+                  `
+                ) || ""}
+              end
+
+              return transform_downstream_response
+            `
+            })
+          } catch (error) {
+            console.error(error)
+          }
         }
       } catch (error) {
         console.error(error);

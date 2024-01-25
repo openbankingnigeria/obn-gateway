@@ -86,6 +86,10 @@ export const postUnassignAPIs = ({ environment, id }: GetSingleEnvironmentProps)
   `${BASE_URL}/apis/${environment}/company/${id}/unassign`;
 export const getCompanyAPIs = ({ page, limit, environment, companyId }: GetEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/company/${companyId}?page=${page}${limit ? `&limit=${limit}`: ''}`;
+export const updateAPITransformation = ({ environment, id }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/${id}/transformation`;
+export const getAPITransformation = ({ environment, id }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/${id}/transformation`;
 
 // COMPANY
 export const getCompanies = ({ page, limit, name, createdAt_gt, createdAt_l, status }: GetListProps) => 

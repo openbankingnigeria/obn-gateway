@@ -113,7 +113,9 @@ export class APIService {
             port: gatewayService?.port || null,
             path: gatewayService?.path || null,
             url: gatewayService
-              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+              ? `${gatewayService.protocol}://${gatewayService.host}:${
+                  gatewayService.port || ''
+                }${gatewayService.path || ''}`
               : null,
           }),
           downstream: new GETAPIDownstreamResponseDTO({
@@ -134,16 +136,19 @@ export class APIService {
   async viewAPI(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
-    id: string,
+    idOrSlug: string,
   ) {
     const route = await this.routeRepository.findOne({
-      where: { id, environment },
+      where: [
+        { id: idOrSlug, environment },
+        { name: idOrSlug, environment },
+      ],
       relations: { collection: true },
     });
 
     if (!route) {
       throw new INotFoundException({
-        message: apiErrorMessages.routeNotFound(id),
+        message: apiErrorMessages.routeNotFound(idOrSlug),
       });
     }
 
@@ -174,7 +179,9 @@ export class APIService {
           port: gatewayService?.port || null,
           path: gatewayService?.path || null,
           url: gatewayService
-            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+            ? `${gatewayService.protocol}://${gatewayService.host}:${
+                gatewayService.port || ''
+              }${gatewayService.path || ''}`
             : null,
         }),
         downstream: new GETAPIDownstreamResponseDTO({
@@ -214,6 +221,28 @@ export class APIService {
     return ResponseFormatter.success(apiSuccessMessages.deletedAPI);
   }
 
+  private async updateConsumerId(
+    companyId: string,
+    environment: KONG_ENVIRONMENT,
+  ) {
+    // Update API provider consumer to allow access to route
+    const response = await this.kongConsumerService.updateOrCreateConsumer(
+      environment,
+      {
+        custom_id: companyId,
+      },
+    );
+
+    await this.companyRepository.update(
+      {
+        id: companyId,
+      },
+      { consumerId: response.id },
+    );
+
+    return response.id;
+  }
+
   async createAPI(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -249,7 +278,7 @@ export class APIService {
     const gatewayService = await this.kongService.updateOrCreateService(
       environment,
       {
-        name: slugify(hostname + '-' + pathname),
+        name: slugify(hostname + '-' + pathname, { strict: true }),
         enabled: true,
         url,
         retries: 1,
@@ -270,28 +299,10 @@ export class APIService {
 
     const aclAllowedGroupName = uuidV4();
 
-    let apiProviderConsumerId = ctx.activeCompany.consumerId;
-
     // If the api provider does not already have an associated consumer on the API gateway, create a new consumer for the API provider
-    if (!apiProviderConsumerId) {
-      console.log(ctx.activeCompany.id);
-      // Update API provider consumer to allow access to route
-      const response = await this.kongConsumerService.updateOrCreateConsumer(
-        environment,
-        {
-          custom_id: ctx.activeCompany.id,
-        },
-      );
-
-      apiProviderConsumerId = response.id;
-
-      await this.companyRepository.update(
-        {
-          id: ctx.activeCompany.id,
-        },
-        { consumerId: apiProviderConsumerId },
-      );
-    }
+    const apiProviderConsumerId =
+      ctx.activeCompany.consumerId ||
+      (await this.updateConsumerId(ctx.activeCompany.id!, environment));
 
     // Create an ACL on the route created and assign it an ACL group name
     // TODO move to an event listener
@@ -331,7 +342,7 @@ export class APIService {
       gatewayRoute.id,
       {
         name: KONG_PLUGINS.REQUEST_TERMINATION,
-        enabled,
+        enabled: !enabled,
       },
     );
 
@@ -349,7 +360,9 @@ export class APIService {
           protocol: gatewayService.protocol,
           port: gatewayService.port,
           path: gatewayService.path,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+          url: `${gatewayService.protocol}://${gatewayService.host}:${
+            gatewayService.port || ''
+          }${gatewayService.path || ''}`,
         }),
         downstream: new GETAPIDownstreamResponseDTO(data.downstream),
       }),
@@ -362,27 +375,9 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
   ) {
     // TODO consumer shouldnt be auto created for non development environments
-    let consumerId = company.consumerId;
-
-    // If the API consumer does not already have an associated consumer on the API gateway, create a new consumer for the API consumer
-    if (!consumerId) {
-      // Update API provider consumer to allow access to route
-      const response = await this.kongConsumerService.updateOrCreateConsumer(
-        environment,
-        {
-          custom_id: company.id,
-        },
-      );
-
-      consumerId = response.id;
-
-      await this.companyRepository.update(
-        {
-          id: company.id,
-        },
-        { consumerId },
-      );
-    }
+    const consumerId =
+      company.consumerId ||
+      (await this.updateConsumerId(company.id!, environment));
 
     const routes = await this.routeRepository.find({
       where: {
@@ -559,7 +554,7 @@ export class APIService {
     const gatewayService = await this.kongService.updateOrCreateService(
       environment,
       {
-        name: slugify(hostname + '-' + pathname),
+        name: slugify(hostname + '-' + pathname, { strict: true }),
         enabled: true,
         url,
         retries: 1,
@@ -576,6 +571,9 @@ export class APIService {
           name: slugify(name, { lower: true, strict: true }),
           paths,
           methods,
+          service: {
+            id: gatewayService.id,
+          },
         },
       );
     } else {
@@ -634,7 +632,9 @@ export class APIService {
           protocol: gatewayService.protocol,
           port: gatewayService.port,
           path: gatewayService.path,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`,
+          url: `${gatewayService.protocol}://${gatewayService.host}:${
+            gatewayService.port || ''
+          }${gatewayService.path || ''}`,
         }),
         downstream: new GETAPIDownstreamResponseDTO(data.downstream),
       }),
@@ -961,7 +961,9 @@ export class APIService {
             port: gatewayService?.port || null,
             path: gatewayService?.path || null,
             url: gatewayService
-              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port}${gatewayService.path}`
+              ? `${gatewayService.protocol}://${gatewayService.host}:${
+                  gatewayService.port || ''
+                }${gatewayService.path || ''}`
               : null,
           }),
           downstream: new GETAPIDownstreamResponseDTO({

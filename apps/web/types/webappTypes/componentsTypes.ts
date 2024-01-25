@@ -53,8 +53,10 @@ export interface EmptyStateProps {
   title: string;
   body: string;
   parentStyle?: string;
+  altData?: any;
   titleStyle?: string;
   bodyStyle?: string;
+  searchQuery?: string;
   iconStyle?: string;
   containerStyle?: string;
   button?: boolean;
@@ -80,6 +82,10 @@ export interface PanelContainerProps {
   containerStyle?: string
   removeSearchParam?: string
   status?: string;
+}
+
+export interface ListPanelContainerProps extends PanelContainerProps{
+  setCurrentValue: Dispatch<SetStateAction<string>>;
 }
 
 export interface TopPanelContainerProps extends PanelContainerProps{
@@ -140,6 +146,11 @@ export interface CodeSnippetProps {
   containerStyle?: string;
   noCopy?: boolean;
   codeContainerStyle?: string;
+}
+
+export interface CodeEditorProps {
+  code: any;
+  setCode: Dispatch<SetStateAction<any>>;
 }
 
 export interface RequestMethodTextProps {

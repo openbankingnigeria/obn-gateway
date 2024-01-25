@@ -27,6 +27,7 @@ export interface searchParamsProps {
   two_fa?: string;
   token?: string;
   alt_data?: any;
+  api_id?: string;
 }
 
 export interface ParamsProps {
@@ -260,6 +261,11 @@ export interface APIConfigurationContainerProps {
   handleInputChange: (value: string, obj: any, key: any, type: string) => void;
   handleRemove: (type: string, value: string | number) => void;
   handleAdd: (type: string) => void;
+}
+
+export interface APIConfigurationProps {
+  rawData: any;
+  profileData?: any;
 }
 
 export interface CreateRoleButtonProps {

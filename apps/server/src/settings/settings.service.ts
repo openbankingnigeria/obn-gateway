@@ -10,7 +10,7 @@ import {
   UpdateKybRequirementsDto,
 } from './dto/index.dto';
 import { CompanySubtypes, SETTINGS_TYPES, BusinessSettings } from './types';
-import { Settings } from '@common/database/entities';
+import { Settings, Company } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { settingsErrors } from './settings.errors';
 import {
@@ -26,7 +26,7 @@ import { RequestContext } from '@common/utils/request/request-context';
 import { CompanyTypes } from '@common/database/constants';
 import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
 import { EmailService } from '@shared/email/email.service';
-import { spawn } from 'child_process';
+// import { spawn } from 'child_process';
 
 @Injectable()
 export class SettingsService {
@@ -35,6 +35,8 @@ export class SettingsService {
     private readonly settingsRepository: Repository<Settings>,
     @InjectRepository(EmailTemplate)
     private readonly emailTemplateRepository: Repository<EmailTemplate>,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
     private readonly kongConsumerService: KongConsumerService,
     private readonly emailService: EmailService,
   ) {}
@@ -213,7 +215,7 @@ export class SettingsService {
   async getApiKey(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
     const consumer = await this.kongConsumerService.getConsumer(
       environment,
-      ctx.activeUser.companyId,
+      ctx.activeCompany.id!,
     );
     const consumerKey = await this.kongConsumerService.getConsumerKeys(
       environment,
@@ -231,26 +233,37 @@ export class SettingsService {
 
   // TODO ensure that non development api key can only be generated for non development environment until company is approved
   async generateApiKey(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
-    const consumer = await this.kongConsumerService.updateOrCreateConsumer(
-      environment,
-      {
-        custom_id: ctx.activeUser.companyId,
-      },
-    );
+    let consumerId = ctx.activeCompany.consumerId;
+    if (!consumerId) {
+      const consumer = await this.kongConsumerService.updateOrCreateConsumer(
+        environment,
+        {
+          custom_id: ctx.activeCompany.id,
+        },
+      );
+      consumerId = consumer.id;
+      await this.companyRepository.update(
+        {
+          id: ctx.activeCompany.id,
+        },
+        { consumerId },
+      );
+    }
+
     const consumerKey = await this.kongConsumerService.createConsumerKey(
       environment,
-      consumer.id,
+      consumerId,
     );
 
     const consumerKeys = await this.kongConsumerService.getConsumerKeys(
       environment,
-      consumer.id,
+      consumerId,
     );
     for (const existingKey of consumerKeys.data) {
       if (existingKey.id === consumerKey.id) continue;
       await this.kongConsumerService.deleteConsumerKey(
         environment,
-        consumer.id,
+        consumerId,
         existingKey.id,
       );
     }
@@ -264,7 +277,7 @@ export class SettingsService {
   async getIPRestriction(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
     const consumer = await this.kongConsumerService.getConsumer(
       environment,
-      ctx.activeUser.companyId,
+      ctx.activeCompany.id!,
     );
     const consumerPlugins = await this.kongConsumerService.getPlugins(
       environment,
@@ -291,15 +304,25 @@ export class SettingsService {
     environment: KONG_ENVIRONMENT,
     data: IPRestrictionRequest,
   ) {
-    const consumer = await this.kongConsumerService.updateOrCreateConsumer(
-      environment,
-      {
-        custom_id: ctx.activeUser.companyId,
-      },
-    );
+    let consumerId = ctx.activeCompany.consumerId;
+    if (!consumerId) {
+      const consumer = await this.kongConsumerService.updateOrCreateConsumer(
+        environment,
+        {
+          custom_id: ctx.activeCompany.id,
+        },
+      );
+      consumerId = consumer.id;
+      await this.companyRepository.update(
+        {
+          id: ctx.activeCompany.id,
+        },
+        { consumerId },
+      );
+    }
     await this.kongConsumerService.updateOrCreatePlugin(
       environment,
-      consumer.id,
+      consumerId,
       {
         name: KONG_PLUGINS.IP_RESTRICTION,
         enabled: true,

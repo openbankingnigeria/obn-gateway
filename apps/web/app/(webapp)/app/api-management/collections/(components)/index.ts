@@ -6,6 +6,9 @@ import HostsContainer from "./HostsContainer";
 import SnisContainer from "./SnisContainer";
 import HeadersContainer from "./HeadersContainer";
 import ActivateDeactivateDeleteApi from "./ActivateDeactivateDeleteApi";
+import DownStreamForm from "./DownStreamForm";
+import TransformationForm from "./TransformationForm";
+import UpstreamForm from "./UpstreamForm";
 
 export {
   CollectionsTable,
@@ -15,5 +18,8 @@ export {
   HostsContainer,
   SnisContainer,
   HeadersContainer,
-  ActivateDeactivateDeleteApi
+  ActivateDeactivateDeleteApi,
+  DownStreamForm,
+  TransformationForm,
+  UpstreamForm
 }

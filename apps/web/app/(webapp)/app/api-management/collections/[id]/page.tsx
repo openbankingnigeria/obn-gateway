@@ -55,11 +55,11 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
     return({
       ...endpoint,
       api_name: endpoint?.name,
-      request_method: endpoint?.route?.methods?.toString(),
+      request_method: endpoint?.downstream?.methods?.toString(),
       configured: endpoint?.enabled,
-      endpoint_url: endpoint?.url,
+      endpoint_url: endpoint?.upstream?.url,
       tier: '',
-      parameters: endpoint?.route?.paths?.toString(),
+      parameters: endpoint?.downstream?.paths?.toString(),
     });
   })
 

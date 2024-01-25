@@ -11,6 +11,7 @@ import EditPermissionButton from "./EditPermissionButton";
 import AddAPIPermissions from "./AddAPIPermissions";
 import ApiPermissionCard from "./ApiPermissionCard";
 import ApiPermissionSelector from "./ApiPermissionSelector";
+import AddPermissionButton from "./AddPermissionButton";
 
 export {
   ConsumersTable,
@@ -25,5 +26,6 @@ export {
   EditPermissionButton,
   AddAPIPermissions,
   ApiPermissionCard,
-  ApiPermissionSelector
+  ApiPermissionSelector,
+  AddPermissionButton
 }
