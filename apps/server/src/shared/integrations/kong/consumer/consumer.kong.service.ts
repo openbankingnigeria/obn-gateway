@@ -85,6 +85,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
+            console.log({ error: error.response?.data });
             this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),
@@ -106,6 +107,7 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
+            console.log({ error: error.response?.data });
             this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),

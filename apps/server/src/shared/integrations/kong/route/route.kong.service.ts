@@ -148,7 +148,10 @@ export class KongRouteService {
     data: CreatePluginRequest,
   ) {
     const plugins = await this.getPlugins(environment, id);
-    const plugin = plugins.data.find((plugin) => plugin.route?.id === id);
+
+    const plugin = plugins.data.find(
+      (plugin) => plugin.route?.id === id && plugin.name === data.name,
+    );
     if (!plugin) return this.createPlugin(environment, id, data);
     const response = await firstValueFrom(
       this.httpService
@@ -165,6 +168,7 @@ export class KongRouteService {
           }),
         ),
     );
+
     return response.data;
   }
 }

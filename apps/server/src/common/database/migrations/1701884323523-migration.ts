@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Company } from '../entities';
 import { CompanyTypes } from '../constants';
-import { SYSTEM_SETTINGS_NAME } from '../../../settings/settings.constants';
+import { BUSINESS_SETTINGS_NAME } from '../../../settings/settings.constants';
 
 export class Migration1701884323523 implements MigrationInterface {
   private readonly defaultSettings = {
@@ -72,13 +72,13 @@ export class Migration1701884323523 implements MigrationInterface {
   };
   public async up(queryRunner: QueryRunner): Promise<void> {
     const [apiProvider]: Company[] = await queryRunner.query(
-      `SELECT * FROM companies WHERE type = '${CompanyTypes.API_PROVIDER}' ORDER BY created_at ASC`,
+      `SELECT * FROM companies WHERE type = '${CompanyTypes.API_PROVIDER}' ORDER BY created_at ASC LIMIT 1`,
     );
 
     const parameters = [
       [
         uuidv4(),
-        SYSTEM_SETTINGS_NAME,
+        BUSINESS_SETTINGS_NAME,
         apiProvider.id,
         JSON.stringify(this.defaultSettings),
       ],

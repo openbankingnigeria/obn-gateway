@@ -1,5 +1,10 @@
 import { settingsErrors } from '@settings/settings.errors';
-import { KybDataTypes, SystemSettings } from '@settings/types';
+import { EmailSettingsInterface, SETTINGS_TYPES } from '../types';
+import {
+  GeneralSettingsInterface,
+  KybDataTypes,
+  BusinessSettings,
+} from '@settings/types';
 import { Expose, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
@@ -61,7 +66,7 @@ export class UpdateCompanySubtypesRequest {
 }
 
 export class KybRequirementsResponse {
-  constructor(partial: Partial<SystemSettings['kybRequirements'][0]>) {
+  constructor(partial: Partial<BusinessSettings['kybRequirements'][0]>) {
     Object.assign(this, partial);
   }
 
@@ -114,3 +119,89 @@ export class IPRestrictionResponse {
   @Expose()
   environment: string;
 }
+
+export class GeneralSettingsUpdateDto
+  implements Record<keyof GeneralSettingsInterface, string>
+{
+  @IsOptional()
+  @IsString()
+  authTokenExpirationDuration: string;
+
+  @IsOptional()
+  @IsString()
+  failedLoginAttempts: string;
+
+  @IsOptional()
+  @IsString()
+  inactivityTimeout: string;
+
+  @IsOptional()
+  @IsString()
+  invitationTokenExpirationDuration: string;
+
+  @IsOptional()
+  @IsString()
+  passwordResetTokenExpirationDuration: string;
+
+  @IsOptional()
+  @IsString()
+  requestTimeout: string;
+
+  @IsOptional()
+  @IsString()
+  twoFaExpirationDuration: string;
+}
+
+export class EmailSettingsUpdateDto
+  implements Record<keyof EmailSettingsInterface, string>
+{
+  @IsOptional()
+  @IsString()
+  emailHost: string;
+
+  @IsOptional()
+  @IsString()
+  emailBaseUrl: string;
+
+  @IsOptional()
+  @IsString()
+  emailPort: string;
+
+  @IsOptional()
+  @IsString()
+  emailUser: string;
+
+  @IsOptional()
+  @IsString()
+  emailPassword: string;
+
+  @IsOptional()
+  @IsString()
+  emailFrom: string;
+
+  @IsOptional()
+  @IsString()
+  emailSecure: string;
+}
+
+export class EmailTemplateDto {
+  @IsNotEmpty()
+  @IsString()
+  temmplateId: string;
+
+  @IsOptional()
+  @IsString()
+  body: string;
+
+  @IsOptional()
+  @IsString()
+  title: string;
+}
+
+export const SettingsUpdateDtos: Record<SETTINGS_TYPES, any> = {
+  email_settings: EmailSettingsUpdateDto,
+  email_templates: EmailTemplateDto,
+  external_services: GeneralSettingsUpdateDto,
+  mock_services: GeneralSettingsUpdateDto,
+  general: GeneralSettingsUpdateDto,
+};

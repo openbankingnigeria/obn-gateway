@@ -1,4 +1,4 @@
-import { SYSTEM_SETTINGS_NAME } from '../../../settings/settings.constants';
+import { BUSINESS_SETTINGS_NAME } from '../../../settings/settings.constants';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { CompanyTypes } from '../constants';
 
@@ -70,7 +70,7 @@ export class Migration1705332247419 implements MigrationInterface {
   };
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `UPDATE settings SET value = ? WHERE name = '${SYSTEM_SETTINGS_NAME}'`,
+      `UPDATE settings SET value = ? WHERE name = '${BUSINESS_SETTINGS_NAME}'`,
       [JSON.stringify(this.defaultSettings)],
     );
   }

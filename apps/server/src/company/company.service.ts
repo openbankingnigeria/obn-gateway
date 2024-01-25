@@ -5,7 +5,7 @@ import {
 import { Injectable } from '@nestjs/common';
 import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
-import { KybDataTypes, SystemSettings } from '@settings/types';
+import { KybDataTypes, BusinessSettings } from '@settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Company,
@@ -38,7 +38,7 @@ import {
   UpdateCompanyKybStatusResponseDTO,
   UpdateKybStatusDto,
 } from './dto/index.dto';
-import { SYSTEM_SETTINGS_NAME } from '@settings/settings.constants';
+import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
 import { CompanyTypes } from '@common/database/constants';
 import { companyCustomFields } from './company.constants';
 import { RequestContext } from '@common/utils/request/request-context';
@@ -83,16 +83,16 @@ export class CompanyService {
     }
 
     const savedKybSettings = await this.settingsRepository.findOne({
-      where: { name: SYSTEM_SETTINGS_NAME },
+      where: { name: BUSINESS_SETTINGS_NAME },
     });
 
     if (!savedKybSettings) {
       throw new IBadRequestException({
-        message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
+        message: settingsErrors.settingNotFound(BUSINESS_SETTINGS_NAME),
       });
     }
 
-    const systemSettings: SystemSettings = JSON.parse(
+    const businessSettings: BusinessSettings = JSON.parse(
       Buffer.from(savedKybSettings.value).toString('utf-8'),
     );
 
@@ -114,7 +114,7 @@ export class CompanyService {
     > = {};
 
     // Select only valid fields from the request payload
-    systemSettings.kybRequirements
+    businessSettings.kybRequirements
       .filter((requirement) => requirement.type === KybDataTypes.STRING)
       .forEach((requirement) => {
         if (dataKeys.includes(requirement.name)) {
@@ -364,21 +364,21 @@ export class CompanyService {
       (type) => type !== CompanyTypes.API_PROVIDER,
     );
 
-    const systemSettings = await this.settingsRepository.findOne({
+    const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: SYSTEM_SETTINGS_NAME,
+        name: BUSINESS_SETTINGS_NAME,
       },
     });
 
-    if (!systemSettings) {
+    if (!businessSettings) {
       throw new IBadRequestException({ message: 'System settings not found.' });
     }
 
-    const parsedSystemSettings: SystemSettings = JSON.parse(
-      systemSettings.value,
+    const parsedBusinessSettings: BusinessSettings = JSON.parse(
+      businessSettings.value,
     );
 
-    const companySubtypes = parsedSystemSettings.companySubtypes || {
+    const companySubtypes = parsedBusinessSettings.companySubtypes || {
       [CompanyTypes.BUSINESS]: [],
       [CompanyTypes.INDIVIDUAL]: [],
       [CompanyTypes.LICENSED_ENTITY]: [],

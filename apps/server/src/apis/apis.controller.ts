@@ -14,11 +14,11 @@ import { APIService } from './apis.service';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {
   APIParam,
-  AssignAPIsDto,
+  UpdateAPIDto,
   CreateAPIDto,
   GetAPILogsDto,
   SetAPITransformationDTO,
-  UpdateAPIDto,
+  UpdateCompanyAPIAccessDto,
 } from './dto/index.dto';
 import {
   PaginationParameters,
@@ -65,28 +65,16 @@ export class APIController {
     return this.apiService.createAPI(ctx, params.environment, data);
   }
 
-  @Put('company/:companyId/assign')
+  @Put('company/:companyId')
   @UsePipes(IValidationPipe)
   @RequireTwoFA()
   assignAPIs(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
     @Param('companyId') companyId: string,
-    @Body() data: AssignAPIsDto,
+    @Body() data: UpdateCompanyAPIAccessDto,
   ) {
-    return this.apiService.assignAPIs(ctx, params.environment, companyId, data);
-  }
-
-  @Put('company/:companyId/unassign')
-  @UsePipes(IValidationPipe)
-  @RequireTwoFA()
-  unassignAPIs(
-    @Ctx() ctx: RequestContext,
-    @Param() params: APIParam,
-    @Param('companyId') companyId: string,
-    @Body() data: AssignAPIsDto,
-  ) {
-    return this.apiService.unassignAPIs(
+    return this.apiService.updateCompanyApiAccess(
       ctx,
       params.environment,
       companyId,

@@ -15,7 +15,7 @@ export class Settings {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   @ManyToOne(() => Company, (company) => company.settings)

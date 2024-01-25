@@ -1,5 +1,5 @@
 import { OnEvent } from '@nestjs/event-emitter';
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import {
   UserEvents,
   UserCreatedEvent,
@@ -13,7 +13,7 @@ import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
 import { Repository } from 'typeorm';
 import { IBadRequestException } from '@common/utils/exceptions/exceptions';
 import Handlebars from 'handlebars';
-import { Company, User } from '@common/database/entities';
+import { Company, Settings, User } from '@common/database/entities';
 import {
   CompanyTypes,
   EMAIL_TEMPLATES,
@@ -32,9 +32,11 @@ import {
   CompanyDeniedEvent,
   CompanyEvents,
 } from '@shared/events/company.event';
+import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
+import { EmailSettingsInterface, SETTINGS_TYPES } from '@settings/types';
 
 @Injectable()
-export class EmailService {
+export class EmailService implements OnApplicationBootstrap {
   transporter: nodemailer.Transporter;
   constructor(
     private readonly config: ConfigService,
@@ -42,10 +44,77 @@ export class EmailService {
     private readonly templateRepository: Repository<EmailTemplate>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
+    @InjectRepository(Settings)
+    private readonly settingsRepository: Repository<Settings>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {
-    this.transporter = nodemailer.createTransport(config.get('email'));
+  ) {}
+
+  async loadEmailTransporter() {
+    const apBusinessSettings = await this.settingsRepository.findOne({
+      where: {
+        name: BUSINESS_SETTINGS_NAME,
+      },
+      relations: {
+        company: true,
+      },
+    });
+
+    if (apBusinessSettings) {
+      const emailSettings = await this.settingsRepository.findOne({
+        where: {
+          name: SETTINGS_TYPES.EMAIL_SETTINGS,
+          companyId: apBusinessSettings?.companyId,
+        },
+      });
+
+      if (emailSettings) {
+        const emailSettingsValue: EmailSettingsInterface = JSON.parse(
+          emailSettings.value,
+        );
+
+        const {
+          emailFrom,
+          emailHost,
+          emailPassword,
+          emailPort,
+          emailSecure,
+          emailUser,
+        } = emailSettingsValue;
+
+        if (
+          emailFrom &&
+          emailHost &&
+          emailPassword &&
+          emailPort &&
+          emailSecure &&
+          emailUser
+        ) {
+          this.transporter = nodemailer.createTransport({
+            from: emailFrom.value,
+            host: emailHost.value,
+            auth: {
+              user: emailUser.value,
+              pass: emailPassword.value,
+            },
+            port: emailPort.value,
+            secure: emailSecure.value,
+          } as any);
+        } else {
+          this.transporter = nodemailer.createTransport(
+            this.config.get('email'),
+          );
+        }
+      } else {
+        this.transporter = nodemailer.createTransport(this.config.get('email'));
+      }
+    } else {
+      this.transporter = nodemailer.createTransport(this.config.get('email'));
+    }
+  }
+
+  async onApplicationBootstrap() {
+    await this.loadEmailTransporter();
   }
 
   @OnEvent(UserEvents.USER_CREATED)
@@ -200,6 +269,7 @@ export class EmailService {
       where: { type: CompanyTypes.API_PROVIDER },
       order: { id: 'ASC' },
     });
+    console.log(this.transporter.options);
     this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
       apiProvider: apiProvider.name!,
       otp: event.metadata.otp!,
@@ -239,7 +309,7 @@ export class EmailService {
       }
 
       const mailOptions = {
-        from: this.config.get('email.from'),
+        from: this.transporter.options.from,
         to: recipient,
         subject: Handlebars.compile(template.title)(data),
         html: Handlebars.compile(template.body.toString())(data),
