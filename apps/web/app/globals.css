@@ -24,6 +24,12 @@
 }
 
 
+/* REACT-ACE (CODE EDITOR) CUSTOM STYLES */
+#code-editor {
+  width: 100% !important;
+}
+
+
 /* PANE UNDERLINE STYLE */
 .pane-underline {
   @apply h-[2px] bg-[#459572] bottom-[1px] absolute w-full left-0 right-0;

@@ -48,6 +48,7 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
       />
       <TransformationForm 
         rawData={apiDetails}
+        profileData={profile}
       />
     </section>
   )
