@@ -37,7 +37,6 @@ import { EmailSettingsInterface, SETTINGS_TYPES } from '@settings/types';
 
 @Injectable()
 export class EmailService implements OnApplicationBootstrap {
-  transporter: nodemailer.Transporter;
   constructor(
     private readonly config: ConfigService,
     @InjectRepository(EmailTemplate)
@@ -51,6 +50,7 @@ export class EmailService implements OnApplicationBootstrap {
   ) {}
 
   async loadEmailTransporter() {
+    let transporter: nodemailer.Transporter;
     const apBusinessSettings = await this.settingsRepository.findOne({
       where: {
         name: BUSINESS_SETTINGS_NAME,
@@ -90,7 +90,7 @@ export class EmailService implements OnApplicationBootstrap {
           emailSecure &&
           emailUser
         ) {
-          this.transporter = nodemailer.createTransport({
+          transporter = nodemailer.createTransport({
             from: emailFrom.value,
             host: emailHost.value,
             auth: {
@@ -101,16 +101,16 @@ export class EmailService implements OnApplicationBootstrap {
             secure: emailSecure.value,
           } as any);
         } else {
-          this.transporter = nodemailer.createTransport(
-            this.config.get('email'),
-          );
+          transporter = nodemailer.createTransport(this.config.get('email'));
         }
       } else {
-        this.transporter = nodemailer.createTransport(this.config.get('email'));
+        transporter = nodemailer.createTransport(this.config.get('email'));
       }
     } else {
-      this.transporter = nodemailer.createTransport(this.config.get('email'));
+      transporter = nodemailer.createTransport(this.config.get('email'));
     }
+
+    return transporter;
   }
 
   async onApplicationBootstrap() {
@@ -269,7 +269,6 @@ export class EmailService implements OnApplicationBootstrap {
       where: { type: CompanyTypes.API_PROVIDER },
       order: { id: 'ASC' },
     });
-    console.log(this.transporter.options);
     this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
       apiProvider: apiProvider.name!,
       otp: event.metadata.otp!,
@@ -298,6 +297,7 @@ export class EmailService implements OnApplicationBootstrap {
     recipient: string,
     data: Record<string, string>,
   ) {
+    const transporter = await this.loadEmailTransporter();
     try {
       const template = await this.templateRepository.findOneBy({
         slug: templateSlug,
@@ -309,7 +309,7 @@ export class EmailService implements OnApplicationBootstrap {
       }
 
       const mailOptions = {
-        from: this.transporter.options.from,
+        from: transporter.options.from,
         to: recipient,
         subject: Handlebars.compile(template.title)(data),
         html: Handlebars.compile(template.body.toString())(data),
@@ -317,7 +317,7 @@ export class EmailService implements OnApplicationBootstrap {
 
       console.log('Sending mail: ', mailOptions);
 
-      const info = await this.transporter.sendMail(mailOptions);
+      const info = await transporter.sendMail(mailOptions);
 
       console.log('Mail sent: %s', info.messageId);
     } catch (error) {

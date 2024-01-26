@@ -26,7 +26,6 @@ import { RequestContext } from '@common/utils/request/request-context';
 import { CompanyTypes } from '@common/database/constants';
 import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
 import { EmailService } from '@shared/email/email.service';
-// import { spawn } from 'child_process';
 
 @Injectable()
 export class SettingsService {
@@ -417,17 +416,6 @@ export class SettingsService {
         },
         { value: JSON.stringify(settingsValue) },
       );
-
-      // Restart the application
-      // if (SETTINGS_TYPES.EMAIL_SETTINGS === settingType) {
-      //   setTimeout(() => {
-      //     spawn(process.argv[0], process.argv.slice(1), {
-      //       detached: true,
-      //       stdio: 'overlapped',
-      //     }).unref();
-      //     process.exit();
-      //   }, 500);
-      // }
     }
 
     return ResponseFormatter.success('System settings updated successfully.');
