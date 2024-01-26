@@ -29,7 +29,7 @@ export class SettingsService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly kongConsumerService: KongConsumerService,
-  ) {}
+  ) { }
 
   async getKybRequirements(ctx: RequestContext) {
     const systemSettings = await this.settingsRepository.findOne({
@@ -272,13 +272,12 @@ export class SettingsService {
     const consumerPlugins = await this.kongConsumerService.getPlugins(
       environment,
       consumer.id,
+      { tags: KONG_PLUGINS.IP_RESTRICTION }
     );
 
     const consumerIPRestriction = consumerPlugins.data.find(
       (consumerPlugin) => consumerPlugin.name === KONG_PLUGINS.IP_RESTRICTION,
     );
-
-    console.log({ consumerIPRestriction });
 
     return ResponseFormatter.success(
       'IP Restriction retrieved successfully',

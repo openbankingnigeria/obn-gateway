@@ -108,10 +108,6 @@ export class APIService {
           name: route.name,
           enabled: route.enabled,
           upstream: new GETAPIUpstreamResponseDTO({
-            host: gatewayService?.host || null,
-            protocol: gatewayService?.protocol || null,
-            port: gatewayService?.port || null,
-            path: gatewayService?.path || null,
             url: gatewayService
               ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
               : null,
@@ -169,10 +165,6 @@ export class APIService {
         name: route.name,
         enabled: route.enabled,
         upstream: new GETAPIUpstreamResponseDTO({
-          host: gatewayService?.host || null,
-          protocol: gatewayService?.protocol || null,
-          port: gatewayService?.port || null,
-          path: gatewayService?.path || null,
           url: gatewayService
             ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
             : null,
@@ -240,7 +232,7 @@ export class APIService {
   ) {
     const { name, enabled } = data;
     const { paths, methods } = data.downstream;
-    const { url } = data.upstream;
+    const { url, method, headers, querystring, body } = data.upstream;
 
     const collection = await this.collectionRepository.findOne({
       where: { id: data.collectionId },
@@ -334,6 +326,30 @@ export class APIService {
       },
     );
 
+    if (headers || querystring || body || method) {
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.REQUEST_TRANSFORMER,
+          enabled: true,
+          config: {
+            http_method: method?.toUpperCase(),
+            remove: {
+              headers: headers?.map(h => `${h.key}:${h.value}`),
+              querystring: querystring?.map(h => `${h.key}:${h.value}`),
+              body: body?.map(h => `${h.key}:${h.value}`),
+            },
+            add: {
+              headers: headers?.map(h => `${h.key}:${h.value}`),
+              querystring: querystring?.map(h => `${h.key}:${h.value}`),
+              body: body?.map(h => `${h.key}:${h.value}`),
+            }
+          }
+        },
+      );
+    }
+
     // TODO emit event
 
     return ResponseFormatter.success(
@@ -344,10 +360,6 @@ export class APIService {
         enabled: createdRoute.enabled,
         upstream: new GETAPIUpstreamResponseDTO({
           ...data.upstream,
-          host: gatewayService.host,
-          protocol: gatewayService.protocol,
-          port: gatewayService.port,
-          path: gatewayService.path,
           url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
         }),
         downstream: new GETAPIDownstreamResponseDTO(data.downstream),
@@ -483,7 +495,7 @@ export class APIService {
   ) {
     const { name, enabled } = data;
     const { paths, methods } = data.downstream;
-    const { url } = data.upstream;
+    const { url, method, headers, querystring, body } = data.upstream;
 
     const route = await this.routeRepository.findOne({
       where: { id: routeId, environment },
@@ -575,6 +587,30 @@ export class APIService {
       );
     }
 
+    if (method || headers || querystring || body) {
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.REQUEST_TRANSFORMER,
+          enabled: true,
+          config: {
+            http_method: method?.toUpperCase(),
+            remove: {
+              headers: headers?.map(h => `${h.key}:${h.value}`),
+              querystring: querystring?.map(h => `${h.key}:${h.value}`),
+              body: body?.map(h => `${h.key}:${h.value}`),
+            },
+            add: {
+              headers: headers?.map(h => `${h.key}:${h.value}`),
+              querystring: querystring?.map(h => `${h.key}:${h.value}`),
+              body: body?.map(h => `${h.key}:${h.value}`),
+            }
+          }
+        },
+      );
+    }
+
     // TODO emit event
 
     return ResponseFormatter.success(
@@ -585,10 +621,6 @@ export class APIService {
         enabled: route.enabled,
         upstream: new GETAPIUpstreamResponseDTO({
           ...data.upstream,
-          host: gatewayService.host,
-          protocol: gatewayService.protocol,
-          port: gatewayService.port,
-          path: gatewayService.path,
           url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
         }),
         downstream: new GETAPIDownstreamResponseDTO(data.downstream),
@@ -911,10 +943,6 @@ export class APIService {
           name: route.name,
           enabled: route.enabled,
           upstream: new GETAPIUpstreamResponseDTO({
-            host: gatewayService?.host || null,
-            protocol: gatewayService?.protocol || null,
-            port: gatewayService?.port || null,
-            path: gatewayService?.path || null,
             url: gatewayService
               ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
               : null,
@@ -954,6 +982,7 @@ export class APIService {
     const plugins = await this.kongRouteService.getPlugins(
       environment,
       route.routeId!,
+      { tags: KONG_PLUGINS.PRE_FUNCTION }
     );
 
     const plugin = plugins.data.find(
@@ -982,6 +1011,8 @@ export class APIService {
       where: { id: routeId, environment },
       relations: { collection: true },
     });
+
+    console.log(data)
 
     if (!route) {
       throw new INotFoundException({

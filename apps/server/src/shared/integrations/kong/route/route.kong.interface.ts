@@ -67,6 +67,7 @@ export interface CreatePluginRequest {
   enabled: boolean;
   route?: { id: string };
   config?: Record<string, any>;
+  tags?: string[];
 }
 export interface CreatePluginResponse extends Plugin {}
 

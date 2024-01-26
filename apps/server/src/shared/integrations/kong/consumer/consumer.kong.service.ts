@@ -10,6 +10,7 @@ import {
   CreateConsumerRequest,
   CreateConsumerResponse,
   ListConsumerKeysResponse,
+  ListPluginsRequest,
   UpdateConsumerAclResponse,
 } from './consumer.kong.interface';
 import {
@@ -24,14 +25,13 @@ export class KongConsumerService {
   constructor(
     private readonly httpService: HttpService,
     private readonly config: ConfigService,
-  ) {}
+  ) { }
 
   async getConsumer(environment: KONG_ENVIRONMENT, consumerId: string) {
     const response = await firstValueFrom(
       this.httpService
         .get<CreateConsumerResponse>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${consumerId}`,
         )
         .pipe(
@@ -51,8 +51,7 @@ export class KongConsumerService {
     const response = await firstValueFrom(
       this.httpService
         .put<CreateConsumerResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/consumers/${
-            data.custom_id || data.username
+          `${this.config.get('kong.endpoint')[environment]}/consumers/${data.custom_id || data.username
           }`,
           data,
         )
@@ -76,8 +75,7 @@ export class KongConsumerService {
     const response = await firstValueFrom(
       this.httpService
         .post<UpdateConsumerAclResponse>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${consumerId}/acls`,
           {
             group: aclAllowedGroupName,
@@ -100,8 +98,7 @@ export class KongConsumerService {
     const response = await firstValueFrom(
       this.httpService
         .delete<any>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${consumerId}/acls/${aclId}`,
         )
         .pipe(
@@ -118,8 +115,7 @@ export class KongConsumerService {
     const response = await firstValueFrom(
       this.httpService
         .get<ListConsumerKeysResponse>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${consumerId}/key-auth`,
         )
         .pipe(
@@ -136,8 +132,7 @@ export class KongConsumerService {
     const response = await firstValueFrom(
       this.httpService
         .post<CreateConsumerKeyResponse>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${consumerId}/key-auth`,
         )
         .pipe(
@@ -158,8 +153,7 @@ export class KongConsumerService {
     const response = await firstValueFrom(
       this.httpService
         .delete<CreateConsumerKeyResponse>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${consumerId}/key-auth/${keyId}`,
         )
         .pipe(
@@ -172,12 +166,11 @@ export class KongConsumerService {
     return response.data;
   }
 
-  async getPlugins(environment: KONG_ENVIRONMENT, id: string) {
+  async getPlugins(environment: KONG_ENVIRONMENT, id: string, params: ListPluginsRequest) {
     const response = await firstValueFrom(
       this.httpService
         .get<ListPluginsResponse>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${id}/plugins`,
         )
         .pipe(
@@ -195,11 +188,15 @@ export class KongConsumerService {
     consumerId: string,
     data: CreatePluginRequest,
   ) {
+    if (!data.tags) {
+      data.tags = [data.name]
+    } else {
+      data.tags = Array.from(new Set([...data.tags, data.name]))
+    }
     const response = await firstValueFrom(
       this.httpService
         .post<CreatePluginResponse>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${consumerId}/plugins`,
           data,
         )
@@ -218,16 +215,20 @@ export class KongConsumerService {
     consumerId: string,
     data: CreatePluginRequest,
   ) {
-    const plugins = await this.getPlugins(environment, consumerId);
+    const plugins = await this.getPlugins(environment, consumerId, { tags: data.name });
     const plugin = plugins.data.find(
       (plugin) => plugin.consumer?.id === consumerId,
     );
     if (!plugin) return this.createPlugin(environment, consumerId, data);
+    if (!data.tags) {
+      data.tags = [data.name]
+    } else {
+      data.tags = Array.from(new Set([...data.tags, data.name]))
+    }
     const response = await firstValueFrom(
       this.httpService
         .put<CreatePluginResponse>(
-          `${
-            this.config.get('kong.endpoint')[environment]
+          `${this.config.get('kong.endpoint')[environment]
           }/consumers/${consumerId}/plugins/${plugin.id}`,
           data,
         )
