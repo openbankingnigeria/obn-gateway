@@ -144,15 +144,28 @@ export class APIService {
     }
 
     let gatewayService = null;
-    let gatewayRoutes = null;
+    let gatewayRoute = null;
+    let plugin = null;
     if (route.serviceId) {
       gatewayService = await this.kongService.getService(
         environment,
         route.serviceId,
       );
-      gatewayRoutes = await this.kongService.getServiceRoutes(
+    }
+    if (route.routeId) {
+      gatewayRoute = await this.kongRouteService.getRoute(
         environment,
-        route.serviceId,
+        route.routeId,
+      );
+    }
+    if (gatewayRoute?.id) {
+      const plugins = await this.kongRouteService.getPlugins(
+        environment,
+        gatewayRoute?.id!,
+      );
+
+      plugin = plugins.data.find(
+        (plugin) => plugin.name === KONG_PLUGINS.REQUEST_TRANSFORMER,
       );
     }
 
@@ -168,10 +181,23 @@ export class APIService {
           url: gatewayService
             ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
             : null,
+          method: plugin?.config.http_method || null,
+          headers: plugin?.config?.add?.headers?.map((header: string) => {
+            const [key, ...value] = header.split(':')
+            return { key, value: value.join(':') }
+          }) || [],
+          querystring: plugin?.config?.add?.querystring?.map((header: string) => {
+            const [key, ...value] = header.split(':')
+            return { key, value: value.join(':') }
+          }) || [],
+          body: plugin?.config?.add?.body?.map((header: string) => {
+            const [key, ...value] = header.split(':')
+            return { key, value: value.join(':') }
+          }) || []
         }),
         downstream: new GETAPIDownstreamResponseDTO({
-          paths: gatewayRoutes?.data[0]?.paths || [],
-          methods: gatewayRoutes?.data[0]?.methods || [],
+          paths: gatewayRoute?.paths || [],
+          methods: gatewayRoute?.methods || [],
         }),
       }),
     );
@@ -925,15 +951,17 @@ export class APIService {
 
     for (const route of routes) {
       let gatewayService = null;
-      let gatewayRoutes = null;
+      let gatewayRoute = null;
       if (route.serviceId) {
         gatewayService = await this.kongService.getService(
           environment,
           route.serviceId,
         );
-        gatewayRoutes = await this.kongService.getServiceRoutes(
+      }
+      if (route.routeId) {
+        gatewayRoute = await this.kongRouteService.getRoute(
           environment,
-          route.serviceId,
+          route.routeId,
         );
       }
 
@@ -948,8 +976,8 @@ export class APIService {
               : null,
           }),
           downstream: new GETAPIDownstreamResponseDTO({
-            paths: gatewayRoutes?.data[0]?.paths || [],
-            methods: gatewayRoutes?.data[0]?.methods || [],
+            paths: gatewayRoute?.paths || [],
+            methods: gatewayRoute?.methods || [],
           }),
         }),
       );
@@ -982,7 +1010,6 @@ export class APIService {
     const plugins = await this.kongRouteService.getPlugins(
       environment,
       route.routeId!,
-      { tags: KONG_PLUGINS.PRE_FUNCTION }
     );
 
     const plugin = plugins.data.find(
@@ -1011,8 +1038,6 @@ export class APIService {
       where: { id: routeId, environment },
       relations: { collection: true },
     });
-
-    console.log(data)
 
     if (!route) {
       throw new INotFoundException({

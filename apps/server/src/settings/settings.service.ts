@@ -272,7 +272,6 @@ export class SettingsService {
     const consumerPlugins = await this.kongConsumerService.getPlugins(
       environment,
       consumer.id,
-      { tags: KONG_PLUGINS.IP_RESTRICTION }
     );
 
     const consumerIPRestriction = consumerPlugins.data.find(

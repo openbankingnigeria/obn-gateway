@@ -166,12 +166,13 @@ export class KongConsumerService {
     return response.data;
   }
 
-  async getPlugins(environment: KONG_ENVIRONMENT, id: string, params: ListPluginsRequest) {
+  async getPlugins(environment: KONG_ENVIRONMENT, id: string, params?: ListPluginsRequest) {
     const response = await firstValueFrom(
       this.httpService
         .get<ListPluginsResponse>(
           `${this.config.get('kong.endpoint')[environment]
           }/consumers/${id}/plugins`,
+          { params }
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -215,9 +216,9 @@ export class KongConsumerService {
     consumerId: string,
     data: CreatePluginRequest,
   ) {
-    const plugins = await this.getPlugins(environment, consumerId, { tags: data.name });
+    const plugins = await this.getPlugins(environment, consumerId);
     const plugin = plugins.data.find(
-      (plugin) => plugin.consumer?.id === consumerId,
+      (plugin) => plugin.consumer?.id === consumerId && plugin.name === data.name,
     );
     if (!plugin) return this.createPlugin(environment, consumerId, data);
     if (!data.tags) {

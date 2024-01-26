@@ -107,9 +107,11 @@ class UpdateAPIDownstreamDTO {
 }
 
 class KVDTO {
+  @Expose()
   @IsString()
   key: string;
 
+  @Expose()
   @IsString()
   value: string;
 }
@@ -192,6 +194,21 @@ export class GETAPIUpstreamResponseDTO {
 
   @Expose()
   url: string | null;
+
+  @Expose()
+  method?: string;
+
+  @Expose()
+  @Type(() => KVDTO)
+  headers?: KVDTO[];
+
+  @Expose()
+  @Type(() => KVDTO)
+  querystring?: KVDTO[];
+
+  @Expose()
+  @Type(() => KVDTO)
+  body?: KVDTO[];
 }
 
 export class GetAPIResponseDTO {

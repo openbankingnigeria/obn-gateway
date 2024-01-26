@@ -57,7 +57,7 @@ export interface ListResponse<T> {
   next: string;
 }
 
-export interface ListPluginsRequest extends ListRequest {}
+export interface ListPluginsRequest extends Omit<ListRequest, 'tags'> {}
 
 export interface ListConsumersResponse extends ListResponse<Consumer> {}
 export interface ListConsumerKeysResponse extends ListResponse<ConsumerKey> {}
