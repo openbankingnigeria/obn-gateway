@@ -1,5 +1,5 @@
 import { OnEvent } from '@nestjs/event-emitter';
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   UserEvents,
   UserCreatedEvent,
@@ -36,7 +36,7 @@ import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
 import { EmailSettingsInterface, SETTINGS_TYPES } from '@settings/types';
 
 @Injectable()
-export class EmailService implements OnApplicationBootstrap {
+export class EmailService {
   constructor(
     private readonly config: ConfigService,
     @InjectRepository(EmailTemplate)
@@ -107,10 +107,6 @@ export class EmailService implements OnApplicationBootstrap {
     }
 
     return transporter;
-  }
-
-  async onApplicationBootstrap() {
-    await this.loadEmailTransporter();
   }
 
   @OnEvent(UserEvents.USER_CREATED)
