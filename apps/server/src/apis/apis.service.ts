@@ -108,10 +108,6 @@ export class APIService {
           name: route.name,
           enabled: route.enabled,
           upstream: new GETAPIUpstreamResponseDTO({
-            host: gatewayService?.host || null,
-            protocol: gatewayService?.protocol || null,
-            port: gatewayService?.port || null,
-            path: gatewayService?.path || null,
             url: gatewayService
               ? `${gatewayService.protocol}://${gatewayService.host}:${
                   gatewayService.port || ''
@@ -153,15 +149,28 @@ export class APIService {
     }
 
     let gatewayService = null;
-    let gatewayRoutes = null;
+    let gatewayRoute = null;
+    let plugin = null;
     if (route.serviceId) {
       gatewayService = await this.kongService.getService(
         environment,
         route.serviceId,
       );
-      gatewayRoutes = await this.kongService.getServiceRoutes(
+    }
+    if (route.routeId) {
+      gatewayRoute = await this.kongRouteService.getRoute(
         environment,
-        route.serviceId,
+        route.routeId,
+      );
+    }
+    if (gatewayRoute?.id) {
+      const plugins = await this.kongRouteService.getPlugins(
+        environment,
+        gatewayRoute?.id!,
+      );
+
+      plugin = plugins.data.find(
+        (plugin) => plugin.name === KONG_PLUGINS.REQUEST_TRANSFORMER,
       );
     }
 
@@ -174,19 +183,28 @@ export class APIService {
         name: route.name,
         enabled: route.enabled,
         upstream: new GETAPIUpstreamResponseDTO({
-          host: gatewayService?.host || null,
-          protocol: gatewayService?.protocol || null,
-          port: gatewayService?.port || null,
-          path: gatewayService?.path || null,
           url: gatewayService
             ? `${gatewayService.protocol}://${gatewayService.host}:${
                 gatewayService.port || ''
               }${gatewayService.path || ''}`
             : null,
+          method: plugin?.config.http_method || null,
+          headers: plugin?.config?.add?.headers?.map((header: string) => {
+            const [key, ...value] = header.split(':')
+            return { key, value: value.join(':') }
+          }) || [],
+          querystring: plugin?.config?.add?.querystring?.map((header: string) => {
+            const [key, ...value] = header.split(':')
+            return { key, value: value.join(':') }
+          }) || [],
+          body: plugin?.config?.add?.body?.map((header: string) => {
+            const [key, ...value] = header.split(':')
+            return { key, value: value.join(':') }
+          }) || []
         }),
         downstream: new GETAPIDownstreamResponseDTO({
-          paths: gatewayRoutes?.data[0]?.paths || [],
-          methods: gatewayRoutes?.data[0]?.methods || [],
+          paths: gatewayRoute?.paths || [],
+          methods: gatewayRoute?.methods || [],
         }),
       }),
     );
@@ -250,7 +268,7 @@ export class APIService {
   ) {
     const { name, enabled } = data;
     const { paths, methods } = data.downstream;
-    const { url } = data.upstream;
+    const { url, method, headers, querystring, body } = data.upstream;
 
     const collection = await this.collectionRepository.findOne({
       where: { id: data.collectionId },
@@ -346,6 +364,30 @@ export class APIService {
       },
     );
 
+    if (headers || querystring || body || method) {
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.REQUEST_TRANSFORMER,
+          enabled: true,
+          config: {
+            http_method: method?.toUpperCase(),
+            remove: {
+              headers: headers?.map(h => `${h.key}:${h.value}`),
+              querystring: querystring?.map(h => `${h.key}:${h.value}`),
+              body: body?.map(h => `${h.key}:${h.value}`),
+            },
+            add: {
+              headers: headers?.map(h => `${h.key}:${h.value}`),
+              querystring: querystring?.map(h => `${h.key}:${h.value}`),
+              body: body?.map(h => `${h.key}:${h.value}`),
+            }
+          }
+        },
+      );
+    }
+
     // TODO emit event
 
     return ResponseFormatter.success(
@@ -356,13 +398,7 @@ export class APIService {
         enabled: createdRoute.enabled,
         upstream: new GETAPIUpstreamResponseDTO({
           ...data.upstream,
-          host: gatewayService.host,
-          protocol: gatewayService.protocol,
-          port: gatewayService.port,
-          path: gatewayService.path,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${
-            gatewayService.port || ''
-          }${gatewayService.path || ''}`,
+          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
         }),
         downstream: new GETAPIDownstreamResponseDTO(data.downstream),
       }),
@@ -526,7 +562,7 @@ export class APIService {
   ) {
     const { name, enabled } = data;
     const { paths, methods } = data.downstream;
-    const { url } = data.upstream;
+    const { url, method, headers, querystring, body } = data.upstream;
 
     const route = await this.routeRepository.findOne({
       where: { id: routeId, environment },
@@ -618,6 +654,30 @@ export class APIService {
       );
     }
 
+    if (method || headers || querystring || body) {
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.REQUEST_TRANSFORMER,
+          enabled: true,
+          config: {
+            http_method: method?.toUpperCase(),
+            remove: {
+              headers: headers?.map(h => `${h.key}:${h.value}`),
+              querystring: querystring?.map(h => `${h.key}:${h.value}`),
+              body: body?.map(h => `${h.key}:${h.value}`),
+            },
+            add: {
+              headers: headers?.map(h => `${h.key}:${h.value}`),
+              querystring: querystring?.map(h => `${h.key}:${h.value}`),
+              body: body?.map(h => `${h.key}:${h.value}`),
+            }
+          }
+        },
+      );
+    }
+
     // TODO emit event
 
     return ResponseFormatter.success(
@@ -628,13 +688,7 @@ export class APIService {
         enabled: route.enabled,
         upstream: new GETAPIUpstreamResponseDTO({
           ...data.upstream,
-          host: gatewayService.host,
-          protocol: gatewayService.protocol,
-          port: gatewayService.port,
-          path: gatewayService.path,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${
-            gatewayService.port || ''
-          }${gatewayService.path || ''}`,
+          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
         }),
         downstream: new GETAPIDownstreamResponseDTO(data.downstream),
       }),
@@ -938,15 +992,17 @@ export class APIService {
 
     for (const route of routes) {
       let gatewayService = null;
-      let gatewayRoutes = null;
+      let gatewayRoute = null;
       if (route.serviceId) {
         gatewayService = await this.kongService.getService(
           environment,
           route.serviceId,
         );
-        gatewayRoutes = await this.kongService.getServiceRoutes(
+      }
+      if (route.routeId) {
+        gatewayRoute = await this.kongRouteService.getRoute(
           environment,
-          route.serviceId,
+          route.routeId,
         );
       }
 
@@ -956,10 +1012,6 @@ export class APIService {
           name: route.name,
           enabled: route.enabled,
           upstream: new GETAPIUpstreamResponseDTO({
-            host: gatewayService?.host || null,
-            protocol: gatewayService?.protocol || null,
-            port: gatewayService?.port || null,
-            path: gatewayService?.path || null,
             url: gatewayService
               ? `${gatewayService.protocol}://${gatewayService.host}:${
                   gatewayService.port || ''
@@ -967,8 +1019,8 @@ export class APIService {
               : null,
           }),
           downstream: new GETAPIDownstreamResponseDTO({
-            paths: gatewayRoutes?.data[0]?.paths || [],
-            methods: gatewayRoutes?.data[0]?.methods || [],
+            paths: gatewayRoute?.paths || [],
+            methods: gatewayRoute?.methods || [],
           }),
         }),
       );

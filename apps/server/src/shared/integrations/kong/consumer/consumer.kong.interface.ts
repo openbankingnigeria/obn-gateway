@@ -46,10 +46,18 @@ export interface Consumer {
   } | null;
 }
 
+export interface ListRequest {
+  size?: number;
+  offset?: number;
+  tags?: string;
+}
+
 export interface ListResponse<T> {
   data: T[];
   next: string;
 }
+
+export interface ListPluginsRequest extends Omit<ListRequest, 'tags'> {}
 
 export interface ListConsumersResponse extends ListResponse<Consumer> {}
 export interface ListConsumerKeysResponse extends ListResponse<ConsumerKey> {}

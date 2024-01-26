@@ -39,6 +39,29 @@ class CreateAPIUpstreamDTO {
   @IsNotEmpty()
   @IsUrl()
   url: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(HTTP_METHODS)
+  method?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => KVDTO)
+  headers?: KVDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => KVDTO)
+  querystring?: KVDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => KVDTO)
+  body?: KVDTO[];
 }
 
 export class CreateAPIDto {
@@ -83,10 +106,43 @@ class UpdateAPIDownstreamDTO {
   methods: string[];
 }
 
+class KVDTO {
+  @Expose()
+  @IsString()
+  key: string;
+
+  @Expose()
+  @IsString()
+  value: string;
+}
+
 class UpdateAPIUpstreamDTO {
   @IsNotEmpty()
   @IsUrl()
   url: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(HTTP_METHODS)
+  method?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => KVDTO)
+  headers?: KVDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => KVDTO)
+  querystring?: KVDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => KVDTO)
+  body?: KVDTO[];
 }
 
 export class UpdateAPIDto {
@@ -137,19 +193,22 @@ export class GETAPIUpstreamResponseDTO {
   }
 
   @Expose()
-  host: string | null;
-
-  @Expose()
-  protocol: string | null;
-
-  @Expose()
-  port: number | null;
-
-  @Expose()
-  path: string | null;
-
-  @Expose()
   url: string | null;
+
+  @Expose()
+  method?: string;
+
+  @Expose()
+  @Type(() => KVDTO)
+  headers?: KVDTO[];
+
+  @Expose()
+  @Type(() => KVDTO)
+  querystring?: KVDTO[];
+
+  @Expose()
+  @Type(() => KVDTO)
+  body?: KVDTO[];
 }
 
 export class GetAPIResponseDTO {

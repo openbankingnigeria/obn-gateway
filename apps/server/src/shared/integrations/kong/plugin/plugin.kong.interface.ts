@@ -29,6 +29,7 @@ export interface CreatePluginRequest {
   enabled: boolean;
   route?: { id: string };
   config?: { [k: string]: any };
+  tags?: string[];
 }
 export interface CreatePluginResponse extends Plugin {}
 
@@ -43,4 +44,5 @@ export enum KONG_PLUGINS {
   IP_RESTRICTION = 'ip-restriction',
   CORRELATION_ID = 'correlation-id',
   PRE_FUNCTION = 'pre-function',
+  REQUEST_TRANSFORMER = 'request-transformer',
 }

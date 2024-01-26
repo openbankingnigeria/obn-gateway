@@ -287,8 +287,6 @@ export class SettingsService {
       (consumerPlugin) => consumerPlugin.name === KONG_PLUGINS.IP_RESTRICTION,
     );
 
-    console.log({ consumerIPRestriction });
-
     return ResponseFormatter.success(
       'IP Restriction retrieved successfully',
       new IPRestrictionResponse({

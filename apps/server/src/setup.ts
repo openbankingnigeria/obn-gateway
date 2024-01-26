@@ -267,6 +267,9 @@ export class SetupService {
                 data = cjson.decode(data)
                 ${response?.[0]?.body && (
                   `
+                  if kong.service.response.get_status() == nil then
+                    return
+                  end
                   if data then
                     data = cjson.encode(${jsonToLua(response?.[0]?.body)})
                     kong.response.set_raw_body(data)
