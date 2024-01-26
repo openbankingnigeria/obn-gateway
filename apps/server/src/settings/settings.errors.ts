@@ -9,5 +9,5 @@ export const settingsErrors = {
     isRequired: (propertyName: string) => `${propertyName} is required.`,
   },
   settingNotFound: (settingName: string) =>
-    `Setting with ${settingName} was not found.`,
+    `Setting with name ${settingName} was not found.`,
 };

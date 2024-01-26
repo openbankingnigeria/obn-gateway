@@ -12,7 +12,7 @@ export type CompanySubtypes = Record<
   string[]
 >;
 
-export interface SystemSettings {
+export interface BusinessSettings {
   uneditableFields: string[];
   kybRequirements: {
     name: string;
@@ -22,4 +22,55 @@ export interface SystemSettings {
     length?: number;
   }[];
   companySubtypes: CompanySubtypes;
+}
+
+interface SettingsBase<T = number | string | boolean> {
+  value: T;
+}
+
+export interface SingleGeneralSetting extends SettingsBase {
+  type: 'time' | 'count';
+  unit?: 'secs' | 'mins';
+}
+
+export interface GeneralSettingsInterface {
+  inactivityTimeout: SingleGeneralSetting;
+  requestTimeout: SingleGeneralSetting;
+  authTokenExpirationDuration: SingleGeneralSetting;
+  passwordResetTokenExpirationDuration: SingleGeneralSetting;
+  twoFaExpirationDuration: SingleGeneralSetting;
+  invitationTokenExpirationDuration: SingleGeneralSetting;
+  failedLoginAttempts: SingleGeneralSetting;
+}
+
+export interface GeneralSettingsInterface {
+  inactivityTimeout: SingleGeneralSetting;
+  requestTimeout: SingleGeneralSetting;
+  authTokenExpirationDuration: SingleGeneralSetting;
+  passwordResetTokenExpirationDuration: SingleGeneralSetting;
+  twoFaExpirationDuration: SingleGeneralSetting;
+  invitationTokenExpirationDuration: SingleGeneralSetting;
+  failedLoginAttempts: SingleGeneralSetting;
+}
+
+export interface EmailSettingsInterface {
+  emailHost: SettingsBase<string>;
+  emailUser: SettingsBase<string>;
+  emailFrom: SettingsBase<string>;
+  emailPort: SettingsBase<string>;
+  emailSecure: SettingsBase<boolean>;
+  emailPassword: SettingsBase<string>;
+  emailBaseUrl: SettingsBase<string>;
+}
+
+export enum SETTINGS_TYPES {
+  GENERAL_SETTINGS = 'general',
+  EMAIL_SETTINGS = 'email_settings',
+  EMAIL_TEMPLATES = 'email_templates',
+  EXTERNAL_SERVICES = 'external_services',
+  MOCK_SERVICES = 'mock_services',
+}
+
+export enum EMAIL_PROVIDERS {
+  SENDGRID = 'sendgrid',
 }

@@ -273,7 +273,7 @@ export class APILogResponseDTO {
   consumer: GetCompanyResponseDTO;
 }
 
-export class AssignAPIsDto {
+export class UpdateCompanyAPIAccessDto {
   @IsNotEmpty()
   @IsString({ each: true })
   @IsUUID('all', { each: true })

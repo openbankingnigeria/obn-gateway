@@ -2,55 +2,64 @@ import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { Injectable } from '@nestjs/common';
 import {
   ApiKeyResponse,
+  EmailTemplateDto,
   IPRestrictionRequest,
   IPRestrictionResponse,
   KybRequirementsResponse,
   UpdateCompanySubtypesRequest,
   UpdateKybRequirementsDto,
 } from './dto/index.dto';
-import { CompanySubtypes, SystemSettings } from './types';
-import { Company, Settings } from '@common/database/entities';
+import { CompanySubtypes, SETTINGS_TYPES, BusinessSettings } from './types';
+import { Settings, Company } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { settingsErrors } from './settings.errors';
-import { INotFoundException } from '@common/utils/exceptions/exceptions';
+import {
+  IBadRequestException,
+  INotFoundException,
+} from '@common/utils/exceptions/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
-import { SYSTEM_SETTINGS_NAME } from './settings.constants';
+import { BUSINESS_SETTINGS_NAME } from './settings.constants';
 import { RequestContext } from '@common/utils/request/request-context';
 import { CompanyTypes } from '@common/database/constants';
+import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
+import { EmailService } from '@shared/email/email.service';
 
 @Injectable()
 export class SettingsService {
   constructor(
     @InjectRepository(Settings)
     private readonly settingsRepository: Repository<Settings>,
+    @InjectRepository(EmailTemplate)
+    private readonly emailTemplateRepository: Repository<EmailTemplate>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly kongConsumerService: KongConsumerService,
+    private readonly emailService: EmailService,
   ) {}
 
   async getKybRequirements(ctx: RequestContext) {
-    const systemSettings = await this.settingsRepository.findOne({
+    const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: SYSTEM_SETTINGS_NAME,
+        name: BUSINESS_SETTINGS_NAME,
       },
     });
 
-    if (!systemSettings) {
+    if (!businessSettings) {
       throw new INotFoundException({
-        message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
+        message: settingsErrors.settingNotFound(BUSINESS_SETTINGS_NAME),
       });
     }
 
-    const parsedSystemSettings: SystemSettings = JSON.parse(
-      systemSettings.value,
+    const parsedBusinessSettings: BusinessSettings = JSON.parse(
+      businessSettings.value,
     );
 
     return ResponseFormatter.success(
       'KYB Requirements fetched successfully',
-      parsedSystemSettings.kybRequirements.map(
+      parsedBusinessSettings.kybRequirements.map(
         (kybRequirement) => new KybRequirementsResponse(kybRequirement),
       ),
     );
@@ -60,31 +69,31 @@ export class SettingsService {
     ctx: RequestContext,
     { newKybRequirements, removedKybRequirements }: UpdateKybRequirementsDto,
   ) {
-    const cleanData: SystemSettings['kybRequirements'] = [];
+    const cleanData: BusinessSettings['kybRequirements'] = [];
 
     const validRemovedRequirements: string[] = [];
 
-    const systemSettings = await this.settingsRepository.findOne({
+    const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: SYSTEM_SETTINGS_NAME,
+        name: BUSINESS_SETTINGS_NAME,
       },
     });
 
-    if (!systemSettings) {
+    if (!businessSettings) {
       throw new INotFoundException({
-        message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
+        message: settingsErrors.settingNotFound(BUSINESS_SETTINGS_NAME),
       });
     }
 
-    const parsedSystemSettings: SystemSettings = JSON.parse(
-      systemSettings.value,
+    const parsedBusinessSettings: BusinessSettings = JSON.parse(
+      businessSettings.value,
     );
 
     if (newKybRequirements) {
       newKybRequirements.forEach((requirement) => {
         if (
-          !parsedSystemSettings.uneditableFields.includes(requirement.name) &&
-          !parsedSystemSettings.kybRequirements.some(
+          !parsedBusinessSettings.uneditableFields.includes(requirement.name) &&
+          !parsedBusinessSettings.kybRequirements.some(
             (existingRequirement) =>
               existingRequirement.name === requirement.name,
           )
@@ -96,7 +105,7 @@ export class SettingsService {
 
     if (removedKybRequirements) {
       removedKybRequirements.forEach((requirement) => {
-        const existingRequirement = parsedSystemSettings.kybRequirements.find(
+        const existingRequirement = parsedBusinessSettings.kybRequirements.find(
           (existingRequirement) => existingRequirement.name === requirement,
         );
         if (existingRequirement && existingRequirement.editable) {
@@ -105,7 +114,7 @@ export class SettingsService {
       });
     }
 
-    const previousKybSettings = parsedSystemSettings.kybRequirements;
+    const previousKybSettings = parsedBusinessSettings.kybRequirements;
 
     const updatedKybSettings = [
       ...previousKybSettings.filter(
@@ -116,10 +125,10 @@ export class SettingsService {
     ];
 
     await this.settingsRepository.update(
-      { id: systemSettings.id },
+      { id: businessSettings.id },
       {
         value: JSON.stringify({
-          ...parsedSystemSettings,
+          ...parsedBusinessSettings,
           kybRequirements: updatedKybSettings,
         }),
       },
@@ -135,23 +144,23 @@ export class SettingsService {
       removedCompanySubtypes,
     }: UpdateCompanySubtypesRequest,
   ) {
-    const systemSettings = await this.settingsRepository.findOne({
+    const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: SYSTEM_SETTINGS_NAME,
+        name: BUSINESS_SETTINGS_NAME,
       },
     });
 
-    if (!systemSettings) {
+    if (!businessSettings) {
       throw new INotFoundException({
-        message: settingsErrors.settingNotFound(SYSTEM_SETTINGS_NAME),
+        message: settingsErrors.settingNotFound(BUSINESS_SETTINGS_NAME),
       });
     }
 
-    const parsedSystemSettings: SystemSettings = JSON.parse(
-      systemSettings.value,
+    const parsedBusinessSettings: BusinessSettings = JSON.parse(
+      businessSettings.value,
     );
 
-    const prevCompanySubtypes = parsedSystemSettings.companySubtypes || {
+    const prevCompanySubtypes = parsedBusinessSettings.companySubtypes || {
       business: [],
       individual: [],
       licensedEntity: [],
@@ -190,10 +199,10 @@ export class SettingsService {
     });
 
     await this.settingsRepository.update(
-      { id: systemSettings.id },
+      { id: businessSettings.id },
       {
         value: JSON.stringify({
-          ...systemSettings,
+          ...businessSettings,
           companySubtypes: updatedCompanySubtypes,
         }),
       },
@@ -223,7 +232,7 @@ export class SettingsService {
 
   // TODO ensure that non development api key can only be generated for non development environment until company is approved
   async generateApiKey(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
-    let consumerId = ctx.activeCompany.consumerId
+    let consumerId = ctx.activeCompany.consumerId;
     if (!consumerId) {
       const consumer = await this.kongConsumerService.updateOrCreateConsumer(
         environment,
@@ -231,7 +240,7 @@ export class SettingsService {
           custom_id: ctx.activeCompany.id,
         },
       );
-      consumerId = consumer.id
+      consumerId = consumer.id;
       await this.companyRepository.update(
         {
           id: ctx.activeCompany.id,
@@ -294,7 +303,7 @@ export class SettingsService {
     environment: KONG_ENVIRONMENT,
     data: IPRestrictionRequest,
   ) {
-    let consumerId = ctx.activeCompany.consumerId
+    let consumerId = ctx.activeCompany.consumerId;
     if (!consumerId) {
       const consumer = await this.kongConsumerService.updateOrCreateConsumer(
         environment,
@@ -302,7 +311,7 @@ export class SettingsService {
           custom_id: ctx.activeCompany.id,
         },
       );
-      consumerId = consumer.id
+      consumerId = consumer.id;
       await this.companyRepository.update(
         {
           id: ctx.activeCompany.id,
@@ -327,5 +336,133 @@ export class SettingsService {
         environment,
       }),
     );
+  }
+
+  async editSettings(
+    ctx: RequestContext,
+    settingType: SETTINGS_TYPES,
+    data: any,
+  ) {
+    if (!Object.values(SETTINGS_TYPES).includes(settingType)) {
+      throw new IBadRequestException({
+        message: `Invalid settings type ${settingType}`,
+      });
+    }
+
+    console.log({ settingType, data });
+    if (settingType === SETTINGS_TYPES.EMAIL_TEMPLATES) {
+      const { body, title, temmplateId } = data as EmailTemplateDto;
+
+      const template = await this.emailTemplateRepository.findOne({
+        where: {
+          id: temmplateId,
+        },
+      });
+
+      if (!template) {
+        throw new INotFoundException({
+          message: 'Email template not found',
+        });
+      }
+
+      const updateQuery: any = {};
+
+      if (body) {
+        updateQuery.body = body;
+      }
+
+      if (title) {
+        updateQuery.title = title;
+      }
+
+      if (Object.keys(updateQuery).length > 0) {
+        await this.emailTemplateRepository.update(
+          { id: temmplateId },
+          updateQuery,
+        );
+      }
+    } else {
+      const prevSettings = await this.settingsRepository.findOne({
+        where: {
+          name: settingType,
+        },
+      });
+
+      if (!prevSettings) {
+        throw new INotFoundException({
+          message: settingsErrors.settingNotFound(settingType),
+        });
+      }
+
+      const settingsValue = JSON.parse(prevSettings.value);
+
+      if (!settingsValue) {
+        throw new INotFoundException({
+          message: settingsErrors.settingNotFound(settingType),
+        });
+      }
+
+      for (const field of Object.keys(data)) {
+        console.log({ field });
+        if (settingsValue[field]) {
+          settingsValue[field].value = data[field];
+        }
+      }
+
+      await this.settingsRepository.update(
+        {
+          name: settingType,
+        },
+        { value: JSON.stringify(settingsValue) },
+      );
+    }
+
+    return ResponseFormatter.success('System settings updated successfully.');
+  }
+
+  async viewSettings(settingType: SETTINGS_TYPES) {
+    if (!Object.values(SETTINGS_TYPES).includes(settingType)) {
+      throw new IBadRequestException({
+        message: `Invalid settings type ${settingType}`,
+      });
+    }
+    if (settingType === SETTINGS_TYPES.EMAIL_TEMPLATES) {
+      let templates = await this.emailTemplateRepository.find();
+
+      templates = templates.map((template) => ({
+        ...template,
+        body: Buffer.from(template.body).toString('utf-8'),
+      }));
+
+      return ResponseFormatter.success(
+        'Email templates retrieved successfully',
+        templates,
+      );
+    } else {
+      const prevSettings = await this.settingsRepository.findOne({
+        where: {
+          name: settingType,
+        },
+      });
+
+      if (!prevSettings) {
+        throw new INotFoundException({
+          message: settingsErrors.settingNotFound(settingType),
+        });
+      }
+
+      const settingsValue = JSON.parse(prevSettings.value);
+
+      if (!settingsValue) {
+        throw new INotFoundException({
+          message: settingsErrors.settingNotFound(settingType),
+        });
+      }
+
+      return ResponseFormatter.success(
+        'System settings fetched successfully.',
+        settingsValue,
+      );
+    }
   }
 }

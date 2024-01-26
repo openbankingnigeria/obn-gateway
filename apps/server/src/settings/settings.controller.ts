@@ -6,17 +6,25 @@ import {
   Patch,
   Put,
   UsePipes,
+  SerializeOptions,
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import {
   IPRestrictionRequest,
+  SettingsUpdateDtos,
   UpdateCompanySubtypesRequest,
   UpdateKybRequirementsDto,
 } from './dto/index.dto';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
-import { Ctx, RequireTwoFA } from '@common/utils/authentication/auth.decorator';
+import {
+  Ctx,
+  RequireTwoFA,
+  RequiredPermission,
+} from '@common/utils/authentication/auth.decorator';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { RequestContext } from '@common/utils/request/request-context';
+import { SETTINGS_TYPES } from './types';
+import { PERMISSIONS } from '@permissions/types';
 
 @Controller('settings')
 export class SettingsController {
@@ -83,5 +91,32 @@ export class SettingsController {
     @Body() data: IPRestrictionRequest,
   ) {
     return this.settingsService.setIPRestriction(ctx, environment, data);
+  }
+
+  @Put(':settingsType')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_SYSTEM_SETTING)
+  async editSettings(
+    @Body() data: any,
+    @Ctx() ctx: RequestContext,
+    @Param('settingsType') settingsType: SETTINGS_TYPES,
+  ) {
+    const validationPipe = new IValidationPipe();
+
+    await validationPipe.transform(data, {
+      type: 'body',
+      metatype: SettingsUpdateDtos[settingsType],
+    });
+    return this.settingsService.editSettings(ctx, settingsType, data);
+  }
+
+  @Get(':settingsType')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_SYSTEM_SETTING)
+  @SerializeOptions({
+    strategy: 'exposeAll',
+  })
+  viewSettings(@Param('settingsType') settingsType: SETTINGS_TYPES) {
+    return this.settingsService.viewSettings(settingsType);
   }
 }
