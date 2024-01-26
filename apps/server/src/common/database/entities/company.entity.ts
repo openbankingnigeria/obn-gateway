@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { AuditLog } from './auditlog.entity';
-import { Settings } from './settings.entity';
 import { CompanyTypes } from '../constants';
 import { ConsumerAcl } from './consumeracl.entity';
 
@@ -76,9 +75,6 @@ export class Company {
 
   @OneToMany(() => AuditLog, (auditLog) => auditLog.company)
   auditLogs?: AuditLog[];
-
-  @OneToMany(() => Settings, (settings) => settings.company)
-  settings?: Settings[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

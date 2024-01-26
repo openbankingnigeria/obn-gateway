@@ -3,27 +3,17 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Company } from './company.entity';
 
-@Entity({ name: 'settings' })
+@Entity({ name: 'system_settings' })
 export class Settings {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
 
   @Column()
   name: string;
-
-  @ManyToOne(() => Company, (company) => company.settings)
-  @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
-  company: Company;
-
-  @Column({ name: 'company_id', length: 36 })
-  companyId: string;
 
   @Column('longblob', { nullable: true })
   value: string;

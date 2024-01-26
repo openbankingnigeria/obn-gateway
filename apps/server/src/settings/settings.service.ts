@@ -385,7 +385,6 @@ export class SettingsService {
       const prevSettings = await this.settingsRepository.findOne({
         where: {
           name: settingType,
-          companyId: ctx.activeCompany.id,
         },
       });
 

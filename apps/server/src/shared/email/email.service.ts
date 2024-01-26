@@ -55,16 +55,12 @@ export class EmailService implements OnApplicationBootstrap {
       where: {
         name: BUSINESS_SETTINGS_NAME,
       },
-      relations: {
-        company: true,
-      },
     });
 
     if (apBusinessSettings) {
       const emailSettings = await this.settingsRepository.findOne({
         where: {
           name: SETTINGS_TYPES.EMAIL_SETTINGS,
-          companyId: apBusinessSettings?.companyId,
         },
       });
 
