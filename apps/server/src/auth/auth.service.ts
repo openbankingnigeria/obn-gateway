@@ -52,9 +52,9 @@ import { isNumberString } from 'class-validator';
 import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
 
 import { GetUserResponseDTO } from '@users/dto/index.dto';
-import { SYSTEM_SETTINGS_NAME } from '@settings/settings.constants';
+import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
 import { commonErrors } from '@common/constants';
-import { SystemSettings } from '@settings/types';
+import { BusinessSettings } from '@settings/types';
 
 @Injectable()
 export class AuthService {
@@ -116,9 +116,9 @@ export class AuthService {
     }
 
     // Validate company type
-    const systemSettings = await this.settingsRepository.findOne({
+    const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: SYSTEM_SETTINGS_NAME,
+        name: BUSINESS_SETTINGS_NAME,
       },
     });
 
@@ -141,13 +141,13 @@ export class AuthService {
           rcNumber,
         } = data as BusinessSignupDto;
 
-        if (systemSettings) {
-          const parsedSystemSettings: SystemSettings = JSON.parse(
-            systemSettings.value,
+        if (businessSettings) {
+          const parsedBusinessSettings: BusinessSettings = JSON.parse(
+            businessSettings.value,
           );
 
           const allowedSubTypesForType: string[] = (
-            parsedSystemSettings.companySubtypes as any
+            parsedBusinessSettings.companySubtypes as any
           )[companyType];
 
           if (
@@ -187,6 +187,7 @@ export class AuthService {
               phone,
             },
             accountNumber,
+            status: UserStatuses.ACTIVE,
           });
 
           await this.companyRepository.update(
@@ -246,6 +247,7 @@ export class AuthService {
               phone,
             },
             accountNumber: iAccountNumber,
+            status: UserStatuses.ACTIVE,
             bvn: hashSync(bvn, 12),
           });
 
@@ -279,13 +281,13 @@ export class AuthService {
           companySubtype: licensedEntityCompanySubtype,
           companyName: companyName,
         } = data as LicensedEntitySignupDto;
-        if (systemSettings) {
-          const parsedSystemSettings: SystemSettings = JSON.parse(
-            systemSettings.value,
+        if (businessSettings) {
+          const parsedBusinessSettings: BusinessSettings = JSON.parse(
+            businessSettings.value,
           );
 
           const allowedSubTypesForType: string[] = (
-            parsedSystemSettings.companySubtypes as any
+            parsedBusinessSettings.companySubtypes as any
           )[companyType];
 
           if (
@@ -317,6 +319,7 @@ export class AuthService {
             password: hashSync(password, 12),
             roleId: apiConsumerRole.id,
             companyId: companyCreated.id,
+            status: UserStatuses.ACTIVE,
             emailVerificationOtp: otp.toString(),
             emailVerificationExpires: moment()
               .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')

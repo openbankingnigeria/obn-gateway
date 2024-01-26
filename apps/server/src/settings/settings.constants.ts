@@ -1,1 +1,1 @@
-export const SYSTEM_SETTINGS_NAME = 'system_settings';
+export const BUSINESS_SETTINGS_NAME = 'business_settings';

@@ -14,7 +14,6 @@ import { KongServiceService } from '@shared/integrations/kong/service/service.ko
 import { In, Not, Repository } from 'typeorm';
 import {
   APILogResponseDTO,
-  AssignAPIsDto,
   APILogStatsResponseDTO,
   CreateAPIDto,
   GetAPIResponseDTO,
@@ -26,6 +25,7 @@ import {
   GetStatsAggregateResponseDTO,
   SetAPITransformationDTO,
   GetAPITransformationResponseDTO,
+  UpdateCompanyAPIAccessDto,
 } from './dto/index.dto';
 import slugify from 'slugify';
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
@@ -63,7 +63,7 @@ export class APIService {
     private readonly kongRouteService: KongRouteService,
     private readonly kongConsumerService: KongConsumerService,
     private readonly elasticsearchService: ElasticsearchService,
-  ) { }
+  ) {}
 
   async viewAPIs(
     ctx: RequestContext,
@@ -109,7 +109,9 @@ export class APIService {
           enabled: route.enabled,
           upstream: new GETAPIUpstreamResponseDTO({
             url: gatewayService
-              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
+              ? `${gatewayService.protocol}://${gatewayService.host}:${
+                  gatewayService.port || ''
+                }${gatewayService.path || ''}`
               : null,
           }),
           downstream: new GETAPIDownstreamResponseDTO({
@@ -133,7 +135,10 @@ export class APIService {
     idOrSlug: string,
   ) {
     const route = await this.routeRepository.findOne({
-      where: [{ id: idOrSlug, environment }, { name: idOrSlug, environment }],
+      where: [
+        { id: idOrSlug, environment },
+        { name: idOrSlug, environment },
+      ],
       relations: { collection: true },
     });
 
@@ -179,7 +184,9 @@ export class APIService {
         enabled: route.enabled,
         upstream: new GETAPIUpstreamResponseDTO({
           url: gatewayService
-            ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
+            ? `${gatewayService.protocol}://${gatewayService.host}:${
+                gatewayService.port || ''
+              }${gatewayService.path || ''}`
             : null,
           method: plugin?.config.http_method || null,
           headers: plugin?.config?.add?.headers?.map((header: string) => {
@@ -232,7 +239,10 @@ export class APIService {
     return ResponseFormatter.success(apiSuccessMessages.deletedAPI);
   }
 
-  private async updateConsumerId(companyId: string, environment: KONG_ENVIRONMENT) {
+  private async updateConsumerId(
+    companyId: string,
+    environment: KONG_ENVIRONMENT,
+  ) {
     // Update API provider consumer to allow access to route
     const response = await this.kongConsumerService.updateOrCreateConsumer(
       environment,
@@ -248,7 +258,7 @@ export class APIService {
       { consumerId: response.id },
     );
 
-    return response.id
+    return response.id;
   }
 
   async createAPI(
@@ -308,7 +318,9 @@ export class APIService {
     const aclAllowedGroupName = uuidV4();
 
     // If the api provider does not already have an associated consumer on the API gateway, create a new consumer for the API provider
-    let apiProviderConsumerId = ctx.activeCompany.consumerId || await this.updateConsumerId(ctx.activeCompany.id!, environment);
+    const apiProviderConsumerId =
+      ctx.activeCompany.consumerId ||
+      (await this.updateConsumerId(ctx.activeCompany.id!, environment));
 
     // Create an ACL on the route created and assign it an ACL group name
     // TODO move to an event listener
@@ -394,28 +406,14 @@ export class APIService {
   }
 
   async assignAPIs(
-    ctx: RequestContext,
+    apiIds: string[],
+    company: Company,
     environment: KONG_ENVIRONMENT,
-    companyId: string,
-    { apiIds }: AssignAPIsDto,
   ) {
-    const company = await this.companyRepository.findOne({
-      where: {
-        id: companyId,
-      },
-      relations: {
-        acls: true,
-      },
-    });
-
-    if (!company) {
-      throw new IBadRequestException({
-        message: companyErrors.companyNotFound(companyId!),
-      });
-    }
-
     // TODO consumer shouldnt be auto created for non development environments
-    let consumerId = company.consumerId || await this.updateConsumerId(company.id!, environment);
+    const consumerId =
+      company.consumerId ||
+      (await this.updateConsumerId(company.id!, environment));
 
     const routes = await this.routeRepository.find({
       where: {
@@ -431,16 +429,20 @@ export class APIService {
 
     routes.forEach(({ aclAllowedGroupName, id }) => {
       promises.push(
-        new Promise(async (res) => {
-          const response = await this.kongConsumerService.updateConsumerAcl(
-            environment,
-            {
-              aclAllowedGroupName,
-              consumerId: consumerId!,
-            },
-          );
+        new Promise(async (res, rej) => {
+          try {
+            const response = await this.kongConsumerService.updateConsumerAcl(
+              environment,
+              {
+                aclAllowedGroupName,
+                consumerId: consumerId!,
+              },
+            );
 
-          res({ aclId: response.id, routeId: id });
+            res({ aclId: response.id, routeId: id });
+          } catch (err) {
+            rej(err);
+          }
         }),
       );
     });
@@ -449,28 +451,76 @@ export class APIService {
     const results = await Promise.allSettled(promises);
 
     for (const result of results) {
+      if (result.status === 'rejected') {
+        console.log({ result });
+      }
+    }
+
+    for (const result of results) {
       if (result.status === 'fulfilled') {
         await this.consumerAclRepository.save({
           aclId: result.value.aclId,
-          companyId,
+          companyId: company.id,
           routeId: result.value.routeId,
         });
       }
     }
 
-    return ResponseFormatter.success(apiSuccessMessages.assignAPIs);
+    return { success: true };
   }
 
   async unassignAPIs(
+    apiIds: string[],
+    company: Company,
+    environment: KONG_ENVIRONMENT,
+  ) {
+    const consumerId = company.consumerId!;
+
+    const promises: Promise<void>[] = [];
+
+    company.acls.forEach((acl) => {
+      if (apiIds.includes(acl.routeId)) {
+        promises.push(
+          new Promise(async (res, rej) => {
+            try {
+              await this.kongConsumerService.deleteConsumerAcl(environment, {
+                aclId: acl.aclId,
+                consumerId,
+              });
+
+              await this.consumerAclRepository.delete({
+                id: acl.id,
+              });
+
+              res();
+            } catch (err) {
+              rej(err);
+            }
+          }),
+        );
+      }
+    });
+
+    // TODO Handle failures
+    const results = await Promise.allSettled(promises);
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        console.log({ result });
+      }
+    }
+
+    return { success: true };
+  }
+
+  async updateCompanyApiAccess(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     companyId: string,
-    { apiIds }: AssignAPIsDto,
+    { apiIds }: UpdateCompanyAPIAccessDto,
   ) {
     const company = await this.companyRepository.findOne({
-      where: {
-        id: companyId,
-      },
+      where: { id: companyId },
       relations: {
         acls: {
           route: true,
@@ -484,33 +534,24 @@ export class APIService {
       });
     }
 
-    const consumerId = company.consumerId!;
+    // Routes to assign are present in apiIds array but not in previosAllowedRoutes array
+    // Routes to unassign are present in previosAllowedRoutes array but not in apiIds array
+    const previousAllowedRoutesIds = company.acls.map((acl) => acl.route.id);
 
-    const promises: Promise<void>[] = [];
+    const routesToUnassign = previousAllowedRoutesIds.filter(
+      (routeId) => !apiIds.includes(routeId),
+    );
 
-    company.acls.forEach((acl) => {
-      if (apiIds.includes(acl.routeId)) {
-        promises.push(
-          new Promise(async (res) => {
-            await this.kongConsumerService.deleteConsumerAcl(environment, {
-              aclId: acl.aclId,
-              consumerId,
-            });
+    const routesToAssign = apiIds.filter(
+      (newRouteId) => !previousAllowedRoutesIds.includes(newRouteId),
+    );
 
-            await this.consumerAclRepository.delete({
-              id: acl.id,
-            });
+    await Promise.allSettled([
+      await this.assignAPIs(routesToAssign, company, environment),
+      await this.unassignAPIs(routesToUnassign, company, environment),
+    ]);
 
-            res();
-          }),
-        );
-      }
-    });
-
-    // TODO Handle failures
-    await Promise.allSettled(promises);
-
-    return ResponseFormatter.success(apiSuccessMessages.assignAPIs);
+    return ResponseFormatter.success(apiSuccessMessages.updatedAPIAccess);
   }
 
   async updateAPI(
@@ -899,8 +940,8 @@ export class APIService {
               min: query.filter?.['@timestamp'].gt
                 ? moment(query.filter['@timestamp'].gt).format('YYYY-MM-DD')
                 : moment(query.filter?.['@timestamp'].lt)
-                  .subtract(30, 'days')
-                  .format('YYYY-MM-DD'),
+                    .subtract(30, 'days')
+                    .format('YYYY-MM-DD'),
               max: moment(query.filter?.['@timestamp'].lt).format('YYYY-MM-DD'),
             },
           },
@@ -972,7 +1013,9 @@ export class APIService {
           enabled: route.enabled,
           upstream: new GETAPIUpstreamResponseDTO({
             url: gatewayService
-              ? `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`
+              ? `${gatewayService.protocol}://${gatewayService.host}:${
+                  gatewayService.port || ''
+                }${gatewayService.path || ''}`
               : null,
           }),
           downstream: new GETAPIDownstreamResponseDTO({

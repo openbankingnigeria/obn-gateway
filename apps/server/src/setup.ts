@@ -8,9 +8,9 @@ import { CollectionsModule } from 'src/collections/collections.module';
 import { CollectionsService } from 'src/collections/collections.service';
 import { CreateCollectionDto } from 'src/collections/dto/index.dto';
 import slugify from 'slugify';
-import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
-import { IsNull, Not } from "typeorm";
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { IsNull, Not } from 'typeorm';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
 import { ConfigService } from '@nestjs/config';
@@ -92,9 +92,11 @@ export class SetupService {
   async performSetupTasks(): Promise<void> {
     const app = await NestFactory.createApplicationContext(AppModule);
     const apiService = app.select(APIModule).get(APIService);
-    const collectionService = app.select(CollectionsModule).get(CollectionsService);
+    const collectionService = app
+      .select(CollectionsModule)
+      .get(CollectionsService);
     const kongPluginService = app.get(KongPluginService);
-    const config = app.get(ConfigService)
+    const config = app.get(ConfigService);
 
     for (const environment in config.get<Record<KONG_ENVIRONMENT, string>>(
       'kong.endpoint',
