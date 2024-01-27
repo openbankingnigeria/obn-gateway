@@ -34,10 +34,10 @@ export class RequestContext {
     return this.activeUser.role.parent.slug as ROLES;
   }
 
-  hasPermission(requiredPermission: PERMISSIONS): boolean {
-    // TODO remove constant admin check
+  hasPermission(requiredPermission?: PERMISSIONS): boolean {
+    // TODO remove constant admin check, and requiredPermission(every endpoint should be guarded by permissions)
     let has = false;
-    if (this.activeUser.role.slug === 'admin') has = true
+    if (this.activeUser.role.slug === 'admin' || !requiredPermission) has = true
     else {
       has = this.activeUser.role.permissions.some(
         (permission) => permission?.slug === requiredPermission,

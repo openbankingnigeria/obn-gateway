@@ -229,7 +229,7 @@ export class GetAPIResponseDTO {
       !ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT)
       || ctx?.activeCompany.type !== CompanyTypes.API_PROVIDER
     ) {
-      delete this.upstream;
+      this.upstream = null;
     }
   }
 
@@ -250,7 +250,7 @@ export class GetAPIResponseDTO {
   @Expose()
   @IsObject()
   @Type(() => GETAPIUpstreamResponseDTO)
-  upstream?: GETAPIUpstreamResponseDTO;
+  upstream: GETAPIUpstreamResponseDTO | null;
 }
 
 class APILogResponseDto {
