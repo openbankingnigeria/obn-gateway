@@ -155,8 +155,8 @@ export class UsersService {
     filters?: any,
   ) {
     const where = {
+      ...filters,
       companyId: ctx.activeUser.companyId,
-      ...filters
     };
 
     const totalUsers = await this.userRepository.count({
