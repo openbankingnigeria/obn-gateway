@@ -7,6 +7,7 @@ import {
   Put,
   UsePipes,
   SerializeOptions,
+  UseInterceptors,
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import {
@@ -25,6 +26,7 @@ import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { RequestContext } from '@common/utils/request/request-context';
 import { SETTINGS_TYPES } from './types';
 import { PERMISSIONS } from '@permissions/types';
+import { APIInterceptor } from 'src/apis/apis.interceptor';
 
 @Controller('settings')
 export class SettingsController {
@@ -59,6 +61,7 @@ export class SettingsController {
   @Get('api-key/:environment')
   @RequiredPermission(PERMISSIONS.VIEW_API_KEY)
   @RequireTwoFA(true)
+  @UseInterceptors(APIInterceptor)
   getApiKey(
     @Ctx() ctx: RequestContext,
     @Param('environment') environment: KONG_ENVIRONMENT,
@@ -70,6 +73,7 @@ export class SettingsController {
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.RESET_API_KEY)
   @RequireTwoFA(true)
+  @UseInterceptors(APIInterceptor)
   generateApiKey(
     @Ctx() ctx: RequestContext,
     @Param('environment') environment: KONG_ENVIRONMENT,
@@ -81,6 +85,7 @@ export class SettingsController {
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.VIEW_API_RESTRICTIONS)
   @RequireTwoFA()
+  @UseInterceptors(APIInterceptor)
   getIPRestriction(
     @Ctx() ctx: RequestContext,
     @Param('environment') environment: KONG_ENVIRONMENT,
@@ -92,6 +97,7 @@ export class SettingsController {
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.SET_API_RESTRICTIONS)
   @RequireTwoFA()
+  @UseInterceptors(APIInterceptor)
   setIPRestriction(
     @Ctx() ctx: RequestContext,
     @Param('environment') environment: KONG_ENVIRONMENT,

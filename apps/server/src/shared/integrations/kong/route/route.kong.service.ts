@@ -179,7 +179,6 @@ export class KongRouteService {
     } else {
       data.tags = Array.from(new Set([...data.tags, data.name]))
     }
-    console.log({plugin, data})
     const response = await firstValueFrom(
       this.httpService
         .put<CreatePluginResponse>(

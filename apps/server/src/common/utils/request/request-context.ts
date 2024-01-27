@@ -37,7 +37,7 @@ export class RequestContext {
   hasPermission(requiredPermission: PERMISSIONS): boolean {
     // TODO remove constant admin check
     let has = false;
-    if (this.activeUser.role.slug !== 'admin') has = true
+    if (this.activeUser.role.slug === 'admin') has = true
     else {
       has = this.activeUser.role.permissions.some(
         (permission) => permission?.slug === requiredPermission,

@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { APIService } from './apis.service';
@@ -33,8 +34,10 @@ import {
 } from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
 import { PERMISSIONS } from '@permissions/types';
+import { APIInterceptor } from './apis.interceptor';
 
 @Controller('apis/:environment')
+@UseInterceptors(APIInterceptor)
 export class APIController {
   constructor(private readonly apiService: APIService) {}
 

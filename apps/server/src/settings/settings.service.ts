@@ -347,7 +347,6 @@ export class SettingsService {
       });
     }
 
-    console.log({ settingType, data });
     if (settingType === SETTINGS_TYPES.EMAIL_TEMPLATES) {
       const { body, title, temmplateId } = data as EmailTemplateDto;
 
@@ -401,7 +400,6 @@ export class SettingsService {
       }
 
       for (const field of Object.keys(data)) {
-        console.log({ field });
         if (settingsValue[field]) {
           settingsValue[field].value = data[field];
         }

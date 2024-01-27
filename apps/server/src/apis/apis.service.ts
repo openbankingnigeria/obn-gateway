@@ -409,7 +409,6 @@ export class APIService {
     company: Company,
     environment: KONG_ENVIRONMENT,
   ) {
-    // TODO consumer shouldnt be auto created for non development environments
     const consumerId =
       company.consumerId ||
       (await this.updateConsumerId(company.id!, environment));
