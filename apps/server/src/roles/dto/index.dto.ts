@@ -3,6 +3,7 @@ import { PERMISSIONS } from '@permissions/types';
 import { Expose, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
+  ArrayUnique,
   IsArray,
   IsNotEmpty,
   IsObject,
@@ -26,6 +27,7 @@ export class CreateRoleDto {
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   @ArrayNotEmpty()
+  @ArrayUnique()
   permissions: string[];
 }
 
@@ -44,6 +46,7 @@ export class SetRolePermissionsDto {
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   @ArrayNotEmpty()
+  @ArrayUnique()
   permissions: string[];
 }
 

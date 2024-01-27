@@ -202,10 +202,6 @@ export class AuthService {
           this.eventEmitter.emit(event.name, event);
 
           const otpData: any = {};
-          // TODO remove this.
-          if (new Date() < new Date('2023-12-31')) {
-            otpData.otp = otp.toString();
-          }
 
           return ResponseFormatter.success(
             authSuccessMessages.signup,
@@ -258,10 +254,6 @@ export class AuthService {
           this.eventEmitter.emit(event.name, event);
 
           const otpData: any = {};
-          // TODO remove this.
-          if (new Date() < new Date('2023-12-31')) {
-            otpData.otp = otp.toString();
-          }
 
           return ResponseFormatter.success(
             authSuccessMessages.signup,
@@ -338,10 +330,6 @@ export class AuthService {
           this.eventEmitter.emit(event.name, event);
 
           const otpData: any = {};
-          // TODO remove this.
-          if (new Date() < new Date('2023-12-31')) {
-            otpData.otp = otp.toString();
-          }
 
           return ResponseFormatter.success(
             authSuccessMessages.signup,
@@ -379,10 +367,15 @@ export class AuthService {
       },
     });
 
-    // TODO do not throw error if email not found
     if (!user) {
       throw new IBadRequestException({
-        message: userErrors.userWithEmailNotFound(email),
+        message: authErrors.invalidCredentials,
+      });
+    }
+
+    if (!compareSync(password, user.password!)) {
+      throw new IBadRequestException({
+        message: authErrors.invalidCredentials,
       });
     }
 
@@ -398,18 +391,11 @@ export class AuthService {
       });
     }
 
-    if (!compareSync(password, user.password!)) {
+    if (user.status !== UserStatuses.ACTIVE) {
       throw new IBadRequestException({
-        message: authErrors.invalidCredentials,
+        message: authErrors.accountNotActive(user.status!),
       });
     }
-
-    // TODO
-    // if (user.status !== UserStatuses.ACTIVE) {
-    //   throw new IBadRequestException({
-    //     message: authErrors.accountNotActive(user.status!),
-    //   });
-    // }
 
     if (user.twofaEnabled) {
       if (!code) {
@@ -567,6 +553,7 @@ export class AuthService {
       resetPasswordExpires: MoreThan(moment().toDate()),
     });
 
+    // TODO what message to display here
     if (!user) {
       throw new IBadRequestException({
         message: userErrors.userNotFound,
@@ -607,16 +594,15 @@ export class AuthService {
       },
     });
 
-    // TODO do not throw error if email not found;
     if (!user) {
       throw new IBadRequestException({
-        message: `User with email - ${email} not found.`,
+        message: `Invalid OTP.`,
       });
     }
 
     if (user.emailVerified) {
       throw new IBadRequestException({
-        message: `User already verified.`,
+        message: `Invalid OTP.`,
       });
     }
 
@@ -653,17 +639,16 @@ export class AuthService {
       },
     });
 
-    // TODO do not throw error if email not found;
     if (!user) {
-      throw new IBadRequestException({
-        message: `User with email - ${email} not found.`,
-      });
+      return ResponseFormatter.success(
+        authSuccessMessages.resendOtp,
+      );
     }
 
     if (user.emailVerified) {
-      throw new IBadRequestException({
-        message: `User already verified.`,
-      });
+      return ResponseFormatter.success(
+        authSuccessMessages.resendOtp,
+      );
     }
 
     const otp = generateOtp(6);
@@ -684,16 +669,8 @@ export class AuthService {
     });
     this.eventEmitter.emit(event.name, event);
 
-    const otpData: any = {};
-
-    // TODO remove this.
-    if (new Date() < new Date('2023-12-31')) {
-      otpData.otp = otp.toString();
-    }
-
     return ResponseFormatter.success(
       authSuccessMessages.resendOtp,
-      new AuthOTPResponseDTO(otpData),
     );
   }
 }

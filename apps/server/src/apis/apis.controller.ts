@@ -40,6 +40,7 @@ export class APIController {
 
   @Get('')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_API_ENDPOINTS)
   viewAPIs(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -56,6 +57,7 @@ export class APIController {
 
   @Post('')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.ADD_API_ENDPOINT)
   @RequireTwoFA()
   createAPI(
     @Ctx() ctx: RequestContext,
@@ -67,6 +69,7 @@ export class APIController {
 
   @Put('company/:companyId')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.ASSIGN_API_ENDPOINTS)
   @RequireTwoFA()
   assignAPIs(
     @Ctx() ctx: RequestContext,
@@ -84,13 +87,14 @@ export class APIController {
 
   @Get('company')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_API_ENDPOINTS)
   viewMyCompanyApis(@Ctx() ctx: RequestContext, @Param() params: APIParam) {
     return this.apiService.getApisAssignedToCompany(ctx, params.environment);
   }
 
   @Get('company/:companyId')
   @UsePipes(IValidationPipe)
-  @RequiredPermission(PERMISSIONS.VIEW_COMPANY_APIS_BY_ID)
+  @RequiredPermission(PERMISSIONS.VIEW_API_ENDPOINT)
   viewCompanyApis(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -105,6 +109,7 @@ export class APIController {
 
   @Get('logs')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_API_CALLS)
   getAPILogs(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -121,6 +126,7 @@ export class APIController {
 
   @Get('logs/stats')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_API_CALLS)
   getAPILogsStats(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -131,6 +137,7 @@ export class APIController {
 
   @Get('logs/stats/periodic-aggregate')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_API_CALLS)
   getAPILogsStatsAggregate(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -145,6 +152,7 @@ export class APIController {
 
   @Get('logs/:id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_API_CALL)
   getAPILog(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -155,6 +163,7 @@ export class APIController {
 
   @Get(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_API_ENDPOINT)
   viewAPI(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -165,6 +174,7 @@ export class APIController {
 
   @Delete(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.DELETE_API_ENDPOINT)
   @RequireTwoFA()
   deletAPI(
     @Ctx() ctx: RequestContext,
@@ -176,6 +186,7 @@ export class APIController {
 
   @Patch(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_API_ENDPOINT)
   @RequireTwoFA()
   updateAPI(
     @Ctx() ctx: RequestContext,
@@ -188,6 +199,7 @@ export class APIController {
 
   @Get(':id/transformation')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_API_TRANSFORMATION)
   getTransformation(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -198,6 +210,7 @@ export class APIController {
 
   @Put(':id/transformation')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.SET_API_TRANSFORMATION)
   @RequireTwoFA(true)
   setTransformation(
     @Ctx() ctx: RequestContext,

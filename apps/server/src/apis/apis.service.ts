@@ -44,7 +44,6 @@ import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import { RequestContext } from '@common/utils/request/request-context';
 import * as moment from 'moment';
 
-// TODO return DTO based on parent type, i.e. we dont want to return sensitive API info data to API consumer for e.g.
 @Injectable()
 export class APIService {
   constructor(
@@ -113,12 +112,12 @@ export class APIService {
                   gatewayService.port || ''
                 }${gatewayService.path || ''}`
               : null,
-          }),
+          }, ctx),
           downstream: new GETAPIDownstreamResponseDTO({
             paths: gatewayRoute?.paths || [],
             methods: gatewayRoute?.methods || [],
-          }),
-        });
+          }, ctx),
+        }, ctx);
       }),
       new ResponseMetaDTO({
         totalNumberOfRecords,
@@ -201,12 +200,12 @@ export class APIService {
             const [key, ...value] = header.split(':')
             return { key, value: value.join(':') }
           }) || []
-        }),
+        }, ctx),
         downstream: new GETAPIDownstreamResponseDTO({
           paths: gatewayRoute?.paths || [],
           methods: gatewayRoute?.methods || [],
-        }),
-      }),
+        }, ctx),
+      }, ctx),
     );
   }
 
@@ -399,9 +398,9 @@ export class APIService {
         upstream: new GETAPIUpstreamResponseDTO({
           ...data.upstream,
           url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
-        }),
-        downstream: new GETAPIDownstreamResponseDTO(data.downstream),
-      }),
+        }, ctx),
+        downstream: new GETAPIDownstreamResponseDTO(data.downstream, ctx),
+      }, ctx),
     );
   }
 
@@ -689,9 +688,9 @@ export class APIService {
         upstream: new GETAPIUpstreamResponseDTO({
           ...data.upstream,
           url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
-        }),
-        downstream: new GETAPIDownstreamResponseDTO(data.downstream),
-      }),
+        }, ctx),
+        downstream: new GETAPIDownstreamResponseDTO(data.downstream, ctx),
+      }, ctx),
     );
   }
 
@@ -715,7 +714,6 @@ export class APIService {
     return result;
   }
 
-  // TODO ensure only AP can view logs for all users;
   async getAPILogs(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -770,11 +768,10 @@ export class APIService {
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogs,
-      logs.hits.hits.map((i) => new APILogResponseDTO(i._source)),
+      logs.hits.hits.map((i) => new APILogResponseDTO(i._source, ctx)),
     );
   }
 
-  // TODO ensure only AP can view logs for all users;
   async getAPILog(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -820,11 +817,10 @@ export class APIService {
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILog,
-      new APILogResponseDTO(logs.hits.hits[0]._source),
+      new APILogResponseDTO(logs.hits.hits[0]._source, ctx),
     );
   }
 
-  // TODO ensure only AP can view logs for all users;
   async getAPILogsStats(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -901,7 +897,7 @@ export class APIService {
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogsStats,
-      new APILogStatsResponseDTO(stats.aggregations),
+      new APILogStatsResponseDTO(stats.aggregations, ctx),
     );
   }
 
@@ -951,7 +947,7 @@ export class APIService {
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogsStats,
       stats.aggregations!['aggregated'].buckets.map(
-        (bucket: any) => new GetStatsAggregateResponseDTO(bucket),
+        (bucket: any) => new GetStatsAggregateResponseDTO(bucket, ctx),
       ),
     );
   }
@@ -961,7 +957,8 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     companyId?: string,
   ) {
-    const company = await this.companyRepository.findOneOrFail({
+    const company = await this.companyRepository.findOne({
+      // TODO
       where: { id: companyId ?? ctx.activeCompany.id },
       relations: {
         acls: {
@@ -1017,12 +1014,12 @@ export class APIService {
                   gatewayService.port || ''
                 }${gatewayService.path || ''}`
               : null,
-          }),
+          }, ctx),
           downstream: new GETAPIDownstreamResponseDTO({
             paths: gatewayRoute?.paths || [],
             methods: gatewayRoute?.methods || [],
-          }),
-        }),
+          }, ctx),
+        }, ctx),
       );
     }
 
@@ -1067,7 +1064,7 @@ export class APIService {
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPI,
-      new GetAPITransformationResponseDTO(plugin.config),
+      new GetAPITransformationResponseDTO(plugin.config, ctx),
     );
   }
 
@@ -1107,7 +1104,7 @@ export class APIService {
 
     return ResponseFormatter.success(
       apiSuccessMessages.updatedAPI,
-      new GetAPITransformationResponseDTO(plugin.config),
+      new GetAPITransformationResponseDTO(plugin.config, ctx),
     );
   }
 }

@@ -257,15 +257,19 @@ export class EmailService {
 
   @OnEvent(AuthEvents.SIGN_UP)
   async handleResendOtp(event: AuthResendOtpEvent) {
-    const apiProvider = await this.companyRepository.findOneOrFail({
-      where: { type: CompanyTypes.API_PROVIDER },
-      order: { id: 'ASC' },
-    });
-    this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
-      apiProvider: apiProvider.name!,
-      otp: event.metadata.otp!,
-      name: event.author.profile!.firstName,
-    });
+    try {
+      const apiProvider = await this.companyRepository.findOneOrFail({
+        where: { type: CompanyTypes.API_PROVIDER },
+        order: { id: 'ASC' },
+      });
+      this.sendEmail(EMAIL_TEMPLATES.VERIFY_EMAIL, event.author.email, {
+        apiProvider: apiProvider.name!,
+        otp: event.metadata.otp!,
+        name: event.author.profile!.firstName,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async handleVerifyEmail(event: AuthSignupEvent) {

@@ -99,18 +99,12 @@ export class RolesService {
     { limit, page }: PaginationParameters,
     filters?: any,
   ) {
-    const where = [
-      {
-        parentId: ctx.activeUser.role.parentId,
-        companyId: ctx.activeUser.companyId,
-        ...filters,
-      },
-      {
-        id: ctx.activeUser.role.id,
-        companyId: IsNull(),
-        ...filters,
-      },
-    ];
+
+    const where = {
+      ...filters,
+      parentId: ctx.activeUser.role.parentId,
+      companyId: ctx.activeUser.companyId,
+    }
 
     const totalRoles = await this.roleRepository.count({ where });
 

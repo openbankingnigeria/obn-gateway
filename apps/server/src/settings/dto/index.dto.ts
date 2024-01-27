@@ -8,6 +8,7 @@ import {
 import { Expose, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
+  ArrayUnique,
   IsArray,
   IsEnum,
   IsIP,
@@ -104,6 +105,7 @@ export class IPRestrictionRequest {
   @IsNotEmpty({ each: true })
   @IsIP(undefined, { each: true })
   @ArrayNotEmpty()
+  @ArrayUnique()
   ips: string[];
 }
 

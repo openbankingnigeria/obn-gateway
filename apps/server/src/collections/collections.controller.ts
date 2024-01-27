@@ -18,8 +18,9 @@ import {
 } from '@common/utils/pipes/query/pagination.pipe';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { CollectionFilters } from './collections.filter';
-import { Ctx, RequireTwoFA } from '@common/utils/authentication/auth.decorator';
+import { Ctx, RequireTwoFA, RequiredPermission } from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
+import { PERMISSIONS } from '@permissions/types';
 
 @Controller('collections')
 export class CollectionsController {
@@ -27,6 +28,7 @@ export class CollectionsController {
 
   @Get()
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_API_COLLECTIONS)
   listCollections(
     @Ctx() ctx: RequestContext,
     @Query(PaginationPipe) pagination: PaginationParameters,
@@ -38,6 +40,7 @@ export class CollectionsController {
 
   @Post()
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.CREATE_API_COLLECTION)
   @RequireTwoFA()
   createCollection(
     @Ctx() ctx: RequestContext,
@@ -48,6 +51,7 @@ export class CollectionsController {
 
   @Patch(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_API_COLLECTION)
   @RequireTwoFA()
   updateCollection(
     @Ctx() ctx: RequestContext,
@@ -59,12 +63,14 @@ export class CollectionsController {
 
   @Get(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_API_COLLECTION)
   viewCollection(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.collectionsService.viewCollection(ctx, id);
   }
 
   @Delete(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.DELETE_API_COLLECTION)
   @RequireTwoFA()
   deleteCollection(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.collectionsService.deleteCollection(ctx, id);

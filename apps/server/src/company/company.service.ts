@@ -201,6 +201,7 @@ export class CompanyService {
     );
   }
 
+  // TODO is this for APs?
   async listCompanies(
     ctx: RequestContext,
     { limit, page }: PaginationParameters,
@@ -244,8 +245,6 @@ export class CompanyService {
         primaryUser: { profile: true },
       },
     });
-
-    console.log(companies);
 
     return ResponseFormatter.success(
       'Successfully fetched company',

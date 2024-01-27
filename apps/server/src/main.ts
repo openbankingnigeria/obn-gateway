@@ -9,16 +9,18 @@ import { ConfigService } from '@nestjs/config';
 import { SetupService } from './setup';
 
 async function bootstrap() {
-  // TODO properly configure cors
-  const app = await NestFactory.create(AppModule, { cors: { origin: '*' } });
+  const app = await NestFactory.create(AppModule);
 
   // Config
   const configService = app.get(ConfigService);
   const port = configService.get('server.port');
+  const managementUrl = configService.getOrThrow('server.managementUrl')
 
   // Logging
   app.useLogger(app.get(Logger));
   const logger = new NestLogger();
+
+  app.enableCors({ origin: new URL(managementUrl).origin });
 
   await new SetupService().performSetupTasks().catch(e => logger.error(e));
 

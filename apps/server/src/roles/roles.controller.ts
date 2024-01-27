@@ -90,7 +90,7 @@ export class RolesController {
 
   @Delete(':id')
   @UsePipes(IValidationPipe)
-  @RequiredPermission(PERMISSIONS.DEACTIVATE_ROLE)
+  @RequiredPermission(PERMISSIONS.DELETE_ROLE)
   @RequireTwoFA()
   deleteRole(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.rolesService.deleteRole(ctx, id);
