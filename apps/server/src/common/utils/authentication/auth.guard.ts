@@ -8,6 +8,7 @@ import {
 import { IRequest } from './auth.types';
 import {
   IBadRequestException,
+  IForbiddenException,
   IPreconditionFailedException,
   IUnauthorizedException,
 } from '../exceptions/exceptions';
@@ -106,7 +107,7 @@ export class AuthGuard implements CanActivate {
     }
 
     if (!request.ctx.hasPermission(requiredPermission)) {
-      throw new IUnauthorizedException({
+      throw new IForbiddenException({
         message: authErrors.inadequatePermissions,
       });
     }
