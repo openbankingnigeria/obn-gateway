@@ -201,13 +201,10 @@ export class AuthService {
 
           this.eventEmitter.emit(event.name, event);
 
-          const otpData: any = {};
-
           return ResponseFormatter.success(
             authSuccessMessages.signup,
             new GetUserResponseDTO({
               ...user,
-              ...otpData,
               company: companyCreated,
             }),
           );
@@ -253,13 +250,10 @@ export class AuthService {
 
           this.eventEmitter.emit(event.name, event);
 
-          const otpData: any = {};
-
           return ResponseFormatter.success(
             authSuccessMessages.signup,
             new GetUserResponseDTO({
               ...user,
-              ...otpData,
               company: companyCreated,
             }),
           );
@@ -329,13 +323,10 @@ export class AuthService {
 
           this.eventEmitter.emit(event.name, event);
 
-          const otpData: any = {};
-
           return ResponseFormatter.success(
             authSuccessMessages.signup,
             new GetUserResponseDTO({
               ...user,
-              ...otpData,
               company: companyCreated,
             }),
           );
