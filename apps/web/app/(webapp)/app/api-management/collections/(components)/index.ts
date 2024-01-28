@@ -9,6 +9,7 @@ import ActivateDeactivateDeleteApi from "./ActivateDeactivateDeleteApi";
 import DownStreamForm from "./DownStreamForm";
 import TransformationForm from "./TransformationForm";
 import UpstreamForm from "./UpstreamForm";
+import KeyValueContainer from "./KeyValueContainer";
 
 export {
   CollectionsTable,
@@ -21,5 +22,6 @@ export {
   ActivateDeactivateDeleteApi,
   DownStreamForm,
   TransformationForm,
-  UpstreamForm
+  UpstreamForm,
+  KeyValueContainer
 }

@@ -246,6 +246,12 @@ export interface HeadersProps {
   value: string;
 }
 
+export interface KeyValueProps {
+  id: number;
+  key: string;
+  value: string;
+}
+
 export interface HostsProps {
   id: number;
   value: string;
@@ -261,6 +267,10 @@ export interface APIConfigurationContainerProps {
   handleInputChange: (value: string, obj: any, key: any, type: string) => void;
   handleRemove: (type: string, value: string | number) => void;
   handleAdd: (type: string) => void;
+  keyPlaceholder?: string;
+  valuePlaceholder?: string;
+  label?: string;
+  type?: string;
 }
 
 export interface APIConfigurationProps {
