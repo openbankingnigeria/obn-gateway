@@ -60,7 +60,7 @@ export class SettingsController {
 
   @Get('api-key/:environment')
   @RequiredPermission(PERMISSIONS.VIEW_API_KEY)
-  @RequireTwoFA(true)
+  @RequireTwoFA()
   @UseInterceptors(APIInterceptor)
   getApiKey(
     @Ctx() ctx: RequestContext,
@@ -72,7 +72,7 @@ export class SettingsController {
   @Put('api-key/:environment')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.RESET_API_KEY)
-  @RequireTwoFA(true)
+  @RequireTwoFA()
   @UseInterceptors(APIInterceptor)
   generateApiKey(
     @Ctx() ctx: RequestContext,
