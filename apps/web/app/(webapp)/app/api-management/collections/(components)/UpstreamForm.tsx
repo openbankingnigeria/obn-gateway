@@ -31,7 +31,7 @@ const UpStreamForm = ({
   const environment = 'development';
   const router = useRouter();
 
-  console.log(headers, body, querystring, rawData);
+  // console.log(headers, body, querystring, rawData);
 
   const handleRemove = (type: string, value: string | number) => {
     type == 'body' ?
