@@ -8,6 +8,8 @@ import {
 import { IRequest } from './auth.types';
 import {
   IBadRequestException,
+  IForbiddenException,
+  IPreconditionFailedException,
   IUnauthorizedException,
 } from '../exceptions/exceptions';
 import { Auth } from './auth.helper';
@@ -27,7 +29,7 @@ export class AuthGuard implements CanActivate {
     private readonly auth: Auth,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
   async canActivate(context: ExecutionContext) {
     const shouldSkipAuth = <boolean>(
       this.reflector.get(SKIP_AUTH_METADATA_KEY, context.getHandler())
@@ -94,29 +96,31 @@ export class AuthGuard implements CanActivate {
       });
     }
 
+    request.ctx = new RequestContext({
+      user,
+    });
+
     if (!moment(user.lastLogin).isSame(decoded?.iat * 1000, 'second')) {
       throw new IUnauthorizedException({
         message: authErrors.invalidCredentials,
       });
     }
 
-    // TODO remove.
-    if (
-      user.role.slug !== 'admin' &&
-      requiredPermission &&
-      !user.role.permissions.some(
-        (permission) => permission?.slug === requiredPermission,
-      )
-    ) {
-      throw new IUnauthorizedException({
+    if (!request.ctx.hasPermission(requiredPermission)) {
+      throw new IForbiddenException({
         message: authErrors.inadequatePermissions,
       });
     }
 
     if (strictRequireTwoFA !== undefined) {
       if (strictRequireTwoFA === true) {
-        if (!twoFACode || !user.twofaEnabled) {
+        if (!twoFACode) {
           throw new IBadRequestException({
+            message: authErrors.twoFARequired,
+          });
+        }
+        if (!user.twofaEnabled) {
+          throw new IPreconditionFailedException({
             message: authErrors.twoFARequired,
           });
         }
@@ -138,10 +142,6 @@ export class AuthGuard implements CanActivate {
         }
       }
     }
-
-    request.ctx = new RequestContext({
-      user,
-    });
 
     return true;
   }

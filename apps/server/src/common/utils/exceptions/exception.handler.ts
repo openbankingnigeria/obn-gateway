@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   InternalServerErrorException,
   Logger,
   NotFoundException,
@@ -24,7 +25,8 @@ export const ExceptionHandler = (exception: unknown, config: ConfigService) => {
     exception instanceof InternalServerErrorException ||
     exception instanceof NotFoundException ||
     exception instanceof UnauthorizedException ||
-    exception instanceof PreconditionFailedException
+    exception instanceof PreconditionFailedException ||
+    exception instanceof ForbiddenException
   ) {
     const exceptionResponse = exception.getResponse() as {
       message: string;

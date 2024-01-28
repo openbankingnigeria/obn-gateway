@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   InternalServerErrorException,
   NotFoundException,
   PreconditionFailedException,
@@ -42,6 +43,13 @@ export class INotFoundException extends NotFoundException {
 
 export class IPreconditionFailedException extends PreconditionFailedException {
   name = 'CONDITION_FAILED_EXCEPTION';
+  constructor({ message, data, _meta }: IError) {
+    super({ message, data, _meta });
+  }
+}
+
+export class IForbiddenException extends ForbiddenException {
+  name = 'FORBIDDEN_EXCEPTION';
   constructor({ message, data, _meta }: IError) {
     super({ message, data, _meta });
   }

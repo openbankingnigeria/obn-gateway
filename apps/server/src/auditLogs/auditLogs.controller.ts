@@ -29,6 +29,7 @@ export class AuditLogsController {
   }
 
   @Get(':id')
+  @RequiredPermission(PERMISSIONS.VIEW_AUDIT_LOG)
   getLogById(@Ctx() ctx: RequestContext, @Param('id') logId: string) {
     return this.auditLogsService.getSingleLog(ctx, logId);
   }

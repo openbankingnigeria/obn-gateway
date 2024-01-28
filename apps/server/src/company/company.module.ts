@@ -4,10 +4,15 @@ import { CompanyController } from './company.controller';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Company, Settings, User } from '@common/database/entities';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Company, Settings])],
+  imports: [
+    TypeOrmModule.forFeature([User, Company, Settings]),
+    HttpModule
+  ],
   controllers: [CompanyController],
-  providers: [CompanyService, FileHelpers],
+  providers: [CompanyService, FileHelpers, KongConsumerService],
 })
 export class CompanyModule {}

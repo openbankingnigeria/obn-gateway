@@ -43,6 +43,10 @@ import { CompanyTypes } from '@common/database/constants';
 import { companyCustomFields } from './company.constants';
 import { RequestContext } from '@common/utils/request/request-context';
 import * as moment from 'moment';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
+import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CompanyService {
@@ -55,6 +59,8 @@ export class CompanyService {
     @InjectRepository(Settings)
     private readonly settingsRepository: Repository<Settings>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly kongConsumerService: KongConsumerService,
+    private readonly config: ConfigService,
   ) {}
 
   async updateCompanyKybDetails(
@@ -201,6 +207,7 @@ export class CompanyService {
     );
   }
 
+  // TODO is this for APs?
   async listCompanies(
     ctx: RequestContext,
     { limit, page }: PaginationParameters,
@@ -244,8 +251,6 @@ export class CompanyService {
         primaryUser: { profile: true },
       },
     });
-
-    console.log(companies);
 
     return ResponseFormatter.success(
       'Successfully fetched company',
@@ -309,6 +314,13 @@ export class CompanyService {
       });
     }
 
+    // TODO lets stick with a nomenclature, we currently have mixes of business and company
+    if (company.status !== CompanyStatuses.ACTIVE) {
+      throw new IBadRequestException({
+        message: `Cannot ${action} ${company.status} business`,
+      });
+    }
+
     let businessDetails: {
       rcNumber?: string;
       name?: string;
@@ -323,6 +335,21 @@ export class CompanyService {
 
     switch (action) {
       case 'approve':
+        if (company.consumerId) {
+          for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
+            'kong.endpoint',
+          )) {
+            if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue
+            await this.kongConsumerService.updateOrCreatePlugin(
+              environment as KONG_ENVIRONMENT,
+              company.consumerId,
+              {
+                name: KONG_PLUGINS.REQUEST_TERMINATION,
+                enabled: false,
+              },
+            );
+          }
+        }
         await this.companyRepository.update(
           { id: companyId },
           {
@@ -340,6 +367,21 @@ export class CompanyService {
           throw new IBadRequestException({
             message: companyErrors.reasonNotProvided,
           });
+        }
+        if (company.consumerId) {
+          for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
+            'kong.endpoint',
+          )) {
+            if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue
+            await this.kongConsumerService.updateOrCreatePlugin(
+              environment as KONG_ENVIRONMENT,
+              company.consumerId,
+              {
+                name: KONG_PLUGINS.REQUEST_TERMINATION,
+                enabled: true,
+              },
+            );
+          }
         }
         await this.companyRepository.update(
           { id: companyId },
@@ -441,6 +483,21 @@ export class CompanyService {
       throw new IBadRequestException({
         message: `Cannot set company access to inactive because company is already inactive`,
       });
+    }
+
+    if (company.consumerId) {
+      for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
+        'kong.endpoint',
+      )) {
+        await this.kongConsumerService.updateOrCreatePlugin(
+          environment as KONG_ENVIRONMENT,
+          company.consumerId,
+          {
+            name: KONG_PLUGINS.REQUEST_TERMINATION,
+            enabled: !isActive,
+          },
+        );
+      }
     }
 
     await this.companyRepository.update(

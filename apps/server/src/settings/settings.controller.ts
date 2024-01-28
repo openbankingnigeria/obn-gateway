@@ -7,6 +7,7 @@ import {
   Put,
   UsePipes,
   SerializeOptions,
+  UseInterceptors,
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import {
@@ -25,18 +26,21 @@ import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { RequestContext } from '@common/utils/request/request-context';
 import { SETTINGS_TYPES } from './types';
 import { PERMISSIONS } from '@permissions/types';
+import { APIInterceptor } from 'src/apis/apis.interceptor';
 
 @Controller('settings')
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Get('kyb/requirements')
+  @RequiredPermission(PERMISSIONS.VIEW_KYB_REQUIREMENTS)
   getKybRequirements(@Ctx() ctx: RequestContext) {
     return this.settingsService.getKybRequirements(ctx);
   }
 
   @Patch('kyb/requirements')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_KYB_REQUIREMENTS)
   updateKybRequirements(
     @Ctx() ctx: RequestContext,
     @Body() data: UpdateKybRequirementsDto,
@@ -46,6 +50,7 @@ export class SettingsController {
 
   @Patch('company/types')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_TYPES)
   updateCompanySubtypes(
     @Ctx() ctx: RequestContext,
     @Body() data: UpdateCompanySubtypesRequest,
@@ -54,7 +59,9 @@ export class SettingsController {
   }
 
   @Get('api-key/:environment')
-  @RequireTwoFA()
+  @RequiredPermission(PERMISSIONS.VIEW_API_KEY)
+  @RequireTwoFA(true)
+  @UseInterceptors(APIInterceptor)
   getApiKey(
     @Ctx() ctx: RequestContext,
     @Param('environment') environment: KONG_ENVIRONMENT,
@@ -64,7 +71,9 @@ export class SettingsController {
 
   @Put('api-key/:environment')
   @UsePipes(IValidationPipe)
-  @RequireTwoFA()
+  @RequiredPermission(PERMISSIONS.RESET_API_KEY)
+  @RequireTwoFA(true)
+  @UseInterceptors(APIInterceptor)
   generateApiKey(
     @Ctx() ctx: RequestContext,
     @Param('environment') environment: KONG_ENVIRONMENT,
@@ -74,7 +83,9 @@ export class SettingsController {
 
   @Get('ip-restriction/:environment')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_API_RESTRICTIONS)
   @RequireTwoFA()
+  @UseInterceptors(APIInterceptor)
   getIPRestriction(
     @Ctx() ctx: RequestContext,
     @Param('environment') environment: KONG_ENVIRONMENT,
@@ -84,7 +95,9 @@ export class SettingsController {
 
   @Put('ip-restriction/:environment')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.SET_API_RESTRICTIONS)
   @RequireTwoFA()
+  @UseInterceptors(APIInterceptor)
   setIPRestriction(
     @Ctx() ctx: RequestContext,
     @Param('environment') environment: KONG_ENVIRONMENT,

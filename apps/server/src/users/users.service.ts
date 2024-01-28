@@ -45,7 +45,7 @@ export class UsersService {
     private readonly auth: Auth,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
-  ) {}
+  ) { }
 
   async createUser(ctx: RequestContext, data: CreateUserDto) {
     const { email, roleId } = data;
@@ -154,12 +154,17 @@ export class UsersService {
     { limit, page }: PaginationParameters,
     filters?: any,
   ) {
+    const where = {
+      ...filters,
+      companyId: ctx.activeUser.companyId,
+    };
+
     const totalUsers = await this.userRepository.count({
-      where: { companyId: ctx.activeUser.companyId, ...filters },
+      where,
     });
 
     const users = await this.userRepository.find({
-      where: { companyId: ctx.activeUser.companyId, ...filters },
+      where,
       relations: { profile: true, role: true },
       skip: (page - 1) * limit,
       take: limit,

@@ -32,6 +32,7 @@ export class UsersController {
 
   @Post()
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.ADD_TEAM_MEMBERS)
   @RequireTwoFA()
   createUser(@Ctx() ctx: RequestContext, @Body() data: CreateUserDto) {
     return this.usersService.createUser(ctx, data);
@@ -39,6 +40,7 @@ export class UsersController {
 
   @Post(':id/resend')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.ADD_TEAM_MEMBERS)
   @RequireTwoFA()
   resendInvite(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.usersService.resendInvite(ctx, id);
@@ -65,12 +67,14 @@ export class UsersController {
 
   @Get(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_TEAM_MEMBER)
   getUser(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.usersService.getUser(ctx, id);
   }
 
   @Patch(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_TEAM_MEMBER)
   @RequireTwoFA()
   updateUser(
     @Ctx() ctx: RequestContext,
@@ -82,6 +86,7 @@ export class UsersController {
 
   @Delete(':id')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.DELETE_TEAM_MEMBER)
   @RequireTwoFA()
   deleteUser(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.usersService.deleteUser(ctx, id);

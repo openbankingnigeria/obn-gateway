@@ -9,6 +9,7 @@ import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe'
 import { Ctx, RequireTwoFA } from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
 
+// TODO review permissions
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}

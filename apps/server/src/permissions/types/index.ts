@@ -27,25 +27,52 @@ export enum PERMISSIONS {
   UPDATE_ROLE = 'update-role',
   ACTIVATE_ROLE = 'activate-role',
   DEACTIVATE_ROLE = 'deactivate-role',
+  DELETE_ROLE = 'delete-role',
 
   LIST_SYSTEM_SETTINGS = 'list-system-settings',
   VIEW_SYSTEM_SETTING = 'view-system-setting',
   UPDATE_SYSTEM_SETTING = 'update-system-setting',
 
   LIST_AUDIT_LOGS = 'list-audit-logs',
+  VIEW_AUDIT_LOG = 'view-audit',
 
   LIST_API_COLLECTIONS = 'list-api-collections',
+  CREATE_API_COLLECTION = 'create-api-collection',
+  VIEW_API_COLLECTION = 'view-api-collection',
+  DELETE_API_COLLECTION = 'delete-api-collection',
+  UPDATE_API_COLLECTION = 'update-api-collection',
+  VIEW_TEAM_MEMBER = 'view-team-member',
+  DELETE_TEAM_MEMBER = 'delete-team-member',
+
 
   UPDATE_COMPANY_KYB_DETAILS = 'update-company-kyb-details',
   UPDATE_COMPANY_KYB_STATUS = 'update-company-kyb-status',
   UPDATE_COMPANY_ACCESS = 'update-company-access',
   UPDATE_COMPANY_DETAILS = 'update-company-details',
   LIST_COMPANIES = 'list-companies',
+  VIEW_COMPANY = 'view-company',
 
   UPDATE_KYB_REQUIREMENT_SETTINGS = 'update-kyb-requirement-setting',
   UPDATE_KYB_REQUIREMENTS = 'update-kyb-requirements',
+  VIEW_KYB_REQUIREMENTS = 'view-kyb-requirements',
 
-  VIEW_COMPANY_APIS_BY_ID = 'view-company-apis-by-id',
+  ADD_API_ENDPOINT = 'add-api-endpoint',
+  VIEW_API_ENDPOINT = 'view-api-endpoint',
+  LIST_API_ENDPOINTS = 'list-api-endpoints',
+  ASSIGN_API_ENDPOINTS = 'assign-api-endpoints',
+  DELETE_API_ENDPOINT = 'delete-api-endpoint',
+  UPDATE_API_ENDPOINT = 'update-api-endpoint',
+  VIEW_API_TRANSFORMATION = 'view-api-transformation',
+  SET_API_TRANSFORMATION = 'set-api-transformation',
+
+
+  SET_API_RESTRICTIONS = 'set-api-restrictions',
+  VIEW_API_RESTRICTIONS = 'view-api-restrictions',
+
+  RESET_API_KEY = 'reset-api-key',
+  VIEW_API_KEY = 'view-api-key',
+
+  UPDATE_COMPANY_TYPES = 'update-company-types',
 }
 
 export enum PROVIDER_PERMISSIONS {

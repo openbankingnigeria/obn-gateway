@@ -12,7 +12,7 @@ import {
 import { INotFoundException } from '@common/utils/exceptions/exceptions';
 import { auditLogErrors } from '@auditLogs/auditLogs.errors';
 import { BaseEvent } from '@shared/events/base.event';
-import { ROLES } from '@common/database/constants';
+import { CompanyTypes, ROLES } from '@common/database/constants';
 import { GetAuditLogResponseDTO } from './dto/index.dto';
 import { RequestContext } from '@common/utils/request/request-context';
 
@@ -43,7 +43,7 @@ export class AuditLogsService {
   ) {
     const companyFilter: any = {};
 
-    if (ctx.activeUserType === ROLES.API_CONSUMER) {
+    if (ctx.activeCompany.type !== CompanyTypes.API_PROVIDER) {
       companyFilter.companyId = ctx.activeUser.companyId;
     }
 

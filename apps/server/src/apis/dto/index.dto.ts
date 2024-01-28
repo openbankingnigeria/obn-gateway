@@ -1,5 +1,6 @@
 import {
   ArrayNotEmpty,
+  ArrayUnique,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -19,12 +20,16 @@ import { Expose, Transform, Type } from 'class-transformer';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { GetCompanyResponseDTO } from '@company/dto/index.dto';
 import * as moment from 'moment';
+import { RequestContext } from '@common/utils/request/request-context';
+import { PERMISSIONS } from '@permissions/types';
+import { CompanyTypes } from '@common/database/constants';
 
 class CreateAPIDownstreamDTO {
   @IsArray()
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   @ArrayNotEmpty()
+  @ArrayUnique()
   paths: string[];
 
   @IsArray()
@@ -32,6 +37,7 @@ class CreateAPIDownstreamDTO {
   @IsNotEmpty({ each: true })
   @IsEnum(HTTP_METHODS, { each: true })
   @ArrayNotEmpty()
+  @ArrayUnique()
   methods: string[];
 }
 
@@ -96,6 +102,7 @@ class UpdateAPIDownstreamDTO {
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   @ArrayNotEmpty()
+  @ArrayUnique()
   paths: string[];
 
   @IsArray()
@@ -103,6 +110,7 @@ class UpdateAPIDownstreamDTO {
   @IsNotEmpty({ each: true })
   @IsEnum(HTTP_METHODS, { each: true })
   @ArrayNotEmpty()
+  @ArrayUnique()
   methods: string[];
 }
 
@@ -172,24 +180,27 @@ export class APIParam {
 }
 
 export class GETAPIDownstreamResponseDTO {
-  constructor(partial: Partial<GETAPIDownstreamResponseDTO>) {
+  constructor(partial: Partial<GETAPIDownstreamResponseDTO>, ctx?: RequestContext) {
     Object.assign(this, partial);
   }
 
   @IsArray()
   @Expose()
-  @IsString({ each: true })
   paths: string[];
 
   @IsArray()
   @Expose()
-  @IsString({ each: true })
   methods: string[];
 }
 
 export class GETAPIUpstreamResponseDTO {
-  constructor(partial: Partial<GETAPIUpstreamResponseDTO>) {
-    Object.assign(this, partial);
+  constructor(partial: Partial<GETAPIUpstreamResponseDTO>, ctx?: RequestContext) {
+    if (
+      ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT)
+      && ctx?.activeCompany.type === CompanyTypes.API_PROVIDER
+    ) {
+      Object.assign(this, partial);
+    }
   }
 
   @Expose()
@@ -212,8 +223,14 @@ export class GETAPIUpstreamResponseDTO {
 }
 
 export class GetAPIResponseDTO {
-  constructor(partial: GetAPIResponseDTO) {
+  constructor(partial: GetAPIResponseDTO, ctx?: RequestContext) {
     Object.assign(this, partial);
+    if (
+      !ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT)
+      || ctx?.activeCompany.type !== CompanyTypes.API_PROVIDER
+    ) {
+      this.upstream = null;
+    }
   }
 
   @Expose()
@@ -233,7 +250,7 @@ export class GetAPIResponseDTO {
   @Expose()
   @IsObject()
   @Type(() => GETAPIUpstreamResponseDTO)
-  upstream: GETAPIUpstreamResponseDTO;
+  upstream: GETAPIUpstreamResponseDTO | null;
 }
 
 class APILogResponseDto {
@@ -291,7 +308,7 @@ class APILogRequestDto {
 }
 
 export class APILogResponseDTO {
-  constructor(partial: any) {
+  constructor(partial: any, ctx?: RequestContext) {
     Object.assign(this, partial);
   }
 
@@ -336,10 +353,11 @@ export class UpdateCompanyAPIAccessDto {
   @IsNotEmpty()
   @IsString({ each: true })
   @IsUUID('all', { each: true })
+  @ArrayUnique()
   apiIds: string[];
 }
 export class APILogStatsResponseDTO {
-  constructor(partial: any) {
+  constructor(partial: any, ctx?: RequestContext) {
     Object.assign(this, partial);
   }
 
@@ -401,7 +419,7 @@ export class GetAPILogsDto {
 }
 
 export class GetStatsAggregateResponseDTO {
-  constructor(partial: GetStatsAggregateResponseDTO) {
+  constructor(partial: GetStatsAggregateResponseDTO, ctx?: RequestContext) {
     Object.assign(this, partial);
   }
 
@@ -422,8 +440,13 @@ export class SetAPITransformationDTO {
 }
 
 export class GetAPITransformationResponseDTO {
-  constructor(partial: Partial<GetAPITransformationResponseDTO>) {
-    Object.assign(this, partial);
+  constructor(partial: Partial<GetAPITransformationResponseDTO>, ctx?: RequestContext) {
+    if (
+      (ctx?.hasPermission(PERMISSIONS.SET_API_TRANSFORMATION) || ctx?.hasPermission(PERMISSIONS.VIEW_API_TRANSFORMATION))
+      && ctx?.activeCompany.type === CompanyTypes.API_PROVIDER
+    ) {
+      Object.assign(this, partial);
+    }
   }
 
   @Expose({ name: 'upstream' })

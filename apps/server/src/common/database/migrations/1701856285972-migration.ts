@@ -18,11 +18,9 @@ export class Migration1701856285972 implements MigrationInterface {
         [admin.parent_id],
       );
       const root = roots[0];
-      console.log({ admin, root });
       if (!root) {
         continue;
       }
-      console.log('continuinngngn', root.slug);
       if (root.slug === ROLES.API_CONSUMER) {
         const permissions = await queryRunner.query(
           `SELECT * FROM permissions WHERE slug IN (?)`,

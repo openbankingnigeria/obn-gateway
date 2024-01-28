@@ -13,6 +13,7 @@ import {
 } from './dto/index.dto';
 import {
   IBadRequestException,
+  IForbiddenException,
   INotFoundException,
 } from 'src/common/utils/exceptions/exceptions';
 import { roleErrors } from '@roles/role.errors';
@@ -25,6 +26,8 @@ import { RolePermission } from 'src/common/database/entities/rolepermission.enti
 import { roleErrorMessages, roleSuccessMessages } from '@roles/role.constants';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { RequestContext } from '@common/utils/request/request-context';
+import { authErrors } from '@auth/auth.errors';
+import { PERMISSIONS } from '@permissions/types';
 
 @Injectable()
 export class RolesService {
@@ -99,18 +102,12 @@ export class RolesService {
     { limit, page }: PaginationParameters,
     filters?: any,
   ) {
-    const where = [
-      {
-        parentId: ctx.activeUser.role.parentId,
-        companyId: ctx.activeUser.companyId,
-        ...filters,
-      },
-      {
-        id: ctx.activeUser.role.id,
-        companyId: IsNull(),
-        ...filters,
-      },
-    ];
+
+    const where = {
+      ...filters,
+      parentId: ctx.activeUser.role.parentId,
+      companyId: ctx.activeUser.companyId,
+    }
 
     const totalRoles = await this.roleRepository.count({ where });
 
@@ -180,6 +177,19 @@ export class RolesService {
     }
 
     const { description, status } = data;
+
+    if (status && (status !== role.status)) {
+      if (status === RoleStatuses.ACTIVE && !ctx?.hasPermission(PERMISSIONS.ACTIVATE_ROLE)) {
+        throw new IForbiddenException({
+          message: authErrors.inadequatePermissions,
+        });
+      }
+      if (status === RoleStatuses.INACTIVE && !ctx?.hasPermission(PERMISSIONS.DEACTIVATE_ROLE)) {
+        throw new IForbiddenException({
+          message: authErrors.inadequatePermissions,
+        });
+      }
+    }
 
     const updatedRole = this.roleRepository.create({
       description,
