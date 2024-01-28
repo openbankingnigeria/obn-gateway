@@ -14,14 +14,15 @@ async function bootstrap() {
   // Config
   const configService = app.get(ConfigService);
   const port = configService.get('server.port');
-  const managementUrl = configService.getOrThrow('server.managementUrl')
+  const corsOrigins = configService.get<string>('server.corsOrigins')
 
   // Logging
   app.useLogger(app.get(Logger));
   const logger = new NestLogger();
 
-  // TODO enable.
-  // app.enableCors({ origin: new URL(managementUrl).origin });
+  if (corsOrigins) {
+    app.enableCors({ origin: corsOrigins.split(',') });
+  }
 
   await new SetupService().performSetupTasks().catch(e => logger.error(e));
 
