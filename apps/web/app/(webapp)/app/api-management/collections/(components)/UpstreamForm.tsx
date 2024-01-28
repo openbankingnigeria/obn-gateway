@@ -3,20 +3,27 @@
 import { InputElement, ToggleSwitch } from '@/components/forms'
 import { Button } from '@/components/globalComponents';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
-import { APIConfigurationProps } from '@/types/webappTypes/appTypes';
+import { APIConfigurationProps, KeyValueProps } from '@/types/webappTypes/appTypes';
 import React, { useState } from 'react'
 import * as API from '@/config/endpoints';
 import { useRouter } from 'next/navigation';
 import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
+import { HeadersContainer, KeyValueContainer } from '.';
 
 const UpStreamForm = ({
   rawData,
   profileData
 }: APIConfigurationProps) => {
   const [enable, setEnable] = useState(rawData?.enabled || false);
-  const [host, setHost] = useState(rawData?.upstream?.host || '');
-  const [headerValue, setHeaderValue] = useState('');
-  const [headerName, setHeaderName] = useState('');
+  const [headers, setHeaders] = useState<KeyValueProps[]>(
+    rawData?.upstream?.headers ? [...rawData?.upstream?.headers] : []
+  );
+  const [body, setBody] = useState<KeyValueProps[]>(
+    rawData?.upstream?.body ? [...rawData?.upstream?.body] : []
+  );
+  const [querystring, setQueryString] = useState<KeyValueProps[]>(
+    rawData?.upstream?.querystring ? [...rawData?.upstream?.querystring] : []
+  );
   const [endpointUrl, setEndpointUrl] = useState(rawData?.upstream?.url || '');
 
   const [open2FA, setOpen2FA] = useState(false);
@@ -24,10 +31,77 @@ const UpStreamForm = ({
   const environment = 'development';
   const router = useRouter();
 
+  console.log(headers, body, querystring, rawData);
+
+  const handleRemove = (type: string, value: string | number) => {
+    type == 'body' ?
+      setBody([...body].filter((item) => item.id !== value)) :
+      type == 'headers' ?
+        setHeaders([...headers].filter((item) => item.id !== value)) :
+        setQueryString([...querystring].filter((item) => item.id !== value));
+  };
+
+  const handleInputChange = (value: string, obj: any, key: any, type: string) => {
+    if (type == 'body') {
+      const [oldBody] = body.filter((bdy) => bdy == obj);
+      // @ts-ignore
+      oldBody[key] = value;
+  
+      const newBodies = body;
+      newBodies[body.indexOf(obj)] = oldBody;
+      setBody([...newBodies]);
+    } else if (type == 'headers') {
+      const [oldHeader] = headers.filter((header) => header == obj);
+      // @ts-ignore
+      oldHeader[key] = value;
+  
+      const newHeaders = headers;
+      newHeaders[headers.indexOf(obj)] = oldHeader;
+      setHeaders([...newHeaders]);
+    } else {
+      const [oldQueryString] = querystring.filter((host) => host == obj);
+      // @ts-ignore
+      oldQueryString[key] = value;
+  
+      const newQueryStrings = querystring;
+      newQueryStrings[querystring.indexOf(obj)] = oldQueryString;
+      setQueryString([...newQueryStrings]);
+    }
+  }
+
+  const handleAdd = (type: string) => {
+    type == 'body' ?
+      setBody(prev => [
+        ...prev,
+        {
+          id: prev?.length,
+          key: '',
+          value: ''
+        } 
+      ]) :
+      type == 'querystring' ?
+        setQueryString(prev => [
+          ...prev,
+          {
+            id: prev?.length,
+            key: '',
+            value: ''
+          } 
+        ]) :
+        setHeaders(prev => [
+          ...prev, 
+          {
+            id: prev?.length,
+            key: '',
+            value: ''
+          }
+        ])
+  };
+
   const incorrect = (
-    !host ||
-    // !headerName ||
-    // !headerValue ||
+    headers?.length < 1 ||
+    body?.length < 1 ||
+    querystring?.length < 1 ||
     !endpointUrl
   );
 
@@ -53,8 +127,25 @@ const UpStreamForm = ({
             "enabled": enable,
             "upstream": {
               ...rawData?.upstream,
-              host,
-              url: endpointUrl
+              url: endpointUrl,
+              headers: headers?.map((header) => {
+                return({
+                  key: header?.key,
+                  value: header?.value
+                })
+              }),
+              body: body?.map((bdy) => {
+                return({
+                  key: bdy?.key,
+                  value: bdy?.value
+                })
+              }),
+              querystring: querystring?.map((qs) => {
+                return({
+                  key: qs?.key,
+                  value: qs?.value
+                })
+              }),
             },
             "downstream": rawData?.downstream
           }
@@ -117,17 +208,47 @@ const UpStreamForm = ({
               changeValue={setEndpointUrl}
               required
             />
-            <InputElement 
-              name='host'
-              type='text'
-              placeholder='Enter a host'
-              label='Host'
-              changeValue={setHost}
-              value={host}
-              required
-            />
 
-            <div className='w-full flex items-end gap-[12px]'>
+          <div className='w-full flex flex-col gap-[12px]'>
+            <KeyValueContainer 
+              data={headers}
+              handleInputChange={handleInputChange}
+              handleRemove={handleRemove}
+              handleAdd={handleAdd}
+              keyPlaceholder='Enter a header key'
+              valuePlaceholder='Enter a header value'
+              type='headers'
+              label='Headers'
+            />
+          </div>
+
+          <div className='w-full flex flex-col gap-[12px]'>
+            <KeyValueContainer 
+              data={body}
+              handleInputChange={handleInputChange}
+              handleRemove={handleRemove}
+              handleAdd={handleAdd}
+              keyPlaceholder='Enter a body key'
+              valuePlaceholder='Enter a body value'
+              type='body'
+              label='Body'
+            />
+          </div>
+
+          <div className='w-full flex flex-col gap-[12px]'>
+            <KeyValueContainer 
+              data={querystring}
+              handleInputChange={handleInputChange}
+              handleRemove={handleRemove}
+              handleAdd={handleAdd}
+              keyPlaceholder='Enter a querystring key'
+              valuePlaceholder='Enter a querystring value'
+              type='querystring'
+              label='Querystring'
+            />
+          </div>
+
+            {/* <div className='w-full flex items-end gap-[12px]'>
               <InputElement 
                 name='headerName'
                 type='text'
@@ -146,7 +267,7 @@ const UpStreamForm = ({
                 changeValue={setHeaderValue}
                 // required
               />
-            </div>
+            </div> */}
 
             <div className='w-full flex justify-end'>
               <Button 
