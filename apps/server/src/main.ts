@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { SetupService } from './setup';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+const app = await NestFactory.create(AppModule, { cors: { origin: '*' } });
 
   // Config
   const configService = app.get(ConfigService);
@@ -21,7 +21,7 @@ async function bootstrap() {
   const logger = new NestLogger();
 
   if (corsOrigins) {
-    app.enableCors({ origin: corsOrigins.split(',') });
+    // app.enableCors({ origin: corsOrigins.split(',') });
   }
 
   await new SetupService().performSetupTasks().catch(e => logger.error(e));
