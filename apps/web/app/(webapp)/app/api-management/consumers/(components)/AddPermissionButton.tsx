@@ -68,20 +68,20 @@ const AddPermissionButton = ({
     } else {
       setLoading(true);
       
-      let sanitizedApiIds = apiIds?.map((item: any) => item.id);
+      // let sanitizedApiIds = apiIds?.map((item: any) => item.id);
 
       const result: any = await clientAxiosRequest({
         headers: code ? { 'X-TwoFA-Code' : code, } : {},
-        apiEndpoint: API.postAssignAPIs({
+        apiEndpoint: API.updateConsumerAPIAccess({
           environment,
           id: customerId
         }),
-        method: 'POST',
-        data: { apiIds: sanitizedApiIds }
+        method: 'PUT',
+        data: { apiIds: apiIds }
       });
 
       setLoading(false);
-      if (result?.status == 201) {
+      if (result?.status == 200) {
         close2FAModal();
         refreshData();
         router.refresh();

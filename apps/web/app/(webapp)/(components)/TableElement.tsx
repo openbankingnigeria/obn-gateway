@@ -148,7 +148,6 @@ const TableElement = ({
                             /> 
                             :
                             cell.id?.includes('categories') ?
-                              // TODO: CHECK IF CATEGORIES IS AN ARRAY OR NOT
                               // @ts-ignore
                               cell.getValue()?.map((data: any) => (
                                 <div key={data} className='w-fit inline-block mr-1'>

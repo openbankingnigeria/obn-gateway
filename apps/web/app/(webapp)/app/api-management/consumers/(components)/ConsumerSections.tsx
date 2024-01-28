@@ -39,6 +39,8 @@ const ConsumerSections = ({
   const [api_endpoint, setApiEndpoint] = useState<any>(null);
   const environment = 'development';
 
+  // console.log(rawData);
+
   const [endpoint_url, setEndpointUrl] = useState('');
   const [parameters, setParameters] = useState('');
   const [snis, setSnis] = useState<SnisProps[]>([]);
@@ -290,7 +292,7 @@ const ConsumerSections = ({
                     tableHeaders={tableHeaders}
                     rawData={rawData}
                     filters={filters}
-                    actionColumn={actionColumn}
+                    // actionColumn={actionColumn}
                     totalElementsInPage={totalElementsInPage}
                     rows={rows}
                     page={page}

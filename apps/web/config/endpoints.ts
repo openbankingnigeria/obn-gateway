@@ -90,6 +90,8 @@ export const updateAPITransformation = ({ environment, id }: GetSingleEnvironmen
   `${BASE_URL}/apis/${environment}/${id}/transformation`;
 export const getAPITransformation = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}/transformation`;
+export const updateConsumerAPIAccess = ({ environment, id }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/company/${id}`
 
 // COMPANY
 export const getCompanies = ({ page, limit, name, createdAt_gt, createdAt_l, status }: GetListProps) => 
