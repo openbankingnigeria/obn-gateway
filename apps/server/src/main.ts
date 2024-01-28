@@ -20,7 +20,8 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   const logger = new NestLogger();
 
-  app.enableCors({ origin: new URL(managementUrl).origin });
+  // TODO enable.
+  // app.enableCors({ origin: new URL(managementUrl).origin });
 
   await new SetupService().performSetupTasks().catch(e => logger.error(e));
 
