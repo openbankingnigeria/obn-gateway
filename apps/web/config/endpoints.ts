@@ -91,7 +91,8 @@ export const updateAPITransformation = ({ environment, id }: GetSingleEnvironmen
 export const getAPITransformation = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}/transformation`;
 export const updateConsumerAPIAccess = ({ environment, id }: GetSingleEnvironmentProps) => 
-  `${BASE_URL}/apis/${environment}/company/${id}`
+  `${BASE_URL}/apis/${environment}/company/${id}`;
+
 
 // COMPANY
 export const getCompanies = ({ page, limit, name, createdAt_gt, createdAt_l, status }: GetListProps) => 
@@ -107,3 +108,5 @@ export const updateCompanyStatus = ({ id }: GetSingleProps) =>
 export const updateCompanyDetails = () => `${BASE_URL}/company/kyb`;
 export const getCompanyTypes = () => `${BASE_URL}/company/types`;
 export const getCompanyDetails = () => `${BASE_URL}/company/me`;
+export const getCompanyStats = () => 
+  `${BASE_URL}/companies/stats/periodic-aggregate`

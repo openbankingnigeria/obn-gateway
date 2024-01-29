@@ -10,6 +10,7 @@ const KeyValueContainer = ({
   handleRemove,
   handleAdd,
   keyPlaceholder,
+  preview,
   valuePlaceholder,
   type,
   label
@@ -31,6 +32,7 @@ const KeyValueContainer = ({
                   placeholder={keyPlaceholder}
                   label={index == 0 ? label : ''}
                   autoFocus
+                  disabled={preview}
                   value={keyvalue?.name}
                   changeValue={(value: string) => handleInputChange(value, keyvalue, 'key', containerType)}
                   required
@@ -40,42 +42,48 @@ const KeyValueContainer = ({
                   name={`keyvalue${keyvalue?.id}`}
                   placeholder={valuePlaceholder}
                   value={keyvalue?.value}
+                  disabled={preview}
                   changeValue={(value: string) => handleInputChange(value, keyvalue, 'value', containerType)}
                   required
                 />
               </div>
 
-              <div className={`flex items-center min-w-[56px] gap-[8px] ${index == 0 && 'mt-6'}`}>
-                <div 
-                  onClick={() => handleRemove(containerType, keyvalue?.id)}
-                  className='min-w-[24px] h-[24px] cursor-pointer'
-                >
-                  <Image 
-                    src={'/icons/trash.svg'}
-                    alt='remove'
-                    width={24}
-                    height={24}
-                  />
-                </div>
-
-                {
-                  index == (data?.length - 1) &&
+              {
+                !preview &&
+                <div className={`flex items-center min-w-[56px] gap-[8px] ${index == 0 && 'mt-6'}`}>
                   <div 
-                    onClick={() => handleAdd(containerType)}
+                    onClick={() => handleRemove(containerType, keyvalue?.id)}
                     className='min-w-[24px] h-[24px] cursor-pointer'
                   >
                     <Image 
-                      src={'/icons/plus.svg'}
-                      alt='add'
+                      src={'/icons/trash.svg'}
+                      alt='remove'
                       width={24}
                       height={24}
                     />
                   </div>
-                }
-              </div>
+
+                  {
+                    index == (data?.length - 1) &&
+                    <div 
+                      onClick={() => handleAdd(containerType)}
+                      className='min-w-[24px] h-[24px] cursor-pointer'
+                    >
+                      <Image 
+                        src={'/icons/plus.svg'}
+                        alt='add'
+                        width={24}
+                        height={24}
+                      />
+                    </div>
+                  }
+                </div>
+              }
           </div>
           ))
           :
+          preview ?
+          null :
           <Button 
             title={`Add ${label}`}
             effect={() => handleAdd(containerType)}

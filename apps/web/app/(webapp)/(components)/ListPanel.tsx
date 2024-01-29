@@ -4,6 +4,7 @@ import { ListPanelContainerProps } from '@/types/webappTypes/componentsTypes'
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getObjectsNotInArrayB } from '@/utils/getObjectNotInArray';
+import { FaRegTimesCircle } from "react-icons/fa";
 
 const ListPanel = ({
   panel,
@@ -23,6 +24,7 @@ const ListPanel = ({
     if (panelOut?.find((item: any) => item?.id == data?.id)) {
       const filteredItem = panelOut?.filter(item => item?.id != data?.id);
       setPanelOut(filteredItem);
+      setCurrentValue(panelOut[0]?.value);
     } else {
       setPanelOut((prev: any) => [...prev, data]);
     }
@@ -36,13 +38,24 @@ const ListPanel = ({
         panelOut?.map((data) => (
           <div 
             key={data?.id} 
-            className='relative whitespace-nowrap cursor-pointer w-fit flex flex-col px-[4px] pt-[9px] pb-[11px]'
-            onClick={() => setCurrentValue(data?.value)}
+            className='relative whitespace-nowrap w-fit flex flex-col px-[4px] pt-[9px] pb-[11px]'
           >
-            <div className={`${currentValue == data?.value ? 'text-o-blue font-[500]' : 'text-o-text-medium3'} 
-              capitalize text-f14 hover:text-o-blue`}
+            <div 
+              className={`${currentValue == data?.value ? 'text-o-blue font-[500]' : 'text-o-text-medium3'} 
+              capitalize text-f14 flex items-center gap-3 hover:text-o-blue`}
             >
-              {data?.label}
+              <div 
+                onClick={() => setCurrentValue(data?.value)}
+                className='w-fit cursor-pointer'
+              >
+                {data?.label}
+              </div>
+
+              <FaRegTimesCircle 
+                size={17}
+                className='cursor-pointer'
+                onClick={() => handlePanelList(data)}
+              />
             </div>
 
             {

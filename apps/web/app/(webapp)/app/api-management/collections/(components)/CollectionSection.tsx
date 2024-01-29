@@ -227,6 +227,8 @@ const CollectionSection = ({
                   // })
                   action.name == 'configure' ?
                     router.push(`/app/api-management/collections/${details?.id}/api-configuration?api_id=${row.original.id}`) :
+                    action.name == 'preview' ?
+                    router.push(`/app/api-management/collections/${details?.id}/api-configuration?api_id=${row.original.id}&preview=true`) :
                     setOpenModal(action.name);
                 }}
               >
