@@ -1,4 +1,5 @@
 import { GetCompanyResponseDTO } from '@company/dto/index.dto';
+import { GetProfileResponseDTO } from '@profile/dto/index.dto';
 import { GetRoleResponseDTO } from '@roles/dto/index.dto';
 import { userConfig, userErrors } from '@users/user.errors';
 import { Expose, Type } from 'class-transformer';
@@ -94,6 +95,11 @@ export class GetUserResponseDTO {
   @IsObject()
   @Type(() => GetCompanyResponseDTO)
   company: GetCompanyResponseDTO;
+
+  @Expose()
+  @IsObject()
+  @Type(() => GetProfileResponseDTO)
+  profile: GetProfileResponseDTO;
 
   @Expose()
   createdAt: Date;
