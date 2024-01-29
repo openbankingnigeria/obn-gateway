@@ -21,6 +21,26 @@ const EditPermissionButton = ({
   const [collections, setCollections] = useState([]);
   const [apiIds, setApiIds] = useState<string[]>([]);
   const environment = 'development';
+  const [refresh, setRefresh] = useState(false);
+
+  const fetchConsumerAPIs = async () => {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyAPIs({
+        page: '1',
+        limit: '1000',
+        environment,
+        companyId: rawData?.id,
+      }),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+    const sanitizedAPIs = result?.data?.map((api: any) => {
+      return api?.id;
+    });
+    setApiIds([...sanitizedAPIs]);
+  }
 
   const fetchAPICollections = async () => {
     const result: any = await clientAxiosRequest({
@@ -49,6 +69,10 @@ const EditPermissionButton = ({
     fetchAPICollections();
   }, []);
 
+  useEffect(() => {
+    fetchConsumerAPIs();
+  }, [refresh])
+
   const close2FAModal = () => {
     setOpen2FA(false);
     setOpenModal(false);
@@ -66,7 +90,7 @@ const EditPermissionButton = ({
     } else {
       setLoading(true);
       
-      let sanitizedApiIds = apiIds?.map((item: any) => item.id);
+      // let sanitizedApiIds = apiIds?.map((item: any) => item.id);
 
       const result: any = await clientAxiosRequest({
         headers: code ? { 'X-TwoFA-Code' : code, } : {},
@@ -100,6 +124,7 @@ const EditPermissionButton = ({
               close={() => setOpenModal(false)}
               data={collections}
               next={handleEdit}
+              setRefresh={setRefresh}
               searchQuery={searchQuery}
               loading={loading}
               api_ids={apiIds}
@@ -126,7 +151,10 @@ const EditPermissionButton = ({
         <Button 
           title='Edit permissions'
           small
-          effect={() => setOpenModal(true)}
+          effect={() => {
+            setOpenModal(true);
+            setRefresh(prev => !prev);
+          }}
         />
       </div>
     </>

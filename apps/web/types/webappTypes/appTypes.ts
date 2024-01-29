@@ -83,6 +83,7 @@ export interface SectionsProps {
   rawData: any[];
   altData?: any;
   profileData?: any;
+  listData?: any;
   tableHeaders: any[];
   filters: any[];
   rows: number;
@@ -209,6 +210,7 @@ export interface PermissionSelectorProps {
 export interface ApiPermissionSelectorProps {
   name: string;
   options: any[];
+  setCount?: Dispatch<SetStateAction<number>>;
   values: string[];
   changeValues: Dispatch<SetStateAction<string[]>>;
 }
@@ -225,6 +227,7 @@ export interface ApiPermissionCardProps {
   label: string;
   apiIds: string[];
   value: string;
+  apiList?: string[];
   changeApiIds: Dispatch<SetStateAction<string[]>>;
   options: PermissionOptionsProps[];
 }
@@ -300,6 +303,8 @@ export interface EditAPIPermissionProps {
 export interface AddAPIPermissionsProps extends RoleComponentsProps {
   loading?: boolean;
   api_ids: string[];
+  setRefresh?: Dispatch<SetStateAction<boolean>>;
   searchQuery?: string;
+  apiList?: any[];
   setApiIds: Dispatch<SetStateAction<string[]>>;
 }

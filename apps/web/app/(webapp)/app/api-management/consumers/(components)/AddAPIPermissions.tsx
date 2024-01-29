@@ -13,6 +13,7 @@ const AddAPIPermissions = ({
   close,
   data,
   next,
+  setRefresh,
   loading,
   searchQuery,
   api_ids,
