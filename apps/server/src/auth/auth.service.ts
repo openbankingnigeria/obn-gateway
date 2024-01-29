@@ -251,6 +251,11 @@ export class AuthService {
             bvn: hashSync(bvn, 12),
           });
 
+          await this.companyRepository.update(
+            { id: companyCreated.id },
+            { primaryUser: user.id as any },
+          );
+
           const event = new AuthSignupEvent(user, { otp });
 
           user.company = companyCreated;
@@ -330,6 +335,11 @@ export class AuthService {
               phone,
             },
           });
+
+          await this.companyRepository.update(
+            { id: companyCreated.id },
+            { primaryUser: user.id as any },
+          );
 
           const event = new AuthSignupEvent(user, { otp });
 

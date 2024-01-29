@@ -315,7 +315,7 @@ export class CompanyService {
       tier?: string;
     } = { name: company.name };
 
-    if (company.rcNumber) {
+    if (company.rcNumber && company.type === CompanyTypes.LICENSED_ENTITY) {
       businessDetails = this.verifyCompanyRC(company.rcNumber, company.name);
     }
 
