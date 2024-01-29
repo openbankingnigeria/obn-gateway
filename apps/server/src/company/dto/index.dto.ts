@@ -101,8 +101,9 @@ export class GetCompanyResponseDTO {
   @Expose()
   status: string;
 
+  @Type(() => Map)
   @Expose()
-  kybData: string;
+  kybData: Map<string, any>;
 
   @Expose()
   type: CompanyTypes;
