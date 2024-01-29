@@ -28,6 +28,7 @@ import {
 } from '@shared/events/company.event';
 import {
   GetCompanyCustomFieldsResponseDTO,
+  GetCompanyKYBDataResponseDTO,
   GetCompanyResponseDTO,
   GetCompanySubTypesResponseDTO,
   GetCompanyTypesResponseDTO,
@@ -196,7 +197,7 @@ export class CompanyService {
       'Successfully fetched company details',
       new GetCompanyResponseDTO({
         ...company,
-        kybData: kybDetails,
+        kybData: new GetCompanyKYBDataResponseDTO(kybDetails),
       }),
     );
   }

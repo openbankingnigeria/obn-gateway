@@ -75,6 +75,16 @@ export class PrimaryUserDto {
   profile?: ProfileDto;
 }
 
+export class GetCompanyKYBDataResponseDTO {
+  constructor(partial: any) {
+    Object.assign(this, partial);
+  }
+
+  @Type(() => Map)
+  @Expose()
+  kybData: Map<string, any>;
+}
+
 export class GetCompanyResponseDTO {
   constructor(partial: any) {
     Object.assign(this, partial);
@@ -100,10 +110,6 @@ export class GetCompanyResponseDTO {
 
   @Expose()
   status: string;
-
-  @Type(() => Map)
-  @Expose()
-  kybData: Map<string, any>;
 
   @Expose()
   type: CompanyTypes;
