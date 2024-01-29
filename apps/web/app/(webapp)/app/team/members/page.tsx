@@ -59,9 +59,9 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
 
   const panel = MEMBERS_STATUS_DATA({
     all: stats?.reduce((acc: any, obj: any) => acc + Number(obj.count), 0),
+    active: stats?.find((stat: any) => stat?.value == 'active')?.count,
+    inactive: stats?.find((stat: any) => stat?.value == 'inactive')?.count,
     invited: stats?.find((stat: any) => stat?.value == 'pending')?.count
-    // all: 29,
-    // invited: 4
   })?.map((pane: any) => {
     if (pane?.panel) { return pane }
   });

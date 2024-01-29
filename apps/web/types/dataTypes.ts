@@ -57,6 +57,8 @@ export interface MockServicesProps {
 export interface MembersStatusProps {
   all?: number;
   invited?: number;
+  active?: number;
+  inactive?: number;
 }
 
 export interface TestModeConfigurationProps {

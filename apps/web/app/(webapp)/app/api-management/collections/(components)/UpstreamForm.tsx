@@ -12,7 +12,8 @@ import { HeadersContainer, KeyValueContainer } from '.';
 
 const UpStreamForm = ({
   rawData,
-  profileData
+  profileData,
+  preview
 }: APIConfigurationProps) => {
   const [enable, setEnable] = useState(rawData?.enabled || false);
   const [headers, setHeaders] = useState<KeyValueProps[]>(
@@ -30,6 +31,7 @@ const UpStreamForm = ({
   const [loading, setLoading] = useState(false);
   const environment = 'development';
   const router = useRouter();
+  const previewPage = preview == 'true';
 
   // console.log(headers, body, querystring, rawData);
 
@@ -98,12 +100,12 @@ const UpStreamForm = ({
         ])
   };
 
-  const incorrect = (
-    headers?.length < 1 ||
-    body?.length < 1 ||
-    querystring?.length < 1 ||
-    !endpointUrl
-  );
+  // const incorrect = (
+  //   headers?.length < 1 ||
+  //   body?.length < 1 ||
+  //   querystring?.length < 1 ||
+  //   !endpointUrl
+  // );
 
   const close2FAModal = () => {
     setOpen2FA(false);
@@ -195,7 +197,7 @@ const UpStreamForm = ({
 
               <ToggleSwitch 
                 toggle={enable}
-                setToggle={setEnable}
+                setToggle={previewPage ? ()=>null : setEnable}
               />
             </div>
 
@@ -205,6 +207,7 @@ const UpStreamForm = ({
               placeholder='Enter endpoint url'
               label='Endpoint URL'
               value={endpointUrl}
+              disabled={previewPage}
               changeValue={setEndpointUrl}
               required
             />
@@ -215,6 +218,7 @@ const UpStreamForm = ({
               handleInputChange={handleInputChange}
               handleRemove={handleRemove}
               handleAdd={handleAdd}
+              preview={previewPage}
               keyPlaceholder='Enter a header key'
               valuePlaceholder='Enter a header value'
               type='headers'
@@ -228,6 +232,7 @@ const UpStreamForm = ({
               handleInputChange={handleInputChange}
               handleRemove={handleRemove}
               handleAdd={handleAdd}
+              preview={previewPage}
               keyPlaceholder='Enter a body key'
               valuePlaceholder='Enter a body value'
               type='body'
@@ -241,10 +246,11 @@ const UpStreamForm = ({
               handleInputChange={handleInputChange}
               handleRemove={handleRemove}
               handleAdd={handleAdd}
+              preview={previewPage}
               keyPlaceholder='Enter a querystring key'
               valuePlaceholder='Enter a querystring value'
               type='querystring'
-              label='Querystring'
+              label='Query string'
             />
           </div>
 
@@ -269,16 +275,19 @@ const UpStreamForm = ({
               />
             </div> */}
 
-            <div className='w-full flex justify-end'>
-              <Button 
-                title='Save changes'
-                type='submit'
-                loading={loading}
-                containerStyle='!w-[120px]'
-                disabled={incorrect}
-                small
-              />
-            </div>
+            {
+              !previewPage &&
+              <div className='w-full flex justify-end'>
+                <Button 
+                  title='Save changes'
+                  type='submit'
+                  loading={loading}
+                  containerStyle='!w-[120px]'
+                  // disabled={incorrect}
+                  small
+                />
+              </div>
+            }
           </div>
         </div>
       </form>

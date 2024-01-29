@@ -50,7 +50,7 @@ const DownStreamForm = ({
             value={request_method}
             required
           />
-          <InputElement 
+          {/* <InputElement 
             name='tier'
             type='text'
             placeholder=''
@@ -58,7 +58,7 @@ const DownStreamForm = ({
             disabled
             value={tier}
             required
-          />
+          /> */}
           <InputElement 
             name='paths'
             type='text'

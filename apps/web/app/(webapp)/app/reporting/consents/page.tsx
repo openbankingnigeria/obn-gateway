@@ -14,11 +14,11 @@ const ConsentsPage = ({ searchParams }: UrlParamsProps) => {
 
   const filters = [search_query, status, date_sent];
   const panel = CONSENTS_STATUS_DATA({
-    all: 40, 
-    approved: 32,
-    pending: 2, 
-    revoked: 1, 
-    declined: 5
+    all: 0, 
+    approved: 0,
+    pending: 0, 
+    revoked: 0, 
+    declined: 0
   });
 
   const headers = CONSENTS_TABLE_HEADERS;
