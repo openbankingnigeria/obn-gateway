@@ -349,7 +349,6 @@ export class SettingsService {
       });
     }
 
-    console.log({ settingType, data });
     if (settingType === SETTINGS_TYPES.EMAIL_TEMPLATES) {
       const { body, title, temmplateId } = data as EmailTemplateDto;
 
