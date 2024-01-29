@@ -1,7 +1,7 @@
 'use client'
 
 import { ApiPermissionCardProps } from '@/types/webappTypes/appTypes';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ApiPermissionSelector } from '.';
 
 const ApiPermissionCard = ({
@@ -12,6 +12,13 @@ const ApiPermissionCard = ({
   options
 }: ApiPermissionCardProps) => {
   const [openList, setOpenList] = useState(false);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    setCount(options?.filter((obj: any) => apiIds?.includes(obj?.id))?.length)
+  }, [apiIds]);
+
+  // console.log(options?.length, apiIds?.length, count);
 
   const openApisHandler = () => {
     setOpenList(prev => !prev);
@@ -29,7 +36,7 @@ const ApiPermissionCard = ({
 
         <div className='w-fit flex items-center gap-[8px]'>
           <span className='text-f12 text-[#667085]'>
-            0 selected
+            {count} selected
           </span>
 
           <svg 
@@ -58,6 +65,7 @@ const ApiPermissionCard = ({
             name={value}
             options={options}
             values={apiIds}
+            // setCount={setCount}
             changeValues={changeApiIds}
           />
         )

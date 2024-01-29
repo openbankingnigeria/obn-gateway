@@ -83,7 +83,7 @@ const EmptyState = ({
               buttonType == 'ADD_PERMISSIONS' ?
               <AddPermissionButton 
                 searchQuery={searchQuery || ''}
-                customerId={altData} 
+                companyId={altData} 
               />
               : null
           )

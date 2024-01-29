@@ -8,6 +8,7 @@ const ApiPermissionSelector = ({
   name,
   options,
   values,
+  setCount,
   changeValues
 }: ApiPermissionSelectorProps) => {
   const handleSelect = (id: string) => {

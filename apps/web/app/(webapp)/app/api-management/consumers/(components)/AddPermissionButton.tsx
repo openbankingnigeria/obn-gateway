@@ -10,10 +10,10 @@ import { AddAPIPermissions } from '.';
 
 const AddPermissionButton = ({ 
   searchQuery,
-  customerId 
+  companyId 
 }: {
   searchQuery: string,
-  customerId: string
+  companyId: string
 }) => {
   const [openModal, setOpenModal] = useState(false);
   const [open2FA, setOpen2FA] = useState(false);
@@ -23,6 +23,26 @@ const AddPermissionButton = ({
   const [collections, setCollections] = useState([]);
   const [apiIds, setApiIds] = useState<string[]>([]);
   const environment = 'development';
+  const [refresh, setRefresh] = useState(false);
+
+  const fetchConsumerAPIs = async () => {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyAPIs({
+        page: '1',
+        limit: '1000',
+        environment,
+        companyId: companyId,
+      }),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+    const sanitizedAPIs = result?.data?.map((api: any) => {
+        return api?.id;
+      });
+    setApiIds([...sanitizedAPIs]);
+  }
 
   const fetchAPICollections = async () => {
     const result: any = await clientAxiosRequest({
@@ -51,6 +71,10 @@ const AddPermissionButton = ({
     fetchAPICollections();
   }, []);
 
+  useEffect(() => {
+    fetchConsumerAPIs();
+  }, [refresh])
+
   const close2FAModal = () => {
     setOpen2FA(false);
     setOpenModal(false);
@@ -74,7 +98,7 @@ const AddPermissionButton = ({
         headers: code ? { 'X-TwoFA-Code' : code, } : {},
         apiEndpoint: API.updateConsumerAPIAccess({
           environment,
-          id: customerId
+          id: companyId
         }),
         method: 'PUT',
         data: { apiIds: apiIds }
@@ -103,6 +127,7 @@ const AddPermissionButton = ({
               data={collections}
               next={handleAddPermission}
               searchQuery={searchQuery}
+              setRefresh={setRefresh}
               loading={loading}
               api_ids={apiIds}
               setApiIds={setApiIds}
@@ -128,7 +153,10 @@ const AddPermissionButton = ({
         <Button 
           title='Add permission'
           small
-          effect={() => setOpenModal(true)}
+          effect={() => {
+            setOpenModal(true);
+            setRefresh(prev => !prev);
+          }}
           containerStyle='w-fit'
         />
       </div>
