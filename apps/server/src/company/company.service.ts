@@ -33,8 +33,6 @@ import {
   GetCompanyTypesResponseDTO,
   GetStatsDto,
   GetStatsResponseDTO,
-  PrimaryUserDto,
-  ProfileDto,
   UpdateCompanyKybStatusResponseDTO,
   UpdateKybStatusDto,
 } from './dto/index.dto';
@@ -199,10 +197,6 @@ export class CompanyService {
       new GetCompanyResponseDTO({
         ...company,
         kybData: kybDetails,
-        primaryUser: new PrimaryUserDto({
-          ...company.primaryUser,
-          profile: new ProfileDto(company.primaryUser?.profile),
-        }),
       }),
     );
   }
