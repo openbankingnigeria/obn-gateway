@@ -30,11 +30,19 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  const fetchedStats: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyStats(),
+    method: 'GET',
+    data: null
+  });
+
   if (fetchedConsumers?.status == 401) {
     return <Logout />
   }
 
   let meta_data = fetchedConsumers?.meta_data;
+  let stats = fetchedStats?.data;
   let consumers = fetchedConsumers?.data?.map((consumer: any) => {
     return({
       ...consumer,
@@ -45,16 +53,17 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
         ${consumer?.primaryUser?.profile?.lastName}` :
         null,
       email_address: consumer?.primaryUser?.email,
-      status: consumer?.status
+      status: consumer?.kybStatus
     })
   });
 
+  // TODO: STATS REQUIRED DATE FILTER (SHOULD BE REMOVED)
   const panel = CONSUMERS_STATUS_DATA({
-    all: 1290, 
-    pending: 28, 
-    active: 920, 
-    inactive: 109, 
-    rejected: 112
+    all: stats?.reduce((acc: any, obj: any) => acc + Number(obj.count), 0), 
+    pending: stats?.find((stat: any) => stat?.value == 'pending')?.count, 
+    active: stats?.find((stat: any) => stat?.value == 'active')?.count, 
+    inactive: stats?.find((stat: any) => stat?.value == 'inactive')?.count, 
+    rejected: stats?.find((stat: any) => stat?.value == 'rejected')?.count,
   });
 
   const headers = CONSUMERS_TABLE_HEADERS;
@@ -109,6 +118,7 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
             <ConsumersTable 
               tableHeaders={headers}
               rawData={consumers}
+              altData={stats}
               filters={filters}
               rows={rows}
               totalElementsInPage={total_elements_in_page}

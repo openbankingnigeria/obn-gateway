@@ -7,6 +7,7 @@ import Logout from '@/components/globalComponents/Logout';
 
 const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => {
   const api_id = searchParams?.api_id || '';
+  const preview = searchParams?.preview || '';
   const environment = 'development';
 
   const fetchedAPI: any = await applyAxiosRequest({
@@ -45,10 +46,12 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
       <UpstreamForm 
         rawData={apiDetails}
         profileData={profile}
+        preview={preview}
       />
       <TransformationForm 
         rawData={apiDetails}
         profileData={profile}
+        preview={preview}
       />
     </section>
   )

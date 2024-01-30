@@ -10,7 +10,8 @@ import * as API from '@/config/endpoints';
 
 const TransformationForm = ({
   rawData,
-  profileData
+  profileData,
+  preview
 }: APIConfigurationProps) => {
   const paths = API_CONFIGURATION_PANEL;
   const [request_body, setRequestBody] = useState('');
@@ -22,6 +23,7 @@ const TransformationForm = ({
   const [loading, setLoading] = useState(false);
   const environment = 'development';
   const [path, setPath] = useState('request_body');
+  const previewPage = preview == 'true';
 
   async function fetchAPITransformation() {
     const result: any = await clientAxiosRequest({
@@ -161,15 +163,18 @@ const TransformationForm = ({
               </div>
             }
 
-            <div className='w-full flex justify-end'>
-              <Button 
-                title='Save changes'
-                type='submit'
-                containerStyle='!w-[120px]'
-                disabled={incorrect}
-                small
-              />
-            </div>
+            {
+              !previewPage &&
+              <div className='w-full flex justify-end'>
+                <Button 
+                  title='Save changes'
+                  type='submit'
+                  containerStyle='!w-[120px]'
+                  disabled={incorrect}
+                  small
+                />
+              </div>
+            }
           </div>
         </div>
       </form>

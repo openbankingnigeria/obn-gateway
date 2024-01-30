@@ -28,6 +28,7 @@ export interface searchParamsProps {
   token?: string;
   alt_data?: any;
   api_id?: string;
+  preview?: string;
 }
 
 export interface ParamsProps {
@@ -273,12 +274,14 @@ export interface APIConfigurationContainerProps {
   keyPlaceholder?: string;
   valuePlaceholder?: string;
   label?: string;
+  preview?: boolean;
   type?: string;
 }
 
 export interface APIConfigurationProps {
   rawData: any;
   profileData?: any;
+  preview?: string;
 }
 
 export interface CreateRoleButtonProps {
