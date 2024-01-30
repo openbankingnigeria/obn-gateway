@@ -61,7 +61,7 @@ export class CompanyService {
     private readonly eventEmitter: EventEmitter2,
     private readonly kongConsumerService: KongConsumerService,
     private readonly config: ConfigService,
-  ) { }
+  ) {}
 
   async updateCompanyKybDetails(
     ctx: RequestContext,
@@ -164,9 +164,9 @@ export class CompanyService {
   async getCompanyDetails(ctx: RequestContext, companyId?: string) {
     const company = companyId
       ? await this.companyRepository.findOne({
-        where: { id: companyId },
-        relations: { primaryUser: { profile: true } },
-      })
+          where: { id: companyId },
+          relations: { primaryUser: { profile: true } },
+        })
       : ctx.activeCompany;
 
     if (!company) {
@@ -186,10 +186,18 @@ export class CompanyService {
             file: Buffer;
             fileName: string;
           };
-          kybDetails[key] = {
-            fileName: fileObject.fileName,
-            file: Buffer.from(fileObject.file).toString('base64url'),
-          };
+          // {
+          //   fileName: fileObject.fileName,
+          //   file: Buffer.from(fileObject.file).toString('base64url'),
+          // };
+          const fileMap = new Map();
+
+          fileMap.set('fileName', fileObject.fileName);
+          fileMap.set(
+            'file',
+            Buffer.from(fileObject.file).toString('base64url'),
+          );
+          kybDetails[key] = fileMap;
         }
       }
     }
@@ -251,10 +259,13 @@ export class CompanyService {
 
     return ResponseFormatter.success(
       'Successfully fetched company',
-      companies.map((company) => new GetCompanyResponseDTO({
-        ...company,
-        primaryUser: new PrimaryUserDto(company.primaryUser!),
-      })),
+      companies.map(
+        (company) =>
+          new GetCompanyResponseDTO({
+            ...company,
+            primaryUser: new PrimaryUserDto(company.primaryUser!),
+          }),
+      ),
       new ResponseMetaDTO({
         totalNumberOfRecords: totalCompanies,
         totalNumberOfPages: Math.ceil(totalCompanies / limit),
@@ -336,10 +347,10 @@ export class CompanyService {
     switch (action) {
       case 'approve':
         if (company.consumerId) {
-          for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
-            'kong.endpoint',
-          )) {
-            if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue
+          for (const environment in this.config.get<
+            Record<KONG_ENVIRONMENT, string>
+          >('kong.endpoint')) {
+            if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
             await this.kongConsumerService.updateOrCreatePlugin(
               environment as KONG_ENVIRONMENT,
               company.consumerId,
@@ -369,10 +380,10 @@ export class CompanyService {
           });
         }
         if (company.consumerId) {
-          for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
-            'kong.endpoint',
-          )) {
-            if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue
+          for (const environment in this.config.get<
+            Record<KONG_ENVIRONMENT, string>
+          >('kong.endpoint')) {
+            if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
             await this.kongConsumerService.updateOrCreatePlugin(
               environment as KONG_ENVIRONMENT,
               company.consumerId,
@@ -486,9 +497,9 @@ export class CompanyService {
     }
 
     if (company.consumerId) {
-      for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
-        'kong.endpoint',
-      )) {
+      for (const environment in this.config.get<
+        Record<KONG_ENVIRONMENT, string>
+      >('kong.endpoint')) {
         await this.kongConsumerService.updateOrCreatePlugin(
           environment as KONG_ENVIRONMENT,
           company.consumerId,
@@ -520,8 +531,8 @@ export class CompanyService {
     FROM
     companies
     RIGHT OUTER JOIN (${Object.values(CompanyStatuses)
-        .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
-        .join(' UNION ')}) definitions ON companies.status = definitions.key
+      .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
+      .join(' UNION ')}) definitions ON companies.status = definitions.key
         AND companies.deleted_at IS NULL AND (companies.created_at >= ? OR ? IS NULL) AND (companies.created_at < ? OR ? IS NULL)
     GROUP BY
       definitions.value
@@ -561,8 +572,8 @@ export class CompanyService {
           query.filter.createdAt.gt
             ? moment(query.filter.createdAt.gt).format('YYYY-MM-DD')
             : moment(query.filter.createdAt.lt)
-              .subtract(30, 'days')
-              .format('YYYY-MM-DD'),
+                .subtract(30, 'days')
+                .format('YYYY-MM-DD'),
           moment(query.filter.createdAt.lt).format('YYYY-MM-DD'),
           stat.value,
         ],
