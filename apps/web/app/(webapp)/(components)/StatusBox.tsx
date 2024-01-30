@@ -73,6 +73,11 @@ const StatusBox = ({ status }: StatusBoxProps) => {
         Rejected
       </span>
     )
+    : sanitizedStatus === 'denied' ? (
+      <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-white bg-o-status-red'>
+        Denied
+      </span>
+    )
     : sanitizedStatus === 'declined' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-white bg-o-status-red'>
         Declined

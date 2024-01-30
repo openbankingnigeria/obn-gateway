@@ -7,10 +7,10 @@ export const ACTIVITY_TABLE_HEADERS = [
     header: 'Consumer Name',
     accessor: 'consumer_name'
   },
-  {
-    header: 'Email Address',
-    accessor: 'email_address'
-  },
+  // {
+  //   header: 'Email Address',
+  //   accessor: 'email_address'
+  // },
   {
     header: 'API Name',
     accessor: 'api_name'

@@ -53,7 +53,8 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
         ${consumer?.primaryUser?.profile?.lastName}` :
         null,
       email_address: consumer?.primaryUser?.email,
-      status: consumer?.kybStatus
+      kyb_status: consumer?.kybStatus,
+      status: consumer?.status
     })
   });
 

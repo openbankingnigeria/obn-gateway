@@ -149,7 +149,7 @@ const EditPermissionButton = ({
 
       <div className='w-fit'>
         <Button 
-          title='Edit permissions'
+          title='Edit collections'
           small
           effect={() => {
             setOpenModal(true);

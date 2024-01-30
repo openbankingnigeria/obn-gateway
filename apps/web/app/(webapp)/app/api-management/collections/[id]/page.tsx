@@ -1,7 +1,7 @@
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
 import { CollectionSection } from '../(components)';
-import { COLLECTIONS_API_HEADERS, COLLECTIONS_REQUEST_METHOD, COLLECTIONS_TIER } from '@/data/collectionDatas';
+import { COLLECTIONS_API_HEADERS, COLLECTIONS_API_CONSUMER_HEADERS, COLLECTIONS_REQUEST_METHOD, COLLECTIONS_TIER } from '@/data/collectionDatas';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
@@ -63,6 +63,8 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
     });
   })
 
+  const userType = profile?.user?.role?.parent?.slug;
+
   // const details = COLLECTIONS_TABLE_DATA.find((data: any) => data?.collection_name == collectionId);
   // const collections_api = COLLECTIONS_APIS;
   const request_method_list = COLLECTIONS_REQUEST_METHOD?.map(method => {
@@ -80,7 +82,11 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
   })
   
   const filters = [search_query, request_method, tier]
-  let table_headers = COLLECTIONS_API_HEADERS;
+  let table_headers = (
+    userType == 'api-consumer' ? 
+      COLLECTIONS_API_CONSUMER_HEADERS :
+      COLLECTIONS_API_HEADERS
+  );
   const total_pages = meta_data?.totalNumberOfPages;
   const total_elements_in_page = collections_api_list?.length || meta_data?.pageSize;
   const total_elements = meta_data?.totalNumberOfRecords;
