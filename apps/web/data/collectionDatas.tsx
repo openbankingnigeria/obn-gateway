@@ -12,7 +12,7 @@ export const COLLECTIONS_TABLE_HEADERS = [
     accessor: 'no_of_apis'
   },
   {
-    header: 'Configuration',
+    header: 'Active APIs',
     accessor: 'configuration'
   }
 ];
@@ -56,6 +56,25 @@ export const DASHBOARD_API_HEADERS = [
   {
     header: 'Tier',
     accessor: 'tier'
+  },
+];
+
+export const COLLECTIONS_API_CONSUMER_HEADERS = [
+  {
+    header: 'API Name',
+    accessor: 'api_name'
+  },
+  {
+    header: 'Request Method',
+    accessor: 'request_method'
+  },
+  {
+    header: 'Configured',
+    accessor: 'configured'
+  },
+  {
+    header: 'Endpoint URL',
+    accessor: 'endpoint_url'
   },
 ];
 

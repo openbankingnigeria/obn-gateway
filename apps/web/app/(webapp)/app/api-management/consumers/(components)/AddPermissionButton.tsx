@@ -151,7 +151,7 @@ const AddPermissionButton = ({
 
       <div className='w-full flex justify-center mb-14 items-center'>
         <Button 
-          title='Add permission'
+          title='Add collections'
           small
           effect={() => {
             setOpenModal(true);

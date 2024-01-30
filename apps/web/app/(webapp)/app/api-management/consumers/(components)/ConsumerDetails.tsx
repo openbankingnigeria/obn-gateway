@@ -25,12 +25,19 @@ const ConsumerDetails = ({
   const [open2FA, setOpen2FA] = useState(false);
   const [openModal, setOpenModal] = useState('');
   const actions = CONSUMER_ACTIONS_DATA;
-  const consumerStatus: 'pending' | 'active' | 'inactive' | 'rejected' = rawData?.status;
+  const consumerStatus = rawData?.status;
+  const consumerKYBStatus = rawData?.kybStatus;
 
-  const getAction = (status: string) => {
-    return actions.filter(action => 
-        action?.type == status?.toLowerCase()
-      );
+  // console.log(rawData);
+
+  const getAction = (kyb_status: string, status: string) => {
+    return actions.filter(action => {
+      if (kyb_status?.includes('approved')) {
+        return action?.type?.includes(status?.toLowerCase());
+      } else {
+        return action?.type?.includes(kyb_status?.toLowerCase());
+      }
+    });
   };
 
   useEffect(() => {
@@ -88,7 +95,7 @@ const ConsumerDetails = ({
         data
       });
 
-      if (result?.status == 201) {
+      if (result?.status == 200) {
         setLoading(false);
         close2FAModal();
         router.refresh();
@@ -206,7 +213,7 @@ const ConsumerDetails = ({
               optionStyle='!min-w-[153px] !top-[38px]'
               small
               options={
-                getAction(consumerStatus)?.map((action) => (
+                getAction(consumerKYBStatus, consumerStatus)?.map((action) => (
                   <button
                     key={action.id}
                     className='cursor-pointer whitespace-nowrap hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
@@ -307,13 +314,22 @@ const ConsumerDetails = ({
                 />
             }
 
-            {
+            {/* {
               rawData?.type == 'licensed-entity' &&
                 <ViewData 
                   label='Role'
                   value=''
                 />
-            }
+            } */}
+
+            <ViewData 
+              label='KYB Status'
+              value={
+                <div className='w-fit flex items-center gap-[4px]'>
+                  <StatusBox status={consumerKYBStatus} />
+                </div>
+              }
+            />
 
             <ViewData 
               label='Status'

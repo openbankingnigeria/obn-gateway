@@ -50,12 +50,19 @@ const ConsumersTable = ({
     fetchProfile();
   }, []);
 
-  const getAction = (status: string) => {
+  const getAction = (kyb_status: string, status: string) => {
     return actions.filter(action => {
-      return (
-        action?.type == status?.toLowerCase() ||
-        action?.type == 'all'
-      );
+      if (kyb_status?.includes('approved')) {
+        return (
+          action?.type?.includes(status?.toLowerCase()) ||
+          action?.type?.includes('all')
+        );
+      } else {
+        return (
+          action?.type?.includes(kyb_status?.toLowerCase()) ||
+          action?.type?.includes('all')
+        );
+      }
     });
   }
 
@@ -109,7 +116,7 @@ const ConsumersTable = ({
         data
       });
 
-      if (result?.status == 201) {
+      if (result?.status == 200) {
         setLoading(false);
         close2FAModal();
         router.refresh();
@@ -148,7 +155,7 @@ const ConsumersTable = ({
 
         <div className='hidden peer-focus:flex hover:flex absolute bg-white rounded-lg flex-col z-10 border border-o-border right-0 top-[30px] py-[4px] w-[158px] items-start justify-start tablemenu-boxshadow'>
           {
-            getAction(row.original.status)?.map((action) => (
+            getAction(row.original.kyb_status, row.original.status)?.map((action) => (
               <button
                 key={action.id}
                 className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'

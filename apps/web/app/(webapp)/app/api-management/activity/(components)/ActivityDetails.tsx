@@ -14,7 +14,7 @@ const ActivityDetails = ({
 }: ActivitySectionsProps) => {
   const router = useRouter();
   const activity_details = rawData;
-  console.log(activity_details)
+  // console.log(activity_details);
 
   useEffect(() => {
     const slug = updateSearchParams('slug', 'Activity Details');
@@ -48,13 +48,13 @@ const ActivityDetails = ({
           <div className='w-full p-[20px] grid grid-cols-2 ms:grid-cols-3 lgg:grid-cols-4 gap-[16px] bg-white'>
             <ViewData 
               label='Consumer Name'
-              value={activity_details?.consumer_name}
+              value={activity_details?.company?.name}
             />
 
-            <ViewData 
+            {/* <ViewData 
               label='Email Address'
               value={activity_details?.email_address}
-            />
+            /> */}
 
             <ViewData 
               label='API Name'
