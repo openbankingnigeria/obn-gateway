@@ -34,6 +34,7 @@ import {
   GetCompanyTypesResponseDTO,
   GetStatsDto,
   GetStatsResponseDTO,
+  PrimaryUserDto,
   UpdateCompanyKybStatusResponseDTO,
   UpdateKybStatusDto,
 } from './dto/index.dto';
@@ -60,7 +61,7 @@ export class CompanyService {
     private readonly eventEmitter: EventEmitter2,
     private readonly kongConsumerService: KongConsumerService,
     private readonly config: ConfigService,
-  ) {}
+  ) { }
 
   async updateCompanyKybDetails(
     ctx: RequestContext,
@@ -163,9 +164,9 @@ export class CompanyService {
   async getCompanyDetails(ctx: RequestContext, companyId?: string) {
     const company = companyId
       ? await this.companyRepository.findOne({
-          where: { id: companyId },
-          relations: { primaryUser: { profile: true } },
-        })
+        where: { id: companyId },
+        relations: { primaryUser: { profile: true } },
+      })
       : ctx.activeCompany;
 
     if (!company) {
@@ -195,9 +196,10 @@ export class CompanyService {
 
     return ResponseFormatter.success(
       'Successfully fetched company details',
-      new GetCompanyResponseDTO({
+      new GetCompanyKYBDataResponseDTO({
         ...company,
-        kybData: new GetCompanyKYBDataResponseDTO(kybDetails),
+        primaryUser: new PrimaryUserDto(company.primaryUser!),
+        kybData: kybDetails,
       }),
     );
   }
@@ -249,7 +251,10 @@ export class CompanyService {
 
     return ResponseFormatter.success(
       'Successfully fetched company',
-      companies.map((company) => new GetCompanyResponseDTO(company)),
+      companies.map((company) => new GetCompanyResponseDTO({
+        ...company,
+        primaryUser: new PrimaryUserDto(company.primaryUser!),
+      })),
       new ResponseMetaDTO({
         totalNumberOfRecords: totalCompanies,
         totalNumberOfPages: Math.ceil(totalCompanies / limit),
@@ -515,8 +520,8 @@ export class CompanyService {
     FROM
     companies
     RIGHT OUTER JOIN (${Object.values(CompanyStatuses)
-      .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
-      .join(' UNION ')}) definitions ON companies.status = definitions.key
+        .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
+        .join(' UNION ')}) definitions ON companies.status = definitions.key
         AND companies.deleted_at IS NULL AND (companies.created_at >= ? OR ? IS NULL) AND (companies.created_at < ? OR ? IS NULL)
     GROUP BY
       definitions.value
@@ -556,8 +561,8 @@ export class CompanyService {
           query.filter.createdAt.gt
             ? moment(query.filter.createdAt.gt).format('YYYY-MM-DD')
             : moment(query.filter.createdAt.lt)
-                .subtract(30, 'days')
-                .format('YYYY-MM-DD'),
+              .subtract(30, 'days')
+              .format('YYYY-MM-DD'),
           moment(query.filter.createdAt.lt).format('YYYY-MM-DD'),
           stat.value,
         ],

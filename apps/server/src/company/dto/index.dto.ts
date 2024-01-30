@@ -59,7 +59,7 @@ export class ProfileDto {
 }
 
 export class PrimaryUserDto {
-  constructor(partial: any) {
+  constructor(partial: Partial<PrimaryUserDto>) {
     Object.assign(this, partial);
   }
 
@@ -75,18 +75,8 @@ export class PrimaryUserDto {
   profile?: ProfileDto;
 }
 
-export class GetCompanyKYBDataResponseDTO {
-  constructor(partial: any) {
-    Object.assign(this, partial);
-  }
-
-  @Type(() => Map)
-  @Expose()
-  kybData: Map<string, any>;
-}
-
 export class GetCompanyResponseDTO {
-  constructor(partial: any) {
+  constructor(partial: Partial<GetCompanyResponseDTO>) {
     Object.assign(this, partial);
   }
 
@@ -127,6 +117,17 @@ export class GetCompanyResponseDTO {
   @Type(() => PrimaryUserDto)
   @Expose()
   primaryUser: PrimaryUserDto;
+}
+
+export class GetCompanyKYBDataResponseDTO extends GetCompanyResponseDTO {
+  constructor(partial: Partial<GetCompanyResponseDTO & GetCompanyKYBDataResponseDTO>) {
+    super(partial);
+    Object.assign(this, partial);
+  }
+
+  @Type(() => Map)
+  @Expose()
+  kybData: Map<string, any>;
 }
 
 export class GetCompanySubTypesResponseDTO {
