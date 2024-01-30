@@ -120,7 +120,9 @@ export class GetCompanyResponseDTO {
 }
 
 export class GetCompanyKYBDataResponseDTO extends GetCompanyResponseDTO {
-  constructor(partial: Partial<GetCompanyResponseDTO & GetCompanyKYBDataResponseDTO>) {
+  constructor(
+    partial: Partial<GetCompanyResponseDTO & GetCompanyKYBDataResponseDTO>,
+  ) {
     super(partial);
     Object.assign(this, partial);
   }
