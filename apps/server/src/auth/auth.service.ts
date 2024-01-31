@@ -10,7 +10,6 @@ import {
 } from 'src/common/database/entities';
 import { Repository, MoreThan } from 'typeorm';
 import {
-  AuthOTPResponseDTO,
   BusinessSignupDto,
   IndividualSignupDto,
   LicensedEntitySignupDto,
@@ -55,6 +54,7 @@ import { GetUserResponseDTO } from '@users/dto/index.dto';
 import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
 import { commonErrors } from '@common/constants';
 import { BusinessSettings } from '@settings/types';
+import { CompanyTiers } from '@company/types';
 
 @Injectable()
 export class AuthService {
@@ -168,6 +168,7 @@ export class AuthService {
             type: companyType,
             subtype: companySubtype,
             rcNumber,
+            tier: CompanyTiers.TIER_1,
           });
 
           const otp = generateOtp(6);
@@ -221,6 +222,7 @@ export class AuthService {
           const companyCreated = await this.companyRepository.save({
             name: `${firstName} ${lastName}`,
             type: companyType,
+            tier: CompanyTiers.TIER_1,
           });
 
           const otp = generateOtp(6);

@@ -15,12 +15,7 @@ export const companyCustomFields: Omit<
     password: { label: 'Password', type: 'password' },
     confirmPassword: { label: 'Confirm Password', type: 'password' },
     phone: { label: 'Phone Number', type: 'text' },
-    accountNumber: { label: 'Account Number', type: 'text' },
     companyName: { label: 'Corporate Name', type: 'text' },
-    rcNumber: {
-      label: 'CAC (Corporate Affairs Commission) Number',
-      type: 'text',
-    },
     companySubType: { label: 'Company Type', type: 'dropdown' },
   },
   individual: {
@@ -28,7 +23,6 @@ export const companyCustomFields: Omit<
     password: { label: 'Password', type: 'password' },
     confirmPassword: { label: 'Confirm Password', type: 'password' },
     phone: { label: 'Phone Number', type: 'text' },
-    accountNumber: { label: 'Account Number', type: 'text' },
     bvn: { label: 'BVN', type: 'text' },
   },
   ['licensed-entity']: {

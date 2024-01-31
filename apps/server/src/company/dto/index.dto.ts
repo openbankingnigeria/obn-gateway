@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   Length,
+  Matches,
   ValidateNested,
   // Length,
 } from 'class-validator';
@@ -14,6 +15,7 @@ import { companyValidationErrors } from '../company.config';
 import { CompanyTypes } from '@common/database/constants';
 import { Expose, Type } from 'class-transformer';
 import { CompanySubtypes } from '@settings/types';
+import { authValidationErrors } from '@auth/auth.config';
 
 export enum KybStatusActions {
   APPROVE = 'approve',
@@ -33,6 +35,15 @@ export class UpdateCompanyDetailsDto {
   })
   @Length(15, 15, { message: 'rcNumber must be exactly 15 digits long.' })
   rcNumber: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(10, 10)
+  @Matches(/\d/gi, {
+    message: ({ property }) =>
+      authValidationErrors.dto.valueMustContainOnlyType(property, 'numbers'),
+  })
+  accountNumber: string;
 }
 
 export class UpdateKybStatusDto {
