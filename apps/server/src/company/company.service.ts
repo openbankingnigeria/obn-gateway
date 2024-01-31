@@ -349,7 +349,7 @@ export class CompanyService {
         if (company.consumerId) {
           for (const environment in this.config.get<
             Record<KONG_ENVIRONMENT, string>
-          >('kong.endpoint')) {
+          >('kong.adminEndpoint')) {
             if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
             await this.kongConsumerService.updateOrCreatePlugin(
               environment as KONG_ENVIRONMENT,
@@ -382,7 +382,7 @@ export class CompanyService {
         if (company.consumerId) {
           for (const environment in this.config.get<
             Record<KONG_ENVIRONMENT, string>
-          >('kong.endpoint')) {
+          >('kong.adminEndpoint')) {
             if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
             await this.kongConsumerService.updateOrCreatePlugin(
               environment as KONG_ENVIRONMENT,
@@ -499,7 +499,7 @@ export class CompanyService {
     if (company.consumerId) {
       for (const environment in this.config.get<
         Record<KONG_ENVIRONMENT, string>
-      >('kong.endpoint')) {
+      >('kong.adminEndpoint')) {
         await this.kongConsumerService.updateOrCreatePlugin(
           environment as KONG_ENVIRONMENT,
           company.consumerId,

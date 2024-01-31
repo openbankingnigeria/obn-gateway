@@ -43,6 +43,7 @@ import { CompanyTypes } from '@common/database/constants';
 import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import { RequestContext } from '@common/utils/request/request-context';
 import * as moment from 'moment';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class APIService {
@@ -62,6 +63,7 @@ export class APIService {
     private readonly kongRouteService: KongRouteService,
     private readonly kongConsumerService: KongConsumerService,
     private readonly elasticsearchService: ElasticsearchService,
+    private readonly config: ConfigService,
   ) {}
 
   async viewAPIs(
@@ -121,6 +123,7 @@ export class APIService {
               {
                 path: gatewayRoute?.paths[0] ?? null,
                 method: gatewayRoute?.methods[0] ?? null,
+                url: route.url,
               },
               ctx,
             ),
@@ -361,6 +364,12 @@ export class APIService {
       consumerId: apiProviderConsumerId,
     });
 
+    let cleanPath = data.downstream.path.replace(/\([^)]*\)\$/, '');
+    if (cleanPath.startsWith('~')) cleanPath = cleanPath.slice(1);
+    if (cleanPath.endsWith('$')) {
+      cleanPath = cleanPath.slice(0, cleanPath.length - 1);
+    }
+
     const createdRoute = await this.routeRepository.save(
       this.routeRepository.create({
         name,
@@ -370,6 +379,9 @@ export class APIService {
         collectionId: data.collectionId,
         enabled,
         aclAllowedGroupName,
+        url:
+          data.downstream.url ??
+          `${this.config.get('kong.gatewayEndpoint')[environment]}${cleanPath}`,
       }),
     );
 
@@ -663,6 +675,7 @@ export class APIService {
         serviceId: gatewayService.id,
         routeId: gatewayRoute.id,
         enabled,
+        url: data.downstream.url || data.downstream.path,
       },
     );
 

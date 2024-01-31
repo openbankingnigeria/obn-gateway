@@ -21,6 +21,14 @@ export class CollectionRoute {
   name: string;
 
   @Column({
+    name: 'url',
+    type: 'varchar',
+    default: '/',
+    nullable: false,
+  })
+  url: string;
+
+  @Column({
     name: 'environment',
     type: 'varchar',
     default: 'development',
@@ -43,7 +51,7 @@ export class CollectionRoute {
   @Column({
     type: 'boolean',
     transformer: {
-      from: (value: number) => (value ? true : false),
+      from: (value: number) => !!value,
       to: (value: boolean) => (value ? 1 : 0),
     },
     nullable: false,

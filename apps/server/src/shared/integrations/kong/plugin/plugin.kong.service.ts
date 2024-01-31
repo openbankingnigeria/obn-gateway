@@ -29,7 +29,7 @@ export class KongPluginService {
     const response = await firstValueFrom(
       this.httpService
         .post<CreatePluginResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/plugins`,
+          `${this.config.get('kong.adminEndpoint')[environment]}/plugins`,
           data,
         )
         .pipe(
@@ -46,7 +46,7 @@ export class KongPluginService {
     const response = await firstValueFrom(
       this.httpService
         .get<ListPluginsResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/plugins`,
+          `${this.config.get('kong.adminEndpoint')[environment]}/plugins`,
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -70,7 +70,7 @@ export class KongPluginService {
     const response = await firstValueFrom(
       this.httpService
         .put<CreatePluginResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/plugins/${
+          `${this.config.get('kong.adminEndpoint')[environment]}/plugins/${
             data.name
           }`,
           data,
