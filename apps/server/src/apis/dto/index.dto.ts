@@ -25,20 +25,14 @@ import { PERMISSIONS } from '@permissions/types';
 import { CompanyTypes } from '@common/database/constants';
 
 class CreateAPIDownstreamDTO {
-  @IsArray()
-  @IsString({ each: true })
-  @IsNotEmpty({ each: true })
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  paths: string[];
+  @IsString()
+  @IsNotEmpty()
+  path: string;
 
-  @IsArray()
-  @IsString({ each: true })
-  @IsNotEmpty({ each: true })
-  @IsEnum(HTTP_METHODS, { each: true })
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  methods: string[];
+  @IsString()
+  @IsNotEmpty()
+  @IsEnum(HTTP_METHODS)
+  method: HTTP_METHODS;
 }
 
 class CreateAPIUpstreamDTO {
@@ -98,20 +92,13 @@ export class CreateAPIDto {
 }
 
 class UpdateAPIDownstreamDTO {
-  @IsArray()
-  @IsString({ each: true })
-  @IsNotEmpty({ each: true })
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  paths: string[];
+  @IsString()
+  @IsNotEmpty()
+  path: string;
 
-  @IsArray()
-  @IsString({ each: true })
-  @IsNotEmpty({ each: true })
-  @IsEnum(HTTP_METHODS, { each: true })
-  @ArrayNotEmpty()
-  @ArrayUnique()
-  methods: string[];
+  @IsString()
+  @IsNotEmpty()
+  method: HTTP_METHODS;
 }
 
 class KVDTO {
@@ -187,13 +174,11 @@ export class GETAPIDownstreamResponseDTO {
     Object.assign(this, partial);
   }
 
-  @IsArray()
   @Expose()
-  paths: string[];
+  path: string | null;
 
-  @IsArray()
   @Expose()
-  methods: string[];
+  method: HTTP_METHODS | null;
 }
 
 export class GETAPIUpstreamResponseDTO {
@@ -294,7 +279,7 @@ class APILogRequestDto {
 
   @IsString()
   @Expose()
-  method: string;
+  method: HTTP_METHODS | null;
 
   @IsString()
   @Expose()

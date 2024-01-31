@@ -252,8 +252,8 @@ export class SetupService {
                   url: request.url,
                 },
                 downstream: {
-                  paths: [regexPath],
-                  methods: [request.method],
+                  path: regexPath,
+                  method: request.method,
                 },
               }),
             );

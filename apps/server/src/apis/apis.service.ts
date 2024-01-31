@@ -119,8 +119,8 @@ export class APIService {
             ),
             downstream: new GETAPIDownstreamResponseDTO(
               {
-                paths: gatewayRoute?.paths || [],
-                methods: gatewayRoute?.methods || [],
+                path: gatewayRoute?.paths[0] ?? null,
+                method: gatewayRoute?.methods[0] ?? null,
               },
               ctx,
             ),
@@ -174,7 +174,7 @@ export class APIService {
     if (gatewayRoute?.id) {
       const plugins = await this.kongRouteService.getPlugins(
         environment,
-        gatewayRoute?.id!,
+        gatewayRoute?.id,
       );
 
       plugin = plugins.data.find(
@@ -219,8 +219,8 @@ export class APIService {
           ),
           downstream: new GETAPIDownstreamResponseDTO(
             {
-              paths: gatewayRoute?.paths || [],
-              methods: gatewayRoute?.methods || [],
+              path: gatewayRoute?.paths[0] ?? null,
+              method: gatewayRoute?.methods[0] ?? null,
             },
             ctx,
           ),
@@ -286,9 +286,7 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     data: CreateAPIDto,
   ) {
-    const { name, enabled } = data;
-    const { paths, methods } = data.downstream;
-    const { url, method, headers, querystring, body } = data.upstream;
+    const { name, enabled, downstream, upstream } = data;
 
     const collection = await this.collectionRepository.findOne({
       where: { id: data.collectionId },
@@ -310,7 +308,7 @@ export class APIService {
       });
     }
 
-    const { hostname, pathname } = new URL(url);
+    const { hostname, pathname } = new URL(upstream.url);
 
     // Create an upstream service on the API gateway
     const gatewayService = await this.kongService.updateOrCreateService(
@@ -318,7 +316,7 @@ export class APIService {
       {
         name: slugify(hostname + '-' + pathname, { strict: true }),
         enabled: true,
-        url,
+        url: upstream.url,
         retries: 1,
         tags: [collection.slug!],
       },
@@ -328,8 +326,8 @@ export class APIService {
     const gatewayRoute = await this.kongRouteService.createRoute(environment, {
       name: slugify(name, { lower: true, strict: true }),
       tags: [collection.slug!],
-      paths,
-      methods,
+      paths: [downstream.path],
+      methods: [downstream.method],
       service: {
         id: gatewayService.id,
       },
@@ -384,7 +382,12 @@ export class APIService {
       },
     );
 
-    if (headers || querystring || body || method) {
+    if (
+      upstream.headers ||
+      upstream.querystring ||
+      upstream.body ||
+      upstream.method
+    ) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
@@ -392,16 +395,20 @@ export class APIService {
           name: KONG_PLUGINS.REQUEST_TRANSFORMER,
           enabled: true,
           config: {
-            http_method: method?.toUpperCase(),
+            http_method: upstream.method?.toUpperCase(),
             remove: {
-              headers: headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: querystring?.map((h) => `${h.key}:${h.value}`),
-              body: body?.map((h) => `${h.key}:${h.value}`),
+              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
+              querystring: upstream.querystring?.map(
+                (h) => `${h.key}:${h.value}`,
+              ),
+              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
             },
             add: {
-              headers: headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: querystring?.map((h) => `${h.key}:${h.value}`),
-              body: body?.map((h) => `${h.key}:${h.value}`),
+              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
+              querystring: upstream.querystring?.map(
+                (h) => `${h.key}:${h.value}`,
+              ),
+              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
             },
           },
         },
@@ -587,9 +594,7 @@ export class APIService {
     routeId: string,
     data: UpdateAPIDto,
   ) {
-    const { name, enabled } = data;
-    const { paths, methods } = data.downstream;
-    const { url, method, headers, querystring, body } = data.upstream;
+    const { name, enabled, downstream, upstream } = data;
 
     const route = await this.routeRepository.findOne({
       where: { id: routeId, environment },
@@ -613,13 +618,13 @@ export class APIService {
       });
     }
 
-    const { hostname, pathname } = new URL(url);
+    const { hostname, pathname } = new URL(upstream.url);
     const gatewayService = await this.kongService.updateOrCreateService(
       environment,
       {
         name: slugify(hostname + '-' + pathname, { strict: true }),
         enabled: true,
-        url,
+        url: upstream.url,
         retries: 1,
         tags: [route.collection.slug!],
       },
@@ -632,8 +637,8 @@ export class APIService {
         route.routeId,
         {
           name: slugify(name, { lower: true, strict: true }),
-          paths,
-          methods,
+          paths: [downstream.path],
+          methods: [downstream.method],
           service: {
             id: gatewayService.id,
           },
@@ -643,8 +648,8 @@ export class APIService {
       gatewayRoute = await this.kongRouteService.createRoute(environment, {
         name: slugify(name, { lower: true, strict: true }),
         tags: [route.collection.slug!],
-        paths,
-        methods,
+        paths: [downstream.path],
+        methods: [downstream.method],
         service: {
           id: gatewayService.id,
         },
@@ -681,7 +686,12 @@ export class APIService {
       );
     }
 
-    if (method || headers || querystring || body) {
+    if (
+      upstream.method ||
+      upstream.headers ||
+      upstream.querystring ||
+      upstream.body
+    ) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
@@ -689,16 +699,20 @@ export class APIService {
           name: KONG_PLUGINS.REQUEST_TRANSFORMER,
           enabled: true,
           config: {
-            http_method: method?.toUpperCase(),
+            http_method: upstream.method?.toUpperCase(),
             remove: {
-              headers: headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: querystring?.map((h) => `${h.key}:${h.value}`),
-              body: body?.map((h) => `${h.key}:${h.value}`),
+              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
+              querystring: upstream.querystring?.map(
+                (h) => `${h.key}:${h.value}`,
+              ),
+              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
             },
             add: {
-              headers: headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: querystring?.map((h) => `${h.key}:${h.value}`),
-              body: body?.map((h) => `${h.key}:${h.value}`),
+              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
+              querystring: upstream.querystring?.map(
+                (h) => `${h.key}:${h.value}`,
+              ),
+              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
             },
           },
         },
@@ -1057,8 +1071,8 @@ export class APIService {
             ),
             downstream: new GETAPIDownstreamResponseDTO(
               {
-                paths: gatewayRoute?.paths || [],
-                methods: gatewayRoute?.methods || [],
+                path: gatewayRoute?.paths[0] ?? null,
+                method: gatewayRoute?.methods[0] ?? null,
               },
               ctx,
             ),

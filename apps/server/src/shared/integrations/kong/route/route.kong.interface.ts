@@ -1,3 +1,5 @@
+import { HTTP_METHODS } from "src/apis/types";
+
 export interface ListRequest {
   size?: number;
   offset?: number;
@@ -14,7 +16,7 @@ export interface Route {
   id: string;
   name: string;
   paths: string[];
-  methods: string[];
+  methods: HTTP_METHODS[];
   service: {
     id: string;
   };
@@ -36,7 +38,7 @@ export interface Plugin {
 export interface CreateRouteRequest {
   name: string;
   protocols: string[];
-  methods: string[];
+  methods: HTTP_METHODS[];
   hosts: string[];
   paths: string[];
   headers: {
