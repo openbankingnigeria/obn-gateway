@@ -30,7 +30,9 @@ export class KongRouteService {
     const response = await firstValueFrom(
       this.httpService
         .get<CreateRouteResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/routes/${routeId}`,
+          `${
+            this.config.get('kong.adminEndpoint')[environment]
+          }/routes/${routeId}`,
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -46,7 +48,7 @@ export class KongRouteService {
     const response = await firstValueFrom(
       this.httpService
         .get<ListRoutesResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/routes`,
+          `${this.config.get('kong.adminEndpoint')[environment]}/routes`,
           {
             params,
           },
@@ -68,7 +70,7 @@ export class KongRouteService {
     const response = await firstValueFrom(
       this.httpService
         .post<CreateRouteResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/routes`,
+          `${this.config.get('kong.adminEndpoint')[environment]}/routes`,
           data,
         )
         .pipe(
@@ -89,7 +91,7 @@ export class KongRouteService {
     const response = await firstValueFrom(
       this.httpService
         .patch<UpdateRouteResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/routes/${id}`,
+          `${this.config.get('kong.adminEndpoint')[environment]}/routes/${id}`,
           data,
         )
         .pipe(
@@ -106,7 +108,7 @@ export class KongRouteService {
     const response = await firstValueFrom(
       this.httpService
         .delete<UpdateRouteResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/routes/${id}`,
+          `${this.config.get('kong.adminEndpoint')[environment]}/routes/${id}`,
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -132,7 +134,7 @@ export class KongRouteService {
       this.httpService
         .post<CreatePluginResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/routes/${id}/plugins`,
           data,
         )
@@ -155,7 +157,7 @@ export class KongRouteService {
       this.httpService
         .get<ListPluginsResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/routes/${id}/plugins`,
           { params },
         )
@@ -189,7 +191,7 @@ export class KongRouteService {
       this.httpService
         .put<CreatePluginResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/routes/${id}/plugins/${plugin.id}`,
           data,
         )

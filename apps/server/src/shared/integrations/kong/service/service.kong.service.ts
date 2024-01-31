@@ -30,7 +30,7 @@ export class KongServiceService {
     const response = await firstValueFrom(
       this.httpService
         .get<ListServicesResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/services`,
+          `${this.config.get('kong.adminEndpoint')[environment]}/services`,
           { params },
         )
         .pipe(
@@ -47,7 +47,7 @@ export class KongServiceService {
     const response = await firstValueFrom(
       this.httpService
         .get<GetServiceResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/services/${id}`,
+          `${this.config.get('kong.adminEndpoint')[environment]}/services/${id}`,
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -64,7 +64,7 @@ export class KongServiceService {
       this.httpService
         .get<ListRoutesResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/services/${id}/routes`,
         )
         .pipe(
@@ -84,7 +84,7 @@ export class KongServiceService {
     const response = await firstValueFrom(
       this.httpService
         .put<CreateServiceResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/services/${
+          `${this.config.get('kong.adminEndpoint')[environment]}/services/${
             data.name
           }`,
           data,

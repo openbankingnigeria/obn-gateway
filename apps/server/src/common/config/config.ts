@@ -50,10 +50,16 @@ export const globalConfig = (): {
       },
     },
     kong: {
-      endpoint: {
+      adminEndpoint: {
         development:
-          process.env.KONG_ADMIN_API_ENDPOINT ||
+          process.env.KONG_ADMIN_API_ENDPOINT ??
           process.env.KONG_ADMIN_API_ENDPOINT_DEVELOPMENT,
+      },
+      gatewayEndpoint: {
+        development:
+          process.env.KONG_GATEWAY_API_ENDPOINT ??
+          process.env.KONG_GATEWAY_API_ENDPOINT_DEVELOPMENT ??
+          '',
       },
     },
     logging: {
@@ -79,7 +85,15 @@ export const globalConfig = (): {
       const environment = env
         .split('KONG_ADMIN_API_ENDPOINT_')[1]
         .toLowerCase();
-      config.kong.endpoint[environment] = process.env[env];
+      config.kong.adminEndpoint[environment] = process.env[env];
+    }
+
+    if (env.startsWith('KONG_GATEWAY_API_ENDPOINT_')) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const environment = env
+        .split('KONG_GATEWAY_API_ENDPOINT_')[1]
+        .toLowerCase();
+      config.kong.gatewayEndpoint[environment] = process.env[env];
     }
   }
   return config;

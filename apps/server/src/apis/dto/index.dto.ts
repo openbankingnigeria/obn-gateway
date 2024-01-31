@@ -30,6 +30,9 @@ class CreateAPIDownstreamDTO {
   path: string;
 
   @IsString()
+  url?: string;
+
+  @IsString()
   @IsNotEmpty()
   @IsEnum(HTTP_METHODS)
   method: HTTP_METHODS;
@@ -95,6 +98,9 @@ class UpdateAPIDownstreamDTO {
   @IsString()
   @IsNotEmpty()
   path: string;
+
+  @IsString()
+  url?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -171,8 +177,12 @@ export class GETAPIDownstreamResponseDTO {
     partial: Partial<GETAPIDownstreamResponseDTO>,
     ctx?: RequestContext,
   ) {
+    console.log(partial);
     Object.assign(this, partial);
   }
+
+  @Expose()
+  url?: string;
 
   @Expose()
   path: string | null;

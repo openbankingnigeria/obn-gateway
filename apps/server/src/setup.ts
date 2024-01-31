@@ -114,7 +114,7 @@ export class SetupService {
     const config = app.get(ConfigService);
 
     for (const environment in config.get<Record<KONG_ENVIRONMENT, string>>(
-      'kong.endpoint',
+      'kong.adminEndpoint',
     )) {
       // TODO this should be done per route
       await kongPluginService
@@ -254,6 +254,11 @@ export class SetupService {
                 downstream: {
                   path: regexPath,
                   method: request.method,
+                  url: `${
+                    config.get('kong.gatewayEndpoint')[
+                      KONG_ENVIRONMENT.DEVELOPMENT
+                    ]
+                  }/${request.urlObject.path.join('/')}`,
                 },
               }),
             );

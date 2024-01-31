@@ -32,7 +32,7 @@ export class KongConsumerService {
       this.httpService
         .get<CreateConsumerResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${consumerId}`,
         )
         .pipe(
@@ -52,7 +52,7 @@ export class KongConsumerService {
     const response = await firstValueFrom(
       this.httpService
         .put<CreateConsumerResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/consumers/${
+          `${this.config.get('kong.adminEndpoint')[environment]}/consumers/${
             data.custom_id || data.username
           }`,
           data,
@@ -78,7 +78,7 @@ export class KongConsumerService {
       this.httpService
         .post<UpdateConsumerAclResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${consumerId}/acls`,
           {
             group: aclAllowedGroupName,
@@ -103,7 +103,7 @@ export class KongConsumerService {
       this.httpService
         .delete<any>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${consumerId}/acls/${aclId}`,
         )
         .pipe(
@@ -122,7 +122,7 @@ export class KongConsumerService {
       this.httpService
         .get<ListConsumerKeysResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${consumerId}/key-auth`,
         )
         .pipe(
@@ -140,7 +140,7 @@ export class KongConsumerService {
       this.httpService
         .post<CreateConsumerKeyResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${consumerId}/key-auth`,
         )
         .pipe(
@@ -162,7 +162,7 @@ export class KongConsumerService {
       this.httpService
         .delete<CreateConsumerKeyResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${consumerId}/key-auth/${keyId}`,
         )
         .pipe(
@@ -184,7 +184,7 @@ export class KongConsumerService {
       this.httpService
         .get<ListPluginsResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${id}/plugins`,
           { params },
         )
@@ -212,7 +212,7 @@ export class KongConsumerService {
       this.httpService
         .post<CreatePluginResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${consumerId}/plugins`,
           data,
         )
@@ -246,7 +246,7 @@ export class KongConsumerService {
       this.httpService
         .put<CreatePluginResponse>(
           `${
-            this.config.get('kong.endpoint')[environment]
+            this.config.get('kong.adminEndpoint')[environment]
           }/consumers/${consumerId}/plugins/${plugin.id}`,
           data,
         )
