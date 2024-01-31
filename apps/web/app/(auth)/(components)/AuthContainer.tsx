@@ -10,6 +10,8 @@ const AuthContainer = ({ children }: { children: ReactNode }) => {
   const containerRef = useRef(null);
   const [scrollbarPresent, setScrollbarPresent] = useState(false);
 
+  const latestYear = new Date()?.getFullYear()
+
   useEffect(() => {
     const container = containerRef.current;
 
@@ -56,7 +58,7 @@ const AuthContainer = ({ children }: { children: ReactNode }) => {
               </main>
               
               <footer className='mt-auto text-f14 text-o-text-medium px-[22px] ms:px-6 lg:px-8 py-5 ms:py-8'>
-                © Open Banking Nigeria 2023
+                © Open Banking Nigeria {latestYear}
               </footer>
             </div>
           </section>

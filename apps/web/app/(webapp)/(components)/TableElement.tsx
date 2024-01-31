@@ -13,6 +13,7 @@ import { timestampFormatter } from '@/utils/timestampFormatter'
 import BooleanBox from './BooleanBox'
 import { useRouter } from 'next/navigation'
 import moment from 'moment'
+import { addEllipsis } from '@/utils/addEllipsisToStrings'
 
 const TableElement = ({
   tableHeaders,
@@ -172,7 +173,9 @@ const TableElement = ({
                                     /> 
                                     :
                                     cell.id?.includes('description') ?
-                                      <div dangerouslySetInnerHTML={{ __html: cell.getValue() || '' }} /> :
+                                      addEllipsis(cell.getValue(), 100)
+                                      // <div dangerouslySetInnerHTML={{ __html: cell.getValue() || '' }} /> 
+                                      :
                                       flexRender(cell.column.columnDef.cell, cell.getContext())
                     }
                   </td>
