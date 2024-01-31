@@ -4,6 +4,7 @@ import { DownStreamForm, TransformationForm, UpstreamForm } from '../../(compone
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
+import { StatusBox } from '@/app/(webapp)/(components)';
 
 const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => {
   const api_id = searchParams?.api_id || '';
@@ -36,9 +37,15 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
 
   return (
     <section className='w-full gap-[20px] flex flex-col h-full'>
-      <h3 className='w-full text-f18 font-[500] text-o-text-dark'>
-        API Configuration
-      </h3>
+      <div className='w-full flex items-center justify-between'>
+        <h3 className='w-full text-f18 font-[500] text-o-text-dark'>
+          API Configuration
+        </h3>
+
+        <StatusBox 
+          status={apiDetails?.enabled ? 'enabled' : 'disabled'} 
+        />
+      </div>
 
       <DownStreamForm 
         rawData={apiDetails}

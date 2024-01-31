@@ -11,15 +11,15 @@ const DownStreamForm = ({
   const [api_name, setApiName] = useState('');
   const [request_method, setRequestMethod] = useState('');
   const [tier, setTier] = useState('');
-  const [paths, setPaths] = useState('');
+  const [path, setPath] = useState('');
 
   console.log(rawData);
 
   useEffect(() => {
     setApiName(rawData?.name || '');
-    setRequestMethod(rawData?.downstream?.methods?.toString());
+    setRequestMethod(rawData?.downstream?.method?.toString());
     setTier('');
-    setPaths(rawData?.downstream?.paths?.toString());
+    setPath(rawData?.downstream?.path?.toString());
   }, []);
 
   return (
@@ -60,12 +60,12 @@ const DownStreamForm = ({
             required
           /> */}
           <InputElement 
-            name='paths'
+            name='path'
             type='text'
             placeholder=''
-            label='Paths'
+            label='Path'
             disabled
-            value={paths}
+            value={path}
             required
           />
         </div>

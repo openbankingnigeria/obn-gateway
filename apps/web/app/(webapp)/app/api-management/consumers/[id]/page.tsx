@@ -90,7 +90,7 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
       ...collection,
       collection_name: collection?.name,
       endpoints: collection?.upstream?.url,
-      categories: collection?.downstream?.paths
+      categories: collection?.downstream?.path
     })
   });
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { ExportButton, StatusBox, ViewData } from '@/app/(webapp)/(components)';
+import StatusCodeBox from '@/app/(webapp)/(components)/StatusCodeBox';
 import { ACTIVITY_DETAILS } from '@/data/activityData';
 import { ActivitySectionsProps } from '@/types/webappTypes/appTypes';
 import { updateSearchParams } from '@/utils/searchParams';
@@ -30,7 +31,7 @@ const ActivityDetails = ({
               {activity_details?.id}
             </h2>
 
-            <StatusBox status={activity_details?.status || 'status'} />
+            <StatusCodeBox status={activity_details?.response?.status || 'status'} />
           </div>
 
           <ExportButton 
@@ -65,7 +66,7 @@ const ActivityDetails = ({
               label='Status'
               value={
                 <div className='w-fit flex items-center gap-[4px]'>
-                  <StatusBox status={activity_details?.status} />
+                  <StatusCodeBox status={activity_details?.response?.status} />
                 </div>
               }
             />

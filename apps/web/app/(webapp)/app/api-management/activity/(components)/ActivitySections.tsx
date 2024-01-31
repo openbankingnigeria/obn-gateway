@@ -42,7 +42,6 @@ const rawCode = path == 'response' ?
       "headers": {
         "accept": "${request?.headers?.accept}",
         "accept-encoding": "${request?.headers?.['accept-encoding']}",
-        "authorization": "${request?.headers?.authorization}",
         "cache-control": "${request?.headers?.['cache-control']}",
         "connection": "${request?.headers?.connection}",
         "host": "${request?.headers?.host}",
@@ -92,7 +91,6 @@ const codeElement = path == 'response' ?
       <span style='color: #FB8F8F'>"headers"</span>: {
         <span style='color: #FB8F8F'>"accept"</span>: <span style='color: #6CE9A6'>"${request?.headers?.accept}"</span>,
         <span style='color: #FB8F8F'>"accept-encoding"</span>: <span style='color: #6CE9A6'>"${request?.headers?.['accept-encoding']}"</span>,
-        <span style='color: #FB8F8F'>"authorization"</span>: <span style='color: #6CE9A6'>"${request?.headers?.authorization}"</span>,
         <span style='color: #FB8F8F'>"cache-control"</span>: <span style='color: #6CE9A6'>"${request?.headers?.['cache-control']}"</span>,
         <span style='color: #FB8F8F'>"connection"</span>: <span style='color: #6CE9A6'>"${request?.headers?.connection}"</span>,
         <span style='color: #FB8F8F'>"host"</span>: <span style='color: #6CE9A6'>"${request?.headers?.host}"</span>,

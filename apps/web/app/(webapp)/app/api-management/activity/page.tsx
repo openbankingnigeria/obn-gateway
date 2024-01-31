@@ -42,7 +42,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
       consumer_name: activity?.company?.name,
       email_address: activity?.email_address,
       api_name: activity?.name,
-      status: activity?.status,
+      status_code: activity?.response?.status,
       endpoint_url: activity?.request?.url,
       timestamp: activity?.timestamp,
     })

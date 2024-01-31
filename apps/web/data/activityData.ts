@@ -17,7 +17,7 @@ export const ACTIVITY_TABLE_HEADERS = [
   },
   {
     header: 'Status',
-    accessor: 'status'
+    accessor: 'status_code'
   },
   {
     header: 'Endpoint URL',

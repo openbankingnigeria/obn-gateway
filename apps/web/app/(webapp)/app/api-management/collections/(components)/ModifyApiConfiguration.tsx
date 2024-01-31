@@ -122,7 +122,7 @@ const ModifyApiConfiguration = ({
 
             <div className='w-fit text-f14 font-[500]'>
               <RequestMethodText 
-                method={data?.route?.methods?.toString()}
+                method={data?.route?.method?.toString()}
               />
             </div>
           </div>

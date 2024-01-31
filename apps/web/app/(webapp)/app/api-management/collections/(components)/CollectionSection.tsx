@@ -390,17 +390,20 @@ const CollectionSection = ({
                 forFilter
               />
 
-              <SelectElement 
-                name='tier'
-                options={tierList || []}
-                value={filters[2]}
-                innerLabel='Tier:'
-                containerStyle='!w-fit cursor-pointer'
-                small
-                removeSearch
-                optionStyle='!top-[38px]'
-                forFilter
-              />
+              {
+                userType == 'api-consumer' &&
+                <SelectElement 
+                  name='tier'
+                  options={tierList || []}
+                  value={filters[2]}
+                  innerLabel='Tier:'
+                  containerStyle='!w-fit cursor-pointer'
+                  small
+                  removeSearch
+                  optionStyle='!top-[38px]'
+                  forFilter
+                />
+              }
             </div>
 
             {
