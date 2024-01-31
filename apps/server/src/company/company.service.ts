@@ -20,7 +20,6 @@ import {
 } from '@common/utils/response/response.formatter';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { settingsErrors } from '@settings/settings.errors';
-import * as dummyRegistry from './dummy.registry.json';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CompanyApprovedEvent,
@@ -47,6 +46,7 @@ import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { ConfigService } from '@nestjs/config';
+import { CompanyTiers } from './types';
 
 @Injectable()
 export class CompanyService {
@@ -84,6 +84,20 @@ export class CompanyService {
       if (rcExists > 0) {
         throw new IBadRequestException({
           message: `A business with RC Number - ${data.rcNumber} already exists.`,
+        });
+      }
+    }
+
+    if (data.accountNumber) {
+      const rcExists = await this.userRepository.count({
+        where: {
+          accountNumber: data.accountNumber,
+        },
+      });
+
+      if (rcExists > 0) {
+        throw new IBadRequestException({
+          message: `A business with account number - ${data.accountNumber} already exists.`,
         });
       }
     }
@@ -152,6 +166,13 @@ export class CompanyService {
       {
         kybData: JSON.stringify({ ...previousKybDetails, ...validKybData }),
         rcNumber: data.rcNumber,
+      },
+    );
+
+    await this.userRepository.update(
+      { id: ctx.activeUser.id },
+      {
+        accountNumber: data.accountNumber,
       },
     );
 
@@ -281,25 +302,44 @@ export class CompanyService {
         message: 'Company name is empty',
       });
     }
+
     // TODO remove dummy registry
-    const business = dummyRegistry.find(
-      (business) => business.rcNumber === rcNumber,
-    );
+    // const business = dummyRegistry.find(
+    //   (business) => business.rcNumber === rcNumber,
+    // );
 
-    if (!business) {
-      throw new IBadRequestException({
-        message: companyErrors.businessNotFoundOnRegistry(rcNumber),
-      });
+    // if (!business) {
+    //   throw new IBadRequestException({
+    //     message: companyErrors.businessNotFoundOnRegistry(rcNumber),
+    //   });
+    // }
+    // const nameMatches = business.name === name;
+
+    // if (!nameMatches) {
+    //   throw new IBadRequestException({
+    //     message: `RC Number does not match business name`,
+    //   });
+    // }
+
+    // Determine the tier depending on the rc Number
+    const firstFour = Number(rcNumber.slice(0, 5));
+
+    let tier: CompanyTiers;
+
+    if (firstFour > 75000) {
+      tier = CompanyTiers.TIER_4;
+    } else if (firstFour > 50000) {
+      tier = CompanyTiers.TIER_3;
+    } else if (firstFour > 25000) {
+      tier = CompanyTiers.TIER_2;
+    } else {
+      tier = CompanyTiers.TIER_1;
     }
-    const nameMatches = business.name === name;
 
-    if (!nameMatches) {
-      throw new IBadRequestException({
-        message: `RC Number does not match business name`,
-      });
-    }
-
-    return business;
+    return {
+      rcNumber,
+      tier,
+    };
   }
 
   async updateKYBStatus(

@@ -4,6 +4,7 @@ import {
   IsIn,
   IsMobilePhone,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsStrongPassword,
   Length,
@@ -161,9 +162,7 @@ export class BaseSignupDto {
 }
 
 export class IndividualSignupDto extends BaseSignupDto {
-  @IsNotEmpty({
-    message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
   @Length(10, 10)
   @Matches(/\d/gi, {
@@ -184,9 +183,7 @@ export class IndividualSignupDto extends BaseSignupDto {
   bvn: string;
 }
 export class BusinessSignupDto extends BaseSignupDto {
-  @IsNotEmpty({
-    message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
   @Length(10, 10)
   @Matches(/\d/gi, {
@@ -201,9 +198,7 @@ export class BusinessSignupDto extends BaseSignupDto {
   @IsString()
   companyName: string;
 
-  @IsNotEmpty({
-    message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsAlphanumeric('en-US', {
     message: ({ property }) =>
       companyValidationErrors.dto.typeMismatch(
