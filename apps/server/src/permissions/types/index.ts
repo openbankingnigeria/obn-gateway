@@ -44,7 +44,6 @@ export enum PERMISSIONS {
   VIEW_TEAM_MEMBER = 'view-team-member',
   DELETE_TEAM_MEMBER = 'delete-team-member',
 
-
   UPDATE_COMPANY_KYB_DETAILS = 'update-company-kyb-details',
   UPDATE_COMPANY_KYB_STATUS = 'update-company-kyb-status',
   UPDATE_COMPANY_ACCESS = 'update-company-access',
@@ -64,7 +63,6 @@ export enum PERMISSIONS {
   UPDATE_API_ENDPOINT = 'update-api-endpoint',
   VIEW_API_TRANSFORMATION = 'view-api-transformation',
   SET_API_TRANSFORMATION = 'set-api-transformation',
-
 
   SET_API_RESTRICTIONS = 'set-api-restrictions',
   VIEW_API_RESTRICTIONS = 'view-api-restrictions',

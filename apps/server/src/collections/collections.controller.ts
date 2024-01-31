@@ -18,7 +18,11 @@ import {
 } from '@common/utils/pipes/query/pagination.pipe';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { CollectionFilters } from './collections.filter';
-import { Ctx, RequireTwoFA, RequiredPermission } from '@common/utils/authentication/auth.decorator';
+import {
+  Ctx,
+  RequireTwoFA,
+  RequiredPermission,
+} from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
 import { PERMISSIONS } from '@permissions/types';
 

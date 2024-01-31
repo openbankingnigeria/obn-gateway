@@ -26,12 +26,12 @@ import {
   UserDeactivatedEvent,
   UserDeletedEvent,
   UserUpdatedEvent,
+  UserReactivatedEvent,
 } from 'src/shared/events/user.event';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { userSuccessMessages } from '@users/user.constants';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
-import { UserReactivatedEvent } from 'src/shared/events/user.event';
 import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
@@ -45,7 +45,7 @@ export class UsersService {
     private readonly auth: Auth,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
-  ) { }
+  ) {}
 
   async createUser(ctx: RequestContext, data: CreateUserDto) {
     const { email, roleId } = data;

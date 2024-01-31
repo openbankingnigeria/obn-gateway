@@ -18,13 +18,13 @@ export class KongPluginService {
   constructor(
     private readonly httpService: HttpService,
     private readonly config: ConfigService,
-  ) { }
+  ) {}
 
   async createPlugin(environment: KONG_ENVIRONMENT, data: CreatePluginRequest) {
     if (!data.tags) {
-      data.tags = [data.name]
+      data.tags = [data.name];
     } else {
-      data.tags = Array.from(new Set([...data.tags, data.name]))
+      data.tags = Array.from(new Set([...data.tags, data.name]));
     }
     const response = await firstValueFrom(
       this.httpService
@@ -63,14 +63,15 @@ export class KongPluginService {
     data: CreatePluginRequest,
   ) {
     if (!data.tags) {
-      data.tags = [data.name]
+      data.tags = [data.name];
     } else {
-      data.tags = Array.from(new Set([...data.tags, data.name]))
+      data.tags = Array.from(new Set([...data.tags, data.name]));
     }
     const response = await firstValueFrom(
       this.httpService
         .put<CreatePluginResponse>(
-          `${this.config.get('kong.endpoint')[environment]}/plugins/${data.name
+          `${this.config.get('kong.endpoint')[environment]}/plugins/${
+            data.name
           }`,
           data,
         )

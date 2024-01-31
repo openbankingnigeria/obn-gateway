@@ -24,7 +24,7 @@ export class KongRouteService {
   constructor(
     private readonly httpService: HttpService,
     private readonly config: ConfigService,
-  ) { }
+  ) {}
 
   async getRoute(environment: KONG_ENVIRONMENT, routeId: string) {
     const response = await firstValueFrom(
@@ -124,14 +124,15 @@ export class KongRouteService {
     data: CreatePluginRequest,
   ) {
     if (!data.tags) {
-      data.tags = [data.name]
+      data.tags = [data.name];
     } else {
-      data.tags = Array.from(new Set([...data.tags, data.name]))
+      data.tags = Array.from(new Set([...data.tags, data.name]));
     }
     const response = await firstValueFrom(
       this.httpService
         .post<CreatePluginResponse>(
-          `${this.config.get('kong.endpoint')[environment]
+          `${
+            this.config.get('kong.endpoint')[environment]
           }/routes/${id}/plugins`,
           data,
         )
@@ -145,13 +146,18 @@ export class KongRouteService {
     return response.data;
   }
 
-  async getPlugins(environment: KONG_ENVIRONMENT, id: string, params?: ListPluginsRequest) {
+  async getPlugins(
+    environment: KONG_ENVIRONMENT,
+    id: string,
+    params?: ListPluginsRequest,
+  ) {
     const response = await firstValueFrom(
       this.httpService
         .get<ListPluginsResponse>(
-          `${this.config.get('kong.endpoint')[environment]
+          `${
+            this.config.get('kong.endpoint')[environment]
           }/routes/${id}/plugins`,
-          { params }
+          { params },
         )
         .pipe(
           catchError((error: AxiosError) => {
@@ -175,14 +181,15 @@ export class KongRouteService {
     );
     if (!plugin) return this.createPlugin(environment, id, data);
     if (!data.tags) {
-      data.tags = [data.name]
+      data.tags = [data.name];
     } else {
-      data.tags = Array.from(new Set([...data.tags, data.name]))
+      data.tags = Array.from(new Set([...data.tags, data.name]));
     }
     const response = await firstValueFrom(
       this.httpService
         .put<CreatePluginResponse>(
-          `${this.config.get('kong.endpoint')[environment]
+          `${
+            this.config.get('kong.endpoint')[environment]
           }/routes/${id}/plugins/${plugin.id}`,
           data,
         )

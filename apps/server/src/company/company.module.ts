@@ -8,10 +8,7 @@ import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, Company, Settings]),
-    HttpModule
-  ],
+  imports: [TypeOrmModule.forFeature([User, Company, Settings]), HttpModule],
   controllers: [CompanyController],
   providers: [CompanyService, FileHelpers, KongConsumerService],
 })

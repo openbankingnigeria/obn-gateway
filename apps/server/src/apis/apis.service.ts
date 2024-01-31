@@ -102,22 +102,31 @@ export class APIService {
         const gatewayService = gatewayServices.data.find(
           (gatewayService) => gatewayService.id === route.serviceId,
         )!;
-        return new GetAPIResponseDTO({
-          id: route.id,
-          name: route.name,
-          enabled: route.enabled,
-          upstream: new GETAPIUpstreamResponseDTO({
-            url: gatewayService
-              ? `${gatewayService.protocol}://${gatewayService.host}:${
-                  gatewayService.port || ''
-                }${gatewayService.path || ''}`
-              : null,
-          }, ctx),
-          downstream: new GETAPIDownstreamResponseDTO({
-            paths: gatewayRoute?.paths || [],
-            methods: gatewayRoute?.methods || [],
-          }, ctx),
-        }, ctx);
+        return new GetAPIResponseDTO(
+          {
+            id: route.id,
+            name: route.name,
+            enabled: route.enabled,
+            upstream: new GETAPIUpstreamResponseDTO(
+              {
+                url: gatewayService
+                  ? `${gatewayService.protocol}://${gatewayService.host}:${
+                      gatewayService.port || ''
+                    }${gatewayService.path || ''}`
+                  : null,
+              },
+              ctx,
+            ),
+            downstream: new GETAPIDownstreamResponseDTO(
+              {
+                paths: gatewayRoute?.paths || [],
+                methods: gatewayRoute?.methods || [],
+              },
+              ctx,
+            ),
+          },
+          ctx,
+        );
       }),
       new ResponseMetaDTO({
         totalNumberOfRecords,
@@ -177,35 +186,47 @@ export class APIService {
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPI,
-      new GetAPIResponseDTO({
-        id: route.id,
-        name: route.name,
-        enabled: route.enabled,
-        upstream: new GETAPIUpstreamResponseDTO({
-          url: gatewayService
-            ? `${gatewayService.protocol}://${gatewayService.host}:${
-                gatewayService.port || ''
-              }${gatewayService.path || ''}`
-            : null,
-          method: plugin?.config.http_method || null,
-          headers: plugin?.config?.add?.headers?.map((header: string) => {
-            const [key, ...value] = header.split(':')
-            return { key, value: value.join(':') }
-          }) || [],
-          querystring: plugin?.config?.add?.querystring?.map((header: string) => {
-            const [key, ...value] = header.split(':')
-            return { key, value: value.join(':') }
-          }) || [],
-          body: plugin?.config?.add?.body?.map((header: string) => {
-            const [key, ...value] = header.split(':')
-            return { key, value: value.join(':') }
-          }) || []
-        }, ctx),
-        downstream: new GETAPIDownstreamResponseDTO({
-          paths: gatewayRoute?.paths || [],
-          methods: gatewayRoute?.methods || [],
-        }, ctx),
-      }, ctx),
+      new GetAPIResponseDTO(
+        {
+          id: route.id,
+          name: route.name,
+          enabled: route.enabled,
+          upstream: new GETAPIUpstreamResponseDTO(
+            {
+              url: gatewayService
+                ? `${gatewayService.protocol}://${gatewayService.host}:${
+                    gatewayService.port || ''
+                  }${gatewayService.path || ''}`
+                : null,
+              method: plugin?.config.http_method || null,
+              headers:
+                plugin?.config?.add?.headers?.map((header: string) => {
+                  const [key, ...value] = header.split(':');
+                  return { key, value: value.join(':') };
+                }) || [],
+              querystring:
+                plugin?.config?.add?.querystring?.map((header: string) => {
+                  const [key, ...value] = header.split(':');
+                  return { key, value: value.join(':') };
+                }) || [],
+              body:
+                plugin?.config?.add?.body?.map((header: string) => {
+                  const [key, ...value] = header.split(':');
+                  return { key, value: value.join(':') };
+                }) || [],
+            },
+            ctx,
+          ),
+          downstream: new GETAPIDownstreamResponseDTO(
+            {
+              paths: gatewayRoute?.paths || [],
+              methods: gatewayRoute?.methods || [],
+            },
+            ctx,
+          ),
+        },
+        ctx,
+      ),
     );
   }
 
@@ -373,16 +394,16 @@ export class APIService {
           config: {
             http_method: method?.toUpperCase(),
             remove: {
-              headers: headers?.map(h => `${h.key}:${h.value}`),
-              querystring: querystring?.map(h => `${h.key}:${h.value}`),
-              body: body?.map(h => `${h.key}:${h.value}`),
+              headers: headers?.map((h) => `${h.key}:${h.value}`),
+              querystring: querystring?.map((h) => `${h.key}:${h.value}`),
+              body: body?.map((h) => `${h.key}:${h.value}`),
             },
             add: {
-              headers: headers?.map(h => `${h.key}:${h.value}`),
-              querystring: querystring?.map(h => `${h.key}:${h.value}`),
-              body: body?.map(h => `${h.key}:${h.value}`),
-            }
-          }
+              headers: headers?.map((h) => `${h.key}:${h.value}`),
+              querystring: querystring?.map((h) => `${h.key}:${h.value}`),
+              body: body?.map((h) => `${h.key}:${h.value}`),
+            },
+          },
         },
       );
     }
@@ -391,16 +412,24 @@ export class APIService {
 
     return ResponseFormatter.success(
       apiSuccessMessages.createdAPI,
-      new GetAPIResponseDTO({
-        id: createdRoute.id,
-        name: createdRoute.name,
-        enabled: createdRoute.enabled,
-        upstream: new GETAPIUpstreamResponseDTO({
-          ...data.upstream,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
-        }, ctx),
-        downstream: new GETAPIDownstreamResponseDTO(data.downstream, ctx),
-      }, ctx),
+      new GetAPIResponseDTO(
+        {
+          id: createdRoute.id,
+          name: createdRoute.name,
+          enabled: createdRoute.enabled,
+          upstream: new GETAPIUpstreamResponseDTO(
+            {
+              ...data.upstream,
+              url: `${gatewayService.protocol}://${gatewayService.host}:${
+                gatewayService.port || ''
+              }${gatewayService.path || ''}`,
+            },
+            ctx,
+          ),
+          downstream: new GETAPIDownstreamResponseDTO(data.downstream, ctx),
+        },
+        ctx,
+      ),
     );
   }
 
@@ -662,16 +691,16 @@ export class APIService {
           config: {
             http_method: method?.toUpperCase(),
             remove: {
-              headers: headers?.map(h => `${h.key}:${h.value}`),
-              querystring: querystring?.map(h => `${h.key}:${h.value}`),
-              body: body?.map(h => `${h.key}:${h.value}`),
+              headers: headers?.map((h) => `${h.key}:${h.value}`),
+              querystring: querystring?.map((h) => `${h.key}:${h.value}`),
+              body: body?.map((h) => `${h.key}:${h.value}`),
             },
             add: {
-              headers: headers?.map(h => `${h.key}:${h.value}`),
-              querystring: querystring?.map(h => `${h.key}:${h.value}`),
-              body: body?.map(h => `${h.key}:${h.value}`),
-            }
-          }
+              headers: headers?.map((h) => `${h.key}:${h.value}`),
+              querystring: querystring?.map((h) => `${h.key}:${h.value}`),
+              body: body?.map((h) => `${h.key}:${h.value}`),
+            },
+          },
         },
       );
     }
@@ -680,16 +709,24 @@ export class APIService {
 
     return ResponseFormatter.success(
       apiSuccessMessages.updatedAPI,
-      new GetAPIResponseDTO({
-        id: route.id,
-        name: route.name,
-        enabled: route.enabled,
-        upstream: new GETAPIUpstreamResponseDTO({
-          ...data.upstream,
-          url: `${gatewayService.protocol}://${gatewayService.host}:${gatewayService.port || ''}${gatewayService.path || ''}`,
-        }, ctx),
-        downstream: new GETAPIDownstreamResponseDTO(data.downstream, ctx),
-      }, ctx),
+      new GetAPIResponseDTO(
+        {
+          id: route.id,
+          name: route.name,
+          enabled: route.enabled,
+          upstream: new GETAPIUpstreamResponseDTO(
+            {
+              ...data.upstream,
+              url: `${gatewayService.protocol}://${gatewayService.host}:${
+                gatewayService.port || ''
+              }${gatewayService.path || ''}`,
+            },
+            ctx,
+          ),
+          downstream: new GETAPIDownstreamResponseDTO(data.downstream, ctx),
+        },
+        ctx,
+      ),
     );
   }
 
@@ -1003,22 +1040,31 @@ export class APIService {
       }
 
       populatedRoutes.push(
-        new GetAPIResponseDTO({
-          id: route.id,
-          name: route.name,
-          enabled: route.enabled,
-          upstream: new GETAPIUpstreamResponseDTO({
-            url: gatewayService
-              ? `${gatewayService.protocol}://${gatewayService.host}:${
-                  gatewayService.port || ''
-                }${gatewayService.path || ''}`
-              : null,
-          }, ctx),
-          downstream: new GETAPIDownstreamResponseDTO({
-            paths: gatewayRoute?.paths || [],
-            methods: gatewayRoute?.methods || [],
-          }, ctx),
-        }, ctx),
+        new GetAPIResponseDTO(
+          {
+            id: route.id,
+            name: route.name,
+            enabled: route.enabled,
+            upstream: new GETAPIUpstreamResponseDTO(
+              {
+                url: gatewayService
+                  ? `${gatewayService.protocol}://${gatewayService.host}:${
+                      gatewayService.port || ''
+                    }${gatewayService.path || ''}`
+                  : null,
+              },
+              ctx,
+            ),
+            downstream: new GETAPIDownstreamResponseDTO(
+              {
+                paths: gatewayRoute?.paths || [],
+                methods: gatewayRoute?.methods || [],
+              },
+              ctx,
+            ),
+          },
+          ctx,
+        ),
       );
     }
 

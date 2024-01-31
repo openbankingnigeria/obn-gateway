@@ -641,15 +641,11 @@ export class AuthService {
     });
 
     if (!user) {
-      return ResponseFormatter.success(
-        authSuccessMessages.resendOtp,
-      );
+      return ResponseFormatter.success(authSuccessMessages.resendOtp);
     }
 
     if (user.emailVerified) {
-      return ResponseFormatter.success(
-        authSuccessMessages.resendOtp,
-      );
+      return ResponseFormatter.success(authSuccessMessages.resendOtp);
     }
 
     const otp = generateOtp(6);
@@ -670,8 +666,6 @@ export class AuthService {
     });
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success(
-      authSuccessMessages.resendOtp,
-    );
+    return ResponseFormatter.success(authSuccessMessages.resendOtp);
   }
 }

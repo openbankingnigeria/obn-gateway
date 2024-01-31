@@ -1,6 +1,11 @@
 import { IRequest } from '@common/utils/authentication/auth.types';
 import { IForbiddenException } from '@common/utils/exceptions/exceptions';
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { Observable, throwError } from 'rxjs';
 
@@ -10,10 +15,16 @@ export class APIInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<IRequest>();
 
     if (request.params.environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
-      if (!request.ctx.activeCompany.isVerified || request.ctx.activeCompany.kybStatus !== 'approved') {
-        return throwError(() => new IForbiddenException({
-          message: `Cannot access this environment`,
-        }));
+      if (
+        !request.ctx.activeCompany.isVerified ||
+        request.ctx.activeCompany.kybStatus !== 'approved'
+      ) {
+        return throwError(
+          () =>
+            new IForbiddenException({
+              message: `Cannot access this environment`,
+            }),
+        );
       }
     }
 

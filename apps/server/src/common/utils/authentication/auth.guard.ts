@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
     private readonly auth: Auth,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) { }
+  ) {}
   async canActivate(context: ExecutionContext) {
     const shouldSkipAuth = <boolean>(
       this.reflector.get(SKIP_AUTH_METADATA_KEY, context.getHandler())

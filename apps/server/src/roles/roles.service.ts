@@ -102,12 +102,11 @@ export class RolesService {
     { limit, page }: PaginationParameters,
     filters?: any,
   ) {
-
     const where = {
       ...filters,
       parentId: ctx.activeUser.role.parentId,
       companyId: ctx.activeUser.companyId,
-    }
+    };
 
     const totalRoles = await this.roleRepository.count({ where });
 
@@ -178,13 +177,19 @@ export class RolesService {
 
     const { description, status } = data;
 
-    if (status && (status !== role.status)) {
-      if (status === RoleStatuses.ACTIVE && !ctx?.hasPermission(PERMISSIONS.ACTIVATE_ROLE)) {
+    if (status && status !== role.status) {
+      if (
+        status === RoleStatuses.ACTIVE &&
+        !ctx?.hasPermission(PERMISSIONS.ACTIVATE_ROLE)
+      ) {
         throw new IForbiddenException({
           message: authErrors.inadequatePermissions,
         });
       }
-      if (status === RoleStatuses.INACTIVE && !ctx?.hasPermission(PERMISSIONS.DEACTIVATE_ROLE)) {
+      if (
+        status === RoleStatuses.INACTIVE &&
+        !ctx?.hasPermission(PERMISSIONS.DEACTIVATE_ROLE)
+      ) {
         throw new IForbiddenException({
           message: authErrors.inadequatePermissions,
         });

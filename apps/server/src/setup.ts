@@ -55,28 +55,43 @@ function jsonToLua(jsonString: string) {
   const obj = JSON.parse(jsonString);
 
   function convertToLuaTable(obj: any, objKey = '', indentLevel = 0) {
-    if (typeof obj !== 'object' || obj === null) {
-      return `data${objKey}`
+    const dataType = Array.isArray(obj) ? 'array' : typeof obj;
+    if (!['array', 'object'].includes(dataType) || obj === null) {
+      let tableValue = `data${objKey}`;
+      if (dataType === 'string') {
+        tableValue = `tostring(${tableValue})`;
+      }
+      if (dataType === 'number') {
+        tableValue = `tonumber(${tableValue})`;
+      }
+      return tableValue;
     }
 
-    const isArray = Array.isArray(obj);
     const indent = ' '.repeat(indentLevel * 4); // 4 spaces per indent level
     const innerIndent = ' '.repeat((indentLevel + 1) * 4);
-    let luaTable = isArray ? "{\n" : "{\n";
+    let luaTable = dataType === 'array' ? '{\n' : '{\n';
 
-    if (isArray) {
-      obj.splice(1)
+    if (dataType === 'array') {
+      obj.splice(1);
     }
 
     for (let [key, value] of Object.entries(obj)) {
-      if (isArray) {
-        luaTable += `${innerIndent}-- Refer to lua's documentation on how to access and use array(table) data\n`
-        key = String(Number(key) + 1)
+      if (dataType === 'array') {
+        luaTable += `${innerIndent}-- Refer to lua's documentation on how to access and use array(table) data\n`;
+        key = String(Number(key) + 1);
+        value = value;
       } else if (!objKey) {
-        objKey = '.'
+        objKey = '.';
       }
-      const formattedKey = isArray ? `` : `[${JSON.stringify(key)}] = `;
-      luaTable += `${innerIndent}${formattedKey}${convertToLuaTable(value, objKey + (isArray ? `[${key}]` : (!indentLevel ? key : `.${key}`)), indentLevel + 1)},\n`;
+      const formattedKey =
+        dataType === 'array' ? `` : `[${JSON.stringify(key)}] = `;
+      const tableValue = convertToLuaTable(
+        value,
+        objKey +
+          (dataType === 'array' ? `[${key}]` : !indentLevel ? key : `.${key}`),
+        indentLevel + 1,
+      );
+      luaTable += `${innerIndent}${formattedKey}${tableValue},\n`;
     }
 
     luaTable += `${indent}}`;
@@ -196,8 +211,10 @@ export class SetupService {
 
         if (!collection) {
           // get collection description, and remove html tags.
-          const description = folders[folder].description?.split('\n')?.[0]?.replace(/(<([^>]+)>)/gi, "");
-          if (!description) continue
+          const description = folders[folder].description
+            ?.split('\n')?.[0]
+            ?.replace(/(<([^>]+)>)/gi, '');
+          if (!description) continue;
 
           collection = await collectionService.createCollection(
             ctx,
@@ -210,15 +227,20 @@ export class SetupService {
 
         for (const { name, request, response } of folders[folder].data) {
           try {
-            let api = await apiService.viewAPI(ctx, KONG_ENVIRONMENT.DEVELOPMENT, name).catch(console.error);
+            let api = await apiService
+              .viewAPI(ctx, KONG_ENVIRONMENT.DEVELOPMENT, name)
+              .catch(console.error);
             if (api) continue;
 
-            const regexPath = '~' + request.urlObject.path.reduce((acc: string, curr: string) => {
-              if (curr.startsWith(':')) {
-                curr = `(?P<${curr.slice(1)}>[^/]+)`
-              }
-              return acc + '/' + curr
-            }, '') + '$';
+            const regexPath =
+              '~' +
+              request.urlObject.path.reduce((acc: string, curr: string) => {
+                if (curr.startsWith(':')) {
+                  curr = `(?P<${curr.slice(1)}>[^/]+)`;
+                }
+                return acc + '/' + curr;
+              }, '') +
+              '$';
             api = await apiService.createAPI(
               ctx,
               KONG_ENVIRONMENT.DEVELOPMENT,
@@ -235,8 +257,12 @@ export class SetupService {
                 },
               }),
             );
-            await apiService.setTransformation(ctx, KONG_ENVIRONMENT.DEVELOPMENT, api.data!.id, {
-              upstream: `
+            await apiService.setTransformation(
+              ctx,
+              KONG_ENVIRONMENT.DEVELOPMENT,
+              api.data!.id,
+              {
+                upstream: `
               local function transform_upstream_request()
               -- Read the request body
               kong.service.request.enable_buffering()  -- Enable buffering to read body
@@ -245,28 +271,34 @@ export class SetupService {
                   kong.log.err(err)
                   return
               end
-              ${request.method !== "GET" && response?.[0]?.originalRequest?.body?.raw && (
+              ${
+                (request.method !== 'GET' &&
+                  response?.[0]?.originalRequest?.body?.raw &&
                   `-- Perform the transformation
-                  local transformed_data = ${jsonToLua(response?.[0]?.originalRequest?.body?.raw)}
+                  local transformed_data = ${jsonToLua(
+                    response?.[0]?.originalRequest?.body?.raw,
+                  )}
               
                 -- Set the transformed body
                 local ok, err = kong.service.request.set_body(transformed_data)
                 if err then
                     kong.log.err(err)
                     return
-                end`
-                ) || ""}
+                end`) ||
+                ''
+              }
             end
             return transform_upstream_request
             `,
-              downstream: `
+                downstream: `
               local cjson = require 'cjson.safe'
             
               local function transform_downstream_response()
                 local data = kong.response.get_raw_body()
                 data = cjson.decode(data)
-                ${response?.[0]?.body && (
-                  `
+                ${
+                  (response?.[0]?.body &&
+                    `
                   if kong.service.response.get_status() == nil then
                     return
                   end
@@ -274,15 +306,17 @@ export class SetupService {
                     data = cjson.encode(${jsonToLua(response?.[0]?.body)})
                     kong.response.set_raw_body(data)
                   end
-                  `
-                ) || ""}
+                  `) ||
+                  ''
+                }
               end
 
               return transform_downstream_response
-            `
-            })
+            `,
+              },
+            );
           } catch (error) {
-            console.error(error)
+            console.error(error);
           }
         }
       } catch (error) {

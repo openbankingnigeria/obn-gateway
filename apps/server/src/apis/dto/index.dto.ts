@@ -180,7 +180,10 @@ export class APIParam {
 }
 
 export class GETAPIDownstreamResponseDTO {
-  constructor(partial: Partial<GETAPIDownstreamResponseDTO>, ctx?: RequestContext) {
+  constructor(
+    partial: Partial<GETAPIDownstreamResponseDTO>,
+    ctx?: RequestContext,
+  ) {
     Object.assign(this, partial);
   }
 
@@ -194,10 +197,13 @@ export class GETAPIDownstreamResponseDTO {
 }
 
 export class GETAPIUpstreamResponseDTO {
-  constructor(partial: Partial<GETAPIUpstreamResponseDTO>, ctx?: RequestContext) {
+  constructor(
+    partial: Partial<GETAPIUpstreamResponseDTO>,
+    ctx?: RequestContext,
+  ) {
     if (
-      ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT)
-      && ctx?.activeCompany.type === CompanyTypes.API_PROVIDER
+      ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT) &&
+      ctx?.activeCompany.type === CompanyTypes.API_PROVIDER
     ) {
       Object.assign(this, partial);
     }
@@ -226,8 +232,8 @@ export class GetAPIResponseDTO {
   constructor(partial: GetAPIResponseDTO, ctx?: RequestContext) {
     Object.assign(this, partial);
     if (
-      !ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT)
-      || ctx?.activeCompany.type !== CompanyTypes.API_PROVIDER
+      !ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT) ||
+      ctx?.activeCompany.type !== CompanyTypes.API_PROVIDER
     ) {
       this.upstream = null;
     }
@@ -440,10 +446,14 @@ export class SetAPITransformationDTO {
 }
 
 export class GetAPITransformationResponseDTO {
-  constructor(partial: Partial<GetAPITransformationResponseDTO>, ctx?: RequestContext) {
+  constructor(
+    partial: Partial<GetAPITransformationResponseDTO>,
+    ctx?: RequestContext,
+  ) {
     if (
-      (ctx?.hasPermission(PERMISSIONS.SET_API_TRANSFORMATION) || ctx?.hasPermission(PERMISSIONS.VIEW_API_TRANSFORMATION))
-      && ctx?.activeCompany.type === CompanyTypes.API_PROVIDER
+      (ctx?.hasPermission(PERMISSIONS.SET_API_TRANSFORMATION) ||
+        ctx?.hasPermission(PERMISSIONS.VIEW_API_TRANSFORMATION)) &&
+      ctx?.activeCompany.type === CompanyTypes.API_PROVIDER
     ) {
       Object.assign(this, partial);
     }
