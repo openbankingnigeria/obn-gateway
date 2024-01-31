@@ -18,7 +18,7 @@ const ActivityTable = ({
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
 
-  // console.log(rawData);
+  console.log(rawData);
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',

@@ -17,6 +17,7 @@ const CollectionsTable = ({
   totalPages,
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
+  // console.log(rawData);
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',

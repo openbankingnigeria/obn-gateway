@@ -40,7 +40,7 @@ const AddAPIPermissions = ({
   
       let apis = result?.data?.map((api: any) => {
         return({
-          method: api?.downstream?.methods?.toString(),
+          method: api?.downstream?.method?.toString(),
           id: api?.id,
           label: api?.name
         });

@@ -18,6 +18,11 @@ const StatusBox = ({ status }: StatusBoxProps) => {
         Success
       </span>
     ) 
+    : sanitizedStatus == 'enabled' ? (
+      <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-white bg-o-status-green'>
+        ENABLED
+      </span>
+    ) 
     : sanitizedStatus == 'approved' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-white bg-o-status-green'>
         Approved
@@ -71,6 +76,11 @@ const StatusBox = ({ status }: StatusBoxProps) => {
     : sanitizedStatus === 'rejected' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-white bg-o-status-red'>
         Rejected
+      </span>
+    )
+    : sanitizedStatus === 'disabled' ? (
+      <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-white bg-o-status-red'>
+        DISABLED
       </span>
     )
     : sanitizedStatus === 'denied' ? (
