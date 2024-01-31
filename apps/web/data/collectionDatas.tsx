@@ -69,12 +69,12 @@ export const COLLECTIONS_API_CONSUMER_HEADERS = [
     accessor: 'request_method'
   },
   {
-    header: 'Configured',
-    accessor: 'configured'
-  },
-  {
     header: 'Endpoint URL',
     accessor: 'endpoint_url'
+  },
+  {
+    header: 'Status',
+    accessor: 'configured'
   },
 ];
 
@@ -88,10 +88,6 @@ export const COLLECTIONS_API_HEADERS = [
     accessor: 'request_method'
   },
   {
-    header: 'Configured',
-    accessor: 'configured'
-  },
-  {
     header: 'Endpoint URL',
     accessor: 'endpoint_url'
   },
@@ -102,7 +98,11 @@ export const COLLECTIONS_API_HEADERS = [
   {
     header: 'Parameters',
     accessor: 'parameters'
-  }
+  },
+  {
+    header: 'Status',
+    accessor: 'configured'
+  },
 ];
 
 export const COLLECTION_ACTIONS_DATA = [
