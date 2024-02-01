@@ -18,6 +18,7 @@ const TransformationForm = ({
   const [response_body, setResponseBody] = useState('');
   const [request_header, setRequestHeader] = useState('');
   const [response_header, setResponseHeader] = useState('');
+  const userType = profileData?.user?.role?.parent?.slug;
 
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -128,7 +129,11 @@ const TransformationForm = ({
               <div className='w-full'>
                 <CodeEditor 
                   code={request_body}
-                  setCode={setRequestBody}
+                  setCode={
+                    userType == 'api-consumer' ? 
+                      ()=> null : 
+                      setRequestBody
+                  }
                 />
               </div>
             }
@@ -138,7 +143,11 @@ const TransformationForm = ({
               <div className='w-full'>
                 <CodeEditor 
                   code={request_header}
-                  setCode={setRequestHeader}
+                  setCode={
+                    userType == 'api-consumer' ? 
+                      ()=> null : 
+                      setRequestHeader
+                  }
                 />
               </div>
             }
@@ -148,7 +157,11 @@ const TransformationForm = ({
               <div className='w-full'>
                 <CodeEditor 
                   code={response_body}
-                  setCode={setResponseBody}
+                  setCode={
+                    userType == 'api-consumer' ? 
+                      ()=> null : 
+                      setResponseBody
+                  }
                 />
               </div>
             }
@@ -158,7 +171,11 @@ const TransformationForm = ({
               <div className='w-full'>
                 <CodeEditor 
                   code={response_header}
-                  setCode={setResponseHeader}
+                  setCode={
+                    userType == 'api-consumer' ? 
+                      ()=> null : 
+                      setResponseHeader
+                  }
                 />
               </div>
             }

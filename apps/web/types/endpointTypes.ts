@@ -31,3 +31,7 @@ export interface GetSingleEnvironmentProps {
 export interface PostTokenProps {
   token: string;
 }
+
+export interface GetTypeProps {
+  type: string;
+}

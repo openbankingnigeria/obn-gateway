@@ -57,7 +57,10 @@ const APIConsumerDashboardPage = async ({
       </h2>
 
       {
-        details?.type == 'licensed-entity' &&
+        (
+          details?.type == 'licensed-entity' ||
+          details?.type == 'business'
+        ) &&
         <section className='w-full flex'>
           <DashboardBanner 
             rawData={details}

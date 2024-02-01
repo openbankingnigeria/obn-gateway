@@ -34,12 +34,17 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
 
   let apiDetails = fetchedAPI?.data;
   let profile = fetchedProfile?.data;
+  const userType = profile?.user?.role?.parent?.slug;
 
   return (
     <section className='w-full gap-[20px] flex flex-col h-full'>
       <div className='w-full flex items-center justify-between'>
         <h3 className='w-full text-f18 font-[500] text-o-text-dark'>
-          API Configuration
+          {
+            preview == 'true' ?
+              'API' :
+              'API Configuration'
+          }
         </h3>
 
         <StatusBox 
@@ -47,14 +52,20 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
         />
       </div>
 
-      <DownStreamForm 
-        rawData={apiDetails}
-      />
-      <UpstreamForm 
-        rawData={apiDetails}
-        profileData={profile}
-        preview={preview}
-      />
+      {
+        !(userType == 'api-consumer') &&
+        <>
+          <DownStreamForm 
+            rawData={apiDetails}
+          />
+          <UpstreamForm 
+            rawData={apiDetails}
+            profileData={profile}
+            preview={preview}
+          />
+        </>
+      }
+      
       <TransformationForm 
         rawData={apiDetails}
         profileData={profile}

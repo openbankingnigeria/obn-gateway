@@ -1,6 +1,6 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
-import { ACTIVITY_TABLE_HEADERS, ACTIVITY_TABLE_DATA, ACTIVITY_STATUS_DATA } from '@/data/activityData'
+import { ACTIVITY_TABLE_HEADERS, ACTIVITY_TABLE_DATA, ACTIVITY_STATUS_DATA, ACTIVITY_TABLE_CONSUMER_HEADERS } from '@/data/activityData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ActivityTable } from './(components)'
 import { APIS_DATA_WITH_ALL } from '@/data/apisData'
@@ -30,11 +30,19 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  const fetchedProfile: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getProfile(),
+    method: 'GET',
+    data: null
+  });
+
   if (fetchedActivities?.status == 401) {
     return <Logout />
   }
 
   let meta_data = fetchedActivities?.meta_data;
+  let profile = fetchedProfile?.data;
   let activity = fetchedActivities?.data?.map((activity: any) => {
     return({
       ...activity,
@@ -48,7 +56,12 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
     })
   })
 
-  const headers = ACTIVITY_TABLE_HEADERS;
+  const userType = profile?.user?.role?.parent?.slug;
+  const headers = (
+    userType == 'api-consumer' ?
+      ACTIVITY_TABLE_CONSUMER_HEADERS :
+      ACTIVITY_TABLE_HEADERS
+  );
   // const activity = ACTIVITY_TABLE_DATA;
   const total_pages = meta_data?.totalNumberOfPages;
   const total_elements_in_page = activity?.length || meta_data?.pageSize;

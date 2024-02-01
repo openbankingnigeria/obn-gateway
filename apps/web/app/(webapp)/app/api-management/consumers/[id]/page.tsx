@@ -130,7 +130,10 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
         searchQuery={search_apis}
       />
       {
-        consumer?.type === 'licensed-entity' &&
+        (
+          consumer?.type === 'licensed-entity' ||
+          consumer?.type === 'business'
+        ) &&
           <ConsumerBusinessDetails  
             rawData={consumer}
           />

@@ -17,18 +17,19 @@ import * as API from '@/config/endpoints';
 const SignupFullForm = () => {
   const [email, setEmail] = useState(''); 
   const [bvn, setBvn] = useState(''); 
-  const [account_number, setAccountNumber] = useState(''); 
+  // const [accountNumber, setAccountNumber] = useState(''); 
   const [password, setPassword] = useState(''); 
   // const [country, setCountry] = useState(''); 
-  const [user_type, setUserType] = useState('');
-  const [confirm_password, setConfirmPassword] = useState(''); 
-  const [first_name, setFirstName] = useState(''); 
-  const [terms_agreed, setTermsAgreed] = useState(false);
-  const [last_name, setLastName] = useState(''); 
-  const [phone_number, setPhoneNumber] = useState('');
-  const [business_name, setBusinessName] = useState(''); 
-  const [business_type, setBusinessType] = useState(''); 
-  const [cac, setCac] = useState(''); 
+  const [userType, setUserType] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); 
+  const [firstName, setFirstName] = useState(''); 
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [lastName, setLastName] = useState(''); 
+  const [phone, setPhone] = useState('');
+  // const [companyName, setCompanyName] = useState(''); 
+  const [companySubtype, setCompanySubtype] = useState(''); 
+  // const [cac, setCac] = useState('');
+  const [requiredFields, setRequiredFields] = useState({}); 
   // const [role, setRole] = useState(''); 
 
   const [companyTypes, setCompanyTypes] = useState<any>(null);
@@ -41,13 +42,29 @@ const SignupFullForm = () => {
       data: null,
       noToast: true
     })
-
     setCompanyTypes(result?.data);
+  }
+
+  const fetchRequiredFields = async () => {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyRequiredFields({
+        type: userType
+      }),
+      method: 'GET',
+      data: null,
+      noToast: true
+    })
+    setRequiredFields(result?.data);
   }
 
   useEffect(() => {
     fetchTypes();
   }, []);
+
+  useEffect(() => {
+    userType && fetchRequiredFields();
+  }, [userType]);
 
   const upperAndLowerCase = validateUppercase(password) && validateLowercase(password);
   const number = validateNumber(password);
@@ -55,9 +72,9 @@ const SignupFullForm = () => {
   const passwordLength = greaterThan8(password);
 
   const correctPassword = (upperAndLowerCase && number && symbol && passwordLength);
-  const passwordMatch = password === confirm_password
-  const correctFirstName = validateName(first_name);
-  const correctLastName = validateName(last_name);
+  const passwordMatch = password === confirmPassword
+  const correctFirstName = validateName(firstName);
+  const correctLastName = validateName(lastName);
 
   const incorrect = (
     !validateEmail(email) ||
@@ -66,12 +83,12 @@ const SignupFullForm = () => {
     !correctFirstName ||
     !correctLastName ||
     // !country ||
-    phone_number?.length !== 11 ||
-    !user_type ||
-    (user_type == 'individual' && (!bvn || !account_number)) ||
-    (user_type == 'business' && (!business_name || !business_type || !cac || !account_number)) ||
-    (user_type == 'licensed-entity' && (!business_name || !business_type /*|| !role */)) ||
-    !terms_agreed
+    phone?.length !== 11 ||
+    !userType ||
+    // (userType == 'individual' && (!bvn || !accountNumber)) ||
+    // (userType == 'business' && (!companyName || !companySubtype || !cac || !accountNumber)) ||
+    // (userType == 'licensed-entity' && (!companyName || !companySubtype /*|| !role */)) ||
+    !termsAgreed
   );
 
   // const countries_list = COUNTRIES_DATA?.map(country => {
@@ -83,11 +100,11 @@ const SignupFullForm = () => {
 
   const subTypes = companyTypes?.companySubtypes;
   const business_type_list = (
-    user_type == 'individual' ? 
+    userType == 'individual' ? 
       subTypes?.individual :
-      user_type == 'business' ? 
+      userType == 'business' ? 
         subTypes?.business :
-        user_type == 'licensed-entity' ? 
+        userType == 'licensed-entity' ? 
           subTypes?.['licensed-entity'] :
           []
   )?.map((type?: string[]) => {
@@ -119,21 +136,21 @@ const SignupFullForm = () => {
 
   const handlePhoneNumber = (value: string) => {
     if (value?.length <= 11){
-      setPhoneNumber(value?.toString()?.replace(/[^0-9.]/g, ''));
+      setPhone(value?.toString()?.replace(/[^0-9.]/g, ''));
     }
   }
 
-  const handleCAC = (value: string) => {
-    if (value?.length <= 15) {
-      setCac(value?.toString()?.replace(/[^0-9a-zA-Z]/g, ''));
-    }
-  }
+  // const handleCAC = (value: string) => {
+  //   if (value?.length <= 15) {
+  //     setCac(value?.toString()?.replace(/[^0-9a-zA-Z]/g, ''));
+  //   }
+  // }
 
-  const handleAccountNumber = (value: string) => {
-    if (value?.length <= 10) {
-      setAccountNumber(value?.toString()?.replace(/[^0-9]/g, ''));
-    }
-  }
+  // const handleAccountNumber = (value: string) => {
+  //   if (value?.length <= 10) {
+  //     setAccountNumber(value?.toString()?.replace(/[^0-9]/g, ''));
+  //   }
+  // }
 
   const handleBVN = (value: string) => {
     if (value?.length <= 11){
@@ -147,12 +164,34 @@ const SignupFullForm = () => {
     setLastName(capitalizedValue?.replace(/[^a-zA-Z-]/g, ''));
   };
 
+  const handleFieldsInput = (value: string, name: string) => {
+    if(name == 'email') {
+      setEmail(value);
+    } else if(name == 'phone') {
+      handlePhoneNumber(value)
+    } else if(name == 'bvn') {
+      handleBVN(value)
+    } else if(name == 'password') {
+      setPassword(value)
+    } else if(name == 'confirmPassword') {
+      setConfirmPassword(value)
+    } 
+  }
+
   const initialState = {}
   const [state, formAction] = useServerAction(postSignup, initialState);
 
   const handleClientSubmit = () => {
     setStorage('el', email, 'session');
   }
+
+  const sanitizedFields = Object.keys(requiredFields).map(key => ({
+    name: key,
+    // @ts-ignore
+    label: requiredFields[key].label,
+    // @ts-ignore
+    type: requiredFields[key].type
+  }));
 
   return (
     <form
@@ -162,24 +201,112 @@ const SignupFullForm = () => {
       <div className='w-full flex flex-col gap-[16px]'>
         <div className='flex flex-col mx:flex-row mx:items-end gap-[16px]'>
           <InputElement 
-            name='first_name'
+            name='firstName'
             placeholder='First name'
             label='What is your name?'
-            value={first_name}
+            value={firstName}
             changeValue={(value: string) => handleFirstName(value)}
             required
           />
 
           <InputElement 
-            name='last_name'
+            name='lastName'
             placeholder='Last name'
-            value={last_name}
+            value={lastName}
             changeValue={(value: string) => handleLastName(value)}
             required
           />
         </div>
 
-        <InputElement 
+        <>
+          <input 
+            name='userType'
+            value={userType}
+            readOnly
+            className='hidden opacity-0'
+          />
+          
+          <SelectElement 
+            name='userType'
+            options={user_type_list}
+            label='User type'
+            placeholder='Select'
+            required
+            optionStyle='top-[70px]'
+            clickerStyle='!w-full'
+            value={userType}
+            changeValue={setUserType}
+          />
+        </>
+
+        {
+          sanitizedFields?.map((field: any) => (
+            field?.type == 'dropdown' ?
+              <div
+                key={field?.label}
+                className='w-full'
+              >
+                <input 
+                  name='companySubtype'
+                  value={companySubtype}
+                  readOnly
+                  className='hidden opacity-0'
+                />
+
+                <SelectElement 
+                  name={field?.name}
+                  options={business_type_list}
+                  label={field?.label}
+                  placeholder='Select'
+                  required
+                  optionStyle='top-[70px]'
+                  clickerStyle='!w-full'
+                  value={companySubtype}
+                  changeValue={setCompanySubtype}
+                />
+              </div>
+              :
+              (
+                (field?.name == 'email') || (field?.name == 'phone') || 
+                (field?.name == 'bvn') || (field?.name == 'password') ||
+                (field?.name == 'confirmPassword')
+              ) 
+                ?
+                <InputElement 
+                  key={field?.label}
+                  name={field?.name}
+                  placeholder={`Enter your ${field?.label}`}
+                  type={
+                    field?.name == 'phone' ? 'tel':
+                    field?.type
+                  }
+                  label={field?.label}
+                  value={
+                    (field?.name == 'email') ? email : 
+                    (field?.name == 'phone') ? phone :
+                    (field?.name == 'bvn') ? bvn :
+                    (field?.name == 'password') ? password :
+                    (field?.name == 'confirmPassword') ? confirmPassword : ''
+                  }
+                  changeValue={(value: string) => handleFieldsInput(value, field?.name)}
+                  showGuide={field?.name == 'password'}
+                  hint={(field?.name == 'confirmPassword') && !passwordMatch ? 'Password does not match' : ''}
+                  invalid={(field?.name == 'confirmPassword') && !passwordMatch && !!confirmPassword}
+                  required
+                />
+                :
+                <InputElement 
+                  key={field?.label}
+                  name={field?.name}
+                  placeholder={`Enter your ${field?.label}`}
+                  type={field?.type}
+                  label={field?.label}
+                  required
+                />
+          ))
+        }
+
+        {/* <InputElement 
           name='email'
           type='email'
           placeholder='Email address'
@@ -187,17 +314,17 @@ const SignupFullForm = () => {
           value={email}
           changeValue={setEmail}
           required
-        />
+        /> */}
 
-        <InputElement 
-          name='phone_number'
+        {/* <InputElement 
+          name='phone'
           placeholder='Phone number'
           type='tel'
-          value={phone_number}
+          value={phone}
           changeValue={(value: string) => handlePhoneNumber(value)}
           label='Phone Number'
           required
-        />
+        /> */}
 
         {/* <>
           <input 
@@ -220,30 +347,8 @@ const SignupFullForm = () => {
           />
         </> */}
 
-        <>
-          <input 
-            name='user_type'
-            value={user_type}
-            readOnly
-            className='hidden opacity-0'
-          />
-          
-          <SelectElement 
-            name='user_type'
-            options={user_type_list}
-            label='User type'
-            placeholder='Select'
-            required
-            optionStyle='top-[70px]'
-            clickerStyle='!w-full'
-            value={user_type}
-            changeValue={setUserType}
-          />
-        </>
-
-        
-        {
-          (user_type == 'individual') && (
+        {/* {
+          (userType == 'individual') && (
             <InputElement 
               name='bvn'
               placeholder='Enter your BVN'
@@ -252,46 +357,46 @@ const SignupFullForm = () => {
               changeValue={(value: string) => handleBVN(value)}
               required
             />
-        )}
+        )} */}
 
-        {
-          (user_type == 'business' || user_type == 'licensed-entity') && (
+        {/* {
+          (userType == 'business' || userType == 'licensed-entity') && (
             <InputElement 
-              name='business_name'
+              name='companyName'
               placeholder='Enter business corporate name'
               label='Business Name'
-              value={business_name}
-              changeValue={setBusinessName}
+              value={companyName}
+              changeValue={setCompanyName}
               required
             />
-        )}
+        )} */}
 
-        {
-          (user_type == 'business' || user_type == 'licensed-entity') && (
+        {/* {
+          (userType == 'business' || userType == 'licensed-entity') && (
             <>
               <input 
-                name='business_type'
-                value={business_type}
+                name='companySubtype'
+                value={companySubtype}
                 readOnly
                 className='hidden opacity-0'
               />
               
               <SelectElement 
-                name='business_type'
+                name='companySubtype'
                 options={business_type_list}
                 label='Business type'
                 placeholder='Select type'
                 required
                 optionStyle='top-[70px]'
                 clickerStyle='!w-full'
-                value={business_type}
-                changeValue={setBusinessType}
+                value={companySubtype}
+                changeValue={setCompanySubtype}
               />
             </>
-        )}
+        )} */}
 
-        {
-          (user_type == 'business') && (
+        {/* {
+          (userType == 'business') && (
             <InputElement 
               name='cac'
               placeholder='Enter company’s CAC number'
@@ -300,10 +405,10 @@ const SignupFullForm = () => {
               changeValue={(value: string) => handleCAC(value)}
               required
             />
-        )}
+        )} */}
 
         {/* {
-          (user_type == 'licensed-entity') && (
+          (userType == 'licensed-entity') && (
             <>
               <input 
                 name='role'
@@ -326,49 +431,19 @@ const SignupFullForm = () => {
             </>
         )} */}
 
-        {
-          (user_type == 'individual' || user_type == 'business') && (
+        {/* {
+          (userType == 'individual' || userType == 'business') && (
             <InputElement 
-              name='account_number'
+              name='accountNumber'
               placeholder='Enter your account number'
               label='Account Number'
-              value={account_number}
+              value={accountNumber}
               changeValue={(value: string) => handleAccountNumber(value)}
               required
             />
-        )}
+        )} */}
 
         {/* <InputElement 
-          name='company_name'
-          placeholder='Your company name goes here'
-          label='What is the name of your company?'
-          value={company_name}
-          changeValue={setCompanyName}
-          required
-        /> */}
-
-        {/* <>
-          <input 
-            name='company_type'
-            value={company_type}
-            readOnly
-            className='hidden opacity-0'
-          />
-          
-          <SelectElement 
-            name='company_type'
-            options={company_type_list}
-            label='Select company type'
-            placeholder='Select type'
-            required
-            optionStyle='top-[70px]'
-            clickerStyle='!w-full'
-            value={company_type}
-            changeValue={setCompanyType}
-          />
-        </> */}
-
-        <InputElement 
           name='password'
           type='password'
           value={password}
@@ -377,23 +452,23 @@ const SignupFullForm = () => {
           placeholder='Password'
           label='Password'
           required
-        />
+        /> */}
 
-        <InputElement 
-          name='confirm_password'
+        {/* <InputElement 
+          name='confirmPassword'
           type='password'
-          value={confirm_password}
+          value={confirmPassword}
           changeValue={setConfirmPassword}
           placeholder='Confirm password'
           label='Confirm Password'
           hint={!passwordMatch ? 'Password does not match' : ''}
-          invalid={!passwordMatch && !!confirm_password}
+          invalid={!passwordMatch && !!confirmPassword}
           required
-        />
+        /> */}
 
         <div className='w-full flex items-center gap-[8px]'>
           {
-            terms_agreed ?
+            termsAgreed ?
               <svg 
                 width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg"
                 onClick={() => setTermsAgreed(false)}

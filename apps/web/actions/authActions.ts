@@ -81,20 +81,20 @@ export async function postAccountSetUp(prevState: any, formData: FormData) {
 /* SIGN UP ACTION */
 export async function postSignup(prevState: any, formData: FormData) {
   const fullData = {
-    firstName: formData.get('first_name'),
-    lastName: formData.get('last_name'),
+    firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
     email: formData.get('email'),
-    phone: formData.get('phone_number'),
+    phone: formData.get('phone'),
     // country: formData.get('country'),
-    companyType: formData.get('user_type'),
-    companyName: formData.get('business_name'),
-    companySubtype: formData.get('business_type'),
+    companyType: formData.get('userType'),
+    companyName: formData.get('companyName'),
+    companySubtype: formData.get('companySubtype'),
     bvn: formData.get('bvn'),
-    rcNumber: formData.get('cac'),
-    accountNumber: formData.get('account_number'),
+    rcNumber: formData.get('rcNumber'),
+    accountNumber: formData.get('accountNumber'),
     // companyRole: formData.get('role'),
     password: formData.get('password'),
-    confirmPassword: formData.get('confirm_password'),
+    confirmPassword: formData.get('confirmPassword'),
   };
 
   let response = await axiosRequest({
