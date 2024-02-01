@@ -2,7 +2,7 @@
 
 import { AppCenterModal, ConfigurationBox, EmptyState, TableElement, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
 import { SearchBar, SelectElement } from '@/components/forms'
-import { COLLECTION_ACTIONS_DATA } from '@/data/collectionDatas'
+import { COLLECTION_ACTIONS_CONSUMER_DATA, COLLECTION_ACTIONS_DATA } from '@/data/collectionDatas'
 import { HeadersProps, HostsProps, SectionsProps, SnisProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
@@ -34,12 +34,14 @@ const CollectionSection = ({
   const [openModal, setOpenModal] = useState('');
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
-  const actions = COLLECTION_ACTIONS_DATA;
   const [api, setApi] = useState<any>(null);
   const profile = altData;
   const userType = profile?.user?.role?.parent?.slug;
   // const [api_endpoint, setApiEndpoint] = useState<any>(null);
   const environment = 'development';
+  const actions = userType == 'api-consumer' ? 
+    COLLECTION_ACTIONS_CONSUMER_DATA : 
+    COLLECTION_ACTIONS_DATA;
 
   // console.log(rawData);
 
@@ -412,7 +414,8 @@ const CollectionSection = ({
                   tableHeaders={tableHeaders}
                   rawData={rawData}
                   filters={filters}
-                  actionColumn={userType == 'api-consumer' ? undefined : actionColumn}
+                  actionColumn={actionColumn}
+                  // actionColumn={userType == 'api-consumer' ? undefined : actionColumn}
                   totalElementsInPage={totalElementsInPage}
                   rows={rows}
                   page={page}

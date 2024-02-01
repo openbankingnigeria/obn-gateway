@@ -290,13 +290,13 @@ const ConsumerDetails = ({
                 />
             }
 
-            {
+            {/* {
               rawData?.type == 'business' &&
                 <ViewData 
                   label='CAC Number'
                   value={rawData?.rcNumber}
                 />
-            }
+            } */}
 
             {
               rawData?.type == 'individual' &&
@@ -307,7 +307,8 @@ const ConsumerDetails = ({
             }
 
             {
-              (rawData?.type == 'individual' || rawData?.type == 'business') &&
+              // (rawData?.type == 'individual' || rawData?.type == 'business') &&
+              (rawData?.type == 'individual') &&
                 <ViewData 
                   label='Account Number'
                   value=''

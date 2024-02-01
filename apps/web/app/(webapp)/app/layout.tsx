@@ -39,7 +39,10 @@ export default async function RootLayout({
     let details = fetchedDetails?.data;
     let profile = fetchedProfile?.data;
     let showBanner = Boolean(
-      details?.type == 'licensed-entity' && 
+      (
+        details?.type == 'licensed-entity' ||
+        details?.type == 'business'
+      ) && 
       profile?.user?.role?.parent?.slug == 'api-consumer' && 
       !details?.isVerified
     );

@@ -33,6 +33,41 @@ export const ACTIVITY_TABLE_HEADERS = [
   },
 ];
 
+export const ACTIVITY_TABLE_CONSUMER_HEADERS = [
+  {
+    header: 'Reference ID',
+    accessor: 'reference_id'
+  },
+  // {
+  //   header: 'Consumer Name',
+  //   accessor: 'consumer_name'
+  // },
+  // {
+  //   header: 'Email Address',
+  //   accessor: 'email_address'
+  // },
+  {
+    header: 'API Name',
+    accessor: 'api_name'
+  },
+  {
+    header: 'Status',
+    accessor: 'status_code'
+  },
+  {
+    header: 'Endpoint URL',
+    accessor: 'endpoint_url'
+  },
+  {
+    header: 'Timestamp',
+    accessor: 'timestamp'
+  },
+  {
+    header: '',
+    accessor: 'actions'
+  },
+];
+
 export const ACTIVITY_DETAILS_PANEL = [
   {
     id: 1,

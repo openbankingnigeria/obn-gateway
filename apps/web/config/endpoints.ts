@@ -1,4 +1,4 @@
-import { GetEnvironmentProps, GetListProps, GetSingleEnvironmentProps, GetSingleProps, PostTokenProps, 
+import { GetEnvironmentProps, GetListProps, GetSingleEnvironmentProps, GetSingleProps, GetTypeProps, PostTokenProps, 
 } from "@/types/endpointTypes";
 
 const BASE_URL = 'http://3.134.253.153:4000';
@@ -107,6 +107,8 @@ export const updateCompanyStatus = ({ id }: GetSingleProps) =>
   `${BASE_URL}/companies/${id}/kyb/status`;
 export const updateCompanyDetails = () => `${BASE_URL}/company/kyb`;
 export const getCompanyTypes = () => `${BASE_URL}/company/types`;
+export const getCompanyRequiredFields = ({ type }: GetTypeProps) => 
+  `${BASE_URL}/company/${type}/fields`
 export const getCompanyDetails = () => `${BASE_URL}/company/me`;
 export const getCompanyStats = () => 
   `${BASE_URL}/companies/stats/periodic-aggregate`
