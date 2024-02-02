@@ -177,7 +177,6 @@ export class GETAPIDownstreamResponseDTO {
     partial: Partial<GETAPIDownstreamResponseDTO>,
     ctx?: RequestContext,
   ) {
-    console.log(partial);
     Object.assign(this, partial);
   }
 
@@ -411,6 +410,11 @@ export class GetAPILogsFilterDto {
   @IsOptional()
   @IsString()
   'consumer.id': string;
+
+  @Expose({ name: 'apiId' })
+  @IsOptional()
+  @IsString()
+  'route.id': string;
 }
 
 export class GetAPILogsDto {

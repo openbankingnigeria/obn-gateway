@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   Company,
   CompanyStatuses,
+  KybStatuses,
   Settings,
   User,
 } from '@common/database/entities';
@@ -406,7 +407,7 @@ export class CompanyService {
           {
             isVerified: true,
             tier: businessDetails?.tier,
-            kybStatus: 'approved',
+            kybStatus: KybStatuses.APPROVED,
           },
         );
         event = new CompanyApprovedEvent(ctx.activeUser, company);
@@ -437,7 +438,7 @@ export class CompanyService {
         await this.companyRepository.update(
           { id: companyId },
           {
-            kybStatus: 'denied',
+            kybStatus: KybStatuses.DENIED,
           },
         );
         event = new CompanyDeniedEvent(ctx.activeUser, company, {
@@ -565,7 +566,7 @@ export class CompanyService {
     );
   }
 
-  async getCompaniesStats(ctx: RequestContext, query: GetStatsDto) {
+  async getCompaniesStats(ctx: RequestContext, query?: GetStatsDto) {
     const stats = await this.userRepository.query(
       `SELECT IFNULL(count(companies.id), 0) count, definitions.value
     FROM
@@ -578,10 +579,38 @@ export class CompanyService {
       definitions.value
         `,
       [
-        query.filter.createdAt.gt || null,
-        query.filter.createdAt.gt || null,
-        query.filter.createdAt.lt || null,
-        query.filter.createdAt.lt || null,
+        query?.filter.createdAt.gt || null,
+        query?.filter.createdAt.gt || null,
+        query?.filter.createdAt.lt || null,
+        query?.filter.createdAt.lt || null,
+      ],
+    );
+    return ResponseFormatter.success<GetStatsResponseDTO[]>(
+      'Company stats fetched successfully',
+      stats.map(
+        (stat: { count: number; value: string }) =>
+          new GetStatsResponseDTO(stat),
+      ),
+    );
+  }
+
+  async getCompaniesKybStats(ctx: RequestContext, query?: GetStatsDto) {
+    const stats = await this.userRepository.query(
+      `SELECT IFNULL(count(companies.id), 0) count, definitions.value
+    FROM
+    companies
+    RIGHT OUTER JOIN (${Object.values(KybStatuses)
+      .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
+      .join(' UNION ')}) definitions ON companies.kyb_status = definitions.key
+        AND companies.deleted_at IS NULL AND (companies.created_at >= ? OR ? IS NULL) AND (companies.created_at < ? OR ? IS NULL)
+    GROUP BY
+      definitions.value
+        `,
+      [
+        query?.filter.createdAt.gt || null,
+        query?.filter.createdAt.gt || null,
+        query?.filter.createdAt.lt || null,
+        query?.filter.createdAt.lt || null,
       ],
     );
     return ResponseFormatter.success<GetStatsResponseDTO[]>(

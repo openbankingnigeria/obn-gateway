@@ -772,6 +772,10 @@ export class APIService {
         result.push({
           term: { [`${filter}.keyword`]: item },
         });
+      } else if (Array.isArray(item)) {
+        result.push({
+          terms: { [`${filter}.keyword`]: item },
+        });
       }
     }
     return result;

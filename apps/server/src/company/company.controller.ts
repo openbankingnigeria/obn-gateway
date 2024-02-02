@@ -73,6 +73,20 @@ export class CompanyController {
     return this.companyService.listCompanies(ctx, pagination, filters);
   }
 
+  @Get('companies/stats')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
+  getCompaniesStats(@Ctx() ctx: RequestContext) {
+    return this.companyService.getCompaniesStats(ctx);
+  }
+
+  @Get('companies/stats/kyb')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
+  getCompaniesKybStats(@Ctx() ctx: RequestContext) {
+    return this.companyService.getCompaniesKybStats(ctx);
+  }
+
   @Get('companies/:id')
   @RequiredPermission(PERMISSIONS.VIEW_COMPANY)
   getCompanyDetailsById(
@@ -97,13 +111,6 @@ export class CompanyController {
   // verifyCompanyRC(@Ctx() ctx: RequestContext, @Body() data: UpdateCompanyDetailsDto) {
   //   return this.companyService.verifyCompanyRC(ctx, data.rcNumber);
   // }
-
-  @Get('companies/stats')
-  @UsePipes(IValidationPipe)
-  @RequiredPermission(PERMISSIONS.LIST_COMPANIES)
-  getCompaniesStats(@Ctx() ctx: RequestContext, @Query() query: GetStatsDto) {
-    return this.companyService.getCompaniesStats(ctx, query);
-  }
 
   @Get('companies/stats/periodic-aggregate')
   @UsePipes(IValidationPipe)
