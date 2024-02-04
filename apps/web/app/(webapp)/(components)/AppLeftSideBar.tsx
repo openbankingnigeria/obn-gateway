@@ -95,9 +95,9 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
                 <div className='w-full flex flex-col gap-[4px]'>
                   {
                     data?.links?.map((link: any) => (
-                      !(
-                        link?.title?.includes('Consumers') && 
-                        profile?.user?.role?.parent?.slug == 'api-consumer'
+                      (
+                        link?.access == profile?.user?.role?.parent?.slug ||
+                        link?.access == 'all'
                       ) &&
                       <div
                         key={link?.id}
