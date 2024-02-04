@@ -8,7 +8,7 @@ const ReportsPage = () => {
         Reports
       </h3>
 
-      <div className='w-full flex items-start gap-[20px]'>
+      <div className='w-full flex flex-col items-start gap-[20px]'>
         <ReportForms />
         <Report />
       </div>

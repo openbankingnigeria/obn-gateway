@@ -6,8 +6,9 @@ export interface DashboardMetricCardProps {
   isGreen?: boolean;
   amountUnit?: string;
   containerStyle?: string;
-  labels: string[];
-  data: number[];
+  labels?: string[];
+  titleStyle?: string;
+  data?: number[];
 }
 
 export interface searchParamsProps {
@@ -27,6 +28,7 @@ export interface searchParamsProps {
   two_fa?: string;
   token?: string;
   alt_data?: any;
+  profile_data?: any;
   api_id?: string;
   preview?: string;
 }

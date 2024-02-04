@@ -8,15 +8,22 @@ import Logout from '@/components/globalComponents/Logout';
 
 const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
   const date_filter = searchParams?.date_filter || '';
-  const search_query = searchParams?.search_query || '';
-  const request_method = searchParams?.request_method || '';
-  const tier = searchParams?.tier || '';
-  const rows = Number(searchParams?.rows) || 10
-  const page = Number(searchParams?.page) || 1
+  // const search_query = searchParams?.search_query || '';
+  // const request_method = searchParams?.request_method || '';
+  // const tier = searchParams?.tier || '';
+  // const rows = Number(searchParams?.rows) || 10
+  // const page = Number(searchParams?.page) || 1
 
   const fetchedProfile: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getProfile(),
+    method: 'GET',
+    data: null
+  });
+
+  const fetchedDetails: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyDetails(),
     method: 'GET',
     data: null
   });
@@ -26,6 +33,7 @@ const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
   }
 
   let profile = fetchedProfile?.data;
+  let companyDetails = fetchedDetails?.data;
 
   // const getUserProfile = getCookies('aperta-user-profile');
   // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
@@ -40,13 +48,17 @@ const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
       />
       :
       <APIConsumerDashboardPage 
-        search_query={search_query}
-        alt_data={profile}
-        request_method={request_method}
-        tier={tier}
-        rows={rows}
-        page={page}
+        alt_data={companyDetails}
+        profile_data={profile}
       />
+      // <APIConsumerDashboardPage 
+      //   search_query={search_query}
+      //   alt_data={profile}
+      //   request_method={request_method}
+      //   tier={tier}
+      //   rows={rows}
+      //   page={page}
+      // />
   )
 }
 
