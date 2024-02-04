@@ -36,6 +36,7 @@ const ActivityDetails = ({
 
           <ExportButton 
             module='activity_details'
+            rawData={activity_details}
           />
         </header>
 

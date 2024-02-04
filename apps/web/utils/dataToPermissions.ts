@@ -6,9 +6,9 @@ export const dataToPermissions = (inputArray: any[], type: string = 'array'): an
   let sanitizedArray = inputArray?.map((data: any) => {
     const old_slug = data?.slug;
     const new_slug = (
-      old_slug?.includes('list') && 
-      old_slug?.charAt(old_slug?.length - 1) == 's'
-    ) ? old_slug.slice(0, -1) : old_slug;
+      // old_slug?.includes('list') && 
+      old_slug?.charAt(old_slug?.length - 1) != 's'
+    ) ? `${old_slug}s` : old_slug;
 
     return ({
       ...data,
