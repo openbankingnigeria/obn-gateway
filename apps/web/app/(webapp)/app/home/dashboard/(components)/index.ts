@@ -7,7 +7,7 @@ import APIConsumerDashboardTable from "./APIConsumerDashboardTable";
 import DashboardBanner from "./DashboardBanner";
 import AddBusinessInformation from "./AddBusinessInformation";
 import ConfirmCancel from "./ConfirmCancel";
-import ReportingSection from "./ReportingSection";
+// import ReportingSection from "./ReportingSection";
 
 export { 
   DashboardMetricCard,
@@ -18,6 +18,6 @@ export {
   DashboardBanner,
   BarChart,
   AddBusinessInformation,
-  ReportingSection,
+  // ReportingSection,
   ConfirmCancel
 }

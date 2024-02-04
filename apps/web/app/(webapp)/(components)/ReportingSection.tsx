@@ -8,17 +8,47 @@ import React, { useEffect, useState } from 'react'
 import * as API from '@/config/endpoints';
 import { searchParamsProps } from '@/types/webappTypes/appTypes';
 import { REPORTING_DATA } from '@/data/dashboardData';
-import { DashboardMetricCard } from '.';
+import { DashboardMetricCard } from '../app/home/dashboard/(components)';
 
 const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [from, setFrom] = useState<string | undefined>('');
   const [to, setTo] = useState<string | undefined>('');
-  // const [consumers, setConsumers] = useState<string[]>([]);
+  const [consumers, setConsumers] = useState<string[]>([]);
+  const [collection, setCollection] = useState('');
   const [api, setApi] = useState('');
+
   const [apis, setApis] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
+  const [consumersList, setConsumerList] = useState<any[]>([]);
   const environment = 'development';
+  const apiConsumer = profile_data?.user?.role?.parent?.slug == 'api-consumer'
 
   // console.log('Company details >>>>>>', alt_data);
+
+  const fetchConsumers = async () => {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanies({
+        page: `1`,
+        limit: `10000`
+      }),
+      method: 'GET',
+      data: null,
+      noToast: true
+    })
+    setConsumerList(result?.data);
+  }
+
+  const fetchCollections = async () => {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCollections(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    })
+    setCollections(result?.data);
+  }
 
   const fetchAPIs = async () => {
     const result = await clientAxiosRequest({
@@ -36,11 +66,49 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
     setApis(result?.data);
   }
 
+  const fetchCollectionAPIs = async () => {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getAPIs({
+        page: `1`,
+        limit: `1000`,
+        collectionId: collection,
+        environment,
+      }),
+      method: 'GET',
+      data: null,
+      noToast: true
+    })
+    setApis(result?.data);
+  }
+
   useEffect(() => {
-    fetchAPIs();
-  }, []);
+    if (apiConsumer) {
+      fetchAPIs();
+    } else {
+      fetchConsumers();
+      fetchCollections();
+      collection && fetchCollectionAPIs();
+    }
+  }, [collection]);
 
   const apis_list = apis?.map((data: any) => {
+    return({
+      ...data,
+      label: data?.name,
+      value: data?.id
+    });
+  });
+
+  const collections_list = collections?.map((data: any) => {
+    return({
+      ...data,
+      label: data?.name,
+      value: data?.id
+    });
+  });
+
+  const consumers_list = consumersList?.map((data: any) => {
     return({
       ...data,
       label: data?.name,
@@ -52,18 +120,21 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
     setApi('')
     setFrom(undefined)
     setTo(undefined)
-    // setConsumers([])
+    setConsumers([])
+    setApi('');
+    setCollection('');
   };
 
   const incorrect = (
     !api ||
     !from ||
-    !to
-    // consumers.length === 0
+    !to ||
+    (apiConsumer ? false : !collection) ||
+    (apiConsumer ? false : consumers.length === 0) 
   );
 
   const handleSubmit = () => {
-    console.log(api, from, to);
+    console.log(api, from, to, consumers, collection);
   }
 
   return (
@@ -126,34 +197,51 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
               /> 
             </div>
 
-            <div className='w-full flex items-center gap-[16px]'>
-              {/* <SelectElement 
-                name='consumers'
-                options={consumers_list}
-                label='Select Consumer(s)'
-                placeholder='Select consumer'
-                multiple
-                required
-                optionStyle='top-[70px]'
-                clickerStyle='!w-full'
-                value={consumers}
-                changeValue={setConsumers}
-              /> */}
+            {
+              !apiConsumer &&
+              <div className='w-full flex items-center gap-[16px]'>
+                <SelectElement 
+                  name='consumers'
+                  options={consumers_list}
+                  label='Select Consumer(s)'
+                  placeholder='Select consumer'
+                  multiple
+                  required
+                  optionStyle='top-[70px]'
+                  clickerStyle='!w-full'
+                  value={consumers}
+                  changeValue={setConsumers}
+                />
 
-              {/* {
-                consumers?.length >= 1 && */}
-              <SelectElement 
-                name='api'
-                options={apis_list}
-                label='Select API'
-                placeholder='Select API'
-                required
-                optionStyle='top-[70px]'
-                clickerStyle='!w-[calc(50%-8px)]'
-                value={api}
-                changeValue={setApi}
-              />
-              {/* } */}
+                <SelectElement 
+                  name='collection'
+                  options={collections_list}
+                  label='Select Collection'
+                  placeholder='Select Collection'
+                  required
+                  optionStyle='top-[70px]'
+                  clickerStyle='!w-full'
+                  value={collection}
+                  changeValue={setCollection}
+                />
+              </div>
+            }
+
+            <div className='w-full flex items-center gap-[16px]'>
+              {
+                (apiConsumer || collection) &&
+                <SelectElement 
+                  name='api'
+                  options={apis_list}
+                  label='Select API'
+                  placeholder='Select API'
+                  required
+                  optionStyle='top-[70px]'
+                  clickerStyle='!w-[49%]'
+                  value={api}
+                  changeValue={setApi}
+                />
+              } 
             </div>
           </div>
 
