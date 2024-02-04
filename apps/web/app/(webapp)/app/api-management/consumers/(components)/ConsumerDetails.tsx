@@ -306,14 +306,14 @@ const ConsumerDetails = ({
                 />
             }
 
-            {
+            {/* {
               // (rawData?.type == 'individual' || rawData?.type == 'business') &&
               (rawData?.type == 'individual') &&
                 <ViewData 
                   label='Account Number'
                   value=''
                 />
-            }
+            } */}
 
             {/* {
               rawData?.type == 'licensed-entity' &&

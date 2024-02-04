@@ -138,6 +138,7 @@ export interface TablePaginationProps {
 export interface ExportButtonProps {
   name?: string;
   module: string;
+  rawData?: any;
 }
 
 export interface CodeSnippetProps {

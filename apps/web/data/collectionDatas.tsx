@@ -7,14 +7,14 @@ export const COLLECTIONS_TABLE_HEADERS = [
     header: 'Description',
     accessor: 'description'
   },
-  {
-    header: 'No of APIs',
-    accessor: 'no_of_apis'
-  },
-  {
-    header: 'Active APIs',
-    accessor: 'configuration'
-  }
+  // {
+  //   header: 'No of APIs',
+  //   accessor: 'no_of_apis'
+  // },
+  // {
+  //   header: 'Active APIs',
+  //   accessor: 'configuration'
+  // }
 ];
 
 export const API_CONFIGURATION_PANEL = [

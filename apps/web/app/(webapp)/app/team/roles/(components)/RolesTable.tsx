@@ -33,6 +33,7 @@ const RolesTable = ({
   const [description, setDescription] = useState('');
   const [permissions, setPermissions] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
+  const [refresh, setRefresh] = useState(false);
 
   const actions = ROLES_ACTIONS_DATA;
 
@@ -77,7 +78,7 @@ const RolesTable = ({
 
   useEffect(() => {
     role?.id && FetchData();
-  }, [role]);
+  }, [role, refresh]);
 
   const getAction = (status: string) => {
     return actions.filter(action => {
@@ -196,6 +197,7 @@ const RolesTable = ({
                 key={action.id}
                 className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
                 onClick={() => {
+                  action.name == 'edit' && setRefresh(prev => !prev);
                   setId(row.original.id);
                   setRole(rawData?.find(data => data?.id == row.original.id));
                   setOpenModal(action.name);
