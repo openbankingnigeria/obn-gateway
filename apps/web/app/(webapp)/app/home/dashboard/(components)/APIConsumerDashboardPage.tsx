@@ -3,23 +3,24 @@ import { searchParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
 import * as API from '@/config/endpoints';
 import { applyAxiosRequest } from '@/hooks';
-import { DashboardBanner, DashboardMetricCard, ReportingSection } from '.';
+import { DashboardBanner, DashboardMetricCard } from '.';
 import { greetByTime } from '@/utils/greetByTime';
 import { API_COLLECTIONS_STATS, USERS_STATS } from '@/data/dashboardData';
+import { ReportingSection } from '@/app/(webapp)/(components)';
 
 const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParamsProps) => {
-  const fetchedDetails : any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getCompanyDetails(),
-    method: 'GET',
-    data: null
-  });
+  // const fetchedDetails : any = await applyAxiosRequest({
+  //   headers: {},
+  //   apiEndpoint: API.getCompanyDetails(),
+  //   method: 'GET',
+  //   data: null
+  // });
 
-  if (fetchedDetails?.status == 401) {
-    return <Logout />
-  }
+  // if (fetchedDetails?.status == 401) {
+  //   return <Logout />
+  // }
 
-  let details = fetchedDetails?.data;
+  // let details = fetchedDetails?.data;
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
@@ -29,12 +30,12 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
 
       {
         (
-          details?.type == 'licensed-entity' ||
-          details?.type == 'business'
+          alt_data?.type == 'licensed-entity' ||
+          alt_data?.type == 'business'
         ) &&
         <section className='w-full flex'>
           <DashboardBanner 
-            rawData={details}
+            rawData={alt_data}
           />
         </section>
       }
