@@ -95,8 +95,8 @@ export const updateConsumerAPIAccess = ({ environment, id }: GetSingleEnvironmen
 
 
 // COMPANY
-export const getCompanies = ({ page, limit, name, createdAt_gt, createdAt_l, status }: GetListProps) => 
-  `${BASE_URL}/companies?page=${page}${limit ? `&limit=${limit}`: ''}${createdAt_gt ? `&filter[createdAt][gte]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lte]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}${name ? `&filter[name]=${name}`: ''}`;
+export const getCompanies = ({ page, limit, name, createdAt_gt, kybStatus, createdAt_l, status }: GetListProps) => 
+  `${BASE_URL}/companies?page=${page}${limit ? `&limit=${limit}`: ''}${createdAt_gt ? `&filter[createdAt][gte]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lte]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}${kybStatus ? `&filter[kybStatus]=${kybStatus}`: ''}${name ? `&filter[name]=${name}`: ''}`;
 export const getCompany = ({ id }: GetSingleProps) => 
   `${BASE_URL}/companies/${id}`;
 export const activateCompany = ({ id }: GetSingleProps) => 
@@ -111,4 +111,6 @@ export const getCompanyRequiredFields = ({ type }: GetTypeProps) =>
   `${BASE_URL}/company/${type}/fields`
 export const getCompanyDetails = () => `${BASE_URL}/company/me`;
 export const getCompanyStats = () => 
-  `${BASE_URL}/companies/stats/periodic-aggregate`
+  `${BASE_URL}/companies/stats`
+export const getCompanyKybStats = () => 
+  `${BASE_URL}/companies/stats/kyb`

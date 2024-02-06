@@ -1,11 +1,60 @@
 import { ConsumerStatusDataProps } from "@/types/dataTypes";
 
-export const CONSUMERS_STATUS_DATA = ({
+export const CONSUMERS_KYB_STATUS_DATA = [
+  {
+    id: 1,
+    label: 'All',
+    value: '',
+    name: 'all'
+  },
+  {
+    id: 2,
+    label: 'Approved',
+    value: 'approved',
+    name: 'approved'
+  },
+  {
+    id: 3,
+    label: 'Denied',
+    value: 'denied',
+    name: 'denied'
+  },
+  {
+    id: 4,
+    label: 'Pending',
+    value: 'pending',
+    name: 'pending'
+  }
+];
+
+export const CONSUMERS_STATUS_DATA = [
+  {
+    id: 1,
+    label: 'All',
+    value: '',
+    name: 'all'
+  },
+  {
+    id: 2,
+    label: 'Active',
+    value: 'active',
+    name: 'active'
+  },
+  {
+    id: 3,
+    label: 'Inactive',
+    value: 'inactive',
+    name: 'inactive'
+  },
+];
+
+export const CONSUMERS_TOP_STATUS_DATA = ({
   all, 
+  approved,
   pending, 
-  active, 
-  inactive, 
-  rejected,
+  // active, 
+  // inactive, 
+  denied,
 }: ConsumerStatusDataProps) => {
   return ([
     {
@@ -22,26 +71,33 @@ export const CONSUMERS_STATUS_DATA = ({
       value: 'pending',
       name: 'pending'
     },
-    {
-      id: 3,
-      label: 'Active',
-      amount: active || 0,
-      value: 'active',
-      name: 'active'
-    },
-    {
-      id: 4,
-      label: 'Inactive',
-      amount: inactive || 0,
-      value: 'inactive',
-      name: 'inactive'
-    },
+    // {
+    //   id: 3,
+    //   label: 'Active',
+    //   amount: active || 0,
+    //   value: 'active',
+    //   name: 'active'
+    // },
+    // {
+    //   id: 4,
+    //   label: 'Inactive',
+    //   amount: inactive || 0,
+    //   value: 'inactive',
+    //   name: 'inactive'
+    // },
     {
       id: 5,
-      label: 'Rejected',
-      amount: rejected || 0,
-      value: 'rejected',
-      name: 'rejected'
+      label: 'Approved',
+      amount: approved || 0,
+      value: 'approved',
+      name: 'approved'
+    },
+    {
+      id: 6,
+      label: 'Denied',
+      amount: denied || 0,
+      value: 'denied',
+      name: 'denied'
     },
   ]);
 }

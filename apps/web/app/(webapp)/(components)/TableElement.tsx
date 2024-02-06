@@ -153,12 +153,12 @@ const TableElement = ({
                             /> 
                             :
                             cell.id?.includes('categories') ?
-                              // @ts-ignore
-                              cell.getValue()?.map((data: any) => (
-                                <div key={data} className='w-fit inline-block mr-1'>
-                                  <StatusBox status={data} />
-                                </div>
-                              ))
+                              <div className='w-fit inline-block mr-1'>
+                                <StatusBox 
+                                  // @ts-ignore
+                                  status={cell.getValue()} 
+                                />
+                              </div>
                               :
                               (cell.id?.includes('configured') || cell.id?.includes('two_fa')) ?
                                 <BooleanBox 
