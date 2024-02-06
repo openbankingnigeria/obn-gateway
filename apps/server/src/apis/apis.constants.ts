@@ -10,6 +10,7 @@ export const apiSuccessMessages = {
   fetchedAPILogs: 'Successfully fetched API logs',
   fetchedAPILog: 'Successfully fetched API log',
   fetchedAPILogsStats: 'Successfully fetched API logs stats',
+  fetchedAPITransformation: 'Successfully fetched API transformation',
 };
 
 export const apiErrorMessages = {

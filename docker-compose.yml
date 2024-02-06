@@ -1,5 +1,7 @@
 version: '3.9'
 
+# TODO pin every image to specific versions
+
 x-kong-config:
   &kong-env
   KONG_DATABASE: ${KONG_DATABASE:-postgres}
@@ -65,7 +67,7 @@ services:
       - kong_data:/var/lib/postgresql/data
 
   kong-migrations:
-    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
     container_name: obn-kong-migrations
     command: kong migrations bootstrap
     depends_on:
@@ -84,7 +86,7 @@ services:
       - ./config:/opt/kong
 
   kong-migrations-up:
-    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
     container_name: obn-kong-migrations-up
     command: kong migrations up && kong migrations finish
     depends_on:
@@ -103,7 +105,7 @@ services:
       - ./config:/opt/kong
 
   kong:
-    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
     container_name: obn-kong
     user: "${KONG_USER:-kong}"
     environment:
@@ -116,6 +118,8 @@ services:
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8000:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8443:8443/tcp"
+      - "127.0.0.1:8001:8001/tcp" # TODO unpublish port 
+      - "127.0.0.1:8444:8444/tcp"
     depends_on:
       kong-db:
         condition: service_healthy
@@ -227,6 +231,8 @@ services:
       retries: 120
     networks:
       - elastic-net
+    ports:
+      - "127.0.0.1:9200:9200/tcp" # TODO unpublish port 
 
   logstash:
     image: docker.elastic.co/logstash/logstash:${ELASTIC_STACK_VERSION:-8.11.1}

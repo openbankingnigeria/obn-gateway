@@ -1,5 +1,4 @@
 import {
-  ArrayNotEmpty,
   ArrayUnique,
   IsArray,
   IsBoolean,
@@ -23,6 +22,7 @@ import * as moment from 'moment';
 import { RequestContext } from '@common/utils/request/request-context';
 import { PERMISSIONS } from '@permissions/types';
 import { CompanyTypes } from '@common/database/constants';
+import { IsStringOrArrayOfStrings } from '@common/utils/request/request.decorator';
 
 class CreateAPIDownstreamDTO {
   @IsString()
@@ -243,6 +243,9 @@ export class GetAPIResponseDTO {
   enabled: boolean;
 
   @Expose()
+  collectionId: string;
+
+  @Expose()
   @IsObject()
   @Type(() => GETAPIDownstreamResponseDTO)
   downstream: GETAPIDownstreamResponseDTO;
@@ -413,8 +416,13 @@ export class GetAPILogsFilterDto {
 
   @Expose({ name: 'apiId' })
   @IsOptional()
-  @IsString()
+  @IsStringOrArrayOfStrings()
   'route.id': string;
+
+  @Expose()
+  @IsOptional()
+  @IsStringOrArrayOfStrings()
+  'collectionId': string;
 }
 
 export class GetAPILogsDto {

@@ -79,6 +79,7 @@ export const globalConfig = (): {
         Number(process.env.UPLOAD_MAXIMUM_FILE_SIZE) || 2097152,
     },
   };
+  // TODO throw an error if multiple envs share same value.
   for (const env in process.env) {
     if (env.startsWith('KONG_ADMIN_API_ENDPOINT_')) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

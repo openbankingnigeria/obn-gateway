@@ -109,6 +109,7 @@ export class APIService {
             id: route.id,
             name: route.name,
             enabled: route.enabled,
+            collectionId: route.collectionId,
             upstream: new GETAPIUpstreamResponseDTO(
               {
                 url: gatewayService
@@ -194,6 +195,7 @@ export class APIService {
           id: route.id,
           name: route.name,
           enabled: route.enabled,
+          collectionId: route.collectionId,
           upstream: new GETAPIUpstreamResponseDTO(
             {
               url: gatewayService
@@ -436,6 +438,7 @@ export class APIService {
           id: createdRoute.id,
           name: createdRoute.name,
           enabled: createdRoute.enabled,
+          collectionId: createdRoute.collectionId,
           upstream: new GETAPIUpstreamResponseDTO(
             {
               ...data.upstream,
@@ -741,6 +744,7 @@ export class APIService {
           id: route.id,
           name: route.name,
           enabled: route.enabled,
+          collectionId: route.collectionId,
           upstream: new GETAPIUpstreamResponseDTO(
             {
               ...data.upstream,
@@ -757,13 +761,29 @@ export class APIService {
     );
   }
 
-  private convertFilterToSearchDSLQuery<T = any>(
+  private async convertFilterToSearchDSLQuery<T = any>(
     filters?: T,
-  ): QueryDslQueryContainer[] {
+  ): Promise<QueryDslQueryContainer[]> {
     const result: QueryDslQueryContainer[] = [];
-    for (const filter in filters) {
-      const item = filters[filter] as any;
+    for (const index in filters) {
+      let filter: string = index;
+      let item = filters[index] as any;
       if (!item) continue;
+      if (filter === 'route.id') {
+        const apis = await this.routeRepository.find({
+          select: ['routeId'],
+          where: { id: In(Array.isArray(item) ? item : [item]) },
+        });
+        item = apis.map((i) => i.routeId);
+      }
+      if (filter === 'collectionId') {
+        filter = 'route.id';
+        const apis = await this.routeRepository.find({
+          select: ['routeId'],
+          where: { collectionId: In(Array.isArray(item) ? item : [item]) },
+        });
+        item = apis.map((i) => i.routeId);
+      }
       if (item.gt || item.lt) {
         result.push({
           range: { [`${filter}`]: { lt: item.lt, gt: item.gt } },
@@ -802,9 +822,9 @@ export class APIService {
                     : ctx.activeUser.companyId,
               },
             },
-            ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+            ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
               filters?.filter,
-            ),
+            )),
           ],
         },
       },
@@ -907,9 +927,9 @@ export class APIService {
                     : ctx.activeUser.companyId,
               },
             },
-            ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+            ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
               filters?.filter,
-            ),
+            )),
           ],
         },
       },
@@ -987,9 +1007,9 @@ export class APIService {
                     : ctx.activeUser.companyId,
               },
             },
-            ...this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+            ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
               query?.filter,
-            ),
+            )),
           ],
         },
       },
@@ -1048,8 +1068,8 @@ export class APIService {
     }));
 
     const routes = acls.map(({ route }) => {
-      const { routeId, serviceId, name, id, enabled } = route;
-      return { routeId, serviceId, name, id, enabled };
+      const { routeId, serviceId, name, id, enabled, collectionId } = route;
+      return { routeId, serviceId, name, id, enabled, collectionId };
     });
 
     const populatedRoutes: any[] = [];
@@ -1076,6 +1096,7 @@ export class APIService {
             id: route.id,
             name: route.name,
             enabled: route.enabled,
+            collectionId: route.collectionId,
             upstream: new GETAPIUpstreamResponseDTO(
               {
                 url: gatewayService
@@ -1139,7 +1160,7 @@ export class APIService {
     }
 
     return ResponseFormatter.success(
-      apiSuccessMessages.fetchedAPI,
+      apiSuccessMessages.fetchedAPITransformation,
       new GetAPITransformationResponseDTO(plugin.config, ctx),
     );
   }
