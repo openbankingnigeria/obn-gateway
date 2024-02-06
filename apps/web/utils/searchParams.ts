@@ -8,7 +8,8 @@ export const updateSearchParams = (type: string, value: string) => {
 
 export const deleteSearchParams = (type: string) => {
   const newSearchParams = new URLSearchParams(window.location.search);
-  newSearchParams.delete(type.toLocaleLowerCase());
+  // newSearchParams.delete(type.toLocaleLowerCase());
+  newSearchParams.delete(type);
   const newPathname = `${window.location.pathname}?${newSearchParams.toString()}`;
 
   return newPathname;

@@ -1,9 +1,10 @@
 export interface ConsumerStatusDataProps {
   all?: number; 
+  approved?: number;
   pending?: number; 
   active?: number; 
   inactive?: number; 
-  rejected?: number;
+  denied?: number;
 };
 
 export interface ConsentsStatusDataProps {

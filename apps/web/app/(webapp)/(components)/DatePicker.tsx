@@ -132,8 +132,8 @@ const DatePicker = ({
 
       <div className='w-full h-full cursor-pointer right-0 absolute'>
         <Datepicker 
-          inputClassName='cursor-pointer w-[80%] h-full opacity-0'
-          containerClassName='w-full h-full'
+          inputClassName='cursor-pointer w-[calc(100%-35px)] h-full opacity-0'
+          containerClassName='w-full overflow-hidden h-full'
           toggleClassName={`cursor-pointer mt-[7px] opacity-0 ${toggleStyle}`}
           primaryColor={'green'} 
           useRange={false} 
