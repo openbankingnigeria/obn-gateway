@@ -7,9 +7,10 @@ import { useExportExcel } from '@/hooks'
 
 const ExportButton = ({
   name,
+  rawData,
   module
 }: ExportButtonProps) => {
-  const [loadingExport, handleExport] = useExportExcel(module);
+  const [loadingExport, handleExport] = useExportExcel(module, rawData);
 
   return (
     <div className='w-fit'>

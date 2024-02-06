@@ -29,6 +29,7 @@ import DragAndUploadFile from "./DragAndUploadFile";
 import KybBanner from "./KybBanner";
 import ListPanel from "./ListPanel";
 import CodeEditor from "./CodeEditor";
+import ReportingSection from "./ReportingSection";
 
 export {
   DatePicker,
@@ -61,5 +62,6 @@ export {
   DownloadButton,
   DragAndUploadFile,
   ListPanel,
-  CodeEditor
+  CodeEditor,
+  ReportingSection
 }

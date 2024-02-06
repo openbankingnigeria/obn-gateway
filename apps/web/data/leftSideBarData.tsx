@@ -1,6 +1,7 @@
 export const LEFT_SIDE_BAR_BOTTOM_DATA = [
   {
     id: 1,
+    access: 'all',
     title: 'Audit Trail',
     path: '/app/audit-trail',
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,6 +25,7 @@ export const LEFT_SIDE_BAR_BOTTOM_DATA = [
   },
   {
     id: 2,
+    access: 'all',
     title: 'System Settings',
     path: '/app/system-settings',
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -55,6 +57,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
     links: [
       {
         id: 1,
+        access: 'all',
         title: 'Dashboard',
         path: '/app/home/dashboard',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -77,6 +80,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
     links: [
       {
         id: 1,
+        access: 'api-provider',
         title: 'Consumers',
         path: '/app/api-management/consumers',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -92,6 +96,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
       },
       {
         id: 2,
+        access: 'all',
         title: 'Collections',
         path: '/app/api-management/collections',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -107,6 +112,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
       },
       {
         id: 3,
+        access: 'all',
         title: 'Activity',
         path: '/app/api-management/activity',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -129,6 +135,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
     links: [
       {
         id: 1,
+        access: 'api-provider',
         title: 'Reports',
         path: '/app/reporting/reports',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -144,6 +151,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
       },
       {
         id: 2,
+        access: 'all',
         title: 'Consents',
         path: '/app/reporting/consents',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -166,6 +174,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
     links: [
       {
         id: 1,
+        access: 'all',
         title: 'Members',
         path: '/app/team/members',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -181,6 +190,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
       },
       {
         id: 2,
+        access: 'all',
         title: 'Roles',
         path: '/app/team/roles',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -24,6 +24,7 @@ const EditRolePage = ({
   const ROLES_PERMISSIONS = dataToPermissions(list);
   // const details = EDIT_ROLE_DETAILS;
   // const [members, setMembers] = useState<MemberCardProps[]>([...details.members])
+  // console.log(permissions);
 
   const incorrect = (
     !role_name ||
