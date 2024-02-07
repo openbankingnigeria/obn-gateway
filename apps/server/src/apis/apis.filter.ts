@@ -5,7 +5,7 @@ import {
 
 export const APIFilters: { [k: string]: AllowedFieldOptions[] } = {
   listAPIs: [
-    { key: 'name', valueType: ValueTypes.string },
+    { key: 'name', valueType: ValueTypes.stringLike },
     { key: 'collectionId', valueType: ValueTypes.string },
     { key: 'createdAt', valueType: ValueTypes.date },
   ],

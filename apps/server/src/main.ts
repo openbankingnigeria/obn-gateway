@@ -13,8 +13,8 @@ async function bootstrap() {
 
   // Config
   const configService = app.get(ConfigService);
-  const port = configService.get('server.port');
-  const corsOrigins = configService.get<string>('server.corsOrigins');
+  const port = configService.get('system.port');
+  const corsOrigins = configService.get<string>('system.corsOrigins');
 
   // Logging
   app.useLogger(app.get(Logger));

@@ -9,12 +9,12 @@ export const AuditLogFilters: Record<string, AllowedFieldOptions[]> = {
     { key: 'createdAt', valueType: ValueTypes.date },
     {
       key: 'name',
-      valueType: ValueTypes.string,
+      valueType: ValueTypes.stringLike,
       mapsTo: ['user.profile.firstName', 'user.profile.lastName'],
     },
     {
       key: 'email',
-      valueType: ValueTypes.string,
+      valueType: ValueTypes.stringLike,
       mapsTo: ['user.profile.email'],
     },
   ],

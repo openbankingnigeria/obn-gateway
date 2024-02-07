@@ -34,6 +34,7 @@ import {
 } from '@shared/events/company.event';
 import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
 import { EmailSettingsInterface, SETTINGS_TYPES } from '@settings/types';
+import * as moment from 'moment';
 
 @Injectable()
 export class EmailService {
@@ -49,7 +50,7 @@ export class EmailService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async loadEmailTransporter() {
+  protected async loadEmailTransporter() {
     let transporter: nodemailer.Transporter;
     const apBusinessSettings = await this.settingsRepository.findOne({
       where: {
@@ -110,7 +111,7 @@ export class EmailService {
   }
 
   @OnEvent(UserEvents.USER_CREATED)
-  async handleUserCreatedEvent(event: UserCreatedEvent) {
+  protected async handleUserCreatedEvent(event: UserCreatedEvent) {
     try {
       const company = await this.companyRepository.findOneOrFail({
         where: { type: CompanyTypes.API_PROVIDER },
@@ -118,7 +119,7 @@ export class EmailService {
       });
       this.sendEmail(EMAIL_TEMPLATES.USER_INVITE, event.user.email, {
         invitationUrl: `${this.config.get(
-          'server.managementUrl',
+          'system.managementUrl',
         )}/account-setup?token=${event.metadata.token}`,
         companyName: company.name!,
       });
@@ -128,7 +129,7 @@ export class EmailService {
   }
 
   @OnEvent(UserEvents.USER_DEACTIVATED)
-  async handleUserDeactivatedEvent(event: UserDeactivatedEvent) {
+  protected async handleUserDeactivatedEvent(event: UserDeactivatedEvent) {
     try {
       await this.sendEmail(EMAIL_TEMPLATES.USER_DEACTIVATED, event.user.email, {
         firstName: event.user.profile?.firstName || '',
@@ -139,7 +140,7 @@ export class EmailService {
   }
 
   @OnEvent(UserEvents.USER_REACTIVATED)
-  async handleUserReactivatedEvent(event: UserReactivatedEvent) {
+  protected async handleUserReactivatedEvent(event: UserReactivatedEvent) {
     try {
       const company = await this.companyRepository.findOneOrFail({
         where: { type: CompanyTypes.API_PROVIDER },
@@ -155,7 +156,7 @@ export class EmailService {
   }
 
   @OnEvent(AuthEvents.SET_PASSWORD)
-  async handleUserSetPasswordEvent(event: AuthSetPasswordEvent) {
+  protected async handleUserSetPasswordEvent(event: AuthSetPasswordEvent) {
     try {
       await this.sendEmail(EMAIL_TEMPLATES.SET_PASSWORD, event.user.email, {
         firstName: event.user.profile?.firstName || '',
@@ -166,7 +167,7 @@ export class EmailService {
   }
 
   @OnEvent(AuthEvents.RESET_PASSWORD_REQUEST)
-  async handleUserResetPasswordRequestEvent(
+  protected async handleUserResetPasswordRequestEvent(
     event: AuthResetPasswordRequestEvent,
   ) {
     try {
@@ -180,7 +181,7 @@ export class EmailService {
         {
           firstName: event.user.profile?.firstName || '',
           resetUrl: `${this.config.get(
-            'server.managementUrl',
+            'system.managementUrl',
           )}/reset-password?token=${event.metadata.token}`,
           companyName: company.name!,
         },
@@ -191,7 +192,7 @@ export class EmailService {
   }
 
   @OnEvent(AuthEvents.RESET_PASSWORD)
-  async handleUserResetPasswordEvent(event: AuthResetPasswordEvent) {
+  protected async handleUserResetPasswordEvent(event: AuthResetPasswordEvent) {
     try {
       await this.sendEmail(EMAIL_TEMPLATES.RESET_PASSWORD, event.user.email, {
         firstName: event.user.profile?.firstName || '',
@@ -202,7 +203,7 @@ export class EmailService {
   }
 
   @OnEvent(CompanyEvents.COMPANY_KYB_APPROVED)
-  async handleApproveCompanyKyb(event: CompanyApprovedEvent) {
+  protected async handleApproveCompanyKyb(event: CompanyApprovedEvent) {
     try {
       const apiProvider = await this.companyRepository.findOneOrFail({
         where: { type: CompanyTypes.API_PROVIDER },
@@ -231,7 +232,7 @@ export class EmailService {
   }
 
   @OnEvent(CompanyEvents.COMPANY_KYB_DENIED)
-  async handleDenyCompanyKyb(event: CompanyDeniedEvent) {
+  protected async handleDenyCompanyKyb(event: CompanyDeniedEvent) {
     try {
       const admins = await this.userRepository.find({
         where: {
@@ -256,7 +257,7 @@ export class EmailService {
   }
 
   @OnEvent(AuthEvents.SIGN_UP)
-  async handleResendOtp(event: AuthResendOtpEvent) {
+  protected async handleResendOtp(event: AuthResendOtpEvent) {
     try {
       const apiProvider = await this.companyRepository.findOneOrFail({
         where: { type: CompanyTypes.API_PROVIDER },
@@ -272,7 +273,7 @@ export class EmailService {
     }
   }
 
-  async handleVerifyEmail(event: AuthSignupEvent) {
+  protected async handleVerifyEmail(event: AuthSignupEvent) {
     try {
       const apiProvider = await this.companyRepository.findOneOrFail({
         where: { type: CompanyTypes.API_PROVIDER },
@@ -304,6 +305,14 @@ export class EmailService {
         });
       }
 
+      const $timing = {
+        year: moment().year(),
+        month: moment().month() + 1,
+        day: moment().date(),
+      };
+
+      Object.assign({}, { $timing }, data);
+
       const mailOptions = {
         from: transporter.options.from,
         to: recipient,
@@ -311,7 +320,7 @@ export class EmailService {
         html: Handlebars.compile(template.body.toString())(data),
       };
 
-      console.log('Sending mail: ', mailOptions);
+      console.log('Sending mail to: ', mailOptions.to);
 
       const info = await transporter.sendMail(mailOptions);
 

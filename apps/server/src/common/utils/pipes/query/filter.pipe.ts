@@ -17,8 +17,8 @@ import {
   LessThanOrEqual,
   MoreThan,
   MoreThanOrEqual,
+  Like,
 } from 'typeorm';
-// import { LessThan, Like, MoreThan } from 'typeorm';
 
 export interface Filtering {
   property: string;
@@ -55,7 +55,10 @@ export class FilterPipe implements PipeTransform<any, any> {
   ) {
     const result: any = {};
     if (typeof query === 'string') {
-      result[key] = this.validateValueType(query, allowedFieldType, true);
+      result[key] =
+        allowedFieldType === ValueTypes.stringLike
+          ? Like(this.validateValueType(`%${query}%`, allowedFieldType, true))
+          : this.validateValueType(query, allowedFieldType, true);
     } else {
       const subQueryKeys: any[] = Object.keys(
         query as Record<FilterRules, string>,

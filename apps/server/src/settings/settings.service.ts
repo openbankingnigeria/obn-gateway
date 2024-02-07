@@ -25,7 +25,6 @@ import { BUSINESS_SETTINGS_NAME } from './settings.constants';
 import { RequestContext } from '@common/utils/request/request-context';
 import { CompanyTypes } from '@common/database/constants';
 import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
-import { EmailService } from '@shared/email/email.service';
 
 @Injectable()
 export class SettingsService {
@@ -37,7 +36,6 @@ export class SettingsService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly kongConsumerService: KongConsumerService,
-    private readonly emailService: EmailService,
   ) {}
 
   async getKybRequirements(ctx: RequestContext) {

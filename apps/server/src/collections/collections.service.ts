@@ -25,6 +25,7 @@ import {
 import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { RequestContext } from '@common/utils/request/request-context';
+import { GetAPIResponseDTO } from 'src/apis/dto/index.dto';
 
 @Injectable()
 export class CollectionsService {
@@ -48,12 +49,17 @@ export class CollectionsService {
         skip: (page - 1) * limit,
         take: limit,
         order: { createdAt: 'DESC' },
+        relations: { apis: true },
       });
 
     // TODO emit event
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollections,
-      collections.map((collection) => new GetCollectionResponseDTO(collection)),
+      collections.map((collection) => {
+        const dto = new GetCollectionResponseDTO(collection);
+        dto.apis = collection.apis!.map((api) => new GetAPIResponseDTO(api));
+        return dto;
+      }),
       new ResponseMetaDTO({
         totalNumberOfRecords,
         totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),

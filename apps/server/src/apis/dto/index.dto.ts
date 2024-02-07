@@ -226,8 +226,9 @@ export class GetAPIResponseDTO {
   constructor(partial: GetAPIResponseDTO, ctx?: RequestContext) {
     Object.assign(this, partial);
     if (
-      !ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT) ||
-      ctx?.activeCompany.type !== CompanyTypes.API_PROVIDER
+      'upstream' in this &&
+      (!ctx?.hasPermission(PERMISSIONS.ADD_API_ENDPOINT) ||
+        ctx?.activeCompany.type !== CompanyTypes.API_PROVIDER)
     ) {
       this.upstream = null;
     }
@@ -248,12 +249,12 @@ export class GetAPIResponseDTO {
   @Expose()
   @IsObject()
   @Type(() => GETAPIDownstreamResponseDTO)
-  downstream: GETAPIDownstreamResponseDTO;
+  downstream?: GETAPIDownstreamResponseDTO;
 
   @Expose()
   @IsObject()
   @Type(() => GETAPIUpstreamResponseDTO)
-  upstream: GETAPIUpstreamResponseDTO | null;
+  upstream?: GETAPIUpstreamResponseDTO | null;
 }
 
 class APILogResponseDto {

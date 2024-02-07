@@ -14,7 +14,7 @@ export const globalConfig = (): {
     database: DataSourceOptions;
     elasticsearch: ElasticsearchModuleOptions;
   } = {
-    server: {
+    system: {
       port: parseInt(process.env.SERVER_PORT as string, 10) || 8089,
       managementUrl: process.env.MANAGEMENT_URL,
       corsOrigins: process.env.CORS_ORIGINS,

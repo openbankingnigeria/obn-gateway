@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 import { Expose } from 'class-transformer';
 import { Collection } from '@common/database/entities/collection.entity';
+import { GetAPIResponseDTO } from 'src/apis/dto/index.dto';
 
 export class CreateCollectionDto {
   constructor(collection: CreateCollectionDto) {
@@ -41,4 +42,8 @@ export class GetCollectionResponseDTO {
 
   @Expose()
   createdAt: Date;
+
+  @Expose()
+  @IsArray()
+  apis: GetAPIResponseDTO[];
 }
