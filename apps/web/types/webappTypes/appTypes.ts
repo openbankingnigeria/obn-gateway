@@ -13,6 +13,8 @@ export interface DashboardMetricCardProps {
 
 export interface searchParamsProps {
   status?: string;
+  kybStatus?: string;
+  topStatus?: string;
   path?: string
   search_query?: string;
   rows?: number;

@@ -126,11 +126,11 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   };
 
   const incorrect = (
-    !api ||
-    !from ||
-    !to ||
-    (apiConsumer ? false : !collection) ||
-    (apiConsumer ? false : consumers.length === 0) 
+    !api &&
+    !from &&
+    !to &&
+    (apiConsumer ? true : !collection) &&
+    (apiConsumer ? true : consumers.length === 0) 
   );
 
   const handleSubmit = () => {

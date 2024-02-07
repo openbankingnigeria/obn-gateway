@@ -15,7 +15,7 @@ const UpStreamForm = ({
   profileData,
   preview
 }: APIConfigurationProps) => {
-  // const [enable, setEnable] = useState(rawData?.enabled || false);
+  const [enable, setEnable] = useState(rawData?.enabled || false);
   const [headers, setHeaders] = useState<KeyValueProps[]>(
     rawData?.upstream?.headers ? [...rawData?.upstream?.headers] : []
   );
@@ -126,7 +126,7 @@ const UpStreamForm = ({
           method: 'PATCH',
           data: {
             "name": rawData?.name,
-            "enabled": rawData?.enabled,
+            "enabled": enable,
             "upstream": {
               ...rawData?.upstream,
               url: endpointUrl,
@@ -190,16 +190,19 @@ const UpStreamForm = ({
           </div>
 
           <div className='flex bg-white rounded-[12px] border border-o-border gap-[16px] flex-col p-[24px] w-[60%]'>
-            {/* <div className='w-full flex items-center justify-between'>
-              <div className='w-fit text-f14 font-[500] text-[#2B2E36]'>
-                Enable
-              </div>
+            {
+              !previewPage &&
+              <div className='w-full flex items-center justify-between'>
+                <div className='w-fit text-f14 font-[500] text-[#2B2E36]'>
+                  Enable
+                </div>
 
-              <ToggleSwitch 
-                toggle={enable}
-                setToggle={previewPage ? ()=>null : setEnable}
-              />
-            </div> */}
+                <ToggleSwitch 
+                  toggle={enable}
+                  setToggle={previewPage ? ()=>null : setEnable}
+                />
+              </div>
+            }
 
             <InputElement 
               name='endpointUrl'

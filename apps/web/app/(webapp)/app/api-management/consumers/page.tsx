@@ -1,7 +1,7 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { TopPanel } from '@/app/(webapp)/(components)'
-import { CONSUMERS_TABLE_DATA, CONSUMERS_TABLE_HEADERS, CONSUMERS_STATUS_DATA } from '@/data/consumerData'
+import { CONSUMERS_TABLE_DATA, CONSUMERS_TABLE_HEADERS, CONSUMERS_TOP_STATUS_DATA, CONSUMERS_KYB_STATUS_DATA, CONSUMERS_STATUS_DATA } from '@/data/consumerData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ConsumersTable } from './(components)'
 import { APIS_DATA } from '@/data/apisData'
@@ -14,6 +14,7 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
+  const kybStatus = searchParams?.kybStatus || ''
   const search_apis = searchParams?.search_apis || ''
 
   const filters = [status, search_query];
@@ -23,16 +24,24 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
     apiEndpoint: API.getCompanies({
       page: `${page}`,
       limit: `${rows}`,
+      kybStatus: kybStatus,
       name: search_query,
       status: status
     }),
     method: 'GET',
     data: null
   });
-
+  
   const fetchedStats: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCompanyStats(),
+    method: 'GET',
+    data: null
+  });
+
+  const fetchedKybStats: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyKybStats(),
     method: 'GET',
     data: null
   });
@@ -43,6 +52,7 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
 
   let meta_data = fetchedConsumers?.meta_data;
   let stats = fetchedStats?.data;
+  let kybStats = fetchedKybStats?.data;
   let consumers = fetchedConsumers?.data?.map((consumer: any) => {
     return({
       ...consumer,
@@ -59,12 +69,13 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
   });
 
   // TODO: STATS REQUIRED DATE FILTER (SHOULD BE REMOVED)
-  const panel = CONSUMERS_STATUS_DATA({
+  const panel = CONSUMERS_TOP_STATUS_DATA({
     all: stats?.reduce((acc: any, obj: any) => acc + Number(obj.count), 0), 
-    pending: stats?.find((stat: any) => stat?.value == 'pending')?.count, 
-    active: stats?.find((stat: any) => stat?.value == 'active')?.count, 
-    inactive: stats?.find((stat: any) => stat?.value == 'inactive')?.count, 
-    rejected: stats?.find((stat: any) => stat?.value == 'rejected')?.count,
+    pending: kybStats?.find((stat: any) => stat?.value == 'pending')?.count,
+    approved: kybStats?.find((stat: any) => stat?.value == 'approved')?.count, 
+    // active: stats?.find((stat: any) => stat?.value == 'active')?.count, 
+    // inactive: stats?.find((stat: any) => stat?.value == 'inactive')?.count, 
+    denied: kybStats?.find((stat: any) => stat?.value == 'denied')?.count,
   });
 
   const headers = CONSUMERS_TABLE_HEADERS;
@@ -74,7 +85,14 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
 
   const data_list = APIS_DATA;
 
-  const status_list = CONSUMERS_STATUS_DATA({})?.map(data => {
+  const status_list = CONSUMERS_STATUS_DATA?.map(data => {
+    return({
+      label: data?.name,
+      value: data?.value
+    })
+  })
+
+  const kyb_status_list = CONSUMERS_KYB_STATUS_DATA?.map(data => {
     return({
       label: data?.name,
       value: data?.value
@@ -85,9 +103,9 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
       <TopPanel 
-        name='status'
+        name='kybStatus'
         panel={panel}
-        currentValue={status}
+        currentValue={kybStatus}
       />
 
       <div className='w-full h-full gap-[24px] flex flex-col'>
@@ -107,6 +125,18 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
               options={status_list}
               value={status}
               innerLabel='Status:'
+              containerStyle='!w-fit cursor-pointer'
+              small
+              removeSearch
+              optionStyle='!top-[38px]'
+              forFilter
+            />
+
+            <SelectElement 
+              name='kybStatus'
+              options={kyb_status_list}
+              value={kybStatus}
+              innerLabel='KYB Status:'
               containerStyle='!w-fit cursor-pointer'
               small
               removeSearch
