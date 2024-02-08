@@ -678,7 +678,7 @@ export class APIService {
         serviceId: gatewayService.id,
         routeId: gatewayRoute.id,
         enabled,
-        url: data.downstream.url || data.downstream.path,
+        url: data.downstream.url,
       },
     );
 
