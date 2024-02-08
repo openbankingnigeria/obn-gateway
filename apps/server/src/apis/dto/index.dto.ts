@@ -34,6 +34,7 @@ class CreateAPIDownstreamDTO {
 
   @IsString()
   @IsOptional()
+  @IsUrl()
   url?: string;
 
   @IsString()
@@ -104,6 +105,8 @@ class UpdateAPIDownstreamDTO {
   path: string;
 
   @IsString()
+  @IsOptional()
+  @IsUrl()
   url?: string;
 
   @IsString()
