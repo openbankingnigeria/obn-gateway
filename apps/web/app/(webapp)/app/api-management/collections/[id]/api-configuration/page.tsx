@@ -1,10 +1,11 @@
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
-import { DownStreamForm, TransformationForm, UpstreamForm } from '../../(components)';
+import { DownStreamForm, EnabledToggle, TransformationForm, UpstreamForm } from '../../(components)';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { StatusBox } from '@/app/(webapp)/(components)';
+import { ToggleSwitch } from '@/components/forms';
 
 const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => {
   const api_id = searchParams?.api_id || '';
@@ -47,9 +48,17 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
           }
         </h3>
 
-        <StatusBox 
-          status={apiDetails?.enabled ? 'enabled' : 'disabled'} 
-        />
+        {
+          preview == 'true' ?
+            <StatusBox 
+              status={apiDetails?.enabled ? 'enabled' : 'disabled'} 
+            />
+            :
+            <EnabledToggle
+              profileData={profile}
+              rawData={apiDetails}
+            />
+        }
       </div>
 
       {

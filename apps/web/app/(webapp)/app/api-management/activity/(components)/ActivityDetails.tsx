@@ -91,7 +91,7 @@ const ActivityDetails = ({
               label='Response Time'
               value={
                 // activity_details?.response_time + 'ms'
-                activity_details?.response_time
+                activity_details?.latencies?.request + ' ms'
               }
             />
           </div>

@@ -13,7 +13,7 @@ const DownStreamForm = ({
   const [tier, setTier] = useState('');
   const [path, setPath] = useState('');
 
-  console.log(rawData);
+  // console.log(rawData);
 
   useEffect(() => {
     setApiName(rawData?.name || '');
@@ -45,7 +45,7 @@ const DownStreamForm = ({
             name='request_method'
             type='text'
             placeholder=''
-            label='Request Method'
+            label='Method'
             disabled
             value={request_method}
             required

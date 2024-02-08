@@ -12,6 +12,8 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
 
+  const environment = 'development';
+
   const filters = [search_query];
 
   const fetchedCollections: any = await applyAxiosRequest({
@@ -21,12 +23,23 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   })
 
+  // TODO: CHECK THIS API {{ FOR AC ONLY }}
+  // const fetchedAPIs: any = await applyAxiosRequest({
+  //   headers: {},
+  //   apiEndpoint: API.getAPIsForCompany({ environment }),
+  //   method: 'GET',
+  //   data: null
+  // })
+
   if (fetchedCollections?.status == 401) {
     return <Logout />
   }
 
   let meta_data = fetchedCollections?.meta_data;
-  let collection_list = fetchedCollections?.data
+  let collection_list = fetchedCollections?.data;
+  // let apis = fetchedAPIs?.data;
+
+  // console.log(fetchedAPIs);
 
   const collections = collection_list?.map((collection: any) => {
     return ({
@@ -59,6 +72,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
             <CollectionsTable 
               tableHeaders={headers}
               rawData={collections}
+              // altData={apis}
               filters={filters}
               rows={rows}
               totalElementsInPage={total_elements_in_page}

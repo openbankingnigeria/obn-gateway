@@ -4,10 +4,11 @@ import { ACTIVITY_TABLE_HEADERS, ACTIVITY_TABLE_DATA, ACTIVITY_STATUS_DATA, ACTI
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ActivityTable } from './(components)'
 import { APIS_DATA_WITH_ALL } from '@/data/apisData'
-import { ExportButton } from '@/app/(webapp)/(components)'
+import { DatePicker, ExportButton } from '@/app/(webapp)/(components)'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
+import moment from 'moment'
 
 const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -15,15 +16,20 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
   const search_apis = searchParams?.search_apis || '';
+  const date_filter = searchParams?.date_filter || ''
   const environment = 'development';
 
-  const filters = [status, search_query, search_apis];
+  const dateFilter = date_filter ? JSON.parse(date_filter) : {};
+  const filters = [status, search_query, search_apis, dateFilter];
 
   const fetchedActivities: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPILogs({
       page: `${page}`,
       limit: `${rows}`,
+      apiId: search_apis,
+      createdAt_gt: moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z',
+      createdAt_l: moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z',
       environment
     }),
     method: 'GET',
@@ -67,6 +73,28 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const total_elements_in_page = activity?.length || meta_data?.pageSize;
   const total_elements = meta_data?.totalNumberOfRecords;
 
+  const fetchedAPIs: any = 
+    userType == 'api-consumer' ?
+      await applyAxiosRequest({
+        headers: {},
+        apiEndpoint: API.getAPIsForCompany({
+          environment
+        }),
+        method: 'GET',
+        data: null
+      })
+      :
+      await applyAxiosRequest({
+        headers: {},
+        apiEndpoint: API.getAPIs({
+          page: `1`,
+          limit: `1000`,
+          environment
+        }),
+        method: 'GET',
+        data: null
+      });
+
   const status_list = ACTIVITY_STATUS_DATA?.map(data => {
     return({
       label: data?.name,
@@ -74,10 +102,15 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
     })
   });
 
-  const api_list = APIS_DATA_WITH_ALL?.map(data => {
+  const initial_api_list = [{
+    label: 'All',
+    value: ''
+  }]
+
+  const api_list = fetchedAPIs?.data?.map((data: any) => {
     return({
-      label: data?.label,
-      value: data?.value
+      label: data?.name,
+      value: data?.id
     })
   });
 
@@ -92,7 +125,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
           <div className='w-full flex items-start justify-between gap-[12px]'>
             <div className='w-fit flex-wrap flex items-center gap-[12px]'>
               <SearchBar 
-                placeholder='Search activity'
+                placeholder='Search reference'
                 searchQuery={search_query}
               />
 
@@ -110,7 +143,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
 
               <SelectElement 
                 name='search_apis'
-                options={api_list}
+                options={initial_api_list?.concat(api_list)}
                 value={search_apis}
                 innerLabel='API Name:'
                 containerStyle='!w-fit cursor-pointer'
@@ -118,6 +151,12 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
                 removeSearch
                 optionStyle='!top-[38px]'
                 forFilter
+              />
+
+              <DatePicker 
+                showShortcuts={true}
+                name='date_filter'
+                dateFilter={date_filter}
               />
             </div>
 

@@ -10,6 +10,7 @@ import DownStreamForm from "./DownStreamForm";
 import TransformationForm from "./TransformationForm";
 import UpstreamForm from "./UpstreamForm";
 import KeyValueContainer from "./KeyValueContainer";
+import EnabledToggle from "./EnabledToggle";
 
 export {
   CollectionsTable,
@@ -23,5 +24,6 @@ export {
   DownStreamForm,
   TransformationForm,
   UpstreamForm,
-  KeyValueContainer
+  KeyValueContainer,
+  EnabledToggle
 }

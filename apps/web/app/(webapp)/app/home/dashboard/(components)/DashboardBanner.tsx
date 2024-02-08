@@ -5,13 +5,13 @@ import { Button } from '@/components/globalComponents'
 import Image from 'next/image';
 import React, { useState } from 'react'
 import { AddBusinessInformation } from '.';
-import { getStorage, setStorage } from '@/config/webStorage';
+import { getJsCookies, setJsCookies } from '@/config/jsCookie';
 
 const DashboardBanner = ({
   rawData
 }: { rawData: any }) => {
   const [openModal, setOpenModal] = useState('');
-  const close_modal = Boolean(getStorage('close-banner'));
+  const close_modal = Boolean(getJsCookies('close-banner'));
   const [closebanner, setCloseBanner] = useState(Boolean(close_modal));
 
   const cancelModal = () => {
@@ -23,7 +23,7 @@ const DashboardBanner = ({
   }
 
   const handleCloseBanner = () => {
-    // setStorage('close-banner', 'yes');
+    setJsCookies('close-banner', 'yes');
     setCloseBanner(prev => !prev);
   }
 
@@ -46,7 +46,7 @@ const DashboardBanner = ({
       }
 
       {
-        (!closebanner) ?
+        (!closebanner) &&
           <div className='w-full relative overflow-hidden flex items-center justify-between rounded-[12px] bg-[#F3F6FB] border-[#DCE4F4]'>
             {
               rawData?.isVerified &&
@@ -131,7 +131,6 @@ const DashboardBanner = ({
               />
             </div>
           </div>
-          : null
       }
     </div>
   )

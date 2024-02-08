@@ -117,7 +117,7 @@ const ModifyApiConfiguration = ({
           {/* REQUEST METHOD */}
           <div className='flex items-center justify-between gap-5'>
             <div className='text-f14 w-fit text-o-text-muted2'>
-              Request Method
+              Method
             </div>
 
             <div className='w-fit text-f14 font-[500]'>

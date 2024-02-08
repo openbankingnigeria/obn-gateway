@@ -9,6 +9,7 @@ import * as API from '@/config/endpoints';
 import { searchParamsProps } from '@/types/webappTypes/appTypes';
 import { REPORTING_DATA } from '@/data/dashboardData';
 import { DashboardMetricCard } from '../app/home/dashboard/(components)';
+import moment from 'moment';
 
 const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [from, setFrom] = useState<string | undefined>('');
@@ -16,12 +17,14 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [consumers, setConsumers] = useState<string[]>([]);
   const [collection, setCollection] = useState('');
   const [api, setApi] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const [apis, setApis] = useState<any[]>([]);
   const [collections, setCollections] = useState<any[]>([]);
   const [consumersList, setConsumerList] = useState<any[]>([]);
+  const [logStats, setLogStats] = useState({});
   const environment = 'development';
-  const apiConsumer = profile_data?.user?.role?.parent?.slug == 'api-consumer'
+  const apiConsumer = profile_data?.user?.role?.parent?.slug == 'api-consumer';
 
   // console.log('Company details >>>>>>', alt_data);
 
@@ -53,12 +56,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const fetchAPIs = async () => {
     const result = await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.getCompanyAPIs({
-        page: `1`,
-        limit: `1000`,
-        environment,
-        companyId: alt_data?.id,
-      }),
+      apiEndpoint: API.getAPIsForCompany({environment}),
       method: 'GET',
       data: null,
       noToast: true
@@ -133,9 +131,34 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
     (apiConsumer ? true : consumers.length === 0) 
   );
 
-  const handleSubmit = () => {
-    console.log(api, from, to, consumers, collection);
+  // console.log(api, from, to, consumers, collection);
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+      setLoading(true);
+      const result: any = await clientAxiosRequest({
+          headers: {},
+          apiEndpoint: API.getAPILogStats({
+            page: '1',
+            limit: '10000',
+            environment, 
+            companyId: apiConsumer ? alt_data?.id : consumers,
+            apiId: api,
+            createdAt_gt: moment(from).startOf('day').format()?.split('+')[0] + '.000Z',
+            createdAt_l: moment(to).endOf('day').format()?.split('+')[0] + '.000Z',
+          }),
+          method: 'GET',
+          data: {}
+        });
+
+      if (result?.message) {
+        setLoading(false);
+        setLogStats(result?.data);
+      }
   }
+
+  // console.log(logStats);
+
 
   return (
     <div className='w-full flex flex-col gap-[20px]'>
@@ -205,7 +228,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
                   options={consumers_list}
                   label='Select Consumer(s)'
                   placeholder='Select consumer'
-                  multiple
+                  // multiple
                   required
                   optionStyle='top-[70px]'
                   clickerStyle='!w-full'
@@ -237,7 +260,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
                   placeholder='Select API'
                   required
                   optionStyle='top-[70px]'
-                  clickerStyle='!w-[49%]'
+                  clickerStyle='!min-w-[49%]'
                   value={api}
                   changeValue={setApi}
                 />
@@ -256,6 +279,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
             <Button 
               type='submit'
               title='Generate'
+              loading={loading}
               containerStyle='!w-[90px]'
               disabled={incorrect}
               small

@@ -20,7 +20,7 @@ const StatusBox = ({ status }: StatusBoxProps) => {
     ) 
     : sanitizedStatus == 'enabled' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-white bg-o-status-green'>
-        ENABLED
+        Enabled
       </span>
     ) 
     : sanitizedStatus == 'approved' ? (
@@ -80,7 +80,7 @@ const StatusBox = ({ status }: StatusBoxProps) => {
     )
     : sanitizedStatus === 'disabled' ? (
       <span className='whitespace-nowrap px-[8px] py-[3px] text-f12 text-center font-[500] w-fit capitalize rounded-full text-white bg-o-status-red'>
-        DISABLED
+        Disabled
       </span>
     )
     : sanitizedStatus === 'denied' ? (
