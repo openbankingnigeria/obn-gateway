@@ -46,7 +46,7 @@ export const DASHBOARD_API_HEADERS = [
     accessor: 'api_name'
   },
   {
-    header: 'Request Method',
+    header: 'Method',
     accessor: 'request_method'
   },
   {
@@ -65,7 +65,7 @@ export const COLLECTIONS_API_CONSUMER_HEADERS = [
     accessor: 'api_name'
   },
   {
-    header: 'Request Method',
+    header: 'Method',
     accessor: 'request_method'
   },
   {
@@ -74,7 +74,7 @@ export const COLLECTIONS_API_CONSUMER_HEADERS = [
   },
   {
     header: 'Status',
-    accessor: 'configured'
+    accessor: 'status'
   },
 ];
 
@@ -84,7 +84,7 @@ export const COLLECTIONS_API_HEADERS = [
     accessor: 'api_name'
   },
   {
-    header: 'Request Method',
+    header: 'Method',
     accessor: 'request_method'
   },
   {
@@ -101,7 +101,7 @@ export const COLLECTIONS_API_HEADERS = [
   },
   {
     header: 'Status',
-    accessor: 'configured'
+    accessor: 'status'
   },
 ];
 

@@ -139,7 +139,7 @@ export const CONSENTS_API_ACTIVITIES_HEADERS = [
     accessor: 'event_type'
   },
   {
-    header: 'Request Method',
+    header: 'Method',
     accessor: 'request_method'
   },
   {

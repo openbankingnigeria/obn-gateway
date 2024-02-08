@@ -16,6 +16,8 @@ const EmptyState = ({
   button,
   buttonType
 }: EmptyStateProps) => {
+  const enabledConsumer = altData?.status == 'active' && altData?.kybStatus == 'approved';
+
   return (
     <section className={`w-full h-full flex flex-col items-center ${parentStyle}`}>
       <div className={`h-fit my-auto w-[393px] flex flex-col items-center ${containerStyle}`}>
@@ -80,10 +82,10 @@ const EmptyState = ({
         
         { 
           button && (
-              buttonType == 'ADD_PERMISSIONS' ?
+            enabledConsumer && buttonType == 'ADD_PERMISSIONS' ?
               <AddPermissionButton 
                 searchQuery={searchQuery || ''}
-                companyId={altData} 
+                companyId={altData?.id} 
               />
               : null
           )

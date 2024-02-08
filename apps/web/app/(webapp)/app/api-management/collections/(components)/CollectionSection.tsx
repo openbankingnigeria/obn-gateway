@@ -384,7 +384,7 @@ const CollectionSection = ({
                 name='request_method'
                 options={requestMethodList || []}
                 value={filters[1]}
-                innerLabel='Request Method:'
+                innerLabel='Method:'
                 containerStyle='!w-fit cursor-pointer'
                 small
                 removeSearch
@@ -392,7 +392,7 @@ const CollectionSection = ({
                 forFilter
               />
 
-              {
+              {/* {
                 userType == 'api-consumer' &&
                 <SelectElement 
                   name='tier'
@@ -405,7 +405,7 @@ const CollectionSection = ({
                   optionStyle='!top-[38px]'
                   forFilter
                 />
-              }
+              } */}
             </div>
 
             {

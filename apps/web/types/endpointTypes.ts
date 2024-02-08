@@ -22,6 +22,9 @@ export interface GetEnvironmentProps {
   id?: string;
   companyId?: string;
   collectionId?: string;
+  apiId?: string;
+  createdAt_gt?: string;
+  createdAt_l?: string;
 }
 
 export interface GetSingleEnvironmentProps {

@@ -9,6 +9,7 @@ import React from 'react'
 const CollectionsTable = ({
   tableHeaders,
   rawData,
+  altData,
   filters,
   rows,
   page,
@@ -17,7 +18,7 @@ const CollectionsTable = ({
   totalPages,
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
-  // console.log(rawData);
+  // console.log(altData);
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',

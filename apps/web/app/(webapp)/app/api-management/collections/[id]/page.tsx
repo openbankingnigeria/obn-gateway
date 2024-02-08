@@ -56,8 +56,8 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
       ...endpoint,
       api_name: endpoint?.name,
       request_method: endpoint?.downstream?.method?.toString(),
-      configured: endpoint?.enabled,
-      endpoint_url: endpoint?.upstream?.url,
+      status: endpoint?.enabled ? 'enabled' : 'disabled',
+      endpoint_url: endpoint?.upstream?.url || endpoint?.downstream?.url,
       tier: '',
       parameters: endpoint?.downstream?.path?.toString(),
     });

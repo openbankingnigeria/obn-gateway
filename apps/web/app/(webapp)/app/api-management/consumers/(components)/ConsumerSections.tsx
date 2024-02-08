@@ -39,7 +39,9 @@ const ConsumerSections = ({
   const [api_endpoint, setApiEndpoint] = useState<any>(null);
   const environment = 'development';
 
-  // console.log(rawData);
+  const enabledConsumer = altData?.status == 'active' && altData?.kybStatus == 'approved';
+
+  // console.log(altData);
 
   const [endpoint_url, setEndpointUrl] = useState('');
   const [parameters, setParameters] = useState('');
@@ -280,7 +282,7 @@ const ConsumerSections = ({
                     </div>
 
                     {
-                      (path == '') &&
+                      enabledConsumer && (path == '') &&
                       <EditPermissionButton 
                         rawData={altData}
                         searchQuery={filters[0]}
@@ -306,7 +308,7 @@ const ConsumerSections = ({
                 title='Nothing to show'
                 type='DEFAULT'
                 parentStyle='!h-[calc(100vh-600px)]'
-                altData={altData?.id}
+                altData={altData}
                 body='There’s no information to show for this user yet.'
                 button={path == ''}
                 searchQuery={filters[0]}
