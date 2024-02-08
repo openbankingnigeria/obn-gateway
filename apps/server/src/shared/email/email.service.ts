@@ -221,7 +221,7 @@ export class EmailService {
         },
       });
       admins.forEach((admin) => {
-        this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_DENIED, admin.email, {
+        this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_APPROVED, admin.email, {
           name: admin.profile!.firstName,
           apiProvider: apiProvider.name!,
         });

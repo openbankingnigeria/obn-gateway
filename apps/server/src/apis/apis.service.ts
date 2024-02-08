@@ -792,9 +792,17 @@ export class APIService {
         result.push({
           term: { [`${filter}.keyword`]: item },
         });
+      } else if (typeof item === 'number') {
+        result.push({
+          term: { [`${filter}`]: item },
+        });
       } else if (Array.isArray(item)) {
         result.push({
-          terms: { [`${filter}.keyword`]: item },
+          terms: {
+            [item.every((i) => typeof i === 'number')
+              ? filter
+              : `${filter}.keyword`]: item,
+          },
         });
       }
     }

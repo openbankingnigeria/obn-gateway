@@ -22,7 +22,10 @@ import * as moment from 'moment';
 import { RequestContext } from '@common/utils/request/request-context';
 import { PERMISSIONS } from '@permissions/types';
 import { CompanyTypes } from '@common/database/constants';
-import { IsStringOrArrayOfStrings } from '@common/utils/request/request.decorator';
+import {
+  IsNumberOrArrayOfNumbers,
+  IsStringOrArrayOfStrings,
+} from '@common/utils/request/request.decorator';
 
 class CreateAPIDownstreamDTO {
   @IsString()
@@ -30,6 +33,7 @@ class CreateAPIDownstreamDTO {
   path: string;
 
   @IsString()
+  @IsOptional()
   url?: string;
 
   @IsString()
@@ -419,6 +423,11 @@ export class GetAPILogsFilterDto {
   @IsOptional()
   @IsStringOrArrayOfStrings()
   'route.id': string;
+
+  @Expose({ name: 'status' })
+  @IsOptional()
+  @IsNumberOrArrayOfNumbers()
+  'response.status': string;
 
   @Expose()
   @IsOptional()

@@ -343,6 +343,7 @@ export class CompanyService {
     };
   }
 
+  // TODO throw an error if updating to current status
   async updateKYBStatus(
     ctx: RequestContext,
     companyId: string,
