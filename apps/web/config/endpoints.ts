@@ -74,8 +74,8 @@ export const deleteAPI = ({ environment, id }: GetSingleEnvironmentProps) =>
   `${BASE_URL}/apis/${environment}/${id}`;
 export const updateAPI = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}`;
-export const getAPILogs = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l }: GetEnvironmentProps) => 
-  `${BASE_URL}/apis/${environment}/logs?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${companyId ? `&filter[companyId]=${companyId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}`;
+export const getAPILogs = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l, status }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${companyId ? `&filter[companyId]=${companyId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}`;
 export const getAPILog = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/logs/${id}`;
 export const postAssignAPIs = ({ environment, id }: GetSingleEnvironmentProps) => 
@@ -90,8 +90,8 @@ export const getAPITransformation = ({ environment, id }: GetSingleEnvironmentPr
   `${BASE_URL}/apis/${environment}/${id}/transformation`;
 export const updateConsumerAPIAccess = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/company/${id}`;
-export const getAPIsForCompany = ({ environment }: GetSingleEnvironmentProps) =>
-  `${BASE_URL}/apis/${environment}/company`
+export const getAPIsForCompany = ({ environment, collectionId }: GetSingleEnvironmentProps) =>
+  `${BASE_URL}/apis/${environment}/company${collectionId ? `?filter[collectionId]=${collectionId}` : ''}`
 export const getAPILogStats = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l }: GetEnvironmentProps) => 
 	`${BASE_URL}/apis/${environment}/logs/stats?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${companyId ? `&filter[companyId]=${companyId}` : ''}`
 export const getAPILogStatsAggregate = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l }: GetEnvironmentProps) => 

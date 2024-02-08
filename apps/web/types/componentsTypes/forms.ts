@@ -39,7 +39,7 @@ export interface TextareaElementProps extends FieldsProps {
 
 export interface OptionsProps {
   label: string;
-  value: string;
+  value: any;
   icon?: ReactNode;
 }
 

@@ -24,18 +24,6 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
     data: null
   })
 
-  const fetchedAPIs: any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getAPIs({
-      page: `${page}`,
-      limit: `${rows}`,
-      collectionId,
-      environment,
-    }),
-    method: 'GET',
-    data: null
-  })
-
   const fetchedProfile: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getProfile(),
@@ -49,7 +37,35 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
 
   let collection = fetchedCollection?.data;
   let profile = fetchedProfile?.data;
-  let collections_api_list = fetchedAPIs?.data;
+
+  const userType = profile?.user?.role?.parent?.slug;
+
+  const fetchedAPIs: any = userType == 'api-consumer' ?
+    await applyAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getAPIsForCompany({ 
+        environment,
+        collectionId
+      }),
+      method: 'GET',
+      data: null
+    })
+    :
+    await applyAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getAPIs({
+        page: `${page}`,
+        limit: `${rows}`,
+        collectionId,
+        environment,
+      }),
+      method: 'GET',
+      data: null
+    });
+
+  let collections_api_list = userType == 'api-consumer' ?
+    fetchedAPIs?.data?.filter((data: any) => data?.collectionId == collectionId) :
+    fetchedAPIs?.data;
   let meta_data = fetchedAPIs?.meta_data;
   let collections_api = collections_api_list?.map((endpoint: any) => {
     return({
@@ -62,8 +78,6 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
       parameters: endpoint?.downstream?.path?.toString(),
     });
   })
-
-  const userType = profile?.user?.role?.parent?.slug;
 
   // const details = COLLECTIONS_TABLE_DATA.find((data: any) => data?.collection_name == collectionId);
   // const collections_api = COLLECTIONS_APIS;

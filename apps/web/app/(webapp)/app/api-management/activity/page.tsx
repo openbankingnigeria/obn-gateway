@@ -27,9 +27,10 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
     apiEndpoint: API.getAPILogs({
       page: `${page}`,
       limit: `${rows}`,
+      status: status,
       apiId: search_apis,
-      createdAt_gt: moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z',
-      createdAt_l: moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z',
+      createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
+      createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
       environment
     }),
     method: 'GET',
@@ -97,7 +98,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
 
   const status_list = ACTIVITY_STATUS_DATA?.map(data => {
     return({
-      label: data?.name,
+      label: data?.label,
       value: data?.value
     })
   });

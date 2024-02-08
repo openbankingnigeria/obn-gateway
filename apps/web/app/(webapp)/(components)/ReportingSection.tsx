@@ -22,7 +22,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [apis, setApis] = useState<any[]>([]);
   const [collections, setCollections] = useState<any[]>([]);
   const [consumersList, setConsumerList] = useState<any[]>([]);
-  const [logStats, setLogStats] = useState({});
+  const [logStats, setLogStats] = useState<any>(null);
   const environment = 'development';
   const apiConsumer = profile_data?.user?.role?.parent?.slug == 'api-consumer';
 
@@ -90,6 +90,8 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
     }
   }, [collection]);
 
+  const allObject = [{ label: 'All', value: ''}]
+
   const apis_list = apis?.map((data: any) => {
     return({
       ...data,
@@ -124,11 +126,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   };
 
   const incorrect = (
-    !api &&
-    !from &&
-    !to &&
-    (apiConsumer ? true : !collection) &&
-    (apiConsumer ? true : consumers.length === 0) 
+    (apiConsumer ? true : Boolean(collection && !api))
   );
 
   // console.log(api, from, to, consumers, collection);
@@ -144,8 +142,8 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
             environment, 
             companyId: apiConsumer ? alt_data?.id : consumers,
             apiId: api,
-            createdAt_gt: moment(from).startOf('day').format()?.split('+')[0] + '.000Z',
-            createdAt_l: moment(to).endOf('day').format()?.split('+')[0] + '.000Z',
+            createdAt_gt: from ? moment(from).startOf('day').format()?.split('+')[0] + '.000Z' : '',
+            createdAt_l: to ? moment(to).endOf('day').format()?.split('+')[0] + '.000Z' : '',
           }),
           method: 'GET',
           data: {}
@@ -156,9 +154,6 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
         setLogStats(result?.data);
       }
   }
-
-  // console.log(logStats);
-
 
   return (
     <div className='w-full flex flex-col gap-[20px]'>
@@ -225,7 +220,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
               <div className='w-full flex items-center gap-[16px]'>
                 <SelectElement 
                   name='consumers'
-                  options={consumers_list}
+                  options={allObject?.concat(consumers_list)}
                   label='Select Consumer(s)'
                   placeholder='Select consumer'
                   // multiple
@@ -238,7 +233,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
 
                 <SelectElement 
                   name='collection'
-                  options={collections_list}
+                  options={allObject?.concat(collections_list)}
                   label='Select Collection'
                   placeholder='Select Collection'
                   required
@@ -255,7 +250,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
                 (apiConsumer || collection) &&
                 <SelectElement 
                   name='api'
-                  options={apis_list}
+                  options={allObject?.concat(apis_list)}
                   label='Select API'
                   placeholder='Select API'
                   required
@@ -287,18 +282,32 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
           </div>
         </form>
       </section>
-
+{/* "totalCount": 1,
+        "avgRequestLatency": 337,
+        "avgGatewayLatency": 20,
+        "avgProxyLatency": 317,
+        "avgCountPerSecond": 1,
+        "successCount": 1,
+        "failedCount": 0 */}
       <section className='w-full flex flex-wrap gap-[20px] p-[20px] border-1 border-[#F1F2F4] bg-[#F6F8FA] rounded-[8px]'>
         {
-          REPORTING_DATA?.map(data => (
+          REPORTING_DATA({
+            total_processed: logStats?.totalCount,
+            successful: logStats?.successCount,
+            failed: logStats?.failedCount,
+            request_latency: logStats?.avgRequestLatency,
+            gateway_latency: logStats?.avgGatewayLatency,
+            latency: logStats?.avgProxyLatency
+          })?.map(data => (
             <DashboardMetricCard 
               key={data?.id}
               title={data?.title}
               amount={data?.amount}
+              containerStyle='!h-fit'
               amountUnit={data?.amountUnit}
-              isGreen={data?.isGreen}
-              labels={data?.labels}
-              data={data?.data}
+              // isGreen={data?.isGreen}
+              // labels={data?.labels}
+              // data={data?.data}
             />
           ))
         }
