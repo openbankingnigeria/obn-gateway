@@ -35,7 +35,7 @@ class CreateAPIDownstreamDTO {
   @IsString()
   @IsOptional()
   @IsUrl()
-  url?: string;
+  url: string;
 
   @IsString()
   @IsNotEmpty()
@@ -107,7 +107,7 @@ class UpdateAPIDownstreamDTO {
   @IsString()
   @IsOptional()
   @IsUrl()
-  url?: string;
+  url: string;
 
   @IsString()
   @IsNotEmpty()
@@ -180,15 +180,12 @@ export class APIParam {
 }
 
 export class GETAPIDownstreamResponseDTO {
-  constructor(
-    partial: Partial<GETAPIDownstreamResponseDTO>,
-    ctx?: RequestContext,
-  ) {
+  constructor(partial: GETAPIDownstreamResponseDTO, ctx?: RequestContext) {
     Object.assign(this, partial);
   }
 
   @Expose()
-  url?: string;
+  url: string;
 
   @Expose()
   path: string | null;

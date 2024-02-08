@@ -226,6 +226,7 @@ export class APIService {
             {
               path: gatewayRoute?.paths[0] ?? null,
               method: gatewayRoute?.methods[0] ?? null,
+              url: route.url,
             },
             ctx,
           ),
@@ -1076,8 +1077,7 @@ export class APIService {
     }));
 
     const routes = acls.map(({ route }) => {
-      const { routeId, serviceId, name, id, enabled, collectionId } = route;
-      return { routeId, serviceId, name, id, enabled, collectionId };
+      return route;
     });
 
     const populatedRoutes: any[] = [];
@@ -1119,6 +1119,7 @@ export class APIService {
               {
                 path: gatewayRoute?.paths[0] ?? null,
                 method: gatewayRoute?.methods[0] ?? null,
+                url: route.url,
               },
               ctx,
             ),
