@@ -25,11 +25,13 @@ export interface GetEnvironmentProps {
   apiId?: string;
   createdAt_gt?: string;
   createdAt_l?: string;
+  status?: any;
 }
 
 export interface GetSingleEnvironmentProps {
   environment: string;
   id?: string;
+  collectionId?: string;
 }
 
 export interface PostTokenProps {
