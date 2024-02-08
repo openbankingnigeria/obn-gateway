@@ -16,6 +16,16 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
 
   const filters = [search_query];
 
+  const fetchedProfile: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getProfile(),
+    method: 'GET',
+    data: null
+  });
+
+  let profile = fetchedProfile?.data;
+  const userType = profile?.user?.role?.parent?.slug;
+
   const fetchedCollections: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCollections(),
@@ -23,23 +33,26 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   })
 
-  // TODO: CHECK THIS API {{ FOR AC ONLY }}
-  // const fetchedAPIs: any = await applyAxiosRequest({
-  //   headers: {},
-  //   apiEndpoint: API.getAPIsForCompany({ environment }),
-  //   method: 'GET',
-  //   data: null
-  // })
+  const fetchedAPIs: any = userType == 'api-consumer' ?
+    await applyAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getAPIsForCompany({ environment }),
+      method: 'GET',
+      data: null
+    })
+    :
+    null;
 
   if (fetchedCollections?.status == 401) {
     return <Logout />
   }
 
   let meta_data = fetchedCollections?.meta_data;
-  let collection_list = fetchedCollections?.data;
-  // let apis = fetchedAPIs?.data;
-
-  // console.log(fetchedAPIs);
+  let apis = fetchedAPIs?.data;
+  let apisId = apis?.map((item: any) => item?.collectionId);
+  let collection_list = userType == 'api-consumer' ? 
+    fetchedCollections?.data.filter((collect: any) => apisId.includes(collect?.id)) : 
+    fetchedCollections?.data;
 
   const collections = collection_list?.map((collection: any) => {
     return ({

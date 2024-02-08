@@ -14,6 +14,8 @@ const DashboardMetricCard = ({
   titleStyle,
   containerStyle
 }: DashboardMetricCardProps) => {
+  const sanitizedAmount = amount?.toString()?.includes('.') ? Number((amount || 0)?.toFixed(2)) : amount;
+  
   return (
     <div className={`min-w-[235px] h-[250px] rounded-[8px] overflow-y-hidden border border-o-border bg-white p-[20px] flex flex-col ${containerStyle}`}>
       <div className='flex flex-col mb-[24px] gap-[4px]'>
@@ -24,8 +26,8 @@ const DashboardMetricCard = ({
         <div className={`${isGreen ? 'text-o-dark-green' : 'text-[#182749]'} text-f18 font-[500]`}>
           {
             amountUnit ? 
-            `${amount ? addCommasToAmount(amount) : '-'} ${amount ? amountUnit : ''}` :
-            (amount ? addCommasToAmount(amount) : '-')
+            `${amount ? addCommasToAmount(sanitizedAmount) : '-'} ${amount ? amountUnit : ''}` :
+            (amount ? addCommasToAmount(sanitizedAmount) : '-')
           }
         </div>
       </div>

@@ -7,6 +7,15 @@ export interface ConsumerStatusDataProps {
   denied?: number;
 };
 
+export interface ReportingDataProps {
+  total_processed?: number;
+  successful?: number;
+  failed?: number;
+  request_latency?: number;
+  gateway_latency?: number;
+  latency?: number;
+}
+
 export interface ConsentsStatusDataProps {
   all?: number; 
   approved?: number; 
