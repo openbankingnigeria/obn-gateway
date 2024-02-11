@@ -51,8 +51,8 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   let apis = fetchedAPIs?.data;
   let apisId = apis?.map((item: any) => item?.collectionId);
   let collection_list = userType == 'api-consumer' ? 
-    fetchedCollections?.data.filter((collect: any) => apisId.includes(collect?.id)) : 
-    fetchedCollections?.data;
+    fetchedCollections?.data.filter((collection: any) => apisId.includes(collection?.id) && collection?.name.includes(search_query)) : 
+    fetchedCollections?.data?.filter((collection: any) => collection?.name.includes(search_query));
 
   const collections = collection_list?.map((collection: any) => {
     return ({

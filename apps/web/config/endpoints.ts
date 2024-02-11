@@ -66,8 +66,8 @@ export const getCollection = ({ id }: GetSingleProps) =>
 
 
 // APIS 
-export const getAPIs = ({ page, limit, environment, collectionId }: GetEnvironmentProps) => 
-  `${BASE_URL}/apis/${environment}?page=${page}${limit ? `&limit=${limit}`: ''}${collectionId ? `&filter[collectionId]=${collectionId}` : ''}`;
+export const getAPIs = ({ page, limit, environment, collectionId, name, method }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${method ? `&filter[method]=${method}`: ''}${collectionId ? `&filter[collectionId]=${collectionId}` : ''}`;
 export const getAPI = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}`;
 export const deleteAPI = ({ environment, id }: GetSingleEnvironmentProps) => 
@@ -90,8 +90,8 @@ export const getAPITransformation = ({ environment, id }: GetSingleEnvironmentPr
   `${BASE_URL}/apis/${environment}/${id}/transformation`;
 export const updateConsumerAPIAccess = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/company/${id}`;
-export const getAPIsForCompany = ({ environment, collectionId }: GetSingleEnvironmentProps) =>
-  `${BASE_URL}/apis/${environment}/company${collectionId ? `?filter[collectionId]=${collectionId}` : ''}`
+export const getAPIsForCompany = ({ environment, collectionId, name, method }: GetSingleEnvironmentProps) =>
+  `${BASE_URL}/apis/${environment}/company${collectionId ? `?filter[collectionId]=${collectionId}` : ''}${name ? `&filter[name]=${name}`: ''}${method ? `&filter[method]=${method}`: ''}`
 export const getAPILogStats = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l }: GetEnvironmentProps) => 
 	`${BASE_URL}/apis/${environment}/logs/stats?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${companyId ? `&filter[companyId]=${companyId}` : ''}`
 export const getAPILogStatsAggregate = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l }: GetEnvironmentProps) => 
