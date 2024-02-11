@@ -23,6 +23,8 @@ export interface GetEnvironmentProps {
   companyId?: string;
   collectionId?: string;
   apiId?: string;
+  name?: string;
+  method?: string;
   createdAt_gt?: string;
   createdAt_l?: string;
   status?: any;
@@ -31,6 +33,8 @@ export interface GetEnvironmentProps {
 export interface GetSingleEnvironmentProps {
   environment: string;
   id?: string;
+  name?: string;
+  method?: string;
   collectionId?: string;
 }
 

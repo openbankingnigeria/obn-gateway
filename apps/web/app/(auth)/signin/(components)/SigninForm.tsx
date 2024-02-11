@@ -38,6 +38,8 @@ const SigninForm = () => {
           type='email'
           placeholder='Email address'
           changeValue={setEmail}
+          invalid={!!(state?.response?.status == 400)}
+          hint={(state?.response?.status == 400) ? 'Incorrect email address' : ''}
           label='Email Address'
           required
         />
@@ -45,6 +47,8 @@ const SigninForm = () => {
         <InputElement 
           name='password'
           type='password'
+          invalid={!!(state?.response?.status == 400)}
+          hint={(state?.response?.status == 400) ? 'Incorrect password' : ''}
           placeholder='Password'
           changeValue={setPassword}
           label='Password'

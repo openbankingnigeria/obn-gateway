@@ -216,7 +216,7 @@ const CollectionSection = ({
 
         <div className='hidden peer-focus:flex hover:flex absolute bg-white rounded-lg flex-col z-10 border border-o-border right-0 top-[30px] py-[4px] w-[158px] items-start justify-start tablemenu-boxshadow'>
           {
-            getAction(row.original.configured)?.map((action) => (
+            getAction(row.original.enabled)?.map((action) => (
               <button
                 key={action.id}
                 className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'

@@ -45,7 +45,9 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
       headers: {},
       apiEndpoint: API.getAPIsForCompany({ 
         environment,
-        collectionId
+        collectionId,
+        name: search_query,
+        method: request_method
       }),
       method: 'GET',
       data: null
@@ -58,6 +60,8 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
         limit: `${rows}`,
         collectionId,
         environment,
+        name: search_query,
+        method: request_method
       }),
       method: 'GET',
       data: null

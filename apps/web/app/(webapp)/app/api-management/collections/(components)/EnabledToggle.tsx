@@ -44,9 +44,8 @@ const EnabledToggle = ({
             "upstream": rawData?.upstream,
             "downstream": {
               ...rawData?.downstream,
-              url: ''
             },
-            "enabled": enable,
+            "enabled": !enable,
           }
         });
 
