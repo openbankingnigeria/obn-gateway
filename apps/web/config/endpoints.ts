@@ -118,3 +118,18 @@ export const getCompanyStats = () =>
   `${BASE_URL}/companies/stats`
 export const getCompanyKybStats = () => 
   `${BASE_URL}/companies/stats/kyb`
+
+
+// SETTINGS
+export const getSettings = ({ type }: GetTypeProps) => 
+  `${BASE_URL}/settings/${type}`; // email_templates, email_settings, and general
+export const updateSettings = ({ type }: GetTypeProps) => 
+  `${BASE_URL}/settings/${type}`; 
+export const getIPWhitelist = ({ environment }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/settings/ip-restriction/${environment}`;
+export const updateIPWhitelist = ({ environment }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/settings/ip-restriction/${environment}`;
+export const getAPIKey = ({ environment }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/settings/api-key/${environment}`
+export const updateAPIKey = ({ environment }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/settings/api-key/${environment}`
