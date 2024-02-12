@@ -7,7 +7,7 @@ import React from 'react'
 const ConsumerBusinessDetails = ({
   rawData
 }: ConsumerBusinessDetailsProps) => {
-  // console.log(rawData);
+  
   return (
     <section className='w-full'>
       <div className='w-full overflow-hidden bg-white border border-o-border rounded-[10px] h-fit'>
