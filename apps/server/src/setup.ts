@@ -158,9 +158,9 @@ export class SetupService {
       await kongPluginService
         .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
           name: KONG_PLUGINS.CORRELATION_ID,
-          enabled: true,
+          enabled: false,
           config: {
-            header_name: 'Request-ID',
+            header_name: 'X-Request-ID',
             echo_downstream: true,
             generator: 'uuid',
           },

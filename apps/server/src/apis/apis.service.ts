@@ -879,7 +879,7 @@ export class APIService {
         bool: {
           must: [
             {
-              term: { 'request.headers.request-id.keyword': requestId },
+              term: { 'response.headers.x-request-id.keyword': requestId },
             },
             {
               term: { 'environment.keyword': environment },
@@ -903,11 +903,14 @@ export class APIService {
       });
     }
 
-    const company = await this.companyRepository.findOne({
-      where: {
-        consumerId: logs.hits.hits[0]._source.consumer?.id,
-      },
-    });
+    let company = null;
+    if (logs.hits.hits[0]._source.consumer?.id) {
+      company = await this.companyRepository.findOne({
+        where: {
+          consumerId: logs.hits.hits[0]._source.consumer?.id,
+        },
+      });
+    }
 
     logs.hits.hits[0]._source.consumer = company;
 

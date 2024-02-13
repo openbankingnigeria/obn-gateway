@@ -321,7 +321,7 @@ export class APILogResponseDTO {
   }
 
   @Expose()
-  @Transform(({ obj }) => obj.request.headers['request-id'] || '')
+  @Transform(({ obj }) => obj.response.headers['x-request-id'] || '')
   id: string;
 
   @Expose()

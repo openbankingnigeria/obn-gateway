@@ -69,7 +69,7 @@ services:
   kong-migrations:
     image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
     container_name: obn-kong-migrations
-    command: kong migrations bootstrap
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations bootstrap"] #replace x-kong- headers with x-
     depends_on:
       kong-db:
         condition: service_healthy
@@ -88,7 +88,7 @@ services:
   kong-migrations-up:
     image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
     container_name: obn-kong-migrations-up
-    command: kong migrations up && kong migrations finish
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations up && /docker-entrypoint.sh kong migrations finish"] #replace x-kong- headers with x-
     depends_on:
       kong-db:
         condition: service_healthy
@@ -112,6 +112,7 @@ services:
       <<: *kong-env
     secrets:
       - kong_postgres_password
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong docker-start"] #replace x-kong- headers with x-
     networks:
       - kong-net
       - elastic-net
@@ -130,7 +131,6 @@ services:
       timeout: 10s
       retries: 10
     restart: on-failure:5
-    read_only: true
     volumes:
       - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
       - kong_tmp_vol:/tmp
@@ -143,7 +143,7 @@ services:
     container_name: obn-elk-setup
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
-    user: "0"
+    user: root
     command: >
      bash -c '
        if [ x${ELASTIC_PASSWORD} == x ]; then
