@@ -17,9 +17,18 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
-  const fetchedDetails : any = await applyAxiosRequest({
+  // const fetchedDetails : any = await applyAxiosRequest({
+  //   headers: {},
+  //   apiEndpoint: API.getCompanyDetails(),
+  //   method: 'GET',
+  //   data: null
+  // });
+
+  const fetchedSettings : any = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getCompanyDetails(),
+    apiEndpoint: API.getSettings({
+      type: path || 'general'
+    }),
     method: 'GET',
     data: null
   });
@@ -29,7 +38,8 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   }
 
   let profile = fetchedProfile?.data;
-  let details = fetchedDetails?.data;
+  // let details = fetchedDetails?.data;
+  let settings = fetchedSettings?.data;
   const panel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => path?.type == profile?.user?.role?.parent?.slug || path?.type == 'all');
 
   return (
@@ -42,13 +52,13 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
       
       <div className='w-full flex flex-col'>
         {
-          path == '' ? <GeneralSettingsPage /> :
+          path == '' ? <GeneralSettingsPage rawData={settings} /> :
           profile?.user?.role?.parent?.slug == 'api-provider' ?
             (
-              path == 'email_service' ?
-                <EmailServicePage /> :
-                path == 'email_template' ? 
-                  <EmailTemplatePage /> :
+              path == 'email_settings' ?
+                <EmailServicePage rawData={settings} /> :
+                path == 'email_templates' ? 
+                  <EmailTemplatePage rawData={settings} /> :
                   path == 'external_services' ? 
                     <ExternalServicesPage /> :
                     path == 'mock_services' ? 

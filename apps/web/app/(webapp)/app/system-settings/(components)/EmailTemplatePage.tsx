@@ -1,11 +1,18 @@
 import React from 'react'
-import { NewMemberInviteOne, NewMemberInviteTwo } from './(emailTemplate)'
+import { EmailTemplateComponent } from './(emailTemplate)'
+import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
 
-const EmailTemplatePage = () => {
+const EmailTemplatePage = ({ rawData }: APIConfigurationProps) => {
   return (
     <div className='w-full flex-col flex gap-[24px]'>
-      <NewMemberInviteOne />
-      <NewMemberInviteTwo />
+      {
+        rawData?.map((template: any) => (
+          <EmailTemplateComponent 
+            key={template.id}
+            rawData={template}
+          />
+        ))
+      }
     </div>
   )
 }

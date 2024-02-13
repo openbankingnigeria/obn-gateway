@@ -126,7 +126,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   };
 
   const incorrect = (
-    (apiConsumer ? true : Boolean(collection && !api))
+    (apiConsumer ? false : Boolean(collection && !api))
   );
 
   // console.log(api, from, to, consumers, collection);

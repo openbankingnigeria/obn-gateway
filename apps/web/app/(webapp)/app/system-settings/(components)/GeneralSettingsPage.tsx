@@ -1,72 +1,87 @@
 'use client'
 
-import { updateGeneraSettings } from '@/actions/systemSettingActions'
 import { InputElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import { GENERAL_SETTINGS_DATA } from '@/data/systemSettingsData'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import { SettingsInputProps } from '@/types/dataTypes'
+import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
 import React, { ChangeEvent, useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
-import { toast } from 'react-toastify';
+import * as API from '@/config/endpoints';
 
-const GeneralSettingsPage = () => {
+const GeneralSettingsPage = ({ rawData }: APIConfigurationProps) => {
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
-    inactivity_timeout: '5',
-    request_timeout: '30',
-    auth_token_expiration_duration: '30',
-    password_reset_token_expiration_duration: '30',
-    two_fa_expiration_duration: '30',
-    invitation_token_expiration_duration: '30',
-    failed_login_attempts: '30',
+    inactivityTimeout: rawData?.inactivityTimeout,
+    requestTimeout: rawData?.requestTimeout,
+    authTokenExpirationDuration: rawData?.authTokenExpirationDuration,
+    passwordResetTokenExpirationDuration: rawData?.passwordResetTokenExpirationDuration,
+    twoFaExpirationDuration: rawData?.twoFaExpirationDuration,
+    invitationTokenExpirationDuration: rawData?.invitationTokenExpirationDuration,
+    failedLoginAttempts: rawData?.failedLoginAttempts,
   });
 
-  const generalSettings = GENERAL_SETTINGS_DATA({
-    inactivity_timeout: form?.inactivity_timeout,
-    request_timeout: form?.request_timeout,
-    auth_token_expiration_duration: form?.auth_token_expiration_duration,
-    password_reset_token_expiration_duration: form?.password_reset_token_expiration_duration,
-    two_fa_expiration_duration: form?.two_fa_expiration_duration,
-    invitation_token_expiration_duration: form?.invitation_token_expiration_duration,
-    failed_login_attempts: form?.failed_login_attempts,
-  });
+  const generalSettings = GENERAL_SETTINGS_DATA({ ...form });
 
   const incorrect = (
-    !form?.inactivity_timeout ||
-    !form?.request_timeout ||
-    !form?.auth_token_expiration_duration ||
-    !form?.password_reset_token_expiration_duration ||
-    !form?.two_fa_expiration_duration ||
-    !form?.invitation_token_expiration_duration ||
-    !form?.failed_login_attempts
+    !form?.inactivityTimeout?.value ||
+    !form?.requestTimeout?.value ||
+    !form?.authTokenExpirationDuration?.value ||
+    !form?.passwordResetTokenExpirationDuration?.value ||
+    !form?.twoFaExpirationDuration?.value ||
+    !form?.invitationTokenExpirationDuration?.value ||
+    !form?.failedLoginAttempts?.value
   );
 
-  const initialState = {
-    message: null
-  };
-
-  const [state, formAction] = useFormState(updateGeneraSettings, initialState);
-    state?.message && toast.success(state?.message);
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>, data:SettingsInputProps) => {
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: {
+        ...data,
+        value: e.target.value
+      }
     })
   };
 
   const isChanged = (
-    form?.inactivity_timeout != '5' ||
-    form?.request_timeout != '30'||
-    form?.auth_token_expiration_duration != '30' ||
-    form?.password_reset_token_expiration_duration != '30' ||
-    form?.two_fa_expiration_duration != '30' ||
-    form?.invitation_token_expiration_duration != '30' ||
-    form?.failed_login_attempts != '30'
+    form?.inactivityTimeout?.value != rawData?.inactivityTimeout?.value ||
+    form?.requestTimeout?.value != rawData?.requestTimeout?.value||
+    form?.authTokenExpirationDuration?.value != rawData?.authTokenExpirationDuration?.value ||
+    form?.passwordResetTokenExpirationDuration?.value != rawData?.passwordResetTokenExpirationDuration?.value ||
+    form?.twoFaExpirationDuration?.value != rawData?.twoFaExpirationDuration?.value ||
+    form?.invitationTokenExpirationDuration?.value != rawData?.invitationTokenExpirationDuration?.value ||
+    form?.failedLoginAttempts?.value != rawData?.failedLoginAttempts?.value
   );
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    const objectData = {};
+    for (const key in form) {
+      if (form.hasOwnProperty(key)) {
+        // @ts-ignore
+        objectData[key] = `${form[key].value}`;
+      }
+    }
+    setLoading(true);
+    const result: any = await clientAxiosRequest({
+        headers: {},
+        apiEndpoint: API.updateSettings({
+          type: 'general',
+        }),
+        method: 'PUT',
+        data: objectData
+      });
+
+    if (result?.message) {
+      setLoading(false);
+    }
+  }
 
   return (
     <form
-      action={incorrect ? '' : formAction}
+      onSubmit={handleSubmit}
       className='gap-[20px] flex flex-col w-full pb-[24px]'
     >
       <div className='w-full justify-between flex items-start gap-5'>
@@ -79,6 +94,7 @@ const GeneralSettingsPage = () => {
         <Button 
           title='Save changes'
           type='submit'
+          loading={loading}
           containerStyle='!w-[120px]'
           disabled={incorrect || !isChanged}
           small
@@ -111,7 +127,7 @@ const GeneralSettingsPage = () => {
                   type={data?.type}
                   placeholder=''
                   value={data?.value}
-                  changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
+                  changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e, data)}
                   required
                   rightIcon={
                     <span className='text-f14 whitespace-nowrap text-o-text-muted2'>

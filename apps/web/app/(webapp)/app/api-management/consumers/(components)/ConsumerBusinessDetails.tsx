@@ -1,3 +1,5 @@
+'use client'
+
 import { ViewData } from '@/app/(webapp)/(components)'
 import { ConsumerBusinessDetailsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
@@ -5,6 +7,7 @@ import React from 'react'
 const ConsumerBusinessDetails = ({
   rawData
 }: ConsumerBusinessDetailsProps) => {
+  
   return (
     <section className='w-full'>
       <div className='w-full overflow-hidden bg-white border border-o-border rounded-[10px] h-fit'>

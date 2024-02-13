@@ -11,15 +11,15 @@ export const SYSTEM_SETTINGS_PATHS = [
   {
     id: 2,
     label: 'Email Service',
-    value: 'email_service',
-    name: 'email_service',
+    value: 'email_settings',
+    name: 'email_settings',
     type: 'api-provider'
   },
   {
     id: 3,
     label: 'Email Template',
-    value: 'email_template',
-    name: 'email_template',
+    value: 'email_templates',
+    name: 'email_templates',
     type: 'api-provider'
   },
   {
@@ -337,12 +337,12 @@ export const EXTERNAL_SERVICES_DATA = ({
   },
 ];
 
-export const EMAIL_SERVICE_DATA = ({
+export const _EMAIL_SERVICE_DATA = ({
   email_provider,
   email_key,
   email_sender_id,
   email_base_url,
-}: EmailServiceProps) => [
+}: any) => [
   {
     id: 1,
     label: 'Email Provider',
@@ -374,6 +374,64 @@ export const EMAIL_SERVICE_DATA = ({
     name: 'email_base_url',
     type: 'text',
     value: email_base_url
+  },
+];
+
+export const EMAIL_SERVICE_DATA = ({
+  emailBaseUrl,
+  emailFrom,
+  emailHost,
+  emailPassword,
+  emailPort,
+  emailUser
+}: EmailServiceProps) => [
+  {
+    id: 1,
+    label: 'Email Base URL',
+    description: '',
+    name: 'emailBaseUrl',
+    type: 'text',
+    value: emailBaseUrl
+  },
+  {
+    id: 2,
+    label: 'Email From',
+    description: '',
+    name: 'emailFrom',
+    type: 'text',
+    value: emailFrom
+  },
+  {
+    id: 3,
+    label: 'Email Host',
+    description: '',
+    name: 'emailHost',
+    type: 'text',
+    value: emailHost
+  },
+  {
+    id: 4,
+    label: 'Email Password',
+    description: '',
+    name: 'emailPassword',
+    type: 'text',
+    value: emailPassword
+  },
+  {
+    id: 5,
+    label: 'Email Port',
+    description: '',
+    name: 'emailPort',
+    type: 'text',
+    value: emailPort
+  },
+  {
+    id: 6,
+    label: 'Email User',
+    description: '',
+    name: 'emailUser',
+    type: 'text',
+    value: emailUser
   },
 ];
 
@@ -442,75 +500,75 @@ export const BUSINESS_INFORMATION_DATA = ({
 
 
 export const GENERAL_SETTINGS_DATA = ({
-  inactivity_timeout,
-  request_timeout,
-  auth_token_expiration_duration,
-  password_reset_token_expiration_duration,
-  two_fa_expiration_duration,
-  invitation_token_expiration_duration,
-  failed_login_attempts
+  inactivityTimeout,
+  requestTimeout,
+  authTokenExpirationDuration,
+  passwordResetTokenExpirationDuration,
+  twoFaExpirationDuration,
+  invitationTokenExpirationDuration,
+  failedLoginAttempts
 }: GeneralSettingsDataProps) => [
   {
     id: 1,
     label: 'Inactivity Timeout',
     description: 'The time period after which a user will be automatically logged out due to inactivity.',
-    name: 'inactivity_timeout',
+    name: 'inactivityTimeout',
     type: 'number',
-    rightLabel: 'mins',
-    value: inactivity_timeout
+    rightLabel: inactivityTimeout?.unit,
+    value: inactivityTimeout?.value
   },
   {
     id: 2,
     label: 'Request Timeout',
     description: 'The maximum duration the system will wait for a response when making external requests.',
-    name: 'request_timeout',
+    name: 'requestTimeout:',
     type: 'number',
-    rightLabel: 'secs',
-    value: request_timeout
+    rightLabel: requestTimeout?.unit,
+    value: requestTimeout?.value
   },
   {
     id: 3,
     label: 'Auth Token Expiration Duration',
     description: 'The validity period for tokens used in authenticating user sessions.',
-    name: 'auth_token_expiration_duration',
+    name: 'authTokenExpirationDuration:',
     type: 'number',
-    rightLabel: 'secs',
-    value: auth_token_expiration_duration
+    rightLabel: authTokenExpirationDuration?.unit,
+    value: authTokenExpirationDuration?.value
   },
   {
     id: 4,
     label: 'Password Reset Token Expiration Duration',
     description: 'The time frame within which a password reset token must be used.',
-    name: 'password_reset_token_expiration_duration',
+    name: 'passwordResetTokenExpirationDuration',
     type: 'number',
-    rightLabel: 'secs',
-    value: password_reset_token_expiration_duration
+    rightLabel: passwordResetTokenExpirationDuration?.unit,
+    value: passwordResetTokenExpirationDuration?.value
   },
   {
     id: 5,
     label: '2FA Expiration Duration',
     description: 'The validity period for temporary codes generated for two-factor authentication.',
-    name: 'two_fa_expiration_duration',
+    name: 'twoFaExpirationDuration',
     type: 'number',
-    rightLabel: 'secs',
-    value: two_fa_expiration_duration 
+    rightLabel: twoFaExpirationDuration?.unit,
+    value: twoFaExpirationDuration?.value
   },
   {
     id: 6,
     label: 'Invitation Token Expiration Duration',
     description: 'The time frame within which an invitation token for new users must be used.',
-    name: 'invitation_token_expiration_duration',
+    name: 'invitationTokenExpirationDuration',
     type: 'number',
-    rightLabel: 'mins',
-    value: invitation_token_expiration_duration
+    rightLabel: invitationTokenExpirationDuration?.unit,
+    value: invitationTokenExpirationDuration?.value
   },
   {
     id: 7,
     label: 'Failed Login Attempts',
     description: 'The number of unsuccessful login attempts allowed before triggering a security response.',
-    name: 'failed_login_attempts',
+    name: 'failedLoginAttempts',
     type: 'number',
-    rightLabel: '',
-    value: failed_login_attempts
+    rightLabel: failedLoginAttempts?.unit,
+    value: failedLoginAttempts?.value
   },
 ];
