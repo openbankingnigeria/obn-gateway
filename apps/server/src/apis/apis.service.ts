@@ -227,6 +227,8 @@ export class APIService {
               path: gatewayRoute?.paths[0] ?? null,
               method: gatewayRoute?.methods[0] ?? null,
               url: route.url,
+              request: new Map(Object.entries(route.request)),
+              response: route.response?.map((r) => new Map(Object.entries(r))),
             },
             ctx,
           ),
@@ -385,6 +387,9 @@ export class APIService {
         url:
           data.downstream.url ??
           `${this.config.get('kong.gatewayEndpoint')[environment]}${cleanPath}`,
+        method: downstream.method,
+        request: new Map(Object.entries(downstream.request)),
+        response: downstream.response?.map((r) => new Map(Object.entries(r))),
       }),
     );
 
@@ -680,6 +685,9 @@ export class APIService {
         routeId: gatewayRoute.id,
         enabled,
         url: data.downstream.url,
+        method: downstream.method,
+        request: downstream.request,
+        response: downstream.response,
       },
     );
 

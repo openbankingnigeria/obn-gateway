@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Collection } from './collection.entity';
 import { ConsumerAcl } from './consumeracl.entity';
+import { HTTP_METHODS } from 'src/apis/types';
 
 @Entity({ name: 'api_collection_service_routes' })
 export class CollectionRoute {
@@ -21,12 +22,35 @@ export class CollectionRoute {
   name: string;
 
   @Column({
+    name: 'method',
+    type: 'enum',
+    default: HTTP_METHODS.GET,
+    nullable: false,
+    enum: HTTP_METHODS,
+  })
+  method: string;
+
+  @Column({
     name: 'url',
     type: 'varchar',
     default: '/',
     nullable: false,
   })
   url: string;
+
+  @Column({
+    name: 'request',
+    type: 'json',
+    nullable: true,
+  })
+  request: any;
+
+  @Column({
+    name: 'response',
+    type: 'json',
+    nullable: true,
+  })
+  response: any[];
 
   @Column({
     name: 'environment',

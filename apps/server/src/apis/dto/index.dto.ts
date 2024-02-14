@@ -41,6 +41,14 @@ class CreateAPIDownstreamDTO {
   @IsNotEmpty()
   @IsEnum(HTTP_METHODS)
   method: HTTP_METHODS;
+
+  @Type(() => Map)
+  @IsOptional()
+  request?: any;
+
+  @Type(() => Map)
+  @IsOptional()
+  response?: any[];
 }
 
 class CreateAPIUpstreamDTO {
@@ -112,6 +120,14 @@ class UpdateAPIDownstreamDTO {
   @IsString()
   @IsNotEmpty()
   method: HTTP_METHODS;
+
+  @Type(() => Map)
+  @IsOptional()
+  request?: any;
+
+  @Type(() => Map)
+  @IsOptional()
+  response?: any[];
 }
 
 class KVDTO {
@@ -192,6 +208,14 @@ export class GETAPIDownstreamResponseDTO {
 
   @Expose()
   method: HTTP_METHODS | null;
+
+  @Type(() => Map)
+  @Expose()
+  request?: Map<string, any>;
+
+  @Type(() => Map)
+  @Expose()
+  response?: Map<string, any>[];
 }
 
 export class GETAPIUpstreamResponseDTO {

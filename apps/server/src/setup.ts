@@ -259,6 +259,9 @@ export class SetupService {
                       KONG_ENVIRONMENT.DEVELOPMENT
                     ]
                   }/${request.urlObject.path.join('/')}`,
+                  // TODO revisit and update host
+                  request,
+                  response,
                 },
               }),
             );
