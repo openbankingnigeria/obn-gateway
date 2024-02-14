@@ -9,6 +9,18 @@ import Logout from '@/components/globalComponents/Logout';
 
 const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   const path = searchParams?.path || ''
+  const environment = 'development'
+;
+  const emailAndGeneralPath = (
+    path == 'email_templates' || 
+    path == 'email_settings' || 
+    path == ''
+  );
+
+  const modeConfigurationPath = (
+    path == 'test_mode_configuration' || 
+    path == 'live_mode_configuration'
+  );
 
   const fetchedProfile: any = await applyAxiosRequest({
     headers: {},
@@ -24,14 +36,32 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   //   data: null
   // });
 
-  const fetchedSettings : any = await applyAxiosRequest({
+  const fetchedSettings : any = emailAndGeneralPath ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getSettings({
       type: path || 'general'
     }),
     method: 'GET',
     data: null
-  });
+  }) : null;
+
+  const fetchedIps: any = modeConfigurationPath ? await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getIPWhitelist({
+      environment
+    }),
+    method: 'GET',
+    data: null
+  }) : null;
+
+  const fetchedAPI: any = modeConfigurationPath ? await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getAPIKey({
+      environment
+    }),
+    method: 'GET',
+    data: null
+  }) : null;
 
   if (fetchedProfile?.status == 401) {
     return <Logout />
@@ -39,8 +69,16 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
 
   let profile = fetchedProfile?.data;
   // let details = fetchedDetails?.data;
+  let ips = fetchedIps?.data;
+  let apiKey = fetchedAPI?.data;
   let settings = fetchedSettings?.data;
+
   const panel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => path?.type == profile?.user?.role?.parent?.slug || path?.type == 'all');
+
+  const configData = {
+    ips: ips?.ips,
+    key: apiKey?.key
+  }
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
@@ -66,9 +104,13 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                       null
             ) : (
               path == 'test_mode_configuration' ? 
-                <TestModeConfigurationPage /> :
+                <TestModeConfigurationPage 
+                  rawData={configData}
+                /> :
                   path == 'live_mode_configuration' ? 
-                  <LiveModeConfigurationPage /> :
+                  <LiveModeConfigurationPage 
+                    rawData={configData}
+                  /> :
                   path == 'business_information' ? 
                     <BusinessInformationPage /> :
                     null

@@ -1,55 +1,52 @@
 'use client'
 
-import { updateLiveModeConfig } from '@/actions/systemSettingActions';
 import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
 import { LIVE_MODE_CONFIGURATION_DATA } from '@/data/systemSettingsData';
+import { APIConfigurationProps } from '@/types/webappTypes/appTypes';
 import { copyTextToClipboard } from '@/utils/copyTextToClipboard';
 import React, { ChangeEvent, useState } from 'react'
-// @ts-ignore
-import { experimental_useFormState as useFormState } from 'react-dom'
 import { toast } from 'react-toastify';
+import * as API from '@/config/endpoints';
+import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 
-const LiveModeConfigurationPage = () => {
+const LiveModeConfigurationPage = ({ rawData }: APIConfigurationProps) => {
   /* API CONSUMERS */
+  const [loadingReset, setLoadingReset] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const environment = 'production';
+
   const [form, setForm] = useState({
-    secret_key: 'pspk_test_f8q9u9kg5ocosk1kqlgolgxuzu0wmk6coo6smceg',
-    name: 'Test API',
-    description: 'User can push changes on test mode',
-    api_key: 'pspk_test_f8q9u9kg5ocosk1kqlgolgxuzu0wmk6coo6smceg',
-    webhook_url: 'https://webhook.com/url',
-    callback_url: 'https://callback.com/url',
-    ip_whitelist: '192.168.1.1, 203.0.113.0, 198.51.100.14, 172.16.254.1',
-    timeout: '30'
+    // secret_key: 'pspk_test_f8q9u9kg5ocosk1kqlgolgxuzu0wmk6coo6smceg',
+    // name: 'Test API',
+    // description: 'User can push changes on test mode',
+    api_key: rawData?.key,
+    // webhook_url: 'https://webhook.com/url',
+    // callback_url: 'https://callback.com/url',
+    ip_whitelist: rawData?.ips?.toString(),
+    // timeout: '30'
   });
 
   const liveModeConfig = LIVE_MODE_CONFIGURATION_DATA({
-    secret_key: '•••••••••••••••••••••••••••••••••••••••••••••',
-    name: form?.name,
-    description: form?.description,
+    // secret_key: '•••••••••••••••••••••••••••••••••••••••••••••',
+    // name: form?.name,
+    // description: form?.description,
     api_key: form?.api_key,
-    webhook_url: form?.webhook_url,
-    callback_url: form?.callback_url,
+    // webhook_url: form?.webhook_url,
+    // callback_url: form?.callback_url,
     ip_whitelist: form?.ip_whitelist,
-    timeout: form?.timeout
+    // timeout: form?.timeout
   });
 
   const incorrect = (
-    !form?.name ||
-    !form?.description ||
+    // !form?.name ||
+    // !form?.description ||
     !form?.api_key ||
-    !form?.webhook_url ||
-    !form?.callback_url ||
-    !form?.ip_whitelist ||
-    !form?.timeout
+    // !form?.webhook_url ||
+    // !form?.callback_url ||
+    !form?.ip_whitelist
+    // !form?.timeout
   )
-
-  const initialState = {
-    message: null
-  };
-
-  const [state, formAction] = useFormState(updateLiveModeConfig, initialState);
-    state?.message && toast.success(state?.message);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({
@@ -71,22 +68,58 @@ const LiveModeConfigurationPage = () => {
   };
 
   const isChanged = (
-    form?.name != 'Test API' ||
-    form?.description != 'User can push changes on test mode'||
-    form?.api_key != 'pspk_test_f8q9u9kg5ocosk1kqlgolgxuzu0wmk6coo6smceg' ||
-    form?.webhook_url != 'https://webhook.com/url' ||
-    form?.callback_url != 'https://callback.com/url' ||
-    form?.ip_whitelist != '192.168.1.1, 203.0.113.0, 198.51.100.14, 172.16.254.1' ||
-    form?.timeout != '30'
+    // form?.name != 'Test API' ||
+    // form?.description != 'User can push changes on test mode'||
+    // form?.api_key != 'pspk_test_f8q9u9kg5ocosk1kqlgolgxuzu0wmk6coo6smceg' ||
+    // form?.webhook_url != 'https://webhook.com/url' ||
+    // form?.callback_url != 'https://callback.com/url' ||
+    form?.ip_whitelist != rawData?.ips
+    // form?.timeout != '30'
   );
 
-  const handleReset = () => {
-    toast.success('The API keys for Live Mode have been reset successfully.')
+  const handleReset = async (e: any) => {
+    e.preventDefault();
+    setLoadingReset(true);
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.updateAPIKey({
+        environment,
+      }),
+      method: 'PUT',
+      data: {}
+    });
+
+    setLoadingReset(false);
+    if (result?.status == '200') {
+      setForm({
+        ...form,
+        api_key: result?.data?.key 
+      })
+    }
+  }
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.updateIPWhitelist({
+        environment,
+      }),
+      method: 'PUT',
+      data: {
+        ips: form?.ip_whitelist?.split(' ')
+      }
+    });
+
+    setLoading(false);
+    if (result?.status == '200') {
+    }
   }
 
   return (
     <form
-      action={incorrect ? '' : formAction}
+      onSubmit={handleSubmit}
       className='gap-[20px] flex flex-col w-full pb-[24px]'
     >
       <div className='w-full justify-between flex items-start gap-5'>
@@ -150,9 +183,9 @@ const LiveModeConfigurationPage = () => {
                       <div 
                         className='w-fit h-fit cursor-pointer'
                         onClick={() => handleCopy(
-                          data?.name == 'secret_key' ? 
-                            form?.secret_key : 
-                            data?.value
+                          // data?.name == 'secret_key' ? 
+                          //   form?.secret_key : 
+                            data?.value || ''
                         )}
                       >
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
