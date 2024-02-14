@@ -81,23 +81,23 @@ export interface MembersStatusProps {
 }
 
 export interface TestModeConfigurationProps {
-  test_secret_key: string;
-  name: string;
-  description: string;
-  test_api_key: string;
-  webhook_url: string;
-  callback_url: string;
-  ip_whitelist: string;
-  timeout: string;
+  test_secret_key?: string;
+  name?: string;
+  description?: string;
+  test_api_key?: string;
+  webhook_url?: string;
+  callback_url?: string;
+  ip_whitelist?: string;
+  timeout?: string;
 }
 
 export interface LiveModeConfigurationProps {
-  secret_key: string;
-  name: string;
-  description: string;
-  api_key: string;
-  webhook_url: string;
-  callback_url: string;
-  ip_whitelist: string;
-  timeout: string;
+  secret_key?: string;
+  name?: string;
+  description?: string;
+  api_key?: string;
+  webhook_url?: string;
+  callback_url?: string;
+  ip_whitelist?: string;
+  timeout?: string;
 }

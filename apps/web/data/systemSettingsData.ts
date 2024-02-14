@@ -137,43 +137,43 @@ export const MOCK_SERVICES_DATA = ({
 ];
 
 export const TEST_MODE_CONFIGURATION_DATA = ({
-  test_secret_key,
-  name,
-  description,
+  // test_secret_key,
+  // name,
+  // description,
   test_api_key,
-  webhook_url,
-  callback_url,
+  // webhook_url,
+  // callback_url,
   ip_whitelist,
-  timeout
+  // timeout
 }: TestModeConfigurationProps) => [
-  {
-    id: 1,
-    label: 'Test Secret Key',
-    description: 'A confidential key used for authenticating API requests in a test environment. Keep this key secure.',
-    name: 'test_secret_key',
-    type: 'text',
-    value: test_secret_key,
-    rightLabel: 'copy',
-    role: 'Super AC'
-  },
-  {
-    id: 2,
-    label: 'Name',
-    description: 'The name assigned to this API configuration, used for identification and reference within the system.',
-    name: 'name',
-    type: 'text',
-    value: name,
-    role: 'Super AC'
-  },
-  {
-    id: 3,
-    label: 'Description',
-    description: 'A brief summary that outlines the purpose or functionality of this API configuration.',
-    name: 'description',
-    type: 'text',
-    value: description,
-    role: 'Super AC'
-  },
+  // {
+  //   id: 1,
+  //   label: 'Test Secret Key',
+  //   description: 'A confidential key used for authenticating API requests in a test environment. Keep this key secure.',
+  //   name: 'test_secret_key',
+  //   type: 'text',
+  //   value: test_secret_key,
+  //   rightLabel: 'copy',
+  //   role: 'Super AC'
+  // },
+  // {
+  //   id: 2,
+  //   label: 'Name',
+  //   description: 'The name assigned to this API configuration, used for identification and reference within the system.',
+  //   name: 'name',
+  //   type: 'text',
+  //   value: name,
+  //   role: 'Super AC'
+  // },
+  // {
+  //   id: 3,
+  //   label: 'Description',
+  //   description: 'A brief summary that outlines the purpose or functionality of this API configuration.',
+  //   name: 'description',
+  //   type: 'text',
+  //   value: description,
+  //   role: 'Super AC'
+  // },
   {
     id: 4,
     label: 'Test API Key',
@@ -184,24 +184,24 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
     rightLabel: 'copy',
     role: 'Super AC'
   },
-  {
-    id: 5,
-    label: 'Webhook URL',
-    description: 'The URL endpoint where the system will send automated messages or events related to the API.',
-    name: 'webhook_url',
-    type: 'text',
-    value: webhook_url,
-    role: 'Other AC'
-  },
-  {
-    id: 6,
-    label: 'Callback URL',
-    description: 'The URL to which the API will redirect the user after a successful or failed request.',
-    name: 'callback_url',
-    type: 'text',
-    value: callback_url,
-    role: 'Other AC'
-  },
+  // {
+  //   id: 5,
+  //   label: 'Webhook URL',
+  //   description: 'The URL endpoint where the system will send automated messages or events related to the API.',
+  //   name: 'webhook_url',
+  //   type: 'text',
+  //   value: webhook_url,
+  //   role: 'Other AC'
+  // },
+  // {
+  //   id: 6,
+  //   label: 'Callback URL',
+  //   description: 'The URL to which the API will redirect the user after a successful or failed request.',
+  //   name: 'callback_url',
+  //   type: 'text',
+  //   value: callback_url,
+  //   role: 'Other AC'
+  // },
   {
     id: 7,
     label: 'IP Whitelist',
@@ -212,57 +212,57 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
     rightLabel: '',
     role: 'Other AC'
   },
-  {
-    id: 8,
-    label: 'Timeout',
-    description: 'The maximum duration the system will wait for a response from the API before terminating the request.',
-    name: 'timeout',
-    type: 'number',
-    value: timeout,
-    rightLabel: 'secs',
-    role: 'Other AC'
-  },
+  // {
+  //   id: 8,
+  //   label: 'Timeout',
+  //   description: 'The maximum duration the system will wait for a response from the API before terminating the request.',
+  //   name: 'timeout',
+  //   type: 'number',
+  //   value: timeout,
+  //   rightLabel: 'secs',
+  //   role: 'Other AC'
+  // },
 ];
 
 
 export const LIVE_MODE_CONFIGURATION_DATA = ({
-  secret_key,
-  name,
-  description,
+  // secret_key,
+  // name,
+  // description,
   api_key,
-  webhook_url,
-  callback_url,
+  // webhook_url,
+  // callback_url,
   ip_whitelist,
-  timeout
+  // timeout
 }: LiveModeConfigurationProps) => [
-  {
-    id: 1,
-    label: 'Secret Key',
-    description: 'A confidential key used for authenticating API requests in a test environment. Keep this key secure.',
-    name: 'secret_key',
-    type: 'text',
-    value: secret_key,
-    rightLabel: 'copy',
-    role: 'Super AC'
-  },
-  {
-    id: 2,
-    label: 'Name',
-    description: 'The name assigned to this API configuration, used for identification and reference within the system.',
-    name: 'name',
-    type: 'text',
-    value: name,
-    role: 'Super AC'
-  },
-  {
-    id: 3,
-    label: 'Description',
-    description: 'A brief summary that outlines the purpose or functionality of this API configuration.',
-    name: 'description',
-    type: 'text',
-    value: description,
-    role: 'Super AC'
-  },
+  // {
+  //   id: 1,
+  //   label: 'Secret Key',
+  //   description: 'A confidential key used for authenticating API requests in a test environment. Keep this key secure.',
+  //   name: 'secret_key',
+  //   type: 'text',
+  //   value: secret_key,
+  //   rightLabel: 'copy',
+  //   role: 'Super AC'
+  // },
+  // {
+  //   id: 2,
+  //   label: 'Name',
+  //   description: 'The name assigned to this API configuration, used for identification and reference within the system.',
+  //   name: 'name',
+  //   type: 'text',
+  //   value: name,
+  //   role: 'Super AC'
+  // },
+  // {
+  //   id: 3,
+  //   label: 'Description',
+  //   description: 'A brief summary that outlines the purpose or functionality of this API configuration.',
+  //   name: 'description',
+  //   type: 'text',
+  //   value: description,
+  //   role: 'Super AC'
+  // },
   {
     id: 4,
     label: 'API Key',
@@ -273,24 +273,24 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
     rightLabel: 'copy',
     role: 'Super AC'
   },
-  {
-    id: 5,
-    label: 'Webhook URL',
-    description: 'The URL endpoint where the system will send automated messages or events related to the API.',
-    name: 'webhook_url',
-    type: 'text',
-    value: webhook_url,
-    role: 'Other AC'
-  },
-  {
-    id: 6,
-    label: 'Callback URL',
-    description: 'The URL to which the API will redirect the user after a successful or failed request.',
-    name: 'callback_url',
-    type: 'text',
-    value: callback_url,
-    role: 'Other AC'
-  },
+  // {
+  //   id: 5,
+  //   label: 'Webhook URL',
+  //   description: 'The URL endpoint where the system will send automated messages or events related to the API.',
+  //   name: 'webhook_url',
+  //   type: 'text',
+  //   value: webhook_url,
+  //   role: 'Other AC'
+  // },
+  // {
+  //   id: 6,
+  //   label: 'Callback URL',
+  //   description: 'The URL to which the API will redirect the user after a successful or failed request.',
+  //   name: 'callback_url',
+  //   type: 'text',
+  //   value: callback_url,
+  //   role: 'Other AC'
+  // },
   {
     id: 7,
     label: 'IP Whitelist',
@@ -301,16 +301,16 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
     rightLabel: '',
     role: 'Other AC'
   },
-  {
-    id: 8,
-    label: 'Timeout',
-    description: 'The maximum duration the system will wait for a response from the API before terminating the request.',
-    name: 'timeout',
-    type: 'number',
-    value: timeout,
-    rightLabel: 'secs',
-    role: 'Other AC'
-  },
+  // {
+  //   id: 8,
+  //   label: 'Timeout',
+  //   description: 'The maximum duration the system will wait for a response from the API before terminating the request.',
+  //   name: 'timeout',
+  //   type: 'number',
+  //   value: timeout,
+  //   rightLabel: 'secs',
+  //   role: 'Other AC'
+  // },
 ];
 
 export const EXTERNAL_SERVICES_DATA = ({
