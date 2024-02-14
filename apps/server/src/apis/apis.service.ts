@@ -388,8 +388,8 @@ export class APIService {
           data.downstream.url ??
           `${this.config.get('kong.gatewayEndpoint')[environment]}${cleanPath}`,
         method: downstream.method,
-        request: new Map(Object.entries(downstream.request)),
-        response: downstream.response?.map((r) => new Map(Object.entries(r))),
+        request: downstream.request,
+        response: downstream.response,
       }),
     );
 
