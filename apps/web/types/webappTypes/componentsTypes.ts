@@ -102,6 +102,7 @@ export interface TabelElmentProps extends TableProps {
 
 export interface TwoFactorAuthModalProps {
   close: () => void;
+  title?: string;
   loading?: boolean;
   next: any;
   set2faCode?: Dispatch<SetStateAction<string>>;

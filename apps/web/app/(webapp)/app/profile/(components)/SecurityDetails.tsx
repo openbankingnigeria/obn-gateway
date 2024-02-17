@@ -102,6 +102,7 @@ const SecurityDetails = ({
           childrenStyle='!px-0'
         >
           <ChangePasswordForm 
+            profile={profile}
             close={handleCloseModal}
           />
         </AppRightModal>

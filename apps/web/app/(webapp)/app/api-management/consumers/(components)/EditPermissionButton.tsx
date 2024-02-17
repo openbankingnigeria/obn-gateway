@@ -8,6 +8,7 @@ import { AppCenterModal, AppRightModal, TwoFactorAuthModal } from '@/app/(webapp
 import { useRouter } from 'next/navigation';
 import { ApiPermissionValue, EditAPIPermissionProps } from '@/types/webappTypes/appTypes';
 import { AddAPIPermissions } from '.';
+import { getJsCookies } from '@/config/jsCookie';
 
 const EditPermissionButton = ({
   rawData,
@@ -20,7 +21,7 @@ const EditPermissionButton = ({
   const router = useRouter();
   const [collections, setCollections] = useState([]);
   const [apiIds, setApiIds] = useState<string[]>([]);
-  const environment = 'development';
+  const environment = getJsCookies('environment');
   const [refresh, setRefresh] = useState(false);
 
   const fetchConsumerAPIs = async () => {
@@ -29,7 +30,7 @@ const EditPermissionButton = ({
       apiEndpoint: API.getCompanyAPIs({
         page: '1',
         limit: '1000',
-        environment,
+        environment: environment || 'development',
         companyId: rawData?.id,
       }),
       method: 'GET',
@@ -95,7 +96,7 @@ const EditPermissionButton = ({
       const result: any = await clientAxiosRequest({
         headers: code ? { 'X-TwoFA-Code' : code, } : {},
         apiEndpoint: API.updateConsumerAPIAccess({
-          environment,
+          environment: environment || 'development',
           id: rawData?.id
         }),
         method: 'PUT',

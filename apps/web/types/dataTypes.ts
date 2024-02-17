@@ -101,3 +101,20 @@ export interface LiveModeConfigurationProps {
   ip_whitelist?: string;
   timeout?: string;
 }
+
+export interface StatDataProps {
+  count: any,
+  value: string;
+}
+
+export interface UsersStatProps {
+  active: StatDataProps;
+  inactive: StatDataProps;
+  pending: StatDataProps;
+}
+
+export interface APICallsProps {
+  success: any;
+  total: any;
+  failed: any;
+}

@@ -6,13 +6,14 @@ import { CollectionsTable } from './(components)'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
+import { getJsCookies } from '@/config/jsCookie'
 
 const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
 
-  const environment = 'development';
+  const environment = getJsCookies('environment');
 
   const filters = [search_query];
 
@@ -36,7 +37,9 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const fetchedAPIs: any = userType == 'api-consumer' ?
     await applyAxiosRequest({
       headers: {},
-      apiEndpoint: API.getAPIsForCompany({ environment }),
+      apiEndpoint: API.getAPIsForCompany({ 
+        environment: environment || 'development' 
+      }),
       method: 'GET',
       data: null
     })

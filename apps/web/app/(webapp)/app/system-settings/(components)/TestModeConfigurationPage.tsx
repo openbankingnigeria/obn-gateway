@@ -20,10 +20,10 @@ const TestModeConfigurationPage = ({ rawData }: APIConfigurationProps) => {
     // test_secret_key: 'pspk_test_f8q9u9kg5ocosk1kqlgolgxuzu0wmk6coo6smceg',
     // name: 'Test API',
     // description: 'User can push changes on test mode',
-    test_api_key: rawData?.key,
+    test_api_key: rawData?.key || '',
     // webhook_url: 'https://webhook.com/url',
     // callback_url: 'https://callback.com/url',
-    ip_whitelist: rawData?.ips?.toString(),
+    ip_whitelist: rawData?.ips?.toString() || '',
     // timeout: ''
   });
 

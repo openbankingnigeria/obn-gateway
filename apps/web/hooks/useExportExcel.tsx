@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { ACTIVITY_DETAILS, ACTIVITY_TABLE_DATA } from '@/data/activityData';
 import clientAxiosRequest from './clientAxiosRequest';
 import * as API from '@/config/endpoints';
+import { getJsCookies } from '@/config/jsCookie';
 
 const useExportExcel = (type: string = '', rawData: any) => {
   const [loadingExport, setLoadingExport] = useState(false);
@@ -14,7 +15,7 @@ const useExportExcel = (type: string = '', rawData: any) => {
 		'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
   const fileExtension = '.xlsx';
 
-  const environment = 'development';
+  const environment = getJsCookies('environment');
   const activity = type == 'activity';
   const activity_details = type == 'activity_details';
 
@@ -37,7 +38,7 @@ const useExportExcel = (type: string = '', rawData: any) => {
         apiEndpoint: API.getAPILogs({
           page: `1`,
           limit: `10000`,
-          environment
+          environment: environment || 'development'
         }),
         method: 'GET',
         data: null,

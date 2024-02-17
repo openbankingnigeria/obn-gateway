@@ -3,7 +3,7 @@
 import { AppRightModal } from '@/app/(webapp)/(components)';
 import { Button } from '@/components/globalComponents'
 import Image from 'next/image';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AddBusinessInformation } from '.';
 import { getJsCookies, setJsCookies } from '@/config/jsCookie';
 
@@ -11,8 +11,12 @@ const DashboardBanner = ({
   rawData
 }: { rawData: any }) => {
   const [openModal, setOpenModal] = useState('');
-  const close_modal = Boolean(getJsCookies('close-banner'));
-  const [closebanner, setCloseBanner] = useState(Boolean(close_modal));
+  const [closebanner, setCloseBanner] = useState(false);
+
+  useEffect(() => {
+    const close_modal = Boolean(getJsCookies('close-banner'));
+    setCloseBanner(close_modal);
+  }, []);
 
   const cancelModal = () => {
     setOpenModal('cancel');

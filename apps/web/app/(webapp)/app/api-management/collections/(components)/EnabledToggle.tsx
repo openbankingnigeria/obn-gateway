@@ -6,6 +6,7 @@ import React, { useState } from 'react'
 import * as API from '@/config/endpoints';
 import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
 import { useRouter } from 'next/navigation';
+import { getJsCookies } from '@/config/jsCookie';
 
 const EnabledToggle = ({ 
   rawData,
@@ -18,7 +19,7 @@ const EnabledToggle = ({
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const environment = 'development';
+  const environment = getJsCookies('environment');
 
   // console.log(rawData)
 
@@ -35,7 +36,7 @@ const EnabledToggle = ({
       const result: any = await clientAxiosRequest({
           headers: code ? { 'X-TwoFA-Code' : code, } : {},
           apiEndpoint: API.updateAPI({ 
-            environment, 
+            environment: environment || 'development', 
             id: rawData?.id
           }),
           method: 'PATCH',

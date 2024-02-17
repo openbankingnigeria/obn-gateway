@@ -8,6 +8,7 @@ import { ApiPermissionCard } from '.';
 import { ApiPermissionArrayItem } from '@/types/utilTypes';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
+import { getJsCookies } from '@/config/jsCookie';
 
 const AddAPIPermissions = ({
   close,
@@ -19,7 +20,7 @@ const AddAPIPermissions = ({
   api_ids,
   setApiIds
 }: AddAPIPermissionsProps) => {
-  const environment = 'development';
+  const environment = getJsCookies('environment');
   const incorrect = api_ids?.length <= 0;
   const [api_list, setApiList] = useState<ApiPermissionArrayItem[]>([]);
 
@@ -31,7 +32,7 @@ const AddAPIPermissions = ({
           page: `1`,
           limit: `100`,
           collectionId: item?.id,
-          environment,
+          environment: environment || 'development',
         }),
         method: 'GET',
         data: null,

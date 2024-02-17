@@ -1,4 +1,4 @@
-import { ReportingDataProps } from "@/types/dataTypes";
+import { APICallsProps, ReportingDataProps, UsersStatProps } from "@/types/dataTypes";
 
 export const API_COLLECTIONS_STATS = [
   {
@@ -13,21 +13,25 @@ export const API_COLLECTIONS_STATS = [
   },
 ];
 
-export const USERS_STATS = [
+export const USERS_STATS = ({
+  active,
+  inactive,
+  pending
+}: UsersStatProps) => [
   {
     id: 1,
-    title: 'ACTIVE',
-    amount: 0
+    title: active?.value,
+    amount: active?.count
   },
   {
     id: 2,
-    title: 'INACTIVE',
-    amount: 0
+    title: inactive?.value,
+    amount: inactive?.count
   },
   {
     id: 3,
-    title: 'PENDING',
-    amount: 0
+    title: pending?.value,
+    amount: pending?.count
   },
 ];
 
@@ -136,31 +140,32 @@ export const API_CONSUMERS_TABLE_DATA = [
   },
 ];
 
-export const API_CALLS_DATA = [
+export const API_CALLS_DATA = ({
+  total,
+  success,
+  failed
+}: APICallsProps) => [
   {
     id: 1,
     title: 'Total Processed',
-    amount: 0,
+    amount: total,
     isGreen: false,
-    amountUnit: '',
     labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   },
   {
     id: 2,
-    title: 'Success Rate',
-    amount: 0,
+    title: 'Success Count',
+    amount: success,
     isGreen: false,
-    amountUnit: '%',
     labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   },
   {
     id: 3,
-    title: 'Rejected',
-    amount: 0,
+    title: 'Failed Count',
+    amount: failed,
     isGreen: true,
-    amountUnit: 'ms',
     labels: ['Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm','Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm', 'Sep 23, 8pm'],
     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   },

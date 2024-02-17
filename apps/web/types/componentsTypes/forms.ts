@@ -61,6 +61,7 @@ export interface SelectElementProps extends FieldsProps {
 
 export interface ToogleSwitchProps {
   toggle: boolean;
+  loading?: boolean;
   setToggle: (value: boolean) => void
 }
 

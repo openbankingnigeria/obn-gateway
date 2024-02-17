@@ -5,16 +5,17 @@ import { ACTIVITY_REQUEST_PARAMS_DATA, ACTIVITY_RESPONSE_DATA } from '@/data/act
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
+import { getCookies } from '@/config/cookies';
 
 const ActivityPage = async ({ params, searchParams }: UrlParamsProps) => {
   const activityId = params?.id;
   const path = searchParams?.path || '';
-  const environment = 'development';
+  const environment = getCookies('environment');
 
   const fetchedActivity: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPILog({
-      environment,
+      environment: environment || 'development',
       id: activityId
     }),
     method: 'GET',

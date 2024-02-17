@@ -4,9 +4,76 @@ import { searchParamsProps } from '@/types/webappTypes/appTypes'
 import { API_CALLS_DATA, API_CONSUMERS_TABLE_DATA } from '@/data/dashboardData'
 import { DatePicker } from '@/app/(webapp)/(components)'
 import { DashboardMetricCard } from '.'
+import * as API from '@/config/endpoints';
+import Logout from '@/components/globalComponents/Logout'
+import { applyAxiosRequest } from '@/hooks'
+import { StatDataProps } from '@/types/dataTypes'
+import { getCookies } from '@/config/cookies'
 
-const APIProviderDashboardPage = ({ date_filter, alt_data }: searchParamsProps) => {
+const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsProps) => {
   const dateFilter = date_filter;
+  const environment = getCookies('environment');
+
+  const fetchedConsumerStat : any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyStats(),
+    method: 'GET',
+    data: null
+  })
+
+  const fetchedKybStats: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyKybStats(),
+    method: 'GET',
+    data: null
+  });
+
+  const fetchedReport : any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getAPILogStats({
+      page: '1',
+      limit: '1000',
+      environment: environment || 'development'
+    }),
+    method: 'GET',
+    data: null
+  })
+
+  const fetchedAggregate : any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getAPILogStatsAggregate({
+      page: '1',
+      limit: '1000',
+      environment: environment || 'development'
+    }),
+    method: 'GET',
+    data: null
+  })
+
+  if (fetchedConsumerStat?.status == 401) {
+    return <Logout />
+  }
+
+  let consumerStats = fetchedConsumerStat?.data || []
+  let apiCalls = fetchedReport?.data
+  let kybStats = fetchedKybStats?.data || [];
+  let aggregate = fetchedAggregate?.data;
+
+  console.log(aggregate);
+
+  const totalConsumer = consumerStats?.reduce((acc: any, obj: any) => acc + Number(obj.count), 0)
+  const consumerSanitizedStats = [...consumerStats, ...kybStats]
+    ?.filter((data: StatDataProps) => {
+    return !(data?.value == 'approved' || data?.value == 'pending');
+    });
+
+  const API_CONSUMER_STATS = [
+    {
+      count: totalConsumer,
+      value: 'total'
+    },
+    ...consumerSanitizedStats
+  ];
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
@@ -46,15 +113,12 @@ const APIProviderDashboardPage = ({ date_filter, alt_data }: searchParamsProps) 
 
         <div className='w-full flex flex-wrap gap-[20px]'>
           {
-            API_CONSUMERS_TABLE_DATA?.map(data => (
+            API_CONSUMER_STATS?.map((data: StatDataProps) => (
               <DashboardMetricCard 
-                key={data?.id}
-                title={data?.title}
-                amount={data?.amount}
-                amountUnit={data?.amountUnit}
-                isGreen={data?.isGreen}
-                labels={data?.labels}
-                data={data?.data}
+                key={data?.value}
+                title={data?.value}
+                amount={data?.count}
+                containerStyle='!h-fit'
               />
             ))
           }
@@ -87,16 +151,21 @@ const APIProviderDashboardPage = ({ date_filter, alt_data }: searchParamsProps) 
 
         <div className='w-full flex flex-wrap gap-[20px]'>
           {
-            API_CALLS_DATA?.map(data => (
+            API_CALLS_DATA({
+              total: apiCalls?.totalCount,
+              success: apiCalls?.successCount,
+              failed: apiCalls?.failedCount
+            })?.map((data: any) => (
               <DashboardMetricCard 
                 key={data?.id}
                 title={data?.title}
                 amount={data?.amount}
-                amountUnit={data?.amountUnit}
-                isGreen={data?.isGreen}
-                labels={data?.labels}
-                data={data?.data}
-                containerStyle='min-w-[320px]'
+                containerStyle='!h-fit'
+                // amountUnit={data?.amountUnit}
+                // isGreen={data?.isGreen}
+                // labels={data?.labels}
+                // data={data?.data}
+                // containerStyle='min-w-[320px]'
               />
             ))
           }

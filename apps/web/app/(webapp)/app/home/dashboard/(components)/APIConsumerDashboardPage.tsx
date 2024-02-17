@@ -7,20 +7,37 @@ import { DashboardBanner, DashboardMetricCard } from '.';
 import { greetByTime } from '@/utils/greetByTime';
 import { API_COLLECTIONS_STATS, USERS_STATS } from '@/data/dashboardData';
 import { ReportingSection } from '@/app/(webapp)/(components)';
+import { StatDataProps } from '@/types/dataTypes';
+import { getCookies } from '@/config/cookies';
 
 const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParamsProps) => {
-  // const fetchedDetails : any = await applyAxiosRequest({
+  const environment = getCookies('environment');
+
+  // const fetchedCollections : any = await applyAxiosRequest({
   //   headers: {},
-  //   apiEndpoint: API.getCompanyDetails(),
+  //   apiEndpoint: API.getAPIsForCompany({
+  //     environment: environment || 'development'
+  //   }),
   //   method: 'GET',
   //   data: null
   // });
 
-  // if (fetchedDetails?.status == 401) {
-  //   return <Logout />
-  // }
+  const fetchedTeamStat : any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getTeamStats(),
+    method: 'GET',
+    data: null
+  })
 
-  // let details = fetchedDetails?.data;
+  if (fetchedTeamStat?.status == 401) {
+    return <Logout />
+  }
+
+  // let apis = fetchedCollections;
+  // let apisMeta = fetchedCollections?.meta;
+  let team = fetchedTeamStat?.data
+
+  // console.log(apis);
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
@@ -98,11 +115,11 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
 
         <div className='w-full flex flex-wrap gap-[20px]'>
           {
-            USERS_STATS?.map(data => (
+            team?.map((data: StatDataProps) => (
               <DashboardMetricCard 
-                key={data?.id}
-                title={data?.title}
-                amount={data?.amount}
+                key={data?.value}
+                title={data?.value}
+                amount={data?.count}
                 containerStyle='!h-fit'
               />
             ))

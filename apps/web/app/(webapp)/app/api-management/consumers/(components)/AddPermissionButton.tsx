@@ -7,6 +7,7 @@ import React, { FormEvent, useEffect, useState } from 'react';
 import * as API from '@/config/endpoints';
 import { AppCenterModal, AppRightModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
 import { AddAPIPermissions } from '.';
+import { getJsCookies } from '@/config/jsCookie';
 
 const AddPermissionButton = ({ 
   searchQuery,
@@ -22,7 +23,7 @@ const AddPermissionButton = ({
   const router = useRouter();
   const [collections, setCollections] = useState([]);
   const [apiIds, setApiIds] = useState<string[]>([]);
-  const environment = 'development';
+  const environment = getJsCookies('environment');
   const [refresh, setRefresh] = useState(false);
 
   const fetchConsumerAPIs = async () => {
@@ -31,7 +32,7 @@ const AddPermissionButton = ({
       apiEndpoint: API.getCompanyAPIs({
         page: '1',
         limit: '1000',
-        environment,
+        environment: environment || 'development',
         companyId: companyId,
       }),
       method: 'GET',
@@ -97,7 +98,7 @@ const AddPermissionButton = ({
       const result: any = await clientAxiosRequest({
         headers: code ? { 'X-TwoFA-Code' : code, } : {},
         apiEndpoint: API.updateConsumerAPIAccess({
-          environment,
+          environment: environment || 'development',
           id: companyId
         }),
         method: 'PUT',

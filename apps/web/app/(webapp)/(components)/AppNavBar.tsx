@@ -9,7 +9,7 @@ import { NOTIFICATIONS_DATA } from '@/data/notificationData';
 import { Button, OutsideClicker } from '../../../components/globalComponents';
 import { AppCenterModal, AvatarMenu, NotificationBox } from '.';
 import { toast } from 'react-toastify';
-import { getJsCookies, removeJsCookies } from '@/config/jsCookie';
+import { getJsCookies, removeJsCookies, setJsCookies } from '@/config/jsCookie';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
 
@@ -19,12 +19,18 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const [openNotification, setOpenNotification] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingSwitch, setLoadingSwitch] = useState(false);
   const router = useRouter();
   const { get } = useSearchParams();
   const slug = get('slug');
   const [profile, setProfile] = useState<any>(null);
   // const getUserProfile = getJsCookies('aperta-user-profile');
   // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
+
+  useEffect(() => {
+    const enviromentMode = getJsCookies('environment');
+    setToggleMode(enviromentMode == 'production' ? true : false)
+  }, []);
 
   const fetchProfile = async() => {
     const result: any = await clientAxiosRequest({
@@ -77,10 +83,17 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
   }
 
   const handleSwitch = (mode: string) => {
-    // setLoading(true);
-    setToggleMode(prev => !prev);
+    setLoadingSwitch(true);
+    // setToggleMode(prev => !prev);
+    setJsCookies(
+      'environment', 
+      isLive ? 
+        'development' : 
+        'production'
+      );
     handleCloseModal();
-    toast.success(`You’ve successfully switched to ${mode} Mode`)
+    toast.success(`You’ve successfully switched to ${mode} Mode`);
+    window?.location?.reload();
   }
 
   return (
@@ -94,7 +107,7 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
             <div className='flex flex-col gap-[24px] w-full'>
               <div className='text-o-text-medium text-f14'>
                 {
-                  isLive ?
+                  isLive  ?
                     `You\'re about to switch to Test Mode. 
                     This will disable all live transactions. 
                     Are you sure you want to proceed?`
@@ -161,14 +174,17 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
           {/* TOGGLE SWITCH */}
           <div className='flex items-center w-fit gap-[8px]'>
             <ToggleSwitch 
-              toggle={isLive}
+              toggle={isLive ? true : false}
+              loading={loadingSwitch}
               setToggle={(value) => handleToggle(value)}
             />
 
             <div className={`w-fit ${isLive ? 'text-o-green2' : 'text-o-red'} whitespace-nowrap text-f14 font-[500]`}>
               {
-                isLive ? 'Live Mode' :
-                  'Test Mode'
+                loadingSwitch ?
+                  'Loading...' :
+                    isLive ? 'Live Mode' :
+                    'Test Mode'
               }
             </div>
           </div>

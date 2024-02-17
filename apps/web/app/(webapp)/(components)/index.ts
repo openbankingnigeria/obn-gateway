@@ -30,6 +30,7 @@ import KybBanner from "./KybBanner";
 import ListPanel from "./ListPanel";
 import CodeEditor from "./CodeEditor";
 import ReportingSection from "./ReportingSection";
+import TwoFactorAuthBottomModal from "./TwoFactorAuthBottomModal";
 
 export {
   DatePicker,
@@ -63,5 +64,6 @@ export {
   DragAndUploadFile,
   ListPanel,
   CodeEditor,
+  TwoFactorAuthBottomModal,
   ReportingSection
 }

@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import { ToogleSwitchProps } from '@/types/componentsTypes/forms';
 
 function ToggleSwitch({
-  toggle, 
+  toggle,
+  loading, 
   setToggle
 }: ToogleSwitchProps) {
   
