@@ -6,7 +6,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     label: 'General Settings',
     value: '',
     name: 'general_settings',
-    type: 'all'
+    type: 'api-provider'
   },
   {
     id: 2,
@@ -39,7 +39,7 @@ export const SYSTEM_SETTINGS_PATHS = [
   {
     id: 5,
     label: 'Business Information',
-    value: 'business_information',
+    value: '',
     name: 'business_information',
     type: 'api-consumer'
   },

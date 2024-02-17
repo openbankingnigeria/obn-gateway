@@ -10,6 +10,7 @@ import { searchParamsProps } from '@/types/webappTypes/appTypes';
 import { REPORTING_DATA } from '@/data/dashboardData';
 import { DashboardMetricCard } from '../app/home/dashboard/(components)';
 import moment from 'moment';
+import { getJsCookies } from '@/config/jsCookie';
 
 const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [from, setFrom] = useState<string | undefined>('');
@@ -23,7 +24,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [collections, setCollections] = useState<any[]>([]);
   const [consumersList, setConsumerList] = useState<any[]>([]);
   const [logStats, setLogStats] = useState<any>(null);
-  const environment = 'development';
+  const environment = getJsCookies('environment');
   const apiConsumer = profile_data?.user?.role?.parent?.slug == 'api-consumer';
 
   // console.log('Company details >>>>>>', alt_data);
@@ -56,7 +57,9 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const fetchAPIs = async () => {
     const result = await clientAxiosRequest({
       headers: {},
-      apiEndpoint: API.getAPIsForCompany({environment}),
+      apiEndpoint: API.getAPIsForCompany({
+        environment: environment || 'development'
+      }),
       method: 'GET',
       data: null,
       noToast: true
@@ -71,7 +74,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
         page: `1`,
         limit: `1000`,
         collectionId: collection,
-        environment,
+        environment: environment || 'development',
       }),
       method: 'GET',
       data: null,
@@ -139,7 +142,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
           apiEndpoint: API.getAPILogStats({
             page: '1',
             limit: '10000',
-            environment, 
+            environment: environment || 'development', 
             companyId: apiConsumer ? alt_data?.id : consumers,
             apiId: api,
             createdAt_gt: from ? moment(from).startOf('day').format()?.split('+')[0] + '.000Z' : '',

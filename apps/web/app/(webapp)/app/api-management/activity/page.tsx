@@ -9,6 +9,7 @@ import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import moment from 'moment'
+import { getCookies } from '@/config/cookies'
 
 const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -17,7 +18,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const search_apis = searchParams?.search_apis || '';
   const date_filter = searchParams?.date_filter || ''
-  const environment = 'development';
+  const environment = getCookies('environment');
 
   const dateFilter = date_filter ? JSON.parse(date_filter) : {};
   const filters = [status, search_query, search_apis, dateFilter];
@@ -27,11 +28,12 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
     apiEndpoint: API.getAPILogs({
       page: `${page}`,
       limit: `${rows}`,
+      referenceId: search_query,
       status: status,
       apiId: search_apis,
       createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
       createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
-      environment
+      environment: environment || 'development'
     }),
     method: 'GET',
     data: null
@@ -79,7 +81,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
       await applyAxiosRequest({
         headers: {},
         apiEndpoint: API.getAPIsForCompany({
-          environment
+          environment: environment || 'development'
         }),
         method: 'GET',
         data: null
@@ -90,7 +92,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
         apiEndpoint: API.getAPIs({
           page: `1`,
           limit: `1000`,
-          environment
+          environment: environment || 'development'
         }),
         method: 'GET',
         data: null

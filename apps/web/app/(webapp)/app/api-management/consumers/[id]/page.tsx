@@ -8,6 +8,7 @@ import { CONSUMER_API_ACTIVITIES, CONSUMER_API_ACTIVITIES_HEADERS,
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
+import { getCookies } from '@/config/cookies';
 
 const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || '';
@@ -19,7 +20,7 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const search_apis = searchParams?.search_apis || ''
 
-  const environment = 'development';
+  const environment = getCookies('environment');
 
   const fetchedProfile: any = await applyAxiosRequest({
     headers: {},
@@ -44,7 +45,7 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
       apiEndpoint: API.getCompanyAPIs({
         page: `${page}`,
         limit: `${rows}`,
-        environment,
+        environment: environment || 'development',
         companyId: `${consumerId}`,
       }),
       method: 'GET',
@@ -57,7 +58,7 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
       apiEndpoint: API.getAPILogs({
         page: `${page}`,
         limit: `${rows}`,
-        environment,
+        environment: environment || 'development',
         companyId: `${consumerId}`,
       }),
       method: 'GET',

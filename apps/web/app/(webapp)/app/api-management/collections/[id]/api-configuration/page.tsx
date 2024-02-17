@@ -6,16 +6,17 @@ import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { StatusBox } from '@/app/(webapp)/(components)';
 import { ToggleSwitch } from '@/components/forms';
+import { getCookies } from '@/config/cookies';
 
 const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => {
   const api_id = searchParams?.api_id || '';
   const preview = searchParams?.preview || '';
-  const environment = 'development';
+  const environment = getCookies('environment');
 
   const fetchedAPI: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPI({
-      environment,
+      environment: environment || 'development',
       id: api_id
     }),
     method: 'GET',

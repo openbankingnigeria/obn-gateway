@@ -74,8 +74,8 @@ export const deleteAPI = ({ environment, id }: GetSingleEnvironmentProps) =>
   `${BASE_URL}/apis/${environment}/${id}`;
 export const updateAPI = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/${id}`;
-export const getAPILogs = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l, status }: GetEnvironmentProps) => 
-  `${BASE_URL}/apis/${environment}/logs?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${companyId ? `&filter[companyId]=${companyId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}`;
+export const getAPILogs = ({ page, limit, environment, companyId, referenceId, apiId, createdAt_gt, createdAt_l, status }: GetEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}/logs${referenceId ? `/${referenceId}` : ''}?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${companyId ? `&filter[companyId]=${companyId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${status ? `&filter[status]=${status}`: ''}`;
 export const getAPILog = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}/logs/${id}`;
 export const postAssignAPIs = ({ environment, id }: GetSingleEnvironmentProps) => 
@@ -96,7 +96,7 @@ export const getAPILogStats = ({ page, limit, environment, companyId, apiId, cre
 	`${BASE_URL}/apis/${environment}/logs/stats?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${companyId ? `&filter[companyId]=${companyId}` : ''}`
 export const getAPILogStatsAggregate = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l }: GetEnvironmentProps) => 
 	`${BASE_URL}/apis/${environment}/logs/stats/periodic-aggregate?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${companyId ? `&filter[companyId]=${companyId}` : ''}`
-
+  
 
 // COMPANY
 export const getCompanies = ({ page, limit, name, createdAt_gt, kybStatus, createdAt_l, status }: GetListProps) => 

@@ -18,6 +18,7 @@ export interface GetSingleProps {
 export interface GetEnvironmentProps {
   page: string;
   limit: string;
+  referenceId?: any;
   environment: string;
   id?: string;
   companyId?: string;

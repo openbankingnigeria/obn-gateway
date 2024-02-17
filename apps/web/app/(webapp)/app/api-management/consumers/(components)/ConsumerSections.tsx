@@ -13,6 +13,7 @@ import { ModifyApiConfiguration } from '../../collections/(components)';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import { useRouter } from 'next/navigation';
 import * as API from '@/config/endpoints';
+import { getJsCookies } from '@/config/jsCookie';
 
 const ConsumerSections = ({
   path,
@@ -37,7 +38,7 @@ const ConsumerSections = ({
   const [api, setApi] = useState<any>(null);
   const profile = profileData;
   const [api_endpoint, setApiEndpoint] = useState<any>(null);
-  const environment = 'development';
+  const environment = getJsCookies('environment');
 
   const enabledConsumer = altData?.status == 'active' && altData?.kybStatus == 'approved';
 
@@ -66,7 +67,7 @@ const ConsumerSections = ({
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getAPI({ 
-        environment, 
+        environment: environment || 'development', 
         id: api?.id
       }),
       method: 'GET',
@@ -108,7 +109,7 @@ const ConsumerSections = ({
       const result: any = await clientAxiosRequest({
         headers: code ? { 'X-TwoFA-Code' : code, } : {},
         apiEndpoint: API.updateAPI({ 
-          environment, 
+          environment: environment || 'development', 
           id: api?.id
         }),
         method: 'PATCH',

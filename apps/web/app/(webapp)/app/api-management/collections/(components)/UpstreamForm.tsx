@@ -9,6 +9,7 @@ import * as API from '@/config/endpoints';
 import { useRouter } from 'next/navigation';
 import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
 import { HeadersContainer, KeyValueContainer } from '.';
+import { getJsCookies } from '@/config/jsCookie';
 
 const UpStreamForm = ({
   rawData,
@@ -29,7 +30,7 @@ const UpStreamForm = ({
 
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
-  const environment = 'development';
+  const environment = getJsCookies('environment');
   const router = useRouter();
   const previewPage = preview == 'true';
 
@@ -120,7 +121,7 @@ const UpStreamForm = ({
       const result: any = await clientAxiosRequest({
           headers: code ? { 'X-TwoFA-Code' : code, } : {},
           apiEndpoint: API.updateAPI({ 
-            environment, 
+            environment: environment || 'development', 
             id: rawData?.id
           }),
           method: 'PATCH',

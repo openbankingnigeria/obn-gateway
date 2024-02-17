@@ -5,6 +5,7 @@ import { COLLECTIONS_API_HEADERS, COLLECTIONS_API_CONSUMER_HEADERS, COLLECTIONS_
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
+import { getCookies } from '@/config/cookies';
 
 const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
   const collectionId = params?.id;
@@ -13,7 +14,7 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
-  const environment = 'development';
+  const environment = getCookies('environment');
 
   const fetchedCollection: any = await applyAxiosRequest({
     headers: {},
@@ -44,7 +45,7 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
     await applyAxiosRequest({
       headers: {},
       apiEndpoint: API.getAPIsForCompany({ 
-        environment,
+        environment: environment || 'development',
         collectionId,
         name: search_query,
         method: request_method
@@ -59,7 +60,7 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
         page: `${page}`,
         limit: `${rows}`,
         collectionId,
-        environment,
+        environment: environment || 'development',
         name: search_query,
         method: request_method
       }),

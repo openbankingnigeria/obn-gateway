@@ -9,7 +9,10 @@ import Logout from '@/components/globalComponents/Logout';
 
 const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   const path = searchParams?.path || ''
-  const environment = 'development'
+  const environment = (
+    path == 'test_mode_configuration' ? 
+    'development' : 'production'
+  );
 ;
   const emailAndGeneralPath = (
     path == 'email_templates' || 
@@ -90,18 +93,19 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
       
       <div className='w-full flex flex-col'>
         {
-          path == '' ? <GeneralSettingsPage rawData={settings} /> :
           profile?.user?.role?.parent?.slug == 'api-provider' ?
             (
-              path == 'email_settings' ?
-                <EmailServicePage rawData={settings} /> :
-                path == 'email_templates' ? 
-                  <EmailTemplatePage rawData={settings} /> :
-                  path == 'external_services' ? 
-                    <ExternalServicesPage /> :
-                    path == 'mock_services' ? 
-                      <MockServicesPage /> :
-                      null
+              path == '' ? 
+                <GeneralSettingsPage rawData={settings} /> :
+                path == 'email_settings' ?
+                  <EmailServicePage rawData={settings} /> :
+                  path == 'email_templates' ? 
+                    <EmailTemplatePage rawData={settings} /> :
+                    path == 'external_services' ? 
+                      <ExternalServicesPage /> :
+                      path == 'mock_services' ? 
+                        <MockServicesPage /> :
+                        null
             ) : (
               path == 'test_mode_configuration' ? 
                 <TestModeConfigurationPage 
@@ -111,7 +115,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                   <LiveModeConfigurationPage 
                     rawData={configData}
                   /> :
-                  path == 'business_information' ? 
+                  path == '' ? 
                     <BusinessInformationPage /> :
                     null
             )

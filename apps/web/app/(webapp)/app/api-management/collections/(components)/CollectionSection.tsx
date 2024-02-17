@@ -11,6 +11,7 @@ import { updateSearchParams } from '@/utils/searchParams'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
 import { ActivateDeactivateDeleteApi } from '.'
+import { getJsCookies } from '@/config/jsCookie'
 
 const CollectionSection = ({
   rawData,
@@ -38,7 +39,7 @@ const CollectionSection = ({
   const profile = altData;
   const userType = profile?.user?.role?.parent?.slug;
   // const [api_endpoint, setApiEndpoint] = useState<any>(null);
-  const environment = 'development';
+  const environment = getJsCookies('environment');
   const actions = userType == 'api-consumer' ? 
     COLLECTION_ACTIONS_CONSUMER_DATA : 
     COLLECTION_ACTIONS_DATA;
@@ -71,7 +72,7 @@ const CollectionSection = ({
   //   const result = await clientAxiosRequest({
   //     headers: {},
   //     apiEndpoint: API.getAPI({ 
-  //       environment, 
+  //       environment: environment || 'development', 
   //       id: api?.id
   //     }),
   //     method: 'GET',
@@ -117,7 +118,7 @@ const CollectionSection = ({
         await clientAxiosRequest({
           headers: code ? { 'X-TwoFA-Code' : code, } : {},
           apiEndpoint: API.deleteAPI({ 
-            environment, 
+            environment: environment || 'development', 
             id: api?.id
           }),
           method: 'DELETE',
@@ -127,7 +128,7 @@ const CollectionSection = ({
         await clientAxiosRequest({
           headers: code ? { 'X-TwoFA-Code' : code, } : {},
           apiEndpoint: API.updateAPI({ 
-            environment, 
+            environment: environment || 'development', 
             id: api?.id
           }),
           method: 'PATCH',
@@ -168,7 +169,7 @@ const CollectionSection = ({
   //     const result: any = await clientAxiosRequest({
   //       headers: code ? { 'X-TwoFA-Code' : code, } : {},
   //       apiEndpoint: API.updateAPI({ 
-  //         environment, 
+  //         environment: environment || 'development', 
   //         id: api?.id
   //       }),
   //       method: 'PATCH',
