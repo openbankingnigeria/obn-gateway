@@ -38,7 +38,7 @@ export class SettingsService {
     private readonly kongConsumerService: KongConsumerService,
   ) {}
 
-  async getKybRequirements(ctx: RequestContext) {
+  async getKybRequirements() {
     const businessSettings = await this.settingsRepository.findOne({
       where: {
         name: BUSINESS_SETTINGS_NAME,

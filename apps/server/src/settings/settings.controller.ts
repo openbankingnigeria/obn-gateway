@@ -34,8 +34,8 @@ export class SettingsController {
 
   @Get('kyb/requirements')
   @RequiredPermission(PERMISSIONS.VIEW_KYB_REQUIREMENTS)
-  getKybRequirements(@Ctx() ctx: RequestContext) {
-    return this.settingsService.getKybRequirements(ctx);
+  getKybRequirements() {
+    return this.settingsService.getKybRequirements();
   }
 
   @Patch('kyb/requirements')

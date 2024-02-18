@@ -69,7 +69,7 @@ export class CompanyService {
     data: any,
     files: Express.Multer.File[],
   ) {
-    if (ctx.activeCompany.kybStatus === 'approved') {
+    if (ctx.activeCompany.kybStatus === KybStatuses.APPROVED) {
       throw new IBadRequestException({
         message: companyErrors.companyAlreadyVerified,
       });
@@ -167,6 +167,7 @@ export class CompanyService {
       {
         kybData: JSON.stringify({ ...previousKybDetails, ...validKybData }),
         rcNumber: data.rcNumber,
+        kybStatus: KybStatuses.PENDING,
       },
     );
 
