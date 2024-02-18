@@ -90,6 +90,13 @@ export class BaseSignupDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
   @IsStrongPassword(passwordConfig, {
     message: ({ property }) =>
       authValidationErrors.dto.passwordStrengthMismatch(property),
