@@ -517,6 +517,7 @@ export class APIService {
           aclId: result.value.aclId,
           companyId: company.id,
           routeId: result.value.routeId,
+          environment,
         });
       }
     }
@@ -1063,15 +1064,13 @@ export class APIService {
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     companyId?: string,
+    pagination?: PaginationParameters,
+    filters?: any,
   ) {
+    const { limit, page } = pagination!;
+
     const company = await this.companyRepository.findOne({
-      // TODO
       where: { id: companyId ?? ctx.activeCompany.id },
-      relations: {
-        acls: {
-          route: true,
-        },
-      },
     });
 
     if (!company) {
@@ -1082,14 +1081,40 @@ export class APIService {
       });
     }
 
-    const acls = company.acls.map((acl) => ({
-      id: acl.id,
-      route: acl.route,
-    }));
+    let routes: CollectionRoute[];
+    let totalNumberOfRecords: number;
 
-    const routes = acls.map(({ route }) => {
-      return route;
-    });
+    if (environment === KONG_ENVIRONMENT.PRODUCTION) {
+      const acls = await this.consumerAclRepository.find({
+        where: { companyId: company.id, environment },
+        order: { createdAt: 'DESC' },
+      });
+
+      const [iRoutes, iTotalNumberOfRecords] =
+        await this.routeRepository.findAndCount({
+          where: {
+            ...filters,
+            id: In(acls.map(({ route }) => route.id)),
+          },
+          order: { createdAt: 'DESC' },
+          skip: (page - 1) * limit,
+          take: limit,
+        });
+
+      totalNumberOfRecords = iTotalNumberOfRecords;
+      routes = iRoutes;
+    } else {
+      const [iRoutes, iTotalNumberOfRecords] =
+        await this.routeRepository.findAndCount({
+          where: { ...filters, environment },
+          skip: (page - 1) * limit,
+          take: limit,
+          order: { createdAt: 'DESC' },
+        });
+
+      totalNumberOfRecords = iTotalNumberOfRecords;
+      routes = iRoutes;
+    }
 
     const populatedRoutes: any[] = [];
 
@@ -1143,6 +1168,12 @@ export class APIService {
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPIs,
       populatedRoutes,
+      new ResponseMetaDTO({
+        totalNumberOfRecords,
+        totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
     );
   }
 

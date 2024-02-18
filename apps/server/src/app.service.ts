@@ -3,8 +3,6 @@ import * as moment from 'moment';
 
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
-  constructor() {}
-
   async onApplicationBootstrap() {}
 
   health() {

@@ -1,3 +1,4 @@
+import { CompanyTypes } from '@common/database/constants';
 import { IRequest } from '@common/utils/authentication/auth.types';
 import { IForbiddenException } from '@common/utils/exceptions/exceptions';
 import {
@@ -16,8 +17,9 @@ export class APIInterceptor implements NestInterceptor {
 
     if (request.params.environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
       if (
-        !request.ctx.activeCompany.isVerified ||
-        request.ctx.activeCompany.kybStatus !== 'approved'
+        (!request.ctx.activeCompany.isVerified ||
+          request.ctx.activeCompany.kybStatus !== 'approved') &&
+        request.ctx.activeCompany.type !== CompanyTypes.API_PROVIDER
       ) {
         return throwError(
           () =>

@@ -58,6 +58,8 @@ export enum PERMISSIONS {
   ADD_API_ENDPOINT = 'add-api-endpoint',
   VIEW_API_ENDPOINT = 'view-api-endpoint',
   LIST_API_ENDPOINTS = 'list-api-endpoints',
+  VIEW_ASSIGNED_API_ENDPOINTS = 'view-assigned-api-endpoints',
+  AP_VIEW_ASSIGNED_API_ENDPOINTS = 'ap-view-assigned-api-endpoints',
   ASSIGN_API_ENDPOINTS = 'assign-api-endpoints',
   DELETE_API_ENDPOINT = 'delete-api-endpoint',
   UPDATE_API_ENDPOINT = 'update-api-endpoint',
