@@ -47,7 +47,9 @@ export class KongServiceService {
     const response = await firstValueFrom(
       this.httpService
         .get<GetServiceResponse>(
-          `${this.config.get('kong.adminEndpoint')[environment]}/services/${id}`,
+          `${
+            this.config.get('kong.adminEndpoint')[environment]
+          }/services/${id}`,
         )
         .pipe(
           catchError((error: AxiosError) => {

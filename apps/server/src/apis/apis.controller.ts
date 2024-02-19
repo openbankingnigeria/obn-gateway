@@ -90,23 +90,38 @@ export class APIController {
 
   @Get('company')
   @UsePipes(IValidationPipe)
-  @RequiredPermission(PERMISSIONS.LIST_API_ENDPOINTS)
-  viewMyCompanyApis(@Ctx() ctx: RequestContext, @Param() params: APIParam) {
-    return this.apiService.getApisAssignedToCompany(ctx, params.environment);
+  @RequiredPermission(PERMISSIONS.VIEW_ASSIGNED_API_ENDPOINTS)
+  viewMyCompanyApis(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query(new FilterPipe(APIFilters.listAPIs)) filters: any,
+  ) {
+    return this.apiService.getApisAssignedToCompany(
+      ctx,
+      params.environment,
+      undefined,
+      pagination,
+      filters,
+    );
   }
 
   @Get('company/:companyId')
   @UsePipes(IValidationPipe)
-  @RequiredPermission(PERMISSIONS.VIEW_API_ENDPOINT)
+  @RequiredPermission(PERMISSIONS.AP_VIEW_ASSIGNED_API_ENDPOINTS)
   viewCompanyApis(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
     @Param('companyId') companyId: string,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query(new FilterPipe(APIFilters.listAPIs)) filters: any,
   ) {
     return this.apiService.getApisAssignedToCompany(
       ctx,
       params.environment,
       companyId,
+      pagination,
+      filters,
     );
   }
 

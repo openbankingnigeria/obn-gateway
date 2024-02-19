@@ -20,6 +20,14 @@ export class ConsumerAcl {
   @ManyToOne(() => CollectionRoute, (collectionRoute) => collectionRoute.acls)
   route: CollectionRoute;
 
+  @Column({
+    name: 'environment',
+    type: 'varchar',
+    default: 'development',
+    nullable: false,
+  })
+  environment: string;
+
   @Column({ name: 'route_id', nullable: false, default: null, length: 36 })
   routeId: string;
 
