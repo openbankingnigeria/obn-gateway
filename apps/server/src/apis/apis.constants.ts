@@ -14,8 +14,8 @@ export const apiSuccessMessages = {
 };
 
 export const apiErrorMessages = {
-  routeNotFound: (id: string) => `API Route '${id}' does not exist`,
-  routeExists: (name: string) => `API Route name '${name}' exists`,
+  routeNotFound: (id: string) => `API '${id}' does not exist`,
+  routeExists: (name: string) => `API name '${name}' exists`,
   collectionNotFound: (id: string) => `Collection '${id}' does not exist`,
   logNotFound: (id: string) => `API log '${id}' does not exist`,
   functionNotFound: (id: string) => `API '${id}' function does not exist`,

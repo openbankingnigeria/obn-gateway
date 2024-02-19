@@ -13,13 +13,15 @@ import {
   UserStatuses,
 } from 'src/common/database/entities';
 import { Repository } from 'typeorm';
-import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
+import {
+  IBadRequestException,
+  INotFoundException,
+} from 'src/common/utils/exceptions/exceptions';
 import {
   ResponseFormatter,
   ResponseMetaDTO,
 } from '@common/utils/response/response.formatter';
 import { userErrors } from '@users/user.errors';
-import { roleErrors } from '@roles/role.errors';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   UserCreatedEvent,
@@ -70,7 +72,7 @@ export class UsersService {
 
     if (!role) {
       throw new IBadRequestException({
-        message: roleErrors.roleNotFound,
+        message: userErrors.invalidRole,
       });
     }
 
@@ -113,7 +115,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: userErrors.userNotFound,
       });
     }
@@ -192,7 +194,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: userErrors.userNotFound,
       });
     }
@@ -214,7 +216,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: userErrors.userNotFound,
       });
     }
@@ -237,7 +239,7 @@ export class UsersService {
 
       if (!role) {
         throw new IBadRequestException({
-          message: roleErrors.roleNotFound,
+          message: userErrors.invalidRole,
         });
       }
     }
@@ -289,7 +291,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: userErrors.userNotFound,
       });
     }
