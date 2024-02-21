@@ -36,6 +36,7 @@ export class FilterPipe implements PipeTransform<any, any> {
   ) {
     switch (valueType) {
       case ValueTypes.string:
+      case ValueTypes.stringLike:
         return returnParsedValue ? value : isString(value);
       case ValueTypes.number:
         return returnParsedValue ? Number(value) : isNumberString(value);

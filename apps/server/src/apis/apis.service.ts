@@ -83,14 +83,16 @@ export class APIService {
 
     const [gatewayServices, gatewayRoutes] = await Promise.all([
       this.kongService.listServices(environment, {
-        tags: Array.from(new Set(routes.map((route) => route.collection.slug!)))
-          .slice(0, 5)
-          .join('/'),
+        tags:
+          Array.from(new Set(routes.map((route) => route.collection.slug!)))
+            .slice(0, 5)
+            .join('/') || undefined,
       }),
       this.kongRouteService.listRoutes(environment, {
-        tags: Array.from(new Set(routes.map((route) => route.collection.slug!)))
-          .slice(0, 5)
-          .join('/'),
+        tags:
+          Array.from(new Set(routes.map((route) => route.collection.slug!)))
+            .slice(0, 5)
+            .join('/') || undefined,
       }),
     ]);
 
