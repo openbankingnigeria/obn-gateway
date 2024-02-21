@@ -32,12 +32,12 @@ export const globalConfig = (): {
       logging: process.env.DATABASE_QUERY_LOGGING === 'true',
     },
     auth: {
-      jwtExpires: process.env.JWT_EXPIRES || '15m',
+      jwtExpires: process.env.JWT_EXPIRES ?? '15m',
       jwtSecret:
         (process.env.JWT_SECRET_FILE
           ? fs.readFileSync(process.env.JWT_SECRET_FILE)
-          : undefined) || process.env.JWT_SECRET,
-      defaultOtpExpiresMinutes: process.env.DEFAULT_OTP_EXPIRES_MINUTES || '15',
+          : undefined) ?? process.env.JWT_SECRET,
+      defaultOtpExpiresMinutes: process.env.DEFAULT_OTP_EXPIRES_MINUTES ?? '15',
     },
     email: {
       host: process.env.EMAIL_HOST,

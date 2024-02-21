@@ -352,24 +352,25 @@ export class APIService {
 
     // Create an ACL on the route created and assign it an ACL group name
     // TODO move to an event listener
-    await this.kongRouteService.updateOrCreatePlugin(
-      environment,
-      gatewayRoute.id,
-      {
-        config: {
-          allow: [aclAllowedGroupName],
-          hide_groups_header: true,
+    if (environment === KONG_ENVIRONMENT.PRODUCTION) {
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          config: {
+            allow: [aclAllowedGroupName],
+            hide_groups_header: true,
+          },
+          name: KONG_PLUGINS.ACL,
+          enabled: true,
         },
-        name: KONG_PLUGINS.ACL,
-        enabled: true,
-      },
-    );
-
-    // Update API provider consumer to allow access to this new route
-    await this.kongConsumerService.updateConsumerAcl(environment, {
-      aclAllowedGroupName,
-      consumerId: apiProviderConsumerId,
-    });
+      );
+      // Update API provider consumer to allow access to this new route
+      await this.kongConsumerService.updateConsumerAcl(environment, {
+        aclAllowedGroupName,
+        consumerId: apiProviderConsumerId,
+      });
+    }
 
     let cleanPath = data.downstream.path.replace(/\([^)]*\)\$/, '');
     if (cleanPath.startsWith('~')) cleanPath = cleanPath.slice(1);
@@ -469,7 +470,7 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
   ) {
     const consumerId =
-      company.consumerId ||
+      company.consumerId ??
       (await this.updateConsumerId(company.id!, environment));
 
     const routes = await this.routeRepository.find({
@@ -577,6 +578,11 @@ export class APIService {
     companyId: string,
     { apiIds }: UpdateCompanyAPIAccessDto,
   ) {
+    if (environment === KONG_ENVIRONMENT.DEVELOPMENT) {
+      throw new IBadRequestException({
+        message: 'Cannot configure API access for this environment',
+      });
+    }
     const company = await this.companyRepository.findOne({
       where: { id: companyId },
       relations: {
@@ -1087,16 +1093,15 @@ export class APIService {
     let totalNumberOfRecords: number;
 
     if (environment === KONG_ENVIRONMENT.PRODUCTION) {
-      const acls = await this.consumerAclRepository.find({
-        where: { companyId: company.id, environment },
-        order: { createdAt: 'DESC' },
-      });
-
       const [iRoutes, iTotalNumberOfRecords] =
         await this.routeRepository.findAndCount({
           where: {
             ...filters,
-            id: In(acls.map(({ route }) => route.id)),
+            acls: {
+              companyId: company.id,
+              environment,
+            },
+            // id: In(acls.map(({ route }) => route.id)),
           },
           order: { createdAt: 'DESC' },
           skip: (page - 1) * limit,

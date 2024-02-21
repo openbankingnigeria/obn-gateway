@@ -47,3 +47,21 @@ export class GetCollectionResponseDTO {
   @IsArray()
   apis: GetAPIResponseDTO[];
 }
+
+export class GetCompanyCollectionResponseDTO {
+  constructor(partial: Partial<any>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  id: string;
+
+  @Expose()
+  name: string;
+
+  @Expose()
+  description: string;
+
+  @Expose()
+  routeCount: string;
+}
