@@ -46,3 +46,8 @@ export interface PostTokenProps {
 export interface GetTypeProps {
   type: string;
 }
+
+export interface DateFilterProps {
+  createdAt_gt?: string; 
+  createdAt_l?: string; 
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import { AppRightModal } from '@/app/(webapp)/(components)';
-import { Button } from '@/components/globalComponents'
+import { Button, LinkButton } from '@/components/globalComponents'
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react'
 import { AddBusinessInformation } from '.';
@@ -80,9 +80,11 @@ const DashboardBanner = ({
                   {
                     rawData?.isVerified ? 
                       'Verification Successful' :
-                      (!rawData?.isVerified && rawData?.kybData?.taxIdentificationNumber) ?
+                      (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ?
                         'Verification in Progress' :
-                        'Complete Your Account Setup'
+                        rawData?.kybStatus == 'denied' ?
+                          'Company verification denied' :
+                          'Complete Your Account Setup'
                   }
                 </h2>
 
@@ -92,11 +94,13 @@ const DashboardBanner = ({
                       `Your account has been verified successfully! 
                       You now have full access to all API features 
                       and services.` :
-                      (!rawData?.isVerified && rawData?.kybData?.taxIdentificationNumber) ?
+                      (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ?
                         `Your account will be verified once your 
                         business information is confirmed.` :
-                        `Provide your business information to get 
-                        your Aperta account up and running.`
+                        rawData?.kybStatus == 'denied' ?
+                          'Kindly resubmit your Information' :
+                          `Provide your business information to get 
+                          your Aperta account up and running.`
                   }
                 </div>
               </div>
@@ -108,6 +112,16 @@ const DashboardBanner = ({
                   effect={() => setOpenModal('add')}
                   small
                   containerStyle='!w-[200px]'
+                />
+              }
+
+              {
+                (rawData?.kybStatus == 'denied') &&
+                <LinkButton 
+                  title={'Update business information'}
+                  path={'/app/system-settings'}
+                  small
+                  containerStyle='!w-[215px]'
                 />
               }
             </div>

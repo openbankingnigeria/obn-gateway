@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { AppRightModal } from '.';
 import { AddBusinessInformation } from '../app/home/dashboard/(components)';
+import Link from 'next/link';
 
 const KybBanner = ({
   rawData
@@ -41,9 +42,11 @@ const KybBanner = ({
             rawData?.isVerified ?
               `Verification successful. You now have full access to all API features 
               and services.` :
-              (!rawData?.isVerified && rawData?.kybData?.taxIdentificationNumber) ?
+              (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ?
               `Verification in progress. Your account will be verified once your 
               business information is confirmed.` :
+              rawData?.kybStatus == 'denied' ?
+              'Company verification denied. Kindly resubmit your Information' :
               `Complete your account setup by providing your business information 
               to get your Aperta account up and running.`
           }
@@ -56,6 +59,16 @@ const KybBanner = ({
             >
               Add business information
             </span>
+          }
+
+          {
+            (rawData?.kybStatus == 'denied') &&
+            <Link 
+              href={'/app/system-settings'}
+              className='text-[#DD6B20] cursor-pointer font-[600]'
+            >
+              Update business information
+            </Link>
           }
         </div>
       </section>

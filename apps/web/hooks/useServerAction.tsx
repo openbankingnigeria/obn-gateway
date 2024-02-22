@@ -24,7 +24,7 @@ const useServerAction = (
       state?.redirect && redirect(state?.redirect);
       state?.refresh && router.refresh();
     } else {
-      toast.error(state?.response?.message);
+      !(initialState?.noToast) && toast.error(initialState?.message || state?.response?.message);
     }
   }, [state?.response?.request_date]);
   

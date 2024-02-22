@@ -182,6 +182,7 @@ export interface DragAndUploadFileProps {
   name: string
   selectedFile: any;
   file?: string;
+  disabled?: boolean;
   setSelectedFile: Dispatch<SetStateAction<any>>;
 }
 

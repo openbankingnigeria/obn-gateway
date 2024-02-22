@@ -1,9 +1,12 @@
+'use client'
+
 import { DragAndUploadFileProps } from '@/types/webappTypes/componentsTypes';
-import React, { ChangeEvent } from 'react'
+import React, { ChangeEvent, useState } from 'react'
 import { toast } from 'react-toastify';
 
 const DragAndUploadFile = ({
   name,
+  disabled,
   selectedFile,
   file,
   setSelectedFile
@@ -11,6 +14,7 @@ const DragAndUploadFile = ({
 
   const allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
   const maxFileSizeInBytes = 2 * 1024 * 1024; // 2MB
+  const [editFile, setEditFile] = useState('');
 
   const formatBytes = (bytes: number, decimals = 2) => {
     if (!bytes) return '0 Bytes';
@@ -23,6 +27,7 @@ const DragAndUploadFile = ({
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLElement> | any, type: string) => {
     event.preventDefault();
+
     const files = (
       (type == 'input') ? 
         event.target.files : 
@@ -42,6 +47,7 @@ const DragAndUploadFile = ({
         return;
       }
 
+      setEditFile('editted');
       setSelectedFile(file);
     }
   };
@@ -57,7 +63,7 @@ const DragAndUploadFile = ({
   return (
     <>
       {
-        file ?
+        !editFile && file ?
           <div className='w-full justify-start items-center gap-[8px] flex'>
             <div className='text-f14 flex items-center gap-[4px] w-fit'>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -82,9 +88,19 @@ const DragAndUploadFile = ({
             >
               Preview
             </span>
+
+            {
+              !disabled &&
+              <span 
+                onClick={() => setEditFile('edit')} 
+                className='cursor-pointer whitespace-nowrap font-500 text-f14 text-o-green2'
+              >
+                Edit
+              </span>
+            }
           </div>
           :
-          selectedFile ?
+          editFile == 'editted' && selectedFile ?
             <div className='px-[14px] py-[12px] w-full justify-between gap-[4px] flex items-center rounded-[6px] border border-o-border'>
               <div className='text-f14 flex items-center gap-[8px] w-full'>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -142,7 +158,7 @@ const DragAndUploadFile = ({
                 name={name}
                 accept='.jpg, .jpeg, .png, .pdf'
                 type="file"
-                value={selectedFile || ''}
+                value={(editFile ? '' : selectedFile) || ''}
                 onChange={(event) => handleFileChange(event,'input')}
               />
         

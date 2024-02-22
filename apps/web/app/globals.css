@@ -111,6 +111,15 @@
   box-shadow: 0px 1px 2px 0px rgba(164, 172, 185, 0.40), 0px 1px 2px 0px rgba(164, 172, 185, 0.24), 0px 0px 0px 1px rgba(18, 55, 105, 0.08), 0px 0px 0px 2px #FFF, 0px 0px 0px 3px rgba(39, 64, 121, 0.50);
 }
 
+.danger-button {
+  @apply bg-[#DF1C41] text-white;
+}
+
+.danger-button:disabled {
+  @apply border border-white text-[#ECFDF0];
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.80) 0%, rgba(255, 255, 255, 0.80) 100%), #274079;
+}
+
 .outlined-button:disabled {
   @apply bg-o-bg-disabled text-o-text-disabled
 }
