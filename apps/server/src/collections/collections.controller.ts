@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
@@ -25,6 +26,8 @@ import {
 } from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
 import { PERMISSIONS } from '@permissions/types';
+import { APIParam } from 'src/apis/dto/index.dto';
+import { APIInterceptor } from 'src/apis/apis.interceptor';
 
 @Controller('collections')
 export class CollectionsController {
@@ -78,5 +81,43 @@ export class CollectionsController {
   @RequireTwoFA()
   deleteCollection(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.collectionsService.deleteCollection(ctx, id);
+  }
+
+  @Get(':environment/company')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_ASSIGNED_API_ENDPOINTS)
+  @UseInterceptors(APIInterceptor)
+  viewMyCompanyApis(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query('filter') filters: any,
+  ) {
+    return this.collectionsService.getCollectionsAssignedToCompany(
+      ctx,
+      params.environment,
+      undefined,
+      pagination,
+      filters,
+    );
+  }
+
+  @Get(':environment/company/:companyId')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.AP_VIEW_ASSIGNED_API_ENDPOINTS)
+  viewCompanyApis(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('companyId') companyId: string,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query('filter') filters: any,
+  ) {
+    return this.collectionsService.getCollectionsAssignedToCompany(
+      ctx,
+      params.environment,
+      companyId,
+      pagination,
+      filters,
+    );
   }
 }

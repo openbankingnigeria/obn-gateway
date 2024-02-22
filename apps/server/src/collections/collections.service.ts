@@ -11,10 +11,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import {
   CreateCollectionDto,
   GetCollectionResponseDTO,
+  GetCompanyCollectionResponseDTO,
   UpdateCollectionDto,
 } from './dto/index.dto';
 import slugify from 'slugify';
@@ -26,6 +27,9 @@ import { CollectionRoute } from '@common/database/entities/collectionroute.entit
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { RequestContext } from '@common/utils/request/request-context';
 import { GetAPIResponseDTO } from 'src/apis/dto/index.dto';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { Company } from '@common/database/entities';
+import { companyErrors } from '@company/company.errors';
 
 @Injectable()
 export class CollectionsService {
@@ -34,6 +38,8 @@ export class CollectionsService {
     private readonly collectionRepository: Repository<Collection>,
     @InjectRepository(CollectionRoute)
     private readonly routeRepository: Repository<CollectionRoute>,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
     private readonly kongService: KongServiceService,
     private readonly kongRouteService: KongRouteService,
   ) {}
@@ -178,6 +184,86 @@ export class CollectionsService {
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.deletedCollection,
+    );
+  }
+
+  async getCollectionsAssignedToCompany(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    companyId?: string,
+    pagination?: PaginationParameters,
+    filters?: any,
+  ) {
+    const { limit, page } = pagination!;
+
+    const company = await this.companyRepository.findOne({
+      where: { id: companyId ?? ctx.activeCompany.id },
+    });
+
+    if (!company) {
+      throw new IBadRequestException({
+        message: companyErrors.companyNotFound(
+          companyId ?? ctx.activeCompany.id,
+        ),
+      });
+    }
+
+    const [collections, totalNumberOfRecords] = await Promise.all([
+      await this.collectionRepository
+        .createQueryBuilder('collection')
+        .leftJoinAndSelect('collection.apis', 'route')
+        .leftJoin('route.acls', 'acl')
+        .where(
+          environment === KONG_ENVIRONMENT.PRODUCTION
+            ? 'acl.companyId = :companyId AND acl.environment = :environment'
+            : '',
+          { companyId: company.id, environment },
+        )
+        .andWhere(
+          `collection.name LIKE '%${
+            filters?.name ?? ''
+          }%' AND collection.slug LIKE '%${filters?.slug ?? ''}%'`,
+        )
+        .orderBy('collection.name')
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .select([
+          'collection.id AS id',
+          'collection.name AS name',
+          'collection.description AS description',
+          'COUNT(route.id) AS routeCount',
+        ])
+        .groupBy('collection.id')
+        .addGroupBy('collection.name')
+        .getRawMany(),
+      await this.collectionRepository.count({
+        where: {
+          name: Like(`%${filters?.name ?? ''}%`),
+          slug: Like(`%${filters?.slug ?? ''}%`),
+          apis: {
+            acls:
+              environment === KONG_ENVIRONMENT.DEVELOPMENT
+                ? {}
+                : {
+                    companyId: company.id,
+                    environment,
+                  },
+          },
+        },
+      }),
+    ]);
+
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.fetchedCollection,
+      collections.map(
+        (collection) => new GetCompanyCollectionResponseDTO(collection),
+      ),
+      new ResponseMetaDTO({
+        totalNumberOfRecords,
+        totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
     );
   }
 }
