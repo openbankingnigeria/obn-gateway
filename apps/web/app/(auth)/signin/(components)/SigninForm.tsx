@@ -9,6 +9,7 @@ import { postSignIn } from '@/actions/authActions';
 import { useServerAction } from '@/hooks';
 import { redirect } from 'next/navigation';
 import { setStorage } from '@/config/webStorage';
+import { toast } from 'react-toastify';
 
 const SigninForm = () => {
   const [email, setEmail] = useState(''); 
@@ -19,7 +20,10 @@ const SigninForm = () => {
     !password
   )
 
-  const initialState = {}
+  const initialState = { 
+    // message: 'Invalid email and password' 
+  }
+  
   const [state, formAction] = useServerAction(postSignIn, initialState);
   if (state?.response?.status == 412) {
     setStorage('el', email, 'session');

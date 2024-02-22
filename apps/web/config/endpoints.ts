@@ -1,4 +1,4 @@
-import { GetEnvironmentProps, GetListProps, GetSingleEnvironmentProps, GetSingleProps, GetTypeProps, PostTokenProps, 
+import { DateFilterProps, GetEnvironmentProps, GetListProps, GetSingleEnvironmentProps, GetSingleProps, GetTypeProps, PostTokenProps, 
 } from "@/types/endpointTypes";
 
 const BASE_URL = 'http://3.134.253.153:4000';
@@ -114,10 +114,14 @@ export const getCompanyTypes = () => `${BASE_URL}/company/types`;
 export const getCompanyRequiredFields = ({ type }: GetTypeProps) => 
   `${BASE_URL}/company/${type}/fields`
 export const getCompanyDetails = () => `${BASE_URL}/company/me`;
-export const getCompanyStats = () => 
-  `${BASE_URL}/companies/stats`
-export const getCompanyKybStats = () => 
-  `${BASE_URL}/companies/stats/kyb`
+export const getCompanyStats = ({ createdAt_gt, createdAt_l }: DateFilterProps) => 
+  `${BASE_URL}/companies/stats${createdAt_gt ? `?filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}`
+export const getCompanyKybStats = ({ createdAt_gt, createdAt_l }: DateFilterProps) => 
+  `${BASE_URL}/companies/stats/kyb${createdAt_gt ? `?filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}`
+export const getCompanyStat = () => 
+  `${BASE_URL}/companies/stats`;
+export const getCompanyKybStat = () => 
+  `${BASE_URL}/companies/stats/kyb`;
 
 
 // SETTINGS

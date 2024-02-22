@@ -34,14 +34,14 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
   
   const fetchedStats: any = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getCompanyStats(),
+    apiEndpoint: API.getCompanyStat(),
     method: 'GET',
     data: null
   });
 
   const fetchedKybStats: any = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getCompanyKybStats(),
+    apiEndpoint: API.getCompanyKybStat(),
     method: 'GET',
     data: null
   });

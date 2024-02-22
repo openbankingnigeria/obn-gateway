@@ -9,21 +9,28 @@ import Logout from '@/components/globalComponents/Logout'
 import { applyAxiosRequest } from '@/hooks'
 import { StatDataProps } from '@/types/dataTypes'
 import { getCookies } from '@/config/cookies'
+import moment from 'moment'
 
 const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsProps) => {
-  const dateFilter = date_filter;
+  const dateFilter = date_filter ? JSON.parse(date_filter) : {};
   const environment = getCookies('environment');
 
   const fetchedConsumerStat : any = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getCompanyStats(),
+    apiEndpoint: API.getCompanyStats({
+      createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
+      createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+    }),
     method: 'GET',
     data: null
   })
 
   const fetchedKybStats: any = await applyAxiosRequest({
     headers: {},
-    apiEndpoint: API.getCompanyKybStats(),
+    apiEndpoint: API.getCompanyKybStats({
+      createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
+      createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+    }),
     method: 'GET',
     data: null
   });
@@ -33,22 +40,24 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsP
     apiEndpoint: API.getAPILogStats({
       page: '1',
       limit: '1000',
-      environment: environment || 'development'
+      environment: environment || 'development',
+      createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
+      createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
     }),
     method: 'GET',
     data: null
   })
 
-  const fetchedAggregate : any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getAPILogStatsAggregate({
-      page: '1',
-      limit: '1000',
-      environment: environment || 'development'
-    }),
-    method: 'GET',
-    data: null
-  })
+  // const fetchedAggregate : any = await applyAxiosRequest({
+  //   headers: {},
+  //   apiEndpoint: API.getAPILogStatsAggregate({
+  //     page: '1',
+  //     limit: '1000',
+  //     environment: environment || 'development'
+  //   }),
+  //   method: 'GET',
+  //   data: null
+  // })
 
   if (fetchedConsumerStat?.status == 401) {
     return <Logout />
@@ -57,9 +66,9 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsP
   let consumerStats = fetchedConsumerStat?.data || []
   let apiCalls = fetchedReport?.data
   let kybStats = fetchedKybStats?.data || [];
-  let aggregate = fetchedAggregate?.data;
+  // let aggregate = fetchedAggregate?.data;
 
-  console.log(aggregate);
+  // console.log(aggregate);
 
   const totalConsumer = consumerStats?.reduce((acc: any, obj: any) => acc + Number(obj.count), 0)
   const consumerSanitizedStats = [...consumerStats, ...kybStats]
@@ -84,7 +93,7 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsP
       <DatePicker 
         showShortcuts={true}
         name='date_filter'
-        dateFilter={dateFilter}
+        dateFilter={date_filter}
       />
 
       <section className='w-full flex-col flex gap-[12px]'>

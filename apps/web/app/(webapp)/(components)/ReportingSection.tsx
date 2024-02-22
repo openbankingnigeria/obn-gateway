@@ -15,7 +15,7 @@ import { getJsCookies } from '@/config/jsCookie';
 const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [from, setFrom] = useState<string | undefined>('');
   const [to, setTo] = useState<string | undefined>('');
-  const [consumers, setConsumers] = useState<string[]>([]);
+  const [consumers, setConsumers] = useState<string>('');
   const [collection, setCollection] = useState('');
   const [api, setApi] = useState('');
   const [loading, setLoading] = useState(false);
@@ -83,9 +83,29 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
     setApis(result?.data);
   }
 
+  const fetchReports = async () => {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getAPILogStats({
+        page: '1',
+        limit: '10000',
+        environment: environment || 'development', 
+        companyId: apiConsumer ? alt_data?.id : consumers,
+        apiId: api,
+        createdAt_gt: from ? moment(from).startOf('day').format()?.split('+')[0] + '.000Z' : '',
+        createdAt_l: to ? moment(to).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+      }),
+      method: 'GET',
+      data: null,
+      noToast: true
+    })
+    setLogStats(result?.data);
+  }
+
   useEffect(() => {
     if (apiConsumer) {
       fetchAPIs();
+      fetchReports();
     } else {
       fetchConsumers();
       fetchCollections();
@@ -123,7 +143,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
     setApi('')
     setFrom(undefined)
     setTo(undefined)
-    setConsumers([])
+    setConsumers('')
     setApi('');
     setCollection('');
   };

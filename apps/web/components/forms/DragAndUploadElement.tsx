@@ -7,6 +7,7 @@ import React from 'react'
 const DragAndUploadElement = ({
   required,
   label,
+  disabled,
   name,
   changeValue,
   file,
@@ -31,6 +32,7 @@ const DragAndUploadElement = ({
         name={name}
         selectedFile={value}
         file={file}
+        disabled={disabled}
         setSelectedFile={changeValue}
       />
     </section>

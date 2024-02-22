@@ -44,6 +44,14 @@ const BusinessInformationPage = () => {
     setBusinessDetails(result?.data);
   }
 
+  const allowEdit = (
+    cac != (businessDetails?.rcNumber) ||
+    tin != businessDetails?.kybData?.taxIdentificationNumber ||
+    regulator_license != businessDetails?.kybData?.registryLicense?.fileName ||
+    certificate_of_incorporation != businessDetails?.kybData?.certificateOfIncorporation?.fileName ||
+    company_status_report != businessDetails?.kybData?.companyStatusReport?.fileName
+  );
+
   useEffect(() => {
     fetchDetails();
   }, []);
@@ -113,6 +121,7 @@ const BusinessInformationPage = () => {
     }
   }
 
+  console.log(businessDetails);
 
   return (
     <form
@@ -130,19 +139,31 @@ const BusinessInformationPage = () => {
         </div>
 
         {
-          (!businessDetails?.isVerified && !businessDetails?.kybData?.taxIdentificationNumber) ?
-            <Button 
-              title='Submit'
-              type='submit'
-              loading={loading}
-              containerStyle='!w-[120px]'
-              disabled={incorrect || loading}
-              small
-            />
-            :
-            (!businessDetails?.isVerified && businessDetails?.kybData?.taxIdentificationNumber) ?
-              <StatusBox status='submitted' />
-              : null
+          (!businessDetails?.isVerified) &&
+            <div className='w-fit flex gap-5 items-end'>
+              {
+                businessDetails?.kybStatus == 'pending' &&
+                <StatusBox status='submitted' />
+              }
+              <Button 
+                title={
+                  (businessDetails?.kybStatus == 'pending' || 
+                  businessDetails?.kybStatus == 'denied') ? 
+                  'Update' : 
+                  'Submit'
+                }
+                type='submit'
+                loading={loading}
+                containerStyle='!w-[120px]'
+                disabled={
+                  (businessDetails?.kybStatus == 'pending' || 
+                  businessDetails?.kybStatus == 'denied') ?
+                  (incorrect || loading || !allowEdit) :
+                  (incorrect || loading)
+                }
+                small
+              />
+            </div>
         }
       </div>
 
@@ -172,6 +193,7 @@ const BusinessInformationPage = () => {
                     <DragAndUploadElement 
                       required={true}
                       name={data?.name}
+                      disabled={businessDetails?.kybStatus == 'approved'}
                       changeValue={
                         data?.name == 'regulator_license' ? 
                           setRegulatorLicense :
@@ -190,7 +212,7 @@ const BusinessInformationPage = () => {
                       type={data?.type}
                       placeholder={data?.placeholder}
                       value={data?.value}
-                      disabled={businessDetails?.kybData?.taxIdentificationNumber}
+                      disabled={businessDetails?.kybStatus == 'approved'}
                       changeEvent={(e: ChangeEvent<HTMLInputElement>) => {
                         data?.name == 'cac' ? 
                           handleCac(e.target.value) :
