@@ -119,7 +119,7 @@ export async function postVerifyEmail(prevState: any, formData: FormData) {
     email: formData.get('email'),
   };
 
-  console.log(fullData)
+  // console.log(fullData)
   
   let response = await axiosRequest({
     apiEndpoint: API.postVerfiyEmail(),

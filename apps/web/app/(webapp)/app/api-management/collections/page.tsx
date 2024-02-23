@@ -27,35 +27,46 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   let profile = fetchedProfile?.data;
   const userType = profile?.user?.role?.parent?.slug;
 
-  const fetchedCollections: any = await applyAxiosRequest({
+  const fetchedCollections: any = userType == 'api-consumer' &&
+  await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCollections(),
     method: 'GET',
     data: null
   })
 
-  const fetchedAPIs: any = userType == 'api-consumer' ?
-    await applyAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getAPIsForCompany({ 
-        environment: environment || 'development' 
-      }),
-      method: 'GET',
-      data: null
-    })
-    :
-    null;
+  const fetchedConsumerCollections: any = userType == 'api-consumer' &&
+  await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API?.getCompanyCollections({
+      environment: environment || 'development'
+    }),
+    method: 'GET',
+    data: null
+  })
+
+  // const fetchedAPIs: any = userType == 'api-consumer' ?
+  //   await applyAxiosRequest({
+  //     headers: {},
+  //     apiEndpoint: API.getAPIsForCompany({ 
+  //       environment: environment || 'development' 
+  //     }),
+  //     method: 'GET',
+  //     data: null
+  //   })
+  //   :
+  //   null;
 
   if (fetchedCollections?.status == 401) {
     return <Logout />
   }
 
   let meta_data = fetchedCollections?.meta_data;
-  let apis = fetchedAPIs?.data;
-  let apisId = apis?.map((item: any) => item?.collectionId);
+  // let apis = fetchedAPIs?.data;
+  // let apisId = apis?.map((item: any) => item?.collectionId);
   let collection_list = userType == 'api-consumer' ? 
-    fetchedCollections?.data.filter((collection: any) => apisId.includes(collection?.id) && collection?.name.includes(search_query)) : 
-    fetchedCollections?.data?.filter((collection: any) => collection?.name.includes(search_query));
+    fetchedConsumerCollections?.data?.filter((collection: any) => collection?.name?.toLowerCase().includes(search_query?.toLowerCase())) : 
+    fetchedCollections?.data?.filter((collection: any) => collection?.name?.toLowerCase().includes(search_query?.toLowerCase()));
 
   const collections = collection_list?.map((collection: any) => {
     return ({

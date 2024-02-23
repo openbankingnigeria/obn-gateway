@@ -7,6 +7,7 @@ import React from 'react'
 const ConsumerBusinessDetails = ({
   rawData
 }: ConsumerBusinessDetailsProps) => {
+  // console.log(rawData);
   
   return (
     <section className='w-full'>
@@ -16,7 +17,6 @@ const ConsumerBusinessDetails = ({
               Business information
             </div>
           </h3>
-
           <div className='w-full p-[20px] grid grid-cols-2 ms:grid-cols-3 lgg:grid-cols-4 gap-[16px] bg-white'>
             <ViewData 
               label='CAC Number'

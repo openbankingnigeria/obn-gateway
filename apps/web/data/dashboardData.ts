@@ -1,15 +1,18 @@
-import { APICallsProps, ReportingDataProps, UsersStatProps } from "@/types/dataTypes";
+import { APICallsProps, APICollectionStatsProps, ReportingDataProps, UsersStatProps } from "@/types/dataTypes";
 
-export const API_COLLECTIONS_STATS = [
+export const API_COLLECTIONS_STATS = ({
+  collections,
+  apis
+}: APICollectionStatsProps) => [
   {
     id: 1,
     title: 'COLLECTIONS',
-    amount: 0
+    amount: collections?.count
   },
   {
     id: 2,
     title: 'APIs',
-    amount: 0
+    amount: apis?.count
   },
 ];
 
