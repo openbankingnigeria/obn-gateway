@@ -13,16 +13,25 @@ import { getCookies } from '@/config/cookies';
 const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParamsProps) => {
   const environment = getCookies('environment');
 
-  // const fetchedCollections : any = await applyAxiosRequest({
-  //   headers: {},
-  //   apiEndpoint: API.getAPIsForCompany({
-  //     environment: environment || 'development'
-  //   }),
-  //   method: 'GET',
-  //   data: null
-  // });
+  const fetchedAPIs: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getAPIsForCompany({
+      environment: environment || 'development'
+    }),
+    method: 'GET',
+    data: null
+  });
 
-  const fetchedTeamStat : any = await applyAxiosRequest({
+  const fetchedCollections: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API?.getCompanyCollections({
+      environment: environment || 'development'
+    }),
+    method: 'GET',
+    data: null
+  })
+
+  const fetchedTeamStat: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getTeamStats(),
     method: 'GET',
@@ -33,11 +42,11 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
     return <Logout />
   }
 
-  // let apis = fetchedCollections;
-  // let apisMeta = fetchedCollections?.meta;
+  let collectionMeta = fetchedCollections?.meta_data;
+  let  apisMeta = fetchedAPIs?.meta_data;
   let team = fetchedTeamStat?.data
 
-  // console.log(apis);
+  // console.log(collectionMeta,apisMeta );
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
@@ -83,7 +92,10 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
 
         <div className='w-full flex flex-wrap gap-[20px]'>
           {
-            API_COLLECTIONS_STATS?.map(data => (
+            API_COLLECTIONS_STATS({
+              collections: { value: 'collections', count: collectionMeta?.totalNumberOfRecords },
+              apis: { value: 'apis', count: apisMeta?.totalNumberOfRecords }
+            })?.map(data => (
               <DashboardMetricCard 
                 key={data?.id}
                 title={data?.title}

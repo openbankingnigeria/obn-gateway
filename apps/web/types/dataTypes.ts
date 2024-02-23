@@ -113,6 +113,11 @@ export interface UsersStatProps {
   pending: StatDataProps;
 }
 
+export interface APICollectionStatsProps {
+  collections: StatDataProps;
+  apis: StatDataProps;
+}
+
 export interface APICallsProps {
   success: any;
   total: any;

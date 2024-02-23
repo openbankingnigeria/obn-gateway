@@ -114,14 +114,14 @@ const BusinessInformationPage = () => {
       data: formData
     })
 
-    console.log(result?.status == 200)
+    // console.log(result?.status == 200)
     setLoading(false);
     if (result?.status == 200) {
       router?.refresh();
     }
   }
 
-  console.log(businessDetails);
+  // console.log(businessDetails);
 
   return (
     <form

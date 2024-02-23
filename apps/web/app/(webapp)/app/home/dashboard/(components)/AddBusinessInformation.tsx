@@ -70,7 +70,7 @@ const AddBusinessInformation = ({
       data: formData
     })
 
-    console.log(result?.status == 200)
+    // console.log(result?.status == 200)
     setLoading(false);
     if (result?.status == 200) {
       next();
