@@ -5,7 +5,8 @@ import { ConfigService } from '@nestjs/config';
 export class FileHelpers {
   constructor(private readonly config: ConfigService) {}
 
-  validateFileSize(files: Express.Multer.File[]) {
+  validateFile(files: Express.Multer.File[]) {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
     const fileSizes: number[] = [];
     const maxFileSize = this.config.get('uploads.maxFileUploadSize') as number;
 
@@ -13,10 +14,20 @@ export class FileHelpers {
       fileSizes.push(file.size);
     });
 
+    const response = {
+      isSizeValid: true,
+      isFileTypeValid: true,
+      maxFileSize,
+    };
+
     if (fileSizes.some((size) => size > maxFileSize)) {
-      return { isValid: false, maxFileSize };
+      response.isSizeValid = false;
     }
 
-    return { isValid: true, maxFileSize };
+    if (files.some((file) => !allowedMimeTypes.includes(file.mimetype))) {
+      response.isFileTypeValid = false;
+    }
+
+    return response;
   }
 }
