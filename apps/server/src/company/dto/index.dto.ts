@@ -23,9 +23,7 @@ export enum KybStatusActions {
 }
 
 export class UpdateCompanyDetailsDto {
-  @IsNotEmpty({
-    message: ({ property }) => companyValidationErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsAlphanumeric('en-US', {
     message: ({ property }) =>
       companyValidationErrors.dto.typeMismatch(

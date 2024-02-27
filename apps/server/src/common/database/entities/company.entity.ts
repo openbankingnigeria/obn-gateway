@@ -13,6 +13,7 @@ import { User } from './user.entity';
 import { AuditLog } from './auditlog.entity';
 import { CompanyTypes } from '../constants';
 import { ConsumerAcl } from './consumeracl.entity';
+import { CompanyKybData } from './company-kyb.entity';
 
 export enum KybStatuses {
   APPROVED = 'approved',
@@ -49,8 +50,12 @@ export class Company {
   })
   status?: CompanyStatuses;
 
-  @Column('longblob', { name: 'kyb_data', nullable: true })
-  kybData?: string;
+  @OneToOne(() => CompanyKybData)
+  @JoinColumn({ name: 'kyb_data_id' })
+  kybData?: CompanyKybData;
+
+  @Column({ name: 'kyb_data_id', nullable: true })
+  kybDataId?: string;
 
   @Column('enum', { enum: CompanyTypes })
   type: CompanyTypes;
