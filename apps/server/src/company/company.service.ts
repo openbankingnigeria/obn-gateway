@@ -246,12 +246,8 @@ export class CompanyService {
           const fileMap = new Map();
 
           fileMap.set('fileName', fileObject.fileName);
-          fileMap.set(
-            'file',
-            `data:${fileObject.fileMimeType};base64,${Buffer.from(
-              fileObject.file,
-            ).toString('base64')}`,
-          );
+          fileMap.set('fileMimeType', fileObject.fileMimeType);
+          fileMap.set('file', Buffer.from(fileObject.file).toString('base64'));
           kybDetails[key] = fileMap;
         }
       }

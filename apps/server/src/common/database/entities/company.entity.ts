@@ -50,7 +50,7 @@ export class Company {
   })
   status?: CompanyStatuses;
 
-  @OneToOne(() => CompanyKybData, (kybData) => kybData.company)
+  @OneToOne(() => CompanyKybData)
   @JoinColumn({ name: 'kyb_data_id' })
   kybData?: CompanyKybData;
 
