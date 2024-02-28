@@ -326,13 +326,13 @@ export class CompanyService {
     let tier: CompanyTiers;
 
     if (firstFour > 75000) {
-      tier = CompanyTiers.TIER_4;
-    } else if (firstFour > 50000) {
       tier = CompanyTiers.TIER_3;
-    } else if (firstFour > 25000) {
+    } else if (firstFour > 50000) {
       tier = CompanyTiers.TIER_2;
-    } else {
+    } else if (firstFour > 25000) {
       tier = CompanyTiers.TIER_1;
+    } else {
+      tier = CompanyTiers.TIER_0;
     }
 
     return {
@@ -379,6 +379,7 @@ export class CompanyService {
     } = { name: company.name };
 
     if (company.rcNumber && company.type === CompanyTypes.LICENSED_ENTITY) {
+      // create tier in ACL for consumer
       businessDetails = this.verifyCompanyRC(company.rcNumber, company.name);
     }
 

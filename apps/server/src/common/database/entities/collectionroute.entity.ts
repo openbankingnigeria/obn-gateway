@@ -5,12 +5,10 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Collection } from './collection.entity';
-import { ConsumerAcl } from './consumeracl.entity';
 import { HTTP_METHODS } from 'src/apis/types';
 
 @Entity({ name: 'api_collection_service_routes' })
@@ -66,11 +64,8 @@ export class CollectionRoute {
   @Column({ name: 'route_id', type: 'varchar', nullable: true })
   routeId: string | null;
 
-  @OneToMany(() => ConsumerAcl, (consumerAcl) => consumerAcl.route)
-  acls: ConsumerAcl[];
-
-  @Column({ name: 'acl_allowed_group_name', type: 'varchar', nullable: true })
-  aclAllowedGroupName: string;
+  @Column({ type: 'json', nullable: true })
+  tiers: (number | `${number}`)[] | null;
 
   @Column({
     type: 'boolean',

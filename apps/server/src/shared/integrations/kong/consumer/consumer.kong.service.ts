@@ -9,6 +9,7 @@ import {
   CreateConsumerKeyResponse,
   CreateConsumerRequest,
   CreateConsumerResponse,
+  ListAclsResponse,
   ListConsumerKeysResponse,
   ListPluginsRequest,
   UpdateConsumerAclResponse,
@@ -59,6 +60,30 @@ export class KongConsumerService {
         )
         .pipe(
           catchError((error: AxiosError) => {
+            this.logger.error(error.response?.data || error);
+            throw new IInternalServerErrorException({});
+          }),
+        ),
+    );
+    return response.data;
+  }
+
+  async getConsumerAcls(
+    environment: KONG_ENVIRONMENT,
+    consumerId: string,
+    offset?: string,
+  ) {
+    const response = await firstValueFrom(
+      this.httpService
+        .get<ListAclsResponse>(
+          `${
+            this.config.get('kong.adminEndpoint')[environment]
+          }/consumers/${consumerId}/acls`,
+          { params: { offset } },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.log({ error: error.response?.data });
             this.logger.error(error.response?.data || error);
             throw new IInternalServerErrorException({});
           }),

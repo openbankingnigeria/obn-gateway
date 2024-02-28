@@ -162,13 +162,14 @@ export class AuthService {
           }
         }
 
+        // create in ACL for tier 0
         if (apiConsumerRole) {
           const companyCreated = await this.companyRepository.save({
             name: businessName,
             type: companyType,
             subtype: companySubtype,
             rcNumber,
-            tier: CompanyTiers.TIER_1,
+            tier: CompanyTiers.TIER_0,
           });
 
           const otp = generateOtp(6);
@@ -222,7 +223,7 @@ export class AuthService {
           const companyCreated = await this.companyRepository.save({
             name: `${firstName} ${lastName}`,
             type: companyType,
-            tier: CompanyTiers.TIER_1,
+            tier: CompanyTiers.TIER_0,
           });
 
           const otp = generateOtp(6);
@@ -435,7 +436,10 @@ export class AuthService {
 
     const isFirstLogin = !user.lastLogin;
 
-    const accessToken = await this.auth.sign({ id: user.id });
+    const accessToken = await this.auth.sign({
+      id: user.id,
+      count: 0,
+    });
 
     const verifyToken = await this.auth.verify<{ iat: number }>(accessToken);
 
@@ -447,6 +451,47 @@ export class AuthService {
 
     return ResponseFormatter.success(
       authSuccessMessages.login(isFirstLogin),
+      accessToken,
+    );
+  }
+
+  async refreshToken(token: string) {
+    let decoded: { id: string; count: number; iat: number };
+    const refreshTokenLimit = 96;
+    try {
+      decoded = await this.auth.verify(token);
+    } catch (err) {
+      throw new IBadRequestException({
+        message: authErrors.invalidCredentials,
+        _meta: err,
+      });
+    }
+
+    if (decoded.count >= refreshTokenLimit) {
+      throw new IBadRequestException({
+        message: authErrors.invalidCredentials,
+      });
+    }
+
+    const accessToken = await this.auth.sign({
+      ...decoded,
+      count: decoded.count + 1,
+    });
+
+    const verifyToken = await this.auth.verify<{ iat: number }>(accessToken);
+
+    const user = await this.userRepository.findOneBy({ id: decoded.id });
+    if (!user) {
+      throw new IBadRequestException({
+        message: authErrors.invalidCredentials,
+      });
+    }
+
+    user.lastLogin = moment(verifyToken.iat * 1000).toDate();
+    await this.userRepository.save(user);
+
+    return ResponseFormatter.success(
+      authSuccessMessages.login(false),
       accessToken,
     );
   }

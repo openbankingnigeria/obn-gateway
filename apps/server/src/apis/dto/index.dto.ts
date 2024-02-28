@@ -26,6 +26,7 @@ import {
   IsNumberOrArrayOfNumbers,
   IsStringOrArrayOfStrings,
 } from '@common/utils/request/request.decorator';
+import { CompanyTiers } from '@company/types';
 
 class CreateAPIDownstreamDTO {
   @IsString()
@@ -105,6 +106,11 @@ export class CreateAPIDto {
   @ValidateNested()
   @Type(() => CreateAPIDownstreamDTO)
   downstream: CreateAPIDownstreamDTO;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsEnum(CompanyTiers, { each: true })
+  tiers: (number | `${number}`)[];
 }
 
 class UpdateAPIDownstreamDTO {
@@ -186,6 +192,11 @@ export class UpdateAPIDto {
   @ValidateNested()
   @Type(() => UpdateAPIDownstreamDTO)
   downstream: UpdateAPIDownstreamDTO;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsEnum(CompanyTiers, { each: true })
+  tiers: (number | `${number}`)[];
 }
 
 export class APIParam {
@@ -273,6 +284,9 @@ export class GetAPIResponseDTO {
 
   @Expose()
   collectionId: string;
+
+  @Expose()
+  tiers: (number | `${number}`)[];
 
   @Expose()
   @IsObject()

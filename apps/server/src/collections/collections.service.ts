@@ -11,7 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { Like, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   CreateCollectionDto,
   GetCollectionResponseDTO,
@@ -30,6 +30,7 @@ import { GetAPIResponseDTO } from 'src/apis/dto/index.dto';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { Company } from '@common/database/entities';
 import { companyErrors } from '@company/company.errors';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 
 @Injectable()
 export class CollectionsService {
@@ -42,6 +43,7 @@ export class CollectionsService {
     private readonly companyRepository: Repository<Company>,
     private readonly kongService: KongServiceService,
     private readonly kongRouteService: KongRouteService,
+    private readonly kongConsumerService: KongConsumerService,
   ) {}
 
   async listCollections(
@@ -63,7 +65,13 @@ export class CollectionsService {
       collectionsSuccessMessages.fetchedCollections,
       collections.map((collection) => {
         const dto = new GetCollectionResponseDTO(collection);
-        dto.apis = collection.apis!.map((api) => new GetAPIResponseDTO(api));
+        dto.apis = collection.apis!.map(
+          (api) =>
+            new GetAPIResponseDTO({
+              ...api,
+              tiers: api.tiers || [],
+            }),
+        );
         return dto;
       }),
       new ResponseMetaDTO({
@@ -208,49 +216,70 @@ export class CollectionsService {
       });
     }
 
+    let offset;
+    const tiers = [],
+      routes = [];
+    if (environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
+      const consumerId = company.consumerId || company.id;
+      do {
+        const response = await this.kongConsumerService.getConsumerAcls(
+          environment,
+          consumerId,
+          offset,
+        );
+        offset = response.offset;
+        for (const item of response.data) {
+          const [type, ...values] = item.group.split('-');
+          const value = values.join('-');
+          if (type === 'tier') {
+            tiers.push(value);
+          } else if (type === 'route') {
+            routes.push(value);
+          }
+        }
+      } while (offset);
+    }
+
+    const query = this.collectionRepository
+      .createQueryBuilder('collection')
+      .leftJoinAndSelect('collection.apis', 'route')
+      .where('route.environment = :environment', {
+        environment,
+      })
+      // TODO pass as parameter
+      .andWhere(
+        `collection.name LIKE '%${
+          filters?.name ?? ''
+        }%' AND collection.slug LIKE '%${filters?.slug ?? ''}%'`,
+      )
+      .orderBy('collection.name')
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .select([
+        'collection.id AS id',
+        'collection.name AS name',
+        'collection.description AS description',
+        'COUNT(route.id) AS routeCount',
+      ])
+      .groupBy('collection.id')
+      .addGroupBy('collection.name');
+
+    if (routes.length || tiers.length) {
+      if (routes.length && tiers.length) {
+        query.andWhere('route.id IN (:routes) OR route.tiers IN (:tiers)', {
+          routes,
+          tiers,
+        });
+      } else if (routes.length) {
+        query.andWhere('route.id IN (:routes)', { routes });
+      } else if (tiers.length) {
+        query.andWhere('route.tiers IN (:tiers)', { tiers });
+      }
+    }
+
     const [collections, totalNumberOfRecords] = await Promise.all([
-      await this.collectionRepository
-        .createQueryBuilder('collection')
-        .leftJoinAndSelect('collection.apis', 'route')
-        .leftJoin('route.acls', 'acl')
-        .where(
-          environment === KONG_ENVIRONMENT.PRODUCTION
-            ? 'acl.companyId = :companyId AND acl.environment = :environment'
-            : '',
-          { companyId: company.id, environment },
-        )
-        .andWhere(
-          `collection.name LIKE '%${
-            filters?.name ?? ''
-          }%' AND collection.slug LIKE '%${filters?.slug ?? ''}%'`,
-        )
-        .orderBy('collection.name')
-        .offset((page - 1) * limit)
-        .limit(limit)
-        .select([
-          'collection.id AS id',
-          'collection.name AS name',
-          'collection.description AS description',
-          'COUNT(route.id) AS routeCount',
-        ])
-        .groupBy('collection.id')
-        .addGroupBy('collection.name')
-        .getRawMany(),
-      await this.collectionRepository.count({
-        where: {
-          name: Like(`%${filters?.name ?? ''}%`),
-          slug: Like(`%${filters?.slug ?? ''}%`),
-          apis: {
-            acls:
-              environment === KONG_ENVIRONMENT.DEVELOPMENT
-                ? {}
-                : {
-                    companyId: company.id,
-                    environment,
-                  },
-          },
-        },
-      }),
+      await query.getRawMany(),
+      await query.getCount(),
     ]);
 
     return ResponseFormatter.success(

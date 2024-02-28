@@ -10,10 +10,16 @@ import {
   CollectionRoute,
   Company,
 } from '@common/database/entities';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 
 @Module({
   controllers: [CollectionsController],
-  providers: [CollectionsService, KongServiceService, KongRouteService],
+  providers: [
+    CollectionsService,
+    KongServiceService,
+    KongRouteService,
+    KongConsumerService,
+  ],
   imports: [
     TypeOrmModule.forFeature([Collection, CollectionRoute, Company]),
     HttpModule,

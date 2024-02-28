@@ -12,7 +12,6 @@ import {
 import { User } from './user.entity';
 import { AuditLog } from './auditlog.entity';
 import { CompanyTypes } from '../constants';
-import { ConsumerAcl } from './consumeracl.entity';
 
 export enum KybStatuses {
   APPROVED = 'approved',
@@ -28,7 +27,7 @@ export enum CompanyStatuses {
 @Entity({ name: 'companies' })
 export class Company {
   @PrimaryGeneratedColumn('uuid')
-  id?: string;
+  id: string;
 
   @Column()
   name?: string;
@@ -60,9 +59,6 @@ export class Company {
 
   @Column({ nullable: true })
   tier?: string;
-
-  @OneToMany(() => ConsumerAcl, (consumerAcl) => consumerAcl.company)
-  acls: ConsumerAcl[];
 
   @OneToMany(() => User, (user) => user.company)
   users?: User[];

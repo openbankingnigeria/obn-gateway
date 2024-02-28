@@ -1,4 +1,4 @@
-import { HTTP_METHODS } from "src/apis/types";
+import { HTTP_METHODS } from 'src/apis/types';
 
 export interface ListRequest {
   size?: number;

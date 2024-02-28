@@ -12,7 +12,6 @@ import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Company, User } from '@common/database/entities';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
-import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
 
 @Module({
   controllers: [APIController],
@@ -23,13 +22,7 @@ import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
     KongRouteService,
   ],
   imports: [
-    TypeOrmModule.forFeature([
-      Collection,
-      CollectionRoute,
-      Company,
-      ConsumerAcl,
-      User,
-    ]),
+    TypeOrmModule.forFeature([Collection, CollectionRoute, Company, User]),
     HttpModule,
     ElasticsearchModule.registerAsync({
       imports: [ConfigModule],

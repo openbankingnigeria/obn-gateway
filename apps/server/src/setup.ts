@@ -14,6 +14,7 @@ import { IsNull, Not } from 'typeorm';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
 import { ConfigService } from '@nestjs/config';
+import { CompanyTiers } from '@company/types';
 
 function processItem(
   item: any,
@@ -263,6 +264,7 @@ export class SetupService {
                   request,
                   response,
                 },
+                tiers: [CompanyTiers.TIER_3],
               }),
             );
             await apiService.setTransformation(

@@ -14,6 +14,13 @@ export interface UpdateConsumerAclResponse {
   created_at: number;
 }
 
+export interface Acl {
+  group: string;
+  created_at: number;
+  id: string;
+  consumer?: { id: string };
+}
+
 export interface ConsumerKey {
   key: string;
   created_at: number;
@@ -55,9 +62,11 @@ export interface ListRequest {
 export interface ListResponse<T> {
   data: T[];
   next: string;
+  offset: string;
 }
 
 export interface ListPluginsRequest extends Omit<ListRequest, 'tags'> {}
 
 export interface ListConsumersResponse extends ListResponse<Consumer> {}
 export interface ListConsumerKeysResponse extends ListResponse<ConsumerKey> {}
+export interface ListAclsResponse extends ListResponse<Acl> {}

@@ -38,12 +38,12 @@ import { v4 as uuidV4 } from 'uuid';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { Company, User } from '@common/database/entities';
 import { companyErrors } from '@company/company.errors';
-import { ConsumerAcl } from '@common/database/entities/consumeracl.entity';
 import { CompanyTypes } from '@common/database/constants';
 import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import { RequestContext } from '@common/utils/request/request-context';
 import * as moment from 'moment';
 import { ConfigService } from '@nestjs/config';
+import { Acl } from '@shared/integrations/kong/consumer/consumer.kong.interface';
 
 @Injectable()
 export class APIService {
@@ -54,8 +54,6 @@ export class APIService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(CollectionRoute)
     private readonly routeRepository: Repository<CollectionRoute>,
-    @InjectRepository(ConsumerAcl)
-    private readonly consumerAclRepository: Repository<ConsumerAcl>,
     // TODO make private
     @InjectRepository(User)
     readonly userRepository: Repository<User>,
@@ -112,6 +110,7 @@ export class APIService {
             name: route.name,
             enabled: route.enabled,
             collectionId: route.collectionId,
+            tiers: route.tiers || [],
             upstream: new GETAPIUpstreamResponseDTO(
               {
                 url: gatewayService
@@ -198,6 +197,7 @@ export class APIService {
           name: route.name,
           enabled: route.enabled,
           collectionId: route.collectionId,
+          tiers: route.tiers || [],
           upstream: new GETAPIUpstreamResponseDTO(
             {
               url: gatewayService
@@ -296,7 +296,7 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     data: CreateAPIDto,
   ) {
-    const { name, enabled, downstream, upstream } = data;
+    const { name, enabled, downstream, upstream, tiers } = data;
 
     const collection = await this.collectionRepository.findOne({
       where: { id: data.collectionId },
@@ -343,7 +343,7 @@ export class APIService {
       },
     });
 
-    const aclAllowedGroupName = uuidV4();
+    const routeId = uuidV4();
 
     // If the api provider does not already have an associated consumer on the API gateway, create a new consumer for the API provider
     const apiProviderConsumerId =
@@ -352,13 +352,13 @@ export class APIService {
 
     // Create an ACL on the route created and assign it an ACL group name
     // TODO move to an event listener
-    if (environment === KONG_ENVIRONMENT.PRODUCTION) {
+    if (environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
         {
           config: {
-            allow: [aclAllowedGroupName],
+            allow: [`route-${routeId}`, ...tiers.map((tier) => `tier-${tier}`)],
             hide_groups_header: true,
           },
           name: KONG_PLUGINS.ACL,
@@ -367,7 +367,7 @@ export class APIService {
       );
       // Update API provider consumer to allow access to this new route
       await this.kongConsumerService.updateConsumerAcl(environment, {
-        aclAllowedGroupName,
+        aclAllowedGroupName: `route-${routeId}`,
         consumerId: apiProviderConsumerId,
       });
     }
@@ -380,19 +380,20 @@ export class APIService {
 
     const createdRoute = await this.routeRepository.save(
       this.routeRepository.create({
+        id: routeId,
         name,
         environment,
         serviceId: gatewayService.id,
         routeId: gatewayRoute.id,
         collectionId: data.collectionId,
         enabled,
-        aclAllowedGroupName,
         url:
           data.downstream.url ??
           `${this.config.get('kong.gatewayEndpoint')[environment]}${cleanPath}`,
         method: downstream.method,
         request: downstream.request,
         response: downstream.response,
+        tiers,
       }),
     );
 
@@ -448,6 +449,7 @@ export class APIService {
           name: createdRoute.name,
           enabled: createdRoute.enabled,
           collectionId: createdRoute.collectionId,
+          tiers: createdRoute.tiers || [],
           upstream: new GETAPIUpstreamResponseDTO(
             {
               ...data.upstream,
@@ -466,6 +468,7 @@ export class APIService {
 
   async assignAPIs(
     apiIds: string[],
+    acls: Acl[],
     company: Company,
     environment: KONG_ENVIRONMENT,
   ) {
@@ -477,7 +480,12 @@ export class APIService {
       where: {
         id: In(
           apiIds.filter(
-            (apiId) => !company.acls.some((acl) => acl.routeId === apiId),
+            (apiId) =>
+              !acls.some((acl) => {
+                const [, ...values] = acl.group.split('-');
+                const routeId = values.join('-');
+                return routeId === apiId;
+              }),
           ), // Where the API Ids are not already part of the allowed APIs for this company
         ),
       },
@@ -485,19 +493,19 @@ export class APIService {
 
     const promises: Promise<{ aclId: string; routeId: string }>[] = [];
 
-    routes.forEach(({ aclAllowedGroupName, id }) => {
+    routes.forEach(({ id: routeId }) => {
       promises.push(
         new Promise(async (res, rej) => {
           try {
             const response = await this.kongConsumerService.updateConsumerAcl(
               environment,
               {
-                aclAllowedGroupName,
+                aclAllowedGroupName: `route-${routeId}`,
                 consumerId: consumerId!,
               },
             );
 
-            res({ aclId: response.id, routeId: id });
+            res({ aclId: response.id, routeId });
           } catch (err) {
             rej(err);
           }
@@ -514,22 +522,12 @@ export class APIService {
       }
     }
 
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        await this.consumerAclRepository.save({
-          aclId: result.value.aclId,
-          companyId: company.id,
-          routeId: result.value.routeId,
-          environment,
-        });
-      }
-    }
-
     return { success: true };
   }
 
   async unassignAPIs(
     apiIds: string[],
+    acls: Acl[],
     company: Company,
     environment: KONG_ENVIRONMENT,
   ) {
@@ -537,20 +535,17 @@ export class APIService {
 
     const promises: Promise<void>[] = [];
 
-    company.acls.forEach((acl) => {
-      if (apiIds.includes(acl.routeId)) {
+    acls.forEach((acl) => {
+      const [, ...values] = acl.group.split('-');
+      const routeId = values.join('-');
+      if (apiIds.includes(routeId)) {
         promises.push(
           new Promise(async (res, rej) => {
             try {
               await this.kongConsumerService.deleteConsumerAcl(environment, {
-                aclId: acl.aclId,
+                aclId: acl.id,
                 consumerId,
               });
-
-              await this.consumerAclRepository.delete({
-                id: acl.id,
-              });
-
               res();
             } catch (err) {
               rej(err);
@@ -585,12 +580,36 @@ export class APIService {
     }
     const company = await this.companyRepository.findOne({
       where: { id: companyId },
-      relations: {
-        acls: {
-          route: true,
-        },
-      },
     });
+
+    if (!company) {
+      throw new IBadRequestException({
+        message: companyErrors.companyNotFound(
+          companyId ?? ctx.activeCompany.id,
+        ),
+      });
+    }
+
+    let offset;
+    const routeAcls = [];
+    const consumerId =
+      company.consumerId ??
+      (await this.updateConsumerId(company.id!, environment));
+    do {
+      // TODO goto next page
+      const response = await this.kongConsumerService.getConsumerAcls(
+        environment,
+        consumerId,
+        offset,
+      );
+      offset = response.offset;
+      for (const item of response.data) {
+        const [type] = item.group.split('-');
+        if (type === 'route') {
+          routeAcls.push(item);
+        }
+      }
+    } while (offset);
 
     if (!company) {
       throw new IBadRequestException({
@@ -600,7 +619,11 @@ export class APIService {
 
     // Routes to assign are present in apiIds array but not in previosAllowedRoutes array
     // Routes to unassign are present in previosAllowedRoutes array but not in apiIds array
-    const previousAllowedRoutesIds = company.acls.map((acl) => acl.route.id);
+    const previousAllowedRoutesIds = routeAcls.map((acl) => {
+      const [, ...values] = acl.group.split('-');
+      const value = values.join('-');
+      return value;
+    });
 
     const routesToUnassign = previousAllowedRoutesIds.filter(
       (routeId) => !apiIds.includes(routeId),
@@ -611,8 +634,13 @@ export class APIService {
     );
 
     await Promise.allSettled([
-      await this.assignAPIs(routesToAssign, company, environment),
-      await this.unassignAPIs(routesToUnassign, company, environment),
+      await this.assignAPIs(routesToAssign, routeAcls, company, environment),
+      await this.unassignAPIs(
+        routesToUnassign,
+        routeAcls,
+        company,
+        environment,
+      ),
     ]);
 
     return ResponseFormatter.success(apiSuccessMessages.updatedAPIAccess);
@@ -624,7 +652,7 @@ export class APIService {
     routeId: string,
     data: UpdateAPIDto,
   ) {
-    const { name, enabled, downstream, upstream } = data;
+    const { name, enabled, downstream, upstream, tiers } = data;
 
     const route = await this.routeRepository.findOne({
       where: { id: routeId, environment },
@@ -753,6 +781,21 @@ export class APIService {
       );
     }
 
+    if (tiers && environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          config: {
+            allow: [`route-${routeId}`, ...tiers.map((tier) => `tier-${tier}`)],
+            hide_groups_header: true,
+          },
+          name: KONG_PLUGINS.ACL,
+          enabled: true,
+        },
+      );
+    }
+
     // TODO emit event
 
     return ResponseFormatter.success(
@@ -763,6 +806,7 @@ export class APIService {
           name: route.name,
           enabled: route.enabled,
           collectionId: route.collectionId,
+          tiers: route.tiers || [],
           upstream: new GETAPIUpstreamResponseDTO(
             {
               ...data.upstream,
@@ -1092,7 +1136,7 @@ export class APIService {
     let routes: CollectionRoute[];
     let totalNumberOfRecords: number;
 
-    if (environment === KONG_ENVIRONMENT.PRODUCTION) {
+    if (environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
       const [iRoutes, iTotalNumberOfRecords] =
         await this.routeRepository.findAndCount({
           where: {
@@ -1148,6 +1192,7 @@ export class APIService {
             name: route.name,
             enabled: route.enabled,
             collectionId: route.collectionId,
+            tiers: route.tiers || [],
             upstream: new GETAPIUpstreamResponseDTO(
               {
                 url: gatewayService
