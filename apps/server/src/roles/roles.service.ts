@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role, RoleStatuses } from 'src/common/database/entities';
-import { In, IsNull, Not, Repository } from 'typeorm';
+import { Equal, In, IsNull, Not, Repository } from 'typeorm';
 import slugify from 'slugify';
 import {
   CreateRoleDto,
@@ -104,8 +104,8 @@ export class RolesService {
   ) {
     const where = {
       ...filters,
-      parentId: ctx.activeUser.role.parentId,
-      companyId: ctx.activeUser.companyId,
+      parentId: Equal(ctx.activeUser.role.parentId),
+      companyId: Equal(ctx.activeUser.companyId),
     };
 
     const totalRoles = await this.roleRepository.count({ where });
@@ -135,12 +135,12 @@ export class RolesService {
     const role = await this.roleRepository.findOne({
       where: [
         {
-          id,
-          parentId: ctx.activeUser.role.parentId,
-          companyId: ctx.activeUser.companyId,
+          id: Equal(id),
+          parentId: Equal(ctx.activeUser.role.parentId),
+          companyId: Equal(ctx.activeUser.companyId),
         },
         {
-          id,
+          id: Equal(id),
           companyId: IsNull(),
         },
       ],
@@ -163,9 +163,9 @@ export class RolesService {
   async updateRole(ctx: RequestContext, id: string, data: UpdateRoleDto) {
     const role = await this.roleRepository.findOne({
       where: {
-        id,
-        parentId: ctx.activeUser.role.parentId,
-        companyId: ctx.activeUser.companyId,
+        id: Equal(id),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
       },
     });
 
@@ -214,9 +214,9 @@ export class RolesService {
   async deleteRole(ctx: RequestContext, id: string) {
     const role = await this.roleRepository.findOne({
       where: {
-        id,
-        parentId: ctx.activeUser.role.parentId,
-        companyId: ctx.activeUser.companyId,
+        id: Equal(id),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
       },
     });
 
@@ -237,12 +237,12 @@ export class RolesService {
     const role = await this.roleRepository.findOne({
       where: [
         {
-          id,
-          parentId: ctx.activeUser.role.parentId,
-          companyId: ctx.activeUser.companyId,
+          id: Equal(id),
+          parentId: Equal(ctx.activeUser.role.parentId),
+          companyId: Equal(ctx.activeUser.companyId),
         },
         {
-          id,
+          id: Equal(id),
           companyId: IsNull(),
         },
       ],
@@ -294,7 +294,7 @@ export class RolesService {
     const newPermissionsData = await this.permissionRepository.find({
       where: {
         id: In(newPermissions),
-        roles: { roleId: ctx.activeUser.role.parentId },
+        roles: { roleId: Equal(ctx.activeUser.role.parentId) },
       },
     });
 
@@ -326,7 +326,7 @@ export class RolesService {
   // TODO how do we ensure that if a parents permission is leaked to a created role, that permission cannot be used.
   async getPermissions(ctx: RequestContext) {
     const permissions = await this.permissionRepository.find({
-      where: { roles: { roleId: ctx.activeUser.role.parentId } },
+      where: { roles: { roleId: Equal(ctx.activeUser.role.parentId) } },
     });
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedPermissions,

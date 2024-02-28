@@ -11,7 +11,7 @@ import {
 } from './dto/index.dto';
 import { CompanySubtypes, SETTINGS_TYPES, BusinessSettings } from './types';
 import { Settings, Company } from '@common/database/entities';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { settingsErrors } from './settings.errors';
 import {
   IBadRequestException,
@@ -41,7 +41,7 @@ export class SettingsService {
   async getKybRequirements() {
     const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: BUSINESS_SETTINGS_NAME,
+        name: Equal(BUSINESS_SETTINGS_NAME),
       },
     });
 
@@ -73,7 +73,7 @@ export class SettingsService {
 
     const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: BUSINESS_SETTINGS_NAME,
+        name: Equal(BUSINESS_SETTINGS_NAME),
       },
     });
 
@@ -144,7 +144,7 @@ export class SettingsService {
   ) {
     const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: BUSINESS_SETTINGS_NAME,
+        name: Equal(BUSINESS_SETTINGS_NAME),
       },
     });
 
@@ -352,7 +352,7 @@ export class SettingsService {
 
       const template = await this.emailTemplateRepository.findOne({
         where: {
-          id: temmplateId,
+          id: Equal(temmplateId),
         },
       });
 
@@ -381,7 +381,7 @@ export class SettingsService {
     } else {
       const prevSettings = await this.settingsRepository.findOne({
         where: {
-          name: settingType,
+          name: Equal(settingType),
         },
       });
 
@@ -437,7 +437,7 @@ export class SettingsService {
     } else {
       const prevSettings = await this.settingsRepository.findOne({
         where: {
-          name: settingType,
+          name: Equal(settingType),
         },
       });
 

@@ -10,7 +10,7 @@ import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { IBadRequestException } from '@common/utils/exceptions/exceptions';
 import Handlebars from 'handlebars';
 import { Company, Settings, User } from '@common/database/entities';
@@ -54,14 +54,14 @@ export class EmailService {
     let transporter: nodemailer.Transporter;
     const apBusinessSettings = await this.settingsRepository.findOne({
       where: {
-        name: BUSINESS_SETTINGS_NAME,
+        name: Equal(BUSINESS_SETTINGS_NAME),
       },
     });
 
     if (apBusinessSettings) {
       const emailSettings = await this.settingsRepository.findOne({
         where: {
-          name: SETTINGS_TYPES.EMAIL_SETTINGS,
+          name: Equal(SETTINGS_TYPES.EMAIL_SETTINGS),
         },
       });
 
@@ -211,7 +211,7 @@ export class EmailService {
       });
       const admins = await this.userRepository.find({
         where: {
-          companyId: event.company.id,
+          companyId: Equal(event.company.id),
           role: {
             slug: ROLES.ADMIN,
           },
@@ -236,7 +236,7 @@ export class EmailService {
     try {
       const admins = await this.userRepository.find({
         where: {
-          companyId: event.company.id,
+          companyId: Equal(event.company.id),
           role: {
             slug: ROLES.ADMIN,
           },
@@ -297,7 +297,7 @@ export class EmailService {
     const transporter = await this.loadEmailTransporter();
     try {
       const template = await this.templateRepository.findOneBy({
-        slug: templateSlug,
+        slug: Equal(templateSlug),
       });
       if (!template) {
         throw new IBadRequestException({

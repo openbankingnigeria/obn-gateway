@@ -16,7 +16,7 @@ import { Auth } from './auth.helper';
 import { authErrors } from '@auth/auth.errors';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/common/database/entities';
-import { IsNull, Not, Repository } from 'typeorm';
+import { Equal, IsNull, Not, Repository } from 'typeorm';
 import { PERMISSIONS } from 'src/permissions/types';
 import * as speakeasy from 'speakeasy';
 import * as moment from 'moment';
@@ -78,7 +78,7 @@ export class AuthGuard implements CanActivate {
     // TODO get back to this, use central getUserById implementation
     const user = await this.userRepository.findOne({
       where: {
-        id: decoded.id,
+        id: Equal(decoded.id),
         role: { parentId: Not(IsNull()) },
       },
       relations: {

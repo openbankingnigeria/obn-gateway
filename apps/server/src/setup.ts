@@ -10,7 +10,7 @@ import { CreateCollectionDto } from 'src/collections/dto/index.dto';
 import slugify from 'slugify';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { IsNull, Not } from 'typeorm';
+import { Equal, IsNull, Not } from 'typeorm';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
 import { ConfigService } from '@nestjs/config';
@@ -190,7 +190,7 @@ export class SetupService {
     // TODO get back to this, use central getUserByEmail implementation
     const user = await apiService.userRepository.findOne({
       where: {
-        email: process.env.COMPANY_EMAIL,
+        email: Equal(process.env.COMPANY_EMAIL!),
         role: { parentId: Not(IsNull()) },
       },
       relations: {

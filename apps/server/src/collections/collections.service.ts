@@ -11,7 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { In, Repository } from 'typeorm';
+import { Equal, In, Repository } from 'typeorm';
 import {
   CreateCollectionDto,
   GetCollectionResponseDTO,
@@ -85,7 +85,7 @@ export class CollectionsService {
 
   async viewCollection(ctx: RequestContext, idOrSlug: string) {
     const collection = await this.collectionRepository.findOne({
-      where: [{ id: idOrSlug }, { slug: idOrSlug }],
+      where: [{ id: Equal(idOrSlug) }, { slug: Equal(idOrSlug) }],
     });
 
     if (!collection) {
@@ -137,7 +137,7 @@ export class CollectionsService {
     data: UpdateCollectionDto,
   ) {
     const collection = await this.collectionRepository.findOne({
-      where: { id },
+      where: { id: Equal(id) },
     });
 
     if (!collection) {
@@ -165,7 +165,7 @@ export class CollectionsService {
 
   async deleteCollection(ctx: RequestContext, id: string) {
     const collection = await this.collectionRepository.findOne({
-      where: { id },
+      where: { id: Equal(id) },
     });
 
     if (!collection) {
@@ -175,7 +175,7 @@ export class CollectionsService {
     }
 
     const routes = await this.routeRepository.find({
-      where: { collectionId: id },
+      where: { collectionId: Equal(id) },
     });
 
     if (routes.length) {
@@ -205,7 +205,7 @@ export class CollectionsService {
     const { limit, page } = pagination!;
 
     const company = await this.companyRepository.findOne({
-      where: { id: companyId ?? ctx.activeCompany.id },
+      where: { id: Equal(companyId ?? ctx.activeCompany.id) },
     });
 
     if (!company) {

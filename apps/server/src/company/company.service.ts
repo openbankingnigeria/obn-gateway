@@ -14,7 +14,7 @@ import {
   Settings,
   User,
 } from '@common/database/entities';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import {
   ResponseFormatter,
   ResponseMetaDTO,
@@ -107,7 +107,7 @@ export class CompanyService {
     }
 
     const savedKybSettings = await this.settingsRepository.findOne({
-      where: { name: BUSINESS_SETTINGS_NAME },
+      where: { name: Equal(BUSINESS_SETTINGS_NAME) },
     });
 
     if (!savedKybSettings) {
@@ -163,7 +163,7 @@ export class CompanyService {
 
     let kybData = await this.companyKybDataRepository.findOne({
       where: {
-        id: ctx.activeCompany.kybDataId,
+        id: Equal(ctx.activeCompany.kybDataId!),
       },
     });
 
@@ -215,7 +215,7 @@ export class CompanyService {
   async getCompanyDetails(ctx: RequestContext, companyId?: string) {
     const company = companyId
       ? await this.companyRepository.findOne({
-          where: { id: companyId },
+          where: { id: Equal(companyId) },
           relations: { primaryUser: { profile: true } },
         })
       : ctx.activeCompany;
@@ -227,7 +227,7 @@ export class CompanyService {
     }
 
     const companyKybData = await this.companyKybDataRepository.findOne({
-      where: { id: company.kybDataId },
+      where: { id: Equal(company.kybDataId!) },
     });
 
     const kybDetails: any = {};
@@ -362,7 +362,7 @@ export class CompanyService {
   ) {
     const company = await this.companyRepository.findOne({
       where: {
-        id: companyId,
+        id: Equal(companyId),
       },
     });
 
@@ -473,7 +473,7 @@ export class CompanyService {
 
     const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: BUSINESS_SETTINGS_NAME,
+        name: Equal(BUSINESS_SETTINGS_NAME),
       },
     });
 
@@ -528,7 +528,7 @@ export class CompanyService {
   ) {
     const company = await this.companyRepository.findOne({
       where: {
-        id: companyId,
+        id: Equal(companyId),
       },
     });
 

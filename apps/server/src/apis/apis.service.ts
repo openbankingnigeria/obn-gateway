@@ -11,7 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { In, Not, Repository } from 'typeorm';
+import { Equal, In, Not, Repository } from 'typeorm';
 import {
   APILogResponseDTO,
   APILogStatsResponseDTO,
@@ -149,8 +149,8 @@ export class APIService {
   ) {
     const route = await this.routeRepository.findOne({
       where: [
-        { id: idOrSlug, environment },
-        { name: idOrSlug, environment },
+        { id: Equal(idOrSlug), environment },
+        { name: Equal(idOrSlug), environment },
       ],
       relations: { collection: true },
     });
@@ -246,7 +246,7 @@ export class APIService {
     id: string,
   ) {
     const route = await this.routeRepository.findOne({
-      where: { id, environment },
+      where: { id: Equal(id), environment },
     });
 
     if (!route) {
@@ -296,10 +296,10 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     data: CreateAPIDto,
   ) {
-    const { name, enabled, downstream, upstream, tiers } = data;
+    const { name, enabled, downstream, upstream, tiers = [] } = data;
 
     const collection = await this.collectionRepository.findOne({
-      where: { id: data.collectionId },
+      where: { id: Equal(data.collectionId) },
     });
 
     if (!collection) {
@@ -579,7 +579,7 @@ export class APIService {
       });
     }
     const company = await this.companyRepository.findOne({
-      where: { id: companyId },
+      where: { id: Equal(companyId) },
     });
 
     if (!company) {
@@ -655,7 +655,7 @@ export class APIService {
     const { name, enabled, downstream, upstream, tiers } = data;
 
     const route = await this.routeRepository.findOne({
-      where: { id: routeId, environment },
+      where: { id: Equal(routeId), environment },
       relations: { collection: true },
     });
 
@@ -968,7 +968,7 @@ export class APIService {
     if (logs.hits.hits[0]._source.consumer?.id) {
       company = await this.companyRepository.findOne({
         where: {
-          consumerId: logs.hits.hits[0]._source.consumer?.id,
+          consumerId: Equal(logs.hits.hits[0]._source.consumer?.id),
         },
       });
     }
@@ -1122,7 +1122,7 @@ export class APIService {
     const { limit, page } = pagination!;
 
     const company = await this.companyRepository.findOne({
-      where: { id: companyId ?? ctx.activeCompany.id },
+      where: { id: Equal(companyId ?? ctx.activeCompany.id) },
     });
 
     if (!company) {
@@ -1249,7 +1249,7 @@ export class APIService {
     routeId: string,
   ) {
     const route = await this.routeRepository.findOne({
-      where: { id: routeId, environment },
+      where: { id: Equal(routeId), environment },
       relations: { collection: true },
     });
 
@@ -1289,7 +1289,7 @@ export class APIService {
     data: SetAPITransformationDTO,
   ) {
     const route = await this.routeRepository.findOne({
-      where: { id: routeId, environment },
+      where: { id: Equal(routeId), environment },
       relations: { collection: true },
     });
 

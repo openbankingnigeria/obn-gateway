@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { auditLogsSuccessMessages } from './auditLogs.constants';
 import { AuditLog } from 'src/common/database/entities';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import {
   ResponseFormatter,
@@ -12,7 +12,7 @@ import {
 import { INotFoundException } from '@common/utils/exceptions/exceptions';
 import { auditLogErrors } from '@auditLogs/auditLogs.errors';
 import { BaseEvent } from '@shared/events/base.event';
-import { CompanyTypes, ROLES } from '@common/database/constants';
+import { CompanyTypes } from '@common/database/constants';
 import { GetAuditLogResponseDTO } from './dto/index.dto';
 import { RequestContext } from '@common/utils/request/request-context';
 
@@ -85,7 +85,7 @@ export class AuditLogsService {
   async getSingleLog(ctx: RequestContext, id: string) {
     const log = await this.auditLogRepository.findOne({
       where: {
-        id,
+        id: Equal(id),
       },
       relations: {
         user: {

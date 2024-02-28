@@ -8,7 +8,7 @@ import {
   User,
   UserStatuses,
 } from 'src/common/database/entities';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, Equal } from 'typeorm';
 import {
   BusinessSignupDto,
   IndividualSignupDto,
@@ -95,7 +95,7 @@ export class AuthService {
     if (data.rcNumber) {
       const companyExists = await this.companyRepository.findOne({
         where: {
-          rcNumber: data.rcNumber,
+          rcNumber: Equal(data.rcNumber),
         },
       });
 
@@ -118,7 +118,7 @@ export class AuthService {
     // Validate company type
     const businessSettings = await this.settingsRepository.findOne({
       where: {
-        name: BUSINESS_SETTINGS_NAME,
+        name: Equal(BUSINESS_SETTINGS_NAME),
       },
     });
 
@@ -364,7 +364,7 @@ export class AuthService {
   }: LoginDto & TwoFADto): Promise<ResponseDTO<string>> {
     const user = await this.userRepository.findOne({
       where: {
-        email,
+        email: Equal(email),
       },
       relations: {
         company: true,
@@ -409,7 +409,7 @@ export class AuthService {
       }
       if (!isNumberString(code)) {
         const backupCodes = await this.backupCodesRepository.findBy({
-          userId: user.id,
+          userId: Equal(user.id!),
         });
         const match = backupCodes.find((backupCode) => {
           return compareSync(code, backupCode.value);
@@ -480,7 +480,7 @@ export class AuthService {
 
     const verifyToken = await this.auth.verify<{ iat: number }>(accessToken);
 
-    const user = await this.userRepository.findOneBy({ id: decoded.id });
+    const user = await this.userRepository.findOneBy({ id: Equal(decoded.id) });
     if (!user) {
       throw new IBadRequestException({
         message: authErrors.invalidCredentials,
@@ -498,7 +498,7 @@ export class AuthService {
 
   async forgotPassword(email: string) {
     const user = await this.userRepository.findOneBy({
-      email,
+      email: Equal(email),
     });
 
     if (!user) {
@@ -638,7 +638,7 @@ export class AuthService {
   async verifyEmail({ email, otp }: VerifyEmailDto) {
     const user = await this.userRepository.findOne({
       where: {
-        email,
+        email: Equal(email),
       },
     });
 
@@ -683,7 +683,7 @@ export class AuthService {
   async resendOtp({ email }: ResendOtpDto) {
     const user = await this.userRepository.findOne({
       where: {
-        email,
+        email: Equal(email),
       },
     });
 

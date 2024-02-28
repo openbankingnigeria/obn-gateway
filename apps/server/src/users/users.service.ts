@@ -12,7 +12,7 @@ import {
   User,
   UserStatuses,
 } from 'src/common/database/entities';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import {
   IBadRequestException,
   INotFoundException,
@@ -64,9 +64,9 @@ export class UsersService {
 
     const role = await this.roleRepository.findOne({
       where: {
-        id: roleId,
-        parentId: ctx.activeUser.role.parentId,
-        companyId: ctx.activeUser.companyId,
+        id: Equal(roleId),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
       },
     });
 
@@ -111,7 +111,7 @@ export class UsersService {
 
   async resendInvite(ctx: RequestContext, id: string) {
     const user = await this.userRepository.findOne({
-      where: { id, companyId: ctx.activeUser.companyId },
+      where: { id: Equal(id), companyId: Equal(ctx.activeUser.companyId) },
     });
 
     if (!user) {
@@ -158,7 +158,7 @@ export class UsersService {
   ) {
     const where = {
       ...filters,
-      companyId: ctx.activeUser.companyId,
+      companyId: Equal(ctx.activeUser.companyId),
     };
 
     const totalUsers = await this.userRepository.count({
@@ -189,7 +189,7 @@ export class UsersService {
 
   async getUser(ctx: RequestContext, id: string) {
     const user = await this.userRepository.findOne({
-      where: { id, companyId: ctx.activeUser.companyId },
+      where: { id: Equal(id), companyId: Equal(ctx.activeUser.companyId) },
       relations: { profile: true, role: true },
     });
 
@@ -211,7 +211,7 @@ export class UsersService {
     const { firstName, lastName, status, roleId } = data;
 
     const user = await this.userRepository.findOne({
-      where: { id, companyId: ctx.activeUser.companyId },
+      where: { id: Equal(id), companyId: Equal(ctx.activeUser.companyId) },
       relations: { profile: true },
     });
 
@@ -231,9 +231,9 @@ export class UsersService {
     if (roleId) {
       role = await this.roleRepository.findOne({
         where: {
-          id: roleId,
-          parentId: ctx.activeUser.role.parentId,
-          companyId: ctx.activeUser.companyId,
+          id: Equal(roleId),
+          parentId: Equal(ctx.activeUser.role.parentId),
+          companyId: Equal(ctx.activeUser.companyId),
         },
       });
 
@@ -287,7 +287,7 @@ export class UsersService {
 
   async deleteUser(ctx: RequestContext, id: string) {
     const user = await this.userRepository.findOne({
-      where: { id, companyId: ctx.activeUser.companyId },
+      where: { id: Equal(id), companyId: Equal(ctx.activeUser.companyId) },
     });
 
     if (!user) {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile, User } from 'src/common/database/entities';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import {
@@ -41,7 +41,7 @@ export class ProfileService {
 
   async getProfile(ctx: RequestContext) {
     const profile = await this.profileRepository.findOne({
-      where: { userId: ctx.activeUser.id },
+      where: { userId: Equal(ctx.activeUser.id!) },
       relations: {
         user: {
           role: {
@@ -70,7 +70,7 @@ export class ProfileService {
     const { firstName, lastName } = data;
 
     const profile = await this.profileRepository.findOne({
-      where: { userId: ctx.activeUser.id },
+      where: { userId: Equal(ctx.activeUser.id!) },
     });
 
     if (!profile) {
@@ -225,7 +225,7 @@ export class ProfileService {
 
     if (!isNumberString(data.code)) {
       const backupCodes = await this.backupCodesRepository.findBy({
-        userId: ctx.activeUser.id,
+        userId: Equal(ctx.activeUser.id!),
       });
       const match = backupCodes.find((backupCode) => {
         return compareSync(data.code, backupCode.value);
