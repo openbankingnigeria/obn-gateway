@@ -1137,15 +1137,29 @@ export class APIService {
     let totalNumberOfRecords: number;
 
     if (environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
+      let offset;
+      const routesIds = [];
+      const consumerId = company.consumerId || company.id;
+      do {
+        const response = await this.kongConsumerService.getConsumerAcls(
+          environment,
+          consumerId,
+          offset,
+        );
+        offset = response.offset;
+        for (const item of response.data) {
+          const [type, ...values] = item.group.split('-');
+          const value = values.join('-');
+          if (type === 'route') {
+            routesIds.push(value);
+          }
+        }
+      } while (offset);
       const [iRoutes, iTotalNumberOfRecords] =
         await this.routeRepository.findAndCount({
           where: {
             ...filters,
-            acls: {
-              companyId: company.id,
-              environment,
-            },
-            // id: In(acls.map(({ route }) => route.id)),
+            id: In(routesIds),
           },
           order: { createdAt: 'DESC' },
           skip: (page - 1) * limit,
