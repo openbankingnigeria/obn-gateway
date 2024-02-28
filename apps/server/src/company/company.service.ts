@@ -48,6 +48,7 @@ import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.inter
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { ConfigService } from '@nestjs/config';
 import { CompanyTiers } from './types';
+import { CompanyKybData } from '@common/database/entities/company-kyb.entity';
 
 @Injectable()
 export class CompanyService {
@@ -59,6 +60,8 @@ export class CompanyService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Settings)
     private readonly settingsRepository: Repository<Settings>,
+    @InjectRepository(CompanyKybData)
+    private readonly companyKybDataRepository: Repository<CompanyKybData>,
     private readonly eventEmitter: EventEmitter2,
     private readonly kongConsumerService: KongConsumerService,
     private readonly config: ConfigService,
@@ -119,9 +122,16 @@ export class CompanyService {
 
     // If a file is uploaded is present, validate image size
     if (Object.keys(files).length) {
-      const { isValid, maxFileSize } = this.fileHelpers.validateFileSize(files);
+      const { isFileTypeValid, maxFileSize, isSizeValid } =
+        this.fileHelpers.validateFile(files);
 
-      if (!isValid) {
+      if (!isFileTypeValid) {
+        throw new IBadRequestException({
+          message: companyErrors.invalidFileType,
+        });
+      }
+
+      if (!isSizeValid) {
         throw new IBadRequestException({
           message: companyErrors.fileTooLarge(maxFileSize),
         });
@@ -131,7 +141,7 @@ export class CompanyService {
     const dataKeys = Object.keys(data);
     const validKybData: Record<
       string,
-      { file: Buffer; fileName: string } | string
+      { file: Buffer; fileName: string; fileMimeType: string } | string
     > = {};
 
     // Select only valid fields from the request payload
@@ -151,21 +161,39 @@ export class CompanyService {
         }
       });
 
-    const previousKybDetails = ctx.activeCompany.kybData
-      ? JSON.parse(ctx.activeCompany.kybData)
-      : {};
+    let kybData = await this.companyKybDataRepository.findOne({
+      where: {
+        companyId: ctx.activeCompany.id,
+      },
+    });
+
+    const previousKybDetails = kybData?.data ? JSON.parse(kybData?.data) : {};
 
     files.forEach((file) => {
       validKybData[file.fieldname] = {
         file: file.buffer,
         fileName: file.originalname,
+        fileMimeType: file.mimetype,
       };
     });
 
+    if (!kybData) {
+      kybData = await this.companyKybDataRepository.save({
+        companyId: ctx.activeCompany.id,
+        data: JSON.stringify({ ...previousKybDetails, ...validKybData }),
+      });
+    } else {
+      await this.companyKybDataRepository.update(
+        { id: kybData.id },
+        {
+          data: JSON.stringify({ ...previousKybDetails, ...validKybData }),
+        },
+      );
+    }
+
     await this.companyRepository.update(
-      { id: ctx.activeCompany.id },
+      { id: ctx.activeCompany.id, kybDataId: kybData.id },
       {
-        kybData: JSON.stringify({ ...previousKybDetails, ...validKybData }),
         rcNumber: data.rcNumber,
         kybStatus: KybStatuses.PENDING,
       },
@@ -197,10 +225,15 @@ export class CompanyService {
         message: companyErrors.companyNotFound(companyId!),
       });
     }
+
+    const companyKybData = await this.companyKybDataRepository.findOne({
+      where: { companyId: company.id },
+    });
+
     const kybDetails: any = {};
 
-    if (company.kybData) {
-      const kybData = JSON.parse(company.kybData);
+    if (companyKybData?.data) {
+      const kybData = JSON.parse(companyKybData.data);
       for (const key of Object.keys(kybData)) {
         if (typeof kybData![key] === 'string') {
           kybDetails[key] = kybData![key];
@@ -208,14 +241,12 @@ export class CompanyService {
           const fileObject = kybData![key] as {
             file: Buffer;
             fileName: string;
+            fileMimeType: string;
           };
-          // {
-          //   fileName: fileObject.fileName,
-          //   file: Buffer.from(fileObject.file).toString('base64url'),
-          // };
           const fileMap = new Map();
 
           fileMap.set('fileName', fileObject.fileName);
+          fileMap.set('fileMimeType', fileObject.fileMimeType);
           fileMap.set('file', Buffer.from(fileObject.file).toString('base64'));
           kybDetails[key] = fileMap;
         }
@@ -301,24 +332,6 @@ export class CompanyService {
         message: 'Company name is empty',
       });
     }
-
-    // TODO remove dummy registry
-    // const business = dummyRegistry.find(
-    //   (business) => business.rcNumber === rcNumber,
-    // );
-
-    // if (!business) {
-    //   throw new IBadRequestException({
-    //     message: companyErrors.businessNotFoundOnRegistry(rcNumber),
-    //   });
-    // }
-    // const nameMatches = business.name === name;
-
-    // if (!nameMatches) {
-    //   throw new IBadRequestException({
-    //     message: `RC Number does not match business name`,
-    //   });
-    // }
 
     // Determine the tier depending on the rc Number
     const firstFour = Number(rcNumber.slice(0, 5));
