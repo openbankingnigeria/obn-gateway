@@ -135,6 +135,7 @@ const CollectionSection = ({
           data: {
             "name": api?.name,
             "enabled": Boolean(openModal == 'activate'),
+            "tiers": api?.tiers,
             "upstream": api?.upstream,
             "downstream": api?.downstream
           }
@@ -176,6 +177,7 @@ const CollectionSection = ({
   //       data: {
   //         "name": api?.name,
   //         "enabled": true,
+            // "tiers": api?.tiers,
   //         "url": endpoint_url,
   //         "route": {
   //             "paths": [
