@@ -43,6 +43,7 @@ const EnabledToggle = ({
           data: {
             "name": rawData?.name,
             "upstream": rawData?.upstream,
+            "tiers": rawData?.tiers,
             "downstream": {
               ...rawData?.downstream,
             },

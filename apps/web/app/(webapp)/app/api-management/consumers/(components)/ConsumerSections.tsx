@@ -115,13 +115,16 @@ const ConsumerSections = ({
         method: 'PATCH',
         data: {
           "name": api?.name,
-          "enabled": true,
-          "url": endpoint_url,
-          "route": {
+          "enabled": api?.enabled,
+          "downstream": {
               "paths": [
-                  parameters
+                parameters
               ],
-              "methods": api?.route?.methods
+              "methods": api?.downstream?.methods
+          },
+          "upstream": {
+              ...api?.upstream,
+              "url": endpoint_url
           }
         }
       });
