@@ -163,7 +163,7 @@ export class CompanyService {
 
     let kybData = await this.companyKybDataRepository.findOne({
       where: {
-        companyId: ctx.activeCompany.id,
+        id: ctx.activeCompany.kybDataId,
       },
     });
 
@@ -227,7 +227,7 @@ export class CompanyService {
     }
 
     const companyKybData = await this.companyKybDataRepository.findOne({
-      where: { companyId: company.id },
+      where: { id: company.kybDataId },
     });
 
     const kybDetails: any = {};
