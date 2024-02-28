@@ -21,7 +21,8 @@ const SigninForm = () => {
   )
 
   const initialState = { 
-    // message: 'Invalid email and password' 
+    // message: 'Invalid email and password'
+    noToast: true 
   }
   
   const [state, formAction] = useServerAction(postSignIn, initialState);

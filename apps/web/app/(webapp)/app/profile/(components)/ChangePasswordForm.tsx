@@ -62,9 +62,10 @@ const ChangePasswordForm = ({
           }
         });
 
-      if (result?.message) {
+      setLoading(false);
+      if (result?.status == 200) {
         close2FAModal();
-        setLoading(false);
+        close(e);
         // router.refresh();
       }
     }
@@ -133,6 +134,7 @@ const ChangePasswordForm = ({
             type='submit'
             title='Change Password'
             disabled={incorrect}
+            loading={loading}
             small
           />
         </div>

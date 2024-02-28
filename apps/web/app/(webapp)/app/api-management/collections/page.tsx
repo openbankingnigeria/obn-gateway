@@ -27,7 +27,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   let profile = fetchedProfile?.data;
   const userType = profile?.user?.role?.parent?.slug;
 
-  const fetchedCollections: any = userType == 'api-consumer' &&
+  const fetchedCollections: any = userType == 'api-provider' &&
   await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCollections(),
@@ -39,6 +39,8 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   await applyAxiosRequest({
     headers: {},
     apiEndpoint: API?.getCompanyCollections({
+      page: '1',
+      limit: '20',
       environment: environment || 'development'
     }),
     method: 'GET',

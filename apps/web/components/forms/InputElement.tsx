@@ -89,7 +89,7 @@ const InputElement = ({
           autoComplete={autoComplete || 'nope'}
           disabled={disabled}
           className={`text-f14 w-full placeholder:text-o-text-muted border-none 
-          ${disabled ? 'text-o-text-disabled' : 'text-o-text-dark2'} outline-none bg-transparent`}
+          ${disabled ? 'text-o-text-dark3' : 'text-o-text-dark2'} outline-none bg-transparent`}
         />
 
         {

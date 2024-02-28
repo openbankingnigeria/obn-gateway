@@ -3,7 +3,7 @@
 import { OptionsProps, SelectElementProps } from '@/types/componentsTypes/forms'
 import React, { useState } from 'react'
 import { AiOutlineSearch } from 'react-icons/ai';
-import { Loader, OutsideClicker } from '../globalComponents';
+import { LinkButton, Loader, OutsideClicker } from '../globalComponents';
 import { useRouter } from 'next/navigation';
 import { deleteSearchParams, updateSearchParams } from '@/utils/searchParams';
 
@@ -19,6 +19,9 @@ const SelectElement = ({
   options,
   disabled,
   removeSearch,
+  btnTitle,
+  emptyState,
+  btnPath,
   searchPlaceholder,
   disabledValue,
   loading,
@@ -268,8 +271,19 @@ const SelectElement = ({
                   </li>
                 )) 
                 : 
-                <div className="flex whitespace-nowrap justify-center text-b5 text-o-text-dark p-3 items-center h-full w-full">
-                  No { name?.replace(/_/g, ' ') || 'data' } at the moment
+                <div className="flex flex-col whitespace-nowrap justify-center text-f13 gap-3 text-o-text-dark p-3 items-center h-full w-full">
+                  {
+                    emptyState || `No ${ name?.replace(/_/g, ' ') || 'data' } at the moment` 
+                  }
+
+                  {
+                    btnTitle &&
+                    <LinkButton 
+                      title={btnTitle || ''}
+                      path={btnPath || '#'}
+                      small
+                    />
+                  }
                 </div>
           }
         </ul>
