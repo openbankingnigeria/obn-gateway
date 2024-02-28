@@ -228,24 +228,38 @@ export class SettingsService {
     );
   }
 
+  private async updateConsumerId(
+    company: Company,
+    environment: KONG_ENVIRONMENT,
+  ) {
+    // Update API provider consumer to allow access to route
+    const response = await this.kongConsumerService.updateOrCreateConsumer(
+      environment,
+      {
+        custom_id: company.id,
+      },
+    );
+
+    await this.companyRepository.update(
+      {
+        id: company.id,
+      },
+      { consumerId: response.id },
+    );
+
+    await this.kongConsumerService.updateConsumerAcl(environment, {
+      aclAllowedGroupName: `tier-${company.tier}`,
+      consumerId: response.id,
+    });
+
+    return response.id;
+  }
+
   // TODO ensure that non development api key can only be generated for non development environment until company is approved
   async generateApiKey(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
-    let consumerId = ctx.activeCompany.consumerId;
-    if (!consumerId) {
-      const consumer = await this.kongConsumerService.updateOrCreateConsumer(
-        environment,
-        {
-          custom_id: ctx.activeCompany.id,
-        },
-      );
-      consumerId = consumer.id;
-      await this.companyRepository.update(
-        {
-          id: ctx.activeCompany.id,
-        },
-        { consumerId },
-      );
-    }
+    const consumerId =
+      ctx.activeCompany.consumerId ||
+      (await this.updateConsumerId(ctx.activeCompany, environment));
 
     const consumerKey = await this.kongConsumerService.createConsumerKey(
       environment,
@@ -299,22 +313,10 @@ export class SettingsService {
     environment: KONG_ENVIRONMENT,
     data: IPRestrictionRequest,
   ) {
-    let consumerId = ctx.activeCompany.consumerId;
-    if (!consumerId) {
-      const consumer = await this.kongConsumerService.updateOrCreateConsumer(
-        environment,
-        {
-          custom_id: ctx.activeCompany.id,
-        },
-      );
-      consumerId = consumer.id;
-      await this.companyRepository.update(
-        {
-          id: ctx.activeCompany.id,
-        },
-        { consumerId },
-      );
-    }
+    const consumerId =
+      ctx.activeCompany.consumerId ||
+      (await this.updateConsumerId(ctx.activeCompany, environment));
+
     await this.kongConsumerService.updateOrCreatePlugin(
       environment,
       consumerId,
