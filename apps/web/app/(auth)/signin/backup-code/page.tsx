@@ -16,7 +16,7 @@ const BackupCodePage = () => {
               Two-Factor Authentication
             </h3>
             <div className='text-o-text-medium3 text-f14'>
-              Enter one of your 6-digit backup codes. 
+              Enter one of your 6-characters backup codes. 
               Once you use a backup code to sign in, 
               that code becomes inactive.
             </div>

@@ -84,6 +84,9 @@ const InviteMemberPage = ({
               name='role'
               // @ts-ignore
               options={roles_list}
+              btnTitle='Create Role'
+              emptyState={'No role at the moment, kindly create a role to start inviting members'}
+              btnPath='/app/team/roles'
               required
               placeholder='Select role'
               optionStyle='top-[72px]'
@@ -97,7 +100,7 @@ const InviteMemberPage = ({
           <button
             onClick={handleShowRole}
             type='button'
-            className='px-[8px] py-[6px] whitespace-nowrap w-fit text-o-status-green font-[600] text-f14'
+            className='px-[8px] py-[6px] min-w-[140px] mt-5 whitespace-nowrap flex justify-end text-o-status-green font-[600] text-f14'
           >
             {
               show_role ? 

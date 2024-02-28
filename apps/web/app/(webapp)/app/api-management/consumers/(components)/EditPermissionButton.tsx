@@ -37,9 +37,9 @@ const EditPermissionButton = ({
       data: null,
       noToast: true
     });
-    const sanitizedAPIs = result?.data?.map((api: any) => {
+    const sanitizedAPIs = result?.data ? result?.data?.map((api: any) => {
       return api?.id;
-    });
+    }) : [];
     setApiIds([...sanitizedAPIs]);
   }
 

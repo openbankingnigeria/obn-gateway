@@ -19,6 +19,7 @@ const BackupCodeForm = () => {
   const handleCode = (value: string) => {
     if (value?.length <= 6) {
       setCode(value);
+      // setCode(value?.toString()?.replace(/[^0-9.]/g, ''));
     }
   }
 
@@ -57,7 +58,7 @@ const BackupCodeForm = () => {
       <InputElement 
         name='code'
         type='text'
-        placeholder='6-digit backup code'
+        placeholder='6-characters backup code'
         value={code}
         changeValue={(value: string) => handleCode(value)}
         label='Backup Code'

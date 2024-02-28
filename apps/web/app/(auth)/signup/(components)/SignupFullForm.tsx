@@ -488,10 +488,10 @@ const SignupFullForm = () => {
           }
 
           <div className='text-f14 text-[#344054]'>
-            I agree to the <span className='cursor-pointer font-[600] text-o-light-blue'>
-              Terms of Use</span> and&#160; 
-            <span className='cursor-pointer font-[600] text-o-light-blue'>
-              Privacy Policy</span>.
+            I agree to the <a href='https://openbanking.ng/terms-conditions/' className='cursor-pointer font-[600] text-o-light-blue'>
+              Terms of Use</a> and&#160; 
+            <a href='https://openbanking.ng/privacy-notice/' className='cursor-pointer font-[600] text-o-light-blue'>
+              Privacy Policy</a>.
           </div>
         </div>
       </div>

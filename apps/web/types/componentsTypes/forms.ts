@@ -57,6 +57,9 @@ export interface SelectElementProps extends FieldsProps {
   disabledValue?: string;
   forFilter?: boolean;
   selected?: any[];
+  btnTitle?: string;
+  emptyState?: string;
+  btnPath?: string;
 }
 
 export interface ToogleSwitchProps {
