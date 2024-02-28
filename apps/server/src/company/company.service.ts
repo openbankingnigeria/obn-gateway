@@ -14,7 +14,7 @@ import {
   Settings,
   User,
 } from '@common/database/entities';
-import { Equal, Repository } from 'typeorm';
+import { Equal, Not, Repository } from 'typeorm';
 import {
   ResponseFormatter,
   ResponseMetaDTO,
@@ -82,6 +82,7 @@ export class CompanyService {
       const rcExists = await this.companyRepository.count({
         where: {
           rcNumber: data.rcNumber,
+          id: Not(Equal(ctx.activeCompany.id)),
         },
       });
 
@@ -192,7 +193,7 @@ export class CompanyService {
     }
 
     await this.companyRepository.update(
-      { id: ctx.activeCompany.id, kybDataId: kybData.id },
+      { id: ctx.activeCompany.id },
       {
         rcNumber: data.rcNumber,
         kybStatus: KybStatuses.PENDING,

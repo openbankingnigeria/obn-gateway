@@ -55,6 +55,8 @@ import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
 import { commonErrors } from '@common/constants';
 import { BusinessSettings } from '@settings/types';
 import { CompanyTiers } from '@company/types';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
 @Injectable()
 export class AuthService {
@@ -71,6 +73,7 @@ export class AuthService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(TwoFaBackupCode)
     private readonly backupCodesRepository: Repository<TwoFaBackupCode>,
+    private readonly kongConsumerService: KongConsumerService,
     private readonly auth: Auth,
     private readonly eventEmitter: EventEmitter2,
     private readonly config: ConfigService,
@@ -672,6 +675,21 @@ export class AuthService {
         emailVerificationExpires: undefined,
         emailVerificationOtp: undefined,
       },
+    );
+
+    // Create a consumer for development for the new company
+    const response = await this.kongConsumerService.updateOrCreateConsumer(
+      KONG_ENVIRONMENT.DEVELOPMENT,
+      {
+        custom_id: user.companyId,
+      },
+    );
+
+    await this.companyRepository.update(
+      {
+        id: user.companyId,
+      },
+      { consumerId: response.id },
     );
 
     return ResponseFormatter.success(
