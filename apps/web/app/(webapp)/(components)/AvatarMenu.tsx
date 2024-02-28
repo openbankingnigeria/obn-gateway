@@ -41,7 +41,7 @@ const AvatarMenu = ({
 
       <div 
         onClick={handleLogout}
-        className='flex items-center gap-[12px] p-[8px] w-full rounded-[4px] bg-white text-o-text-medium2 text-f14 hover:bg-o-bg'
+        className='flex cursor-pointer items-center gap-[12px] p-[8px] w-full rounded-[4px] bg-white text-o-text-medium2 text-f14 hover:bg-o-bg'
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path 

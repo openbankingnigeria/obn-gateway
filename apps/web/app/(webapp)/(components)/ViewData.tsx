@@ -1,13 +1,16 @@
+import { Loader } from '@/components/globalComponents';
 import React, { ReactNode } from 'react'
 
 interface ViewDataProps {
   label: string;
   value: ReactNode | string
+  loading?: boolean;
 }
 
 const ViewData = ({
   label,
-  value
+  value,
+  loading
 }: ViewDataProps) => {
   return (
     <section className='w-full flex flex-col gap-[4px]'>
@@ -16,7 +19,12 @@ const ViewData = ({
       </h4>
 
       <div className='text-f14 font-[500] text-o-text-dark3'>
-        {value}
+        {
+          loading ?
+            <Loader />
+            :
+            value
+        }
       </div>
     </section>
   )

@@ -6,6 +6,7 @@ import MockServicesPage from "./MockServicesPage";
 import TestModeConfigurationPage from "./TestModeConfigurationPage";
 import LiveModeConfigurationPage from "./LiveModeConfigurationPage";
 import BusinessInformationPage from "./BusinessInformationPage";
+import OnboardingSettingsPage from "./OnboardingSettingsPage";
 
 export {
   GeneralSettingsPage,
@@ -15,5 +16,6 @@ export {
   MockServicesPage,
   TestModeConfigurationPage,
   LiveModeConfigurationPage,
-  BusinessInformationPage
+  BusinessInformationPage,
+  OnboardingSettingsPage
 }

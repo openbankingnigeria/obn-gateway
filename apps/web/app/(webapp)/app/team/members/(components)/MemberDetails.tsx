@@ -21,9 +21,10 @@ const MemberDetails = ({
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [loadingRole, setLoadingRole] = useState(false);
   const [open2FA, setOpen2FA] = useState(false);
   const [openModal, setOpenModal] = useState('');
-  const [role, setRole] = useState(member?.roleId);
+  const [role, setRole] = useState(member?.role?.id);
   const actions = MEMBERS_ACTIONS_DATA;
   const memberName = `${member?.profile?.firstName} ${member?.profile?.lastName}`;
   const memberStatus: 'pending' | 'active' | 'inactive' | 'invited' = member?.status == 'pending' ? 
@@ -88,9 +89,29 @@ const MemberDetails = ({
     )
   };
 
-  const changeRole = (value: string) => {
-    setRole(value);
-    toast.success(`You have successfully change ${memberName} role`);
+  const changeRole = async (value: string) => {
+    setLoadingRole(true);
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.updateTeam({ id: member?.id }),
+      method: 'PATCH',
+      data: {
+        email: member?.email,
+        firstName: member?.profile?.firstName,
+        lastName: member?.profile?.lastName,
+        roleId: role,
+        status: member?.status
+      }
+    });
+
+    if (result?.message) {
+      setOpenModal('');
+      setRole(value);
+      setLoadingRole(false);
+      toast.success(`You have successfully change ${memberName} role`);
+      // router.refresh();
+      // setOpen2FA(true);
+    }
   }
 
   return (
@@ -179,6 +200,7 @@ const MemberDetails = ({
 
             <ViewData 
               label='Role'
+              loading={loadingRole}
               value={
                 <SelectElement 
                   name='role'

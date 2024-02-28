@@ -25,6 +25,8 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
   const fetchedCollections: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API?.getCompanyCollections({
+      page: '1',
+      limit: '20',
       environment: environment || 'development'
     }),
     method: 'GET',

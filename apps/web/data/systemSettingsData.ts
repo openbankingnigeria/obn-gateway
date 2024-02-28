@@ -6,56 +6,80 @@ export const SYSTEM_SETTINGS_PATHS = [
     label: 'General Settings',
     value: '',
     name: 'general_settings',
-    type: 'api-provider'
+    type: 'api-provider',
+    subType: ''
   },
   {
     id: 2,
-    label: 'Email Service',
-    value: 'email_settings',
-    name: 'email_settings',
-    type: 'api-provider'
+    label: 'Onboarding Settings',
+    value: 'onboarding_settings',
+    name: 'onboarding_settings',
+    type: 'api-provider',
+    subType: ''
   },
   {
     id: 3,
-    label: 'Email Template',
-    value: 'email_templates',
-    name: 'email_templates',
-    type: 'api-provider'
+    label: 'Email Service',
+    value: 'email_settings',
+    name: 'email_settings',
+    type: 'api-provider',
+    subType: ''
   },
   {
     id: 4,
+    label: 'Email Template',
+    value: 'email_templates',
+    name: 'email_templates',
+    type: 'api-provider',
+    subType: ''
+  },
+  {
+    id: 5,
     label: 'External Services',
     value: 'external_services',
     name: 'external_services',
-    type: 'api-provider'
+    type: 'api-provider',
+    subType: ''
   },
   {
-    id: 5,
+    id: 6,
     label: 'Mock Services',
     value: 'mock_services',
     name: 'mock_services',
-    type: 'api-provider'
-  },
-  {
-    id: 5,
-    label: 'Business Information',
-    value: '',
-    name: 'business_information',
-    type: 'api-consumer'
+    type: 'api-provider',
+    subType: ''
   },
   {
     id: 7,
-    label: 'Test Mode Configuration',
-    value: 'test_mode_configuration',
-    name: 'test_mode_configuration',
-    type: 'api-consumer'
+    label: 'Business Information',
+    value: '',
+    name: 'business_information',
+    type: 'api-consumer',
+    subType: 'licensed-entity,business'
   },
   {
     id: 8,
+    label: 'Test Mode Configuration',
+    value: 'test_mode_configuration',
+    name: 'test_mode_configuration',
+    type: 'api-consumer',
+    subType: 'licensed-entity,business'
+  },
+  {
+    id: 9,
+    label: 'Test Mode Configuration',
+    value: '',
+    name: 'test_mode_configuration',
+    type: 'api-consumer',
+    subType: 'individual'
+  },
+  {
+    id: 10,
     label: 'Live Mode Configuration',
     value: 'live_mode_configuration',
     name: 'live_mode_configuration',
-    type: 'api-consumer'
+    type: 'api-consumer',
+    subType: 'individual,licensed-entity,business'
   },
 ];
 

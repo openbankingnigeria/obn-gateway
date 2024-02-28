@@ -103,7 +103,7 @@ const SecurityDetails = ({
         >
           <ChangePasswordForm 
             profile={profile}
-            close={handleCloseModal}
+            close={() => handleCloseModal()}
           />
         </AppRightModal>
       }

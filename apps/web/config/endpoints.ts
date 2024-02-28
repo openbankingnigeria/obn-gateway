@@ -62,8 +62,8 @@ export const getCollections = () =>
   `${BASE_URL}/collections`;
 export const getCollection = ({ id }: GetSingleProps) => 
   `${BASE_URL}/collections/${id}`;
-export const getCompanyCollections = ({ environment }: GetSingleEnvironmentProps) => 
-  `${BASE_URL}/collections/${environment}/company`;
+export const getCompanyCollections = ({ page, limit, environment }: GetEnvironmentProps) => 
+  `${BASE_URL}/collections/${environment}/company?page=${page}${limit ? `&limit=${limit}`: ''}`;
 export const getCompanyCollectionsById = ({ environment, id }: GetSingleEnvironmentProps) => 
   `${BASE_URL}/collections/${environment}/company/${id}`;
 

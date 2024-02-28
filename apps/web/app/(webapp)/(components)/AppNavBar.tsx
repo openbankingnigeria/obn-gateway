@@ -92,8 +92,9 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
         'production'
       );
     handleCloseModal();
-    toast.success(`You’ve successfully switched to ${mode} Mode`);
     window?.location?.reload();
+    setLoadingSwitch(false);
+    toast.success(`You’ve successfully switched to ${mode} Mode`);
   }
 
   return (
