@@ -128,6 +128,7 @@ const UpStreamForm = ({
           data: {
             "name": rawData?.name,
             "enabled": rawData?.enabled,
+            "tiers": rawData?.tiers,
             "upstream": {
               ...rawData?.upstream,
               url: endpointUrl,
