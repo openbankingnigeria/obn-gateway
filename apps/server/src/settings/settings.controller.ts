@@ -114,12 +114,14 @@ export class SettingsController {
     @Ctx() ctx: RequestContext,
     @Param('settingsType') settingsType: SETTINGS_TYPES,
   ) {
-    const validationPipe = new IValidationPipe();
+    if (SettingsUpdateDtos[settingsType]) {
+      const validationPipe = new IValidationPipe();
 
-    await validationPipe.transform(data, {
-      type: 'body',
-      metatype: SettingsUpdateDtos[settingsType],
-    });
+      await validationPipe.transform(data, {
+        type: 'body',
+        metatype: SettingsUpdateDtos[settingsType],
+      });
+    }
     return this.settingsService.editSettings(ctx, settingsType, data);
   }
 

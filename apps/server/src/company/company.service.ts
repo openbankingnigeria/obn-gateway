@@ -21,6 +21,7 @@ import {
 } from '@common/utils/response/response.formatter';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { settingsErrors } from '@settings/settings.errors';
+import { SETTINGS_TYPES } from '@settings/types';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CompanyApprovedEvent,
@@ -504,15 +505,34 @@ export class CompanyService {
   async getCompanyCustomFields(companyType: CompanyTypes) {
     let customFields: Record<string, { type: string; label: string }> = {};
 
+    const additionalFields = await this.settingsRepository.findOne({
+      where: {
+        name: Equal(SETTINGS_TYPES.ONBOARDING_CUSTOM_FIELDS),
+      },
+    });
+
+    let fields: any = {};
+
     switch (companyType) {
       case CompanyTypes.BUSINESS:
-        customFields = companyCustomFields.business;
+        if (additionalFields) {
+          fields = { ...JSON.parse(additionalFields.value ?? '{}') }.business;
+        }
+        customFields = { ...companyCustomFields.business, ...fields };
         break;
       case CompanyTypes.INDIVIDUAL:
-        customFields = companyCustomFields.individual;
+        if (additionalFields) {
+          fields = { ...JSON.parse(additionalFields.value ?? '{}') }.individual;
+        }
+        customFields = { ...companyCustomFields.individual, ...fields };
         break;
       case CompanyTypes.LICENSED_ENTITY:
-        customFields = companyCustomFields['licensed-entity'];
+        if (additionalFields) {
+          fields = { ...JSON.parse(additionalFields.value ?? '{}') }[
+            'licensed-entity'
+          ];
+        }
+        customFields = { ...companyCustomFields['licensed-entity'], ...fields };
         break;
     }
 
@@ -670,6 +690,18 @@ export class CompanyService {
     return ResponseFormatter.success<GetStatsResponseDTO[]>(
       'Company stats fetched successfully',
       aggregates.map((stat) => new GetStatsResponseDTO(stat)),
+    );
+  }
+
+  async getUserAgreements() {
+    const userAgreementSettings = await this.settingsRepository.findOne({
+      where: { name: SETTINGS_TYPES.USER_AGREEMENTS },
+      select: { value: true },
+    });
+
+    return ResponseFormatter.success<any>(
+      'User agreements fetched successfully',
+      JSON.parse(userAgreementSettings?.value ?? '{}'),
     );
   }
 }

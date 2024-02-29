@@ -63,12 +63,34 @@ export interface EmailSettingsInterface {
   emailBaseUrl: SettingsBase<string>;
 }
 
+export interface UserAgreementSettingsInterface {
+  privacyPolicy: SettingsBase<string>;
+  termsAndConditions: SettingsBase<string>;
+}
+
+export interface AdditionalOnboardingCustomFieldsInterface {
+  business: Record<
+    string,
+    { label: string; type: 'email' | 'password' | 'text' | 'dropdown' }
+  >;
+  individual: Record<
+    string,
+    { label: string; type: 'email' | 'password' | 'text' | 'dropdown' }
+  >;
+  ['licensed-entity']: Record<
+    string,
+    { label: string; type: 'email' | 'password' | 'text' | 'dropdown' }
+  >;
+}
+
 export enum SETTINGS_TYPES {
   GENERAL_SETTINGS = 'general',
   EMAIL_SETTINGS = 'email_settings',
   EMAIL_TEMPLATES = 'email_templates',
   EXTERNAL_SERVICES = 'external_services',
   MOCK_SERVICES = 'mock_services',
+  USER_AGREEMENTS = 'user_agreements',
+  ONBOARDING_CUSTOM_FIELDS = 'onboarding_custom_fields',
 }
 
 export enum EMAIL_PROVIDERS {
