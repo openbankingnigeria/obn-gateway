@@ -1,5 +1,6 @@
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { Injectable } from '@nestjs/common';
+import { isString } from 'class-validator';
 import {
   ApiKeyResponse,
   EmailTemplateDto,
@@ -378,6 +379,77 @@ export class SettingsService {
           updateQuery,
         );
       }
+    } else if (settingType === SETTINGS_TYPES.ONBOARDING_CUSTOM_FIELDS) {
+      const errors: any = {};
+      // Validate the data
+      Object.values(data).forEach(
+        (
+          value: Record<
+            string,
+            { label: string; type: 'email' | 'password' | 'text' | 'dropdown' }
+          >,
+        ) => {
+          const innerKeys = Object.keys(value);
+
+          innerKeys.forEach((innerKey) => {
+            if (
+              !['email', 'password', 'text', 'dropdown'].includes(
+                value[innerKey].type,
+              ) ||
+              !isString(value[innerKey].label)
+            ) {
+              errors[innerKey] = ![
+                'email',
+                'password',
+                'text',
+                'dropdown',
+              ].includes(value[innerKey].type)
+                ? `${innerKey} must have a value of 'email', 'password', 'text' or 'dropdown'`
+                : `${innerKey} must be a string`;
+            }
+          });
+        },
+      );
+
+      if (Object.keys(errors).length > 0) {
+        throw new IBadRequestException({
+          data: errors,
+          message: 'Validation Error.',
+        });
+      }
+
+      const prevSettings = await this.settingsRepository.findOne({
+        where: {
+          name: Equal(settingType),
+        },
+      });
+
+      if (!prevSettings) {
+        throw new INotFoundException({
+          message: settingsErrors.settingNotFound(settingType),
+        });
+      }
+
+      const settingsValue = JSON.parse(prevSettings.value);
+
+      if (!settingsValue) {
+        throw new INotFoundException({
+          message: settingsErrors.settingNotFound(settingType),
+        });
+      }
+
+      for (const field of Object.keys(data)) {
+        if (settingsValue[field]) {
+          settingsValue[field] = { ...settingsValue[field], ...data[field] };
+        }
+      }
+
+      await this.settingsRepository.update(
+        {
+          name: settingType,
+        },
+        { value: JSON.stringify(settingsValue) },
+      );
     } else {
       const prevSettings = await this.settingsRepository.findOne({
         where: {

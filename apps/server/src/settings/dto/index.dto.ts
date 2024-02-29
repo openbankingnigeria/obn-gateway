@@ -1,5 +1,9 @@
 import { settingsErrors } from '@settings/settings.errors';
-import { EmailSettingsInterface, SETTINGS_TYPES } from '../types';
+import {
+  EmailSettingsInterface,
+  SETTINGS_TYPES,
+  UserAgreementSettingsInterface,
+} from '../types';
 import {
   GeneralSettingsInterface,
   KybDataTypes,
@@ -15,6 +19,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   ValidateNested,
 } from 'class-validator';
 
@@ -154,6 +159,20 @@ export class GeneralSettingsUpdateDto
   twoFaExpirationDuration: string;
 }
 
+export class UserAgreementUpdateDto
+  implements Record<keyof UserAgreementSettingsInterface, string>
+{
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  privacyPolicy: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  termsAndConditions: string;
+}
+
 export class EmailSettingsUpdateDto
   implements Record<keyof EmailSettingsInterface, string>
 {
@@ -203,7 +222,9 @@ export class EmailTemplateDto {
 export const SettingsUpdateDtos: Record<SETTINGS_TYPES, any> = {
   email_settings: EmailSettingsUpdateDto,
   email_templates: EmailTemplateDto,
-  external_services: GeneralSettingsUpdateDto,
-  mock_services: GeneralSettingsUpdateDto,
+  external_services: null,
+  mock_services: null,
   general: GeneralSettingsUpdateDto,
+  onboarding_custom_fields: null,
+  user_agreements: UserAgreementUpdateDto,
 };
