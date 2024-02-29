@@ -7,10 +7,12 @@ import { Auth } from 'src/common/utils/authentication/auth.helper';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/common/database/entities/role.entity';
 import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, Auth, JwtService],
+  providers: [AuthService, Auth, JwtService, KongConsumerService],
   imports: [
     TypeOrmModule.forFeature([
       User,
@@ -20,6 +22,7 @@ import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entit
       TwoFaBackupCode,
       Settings,
     ]),
+    HttpModule,
   ],
 })
 export class AuthModule {}
