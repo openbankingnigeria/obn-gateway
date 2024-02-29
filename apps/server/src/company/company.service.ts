@@ -692,4 +692,16 @@ export class CompanyService {
       aggregates.map((stat) => new GetStatsResponseDTO(stat)),
     );
   }
+
+  async getUserAgreements() {
+    const userAgreementSettings = await this.settingsRepository.findOne({
+      where: { name: SETTINGS_TYPES.USER_AGREEMENTS },
+      select: { value: true },
+    });
+
+    return ResponseFormatter.success<any>(
+      'User agreements fetched successfully',
+      JSON.parse(userAgreementSettings?.value ?? '{}'),
+    );
+  }
 }
