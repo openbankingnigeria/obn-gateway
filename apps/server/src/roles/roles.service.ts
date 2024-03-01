@@ -183,7 +183,7 @@ export class RolesService {
         !ctx?.hasPermission(PERMISSIONS.ACTIVATE_ROLE)
       ) {
         throw new IForbiddenException({
-          message: authErrors.inadequatePermissions,
+          message: authErrors.inadequatePermissions(PERMISSIONS.ACTIVATE_ROLE),
         });
       }
       if (
@@ -191,7 +191,9 @@ export class RolesService {
         !ctx?.hasPermission(PERMISSIONS.DEACTIVATE_ROLE)
       ) {
         throw new IForbiddenException({
-          message: authErrors.inadequatePermissions,
+          message: authErrors.inadequatePermissions(
+            PERMISSIONS.DEACTIVATE_ROLE,
+          ),
         });
       }
     }

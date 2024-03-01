@@ -108,7 +108,7 @@ export class AuthGuard implements CanActivate {
 
     if (!request.ctx.hasPermission(requiredPermission)) {
       throw new IForbiddenException({
-        message: authErrors.inadequatePermissions,
+        message: authErrors.inadequatePermissions(requiredPermission),
       });
     }
 
