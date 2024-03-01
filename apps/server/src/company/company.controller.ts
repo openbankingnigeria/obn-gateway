@@ -150,4 +150,11 @@ export class CompanyController {
   ) {
     return this.companyService.toggleCompanyAccess(ctx, companyId, false);
   }
+
+  @Get('agreements')
+  @SkipAuthGuard()
+  @SerializeOptions({ strategy: 'exposeAll' })
+  getUserAgreements() {
+    return this.companyService.getUserAgreements();
+  }
 }
