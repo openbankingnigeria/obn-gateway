@@ -37,8 +37,7 @@ export class RequestContext {
   hasPermission(requiredPermission?: PERMISSIONS): boolean {
     // TODO remove constant admin check, and requiredPermission(every endpoint should be guarded by permissions)
     let has = false;
-    if (this.activeUser.role.slug === 'admin' || !requiredPermission)
-      has = true;
+    if (!requiredPermission) has = false;
     else {
       has = this.activeUser.role.permissions.some(
         (permission) => permission?.slug === requiredPermission,
