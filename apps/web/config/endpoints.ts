@@ -1,7 +1,7 @@
 import { DateFilterProps, GetEnvironmentProps, GetListProps, GetSingleEnvironmentProps, GetSingleProps, GetTypeProps, PostTokenProps, 
 } from "@/types/endpointTypes";
 
-const BASE_URL = 'http://3.134.253.153:4000';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_ENDPOINT;
 
 
 // AUTH
