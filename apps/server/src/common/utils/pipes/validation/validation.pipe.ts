@@ -7,6 +7,7 @@ import {
   structureConstraintKeys,
   typeConstraintKeys,
 } from './validation.constants';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class IValidationPipe implements PipeTransform<any> {
@@ -51,17 +52,27 @@ export class IValidationPipe implements PipeTransform<any> {
     const structuredErrors: Record<string, any> = {};
 
     errors.forEach((error) => {
-      structuredErrors[error.property] = this.getMessage(error.constraints);
+      if (error.children) {
+        structuredErrors[error.property] = this.structureErrors(error.children);
+      }
+      if (error.constraints) {
+        structuredErrors[error.property] = this.getMessage(error.constraints);
+      }
     });
     return structuredErrors;
   }
 
   async transform(value: any, { metatype }: ArgumentMetadata) {
-    if (!metatype || !this.toValidate(metatype)) {
+    if (
+      !metatype ||
+      !this.toValidate(metatype) ||
+      value instanceof RequestContext
+    ) {
       return value;
     }
 
     const object = plainToInstance(metatype, value);
+
     const errors = await validate(object, {});
 
     if (errors.length > 0) {
@@ -72,7 +83,7 @@ export class IValidationPipe implements PipeTransform<any> {
       });
     }
 
-    return value;
+    return object;
   }
 
   private toValidate(metatype: any): boolean {

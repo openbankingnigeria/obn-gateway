@@ -1,27 +1,44 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto, UpdateUserDto } from './dto/index.dto';
+import {
+  CreateUserDto,
+  GetStatsResponseDTO,
+  GetUserResponseDTO,
+  UpdateUserDto,
+} from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Profile, Role, User } from 'src/common/database/entities';
-import { Repository } from 'typeorm';
-import { RequestContextService } from 'src/common/utils/request/request-context.service';
-import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
-import { ResponseFormatter } from 'src/common/utils/common/response.util';
-import { userErrors } from 'src/common/constants/errors/user.errors';
-import { roleErrors } from 'src/common/constants/errors/role.errors';
+import {
+  Profile,
+  Role,
+  User,
+  UserStatuses,
+} from 'src/common/database/entities';
+import { Equal, Repository } from 'typeorm';
+import {
+  IBadRequestException,
+  INotFoundException,
+} from 'src/common/utils/exceptions/exceptions';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
+import { userErrors } from '@users/user.errors';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   UserCreatedEvent,
+  UserDeactivatedEvent,
   UserDeletedEvent,
   UserUpdatedEvent,
+  UserReactivatedEvent,
 } from 'src/shared/events/user.event';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
-import { userSuccessMessages } from '@common/constants/user/user.constants';
+import { userSuccessMessages } from '@users/user.constants';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly requestContext: RequestContextService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
@@ -32,8 +49,8 @@ export class UsersService {
     private readonly profileRepository: Repository<Profile>,
   ) {}
 
-  async createUser(data: CreateUserDto) {
-    const { email, firstName, lastName, roleId } = data;
+  async createUser(ctx: RequestContext, data: CreateUserDto) {
+    const { email, roleId } = data;
 
     const userExists = await this.userRepository.count({
       where: { email },
@@ -46,88 +63,189 @@ export class UsersService {
     }
 
     const role = await this.roleRepository.findOne({
-      where: { id: roleId, parentId: this.requestContext.user!.role.parentId },
-      relations: { permissions: true },
+      where: {
+        id: Equal(roleId),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
+      },
     });
 
     if (!role) {
       throw new IBadRequestException({
-        message: roleErrors.roleNotFound,
+        message: userErrors.invalidRole,
       });
     }
 
-    const resetToken = await this.auth.getToken();
-    const hashedResetToken = await this.auth.hashToken(resetToken);
+    const token = await this.auth.getToken();
+    const hashedToken = await this.auth.hashToken(token);
 
     const user = await this.userRepository.save(
       this.userRepository.create({
         email,
-        roleId,
+        roleId: role.id,
         password: '',
-        companyId: this.requestContext.user!.companyId,
-        resetPasswordToken: hashedResetToken,
+        companyId: ctx.activeUser.companyId,
+        resetPasswordToken: hashedToken,
         resetPasswordExpires: moment().add(24, 'hours').toDate(),
         profile: {
-          firstName,
-          lastName,
+          firstName: '',
+          lastName: '',
+          companyRole: '',
         },
       }),
     );
 
-    const event = new UserCreatedEvent(
-      this.requestContext.user!,
-      user,
-      resetToken,
-      {
-        pre: null,
-        post: user,
-      },
-    );
+    const event = new UserCreatedEvent(ctx.activeUser, user, {
+      pre: null,
+      post: user,
+      token,
+    });
 
     this.eventEmitter.emit(event.name, event);
 
-    return ResponseFormatter.success(userSuccessMessages.createdUser, user);
+    return ResponseFormatter.success(
+      userSuccessMessages.createdUser,
+      new GetUserResponseDTO(user),
+    );
   }
 
-  async listUsers() {
-    const users = await this.userRepository.find({
-      where: { companyId: this.requestContext.user!.companyId },
-      relations: { profile: true },
-    });
-    return ResponseFormatter.success(userSuccessMessages.fetchedUsers, users);
-  }
-
-  async getUser(id: string) {
+  async resendInvite(ctx: RequestContext, id: string) {
     const user = await this.userRepository.findOne({
-      where: { id, companyId: this.requestContext.user!.companyId },
-      relations: { profile: true },
+      where: { id: Equal(id), companyId: Equal(ctx.activeUser.companyId) },
     });
 
     if (!user) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: userErrors.userNotFound,
       });
     }
 
-    return ResponseFormatter.success(userSuccessMessages.fetchedUser, user);
+    if (user.status !== UserStatuses.PENDING) {
+      throw new IBadRequestException({
+        message: userErrors.cannotResendInvite(user.status!),
+      });
+    }
+
+    const token = await this.auth.getToken();
+    const hashedToken = await this.auth.hashToken(token);
+
+    await this.userRepository.update(
+      { id: user.id },
+      {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: moment().add(24, 'hours').toDate(),
+      },
+    );
+
+    const event = new UserCreatedEvent(ctx.activeUser, user, {
+      pre: null,
+      post: user,
+      token,
+    });
+
+    this.eventEmitter.emit(event.name, event);
+
+    return ResponseFormatter.success(
+      userSuccessMessages.sentInvite,
+      new GetUserResponseDTO(user),
+    );
   }
 
-  async updateUser(id: string, data: UpdateUserDto) {
+  async listUsers(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
+    const where = {
+      ...filters,
+      companyId: Equal(ctx.activeUser.companyId),
+    };
+
+    const totalUsers = await this.userRepository.count({
+      where,
+    });
+
+    const users = await this.userRepository.find({
+      where,
+      relations: { profile: true, role: true },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      userSuccessMessages.fetchedUsers,
+      users.map((user) => new GetUserResponseDTO(user)),
+      new ResponseMetaDTO({
+        totalNumberOfRecords: totalUsers,
+        totalNumberOfPages: Math.ceil(totalUsers / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
+  }
+
+  async getUser(ctx: RequestContext, id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: Equal(id), companyId: Equal(ctx.activeUser.companyId) },
+      relations: { profile: true, role: true },
+    });
+
+    if (!user) {
+      throw new INotFoundException({
+        message: userErrors.userNotFound,
+      });
+    }
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      userSuccessMessages.fetchedUser,
+      new GetUserResponseDTO(user),
+    );
+  }
+
+  async updateUser(ctx: RequestContext, id: string, data: UpdateUserDto) {
     const { firstName, lastName, status, roleId } = data;
 
     const user = await this.userRepository.findOne({
-      where: { id, companyId: this.requestContext.user!.companyId },
+      where: { id: Equal(id), companyId: Equal(ctx.activeUser.companyId) },
       relations: { profile: true },
     });
 
     if (!user) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: userErrors.userNotFound,
       });
     }
 
+    if (user.id === ctx.activeUser.id) {
+      throw new IBadRequestException({
+        message: userErrors.cannotUpdateSelf,
+      });
+    }
+
+    let role;
+    if (roleId) {
+      role = await this.roleRepository.findOne({
+        where: {
+          id: Equal(roleId),
+          parentId: Equal(ctx.activeUser.role.parentId),
+          companyId: Equal(ctx.activeUser.companyId),
+        },
+      });
+
+      if (!role) {
+        throw new IBadRequestException({
+          message: userErrors.invalidRole,
+        });
+      }
+    }
+
     const updatedUser = this.userRepository.create({
-      roleId,
+      roleId: role?.id,
       status,
     });
 
@@ -138,38 +256,55 @@ export class UsersService {
 
     await this.userRepository.update({ id: user.id }, updatedUser);
     await this.profileRepository.update(
-      { id: user.profile.id },
+      { id: user.profile!.id },
       updatedProfile,
     );
     updatedUser.profile = updatedProfile;
 
-    const event = new UserUpdatedEvent(this.requestContext.user!, user, {
+    const event = new UserUpdatedEvent(ctx.activeUser, user, {
       pre: user,
       post: updatedUser,
     });
+
+    if (updatedUser.status && user.status !== updatedUser.status) {
+      if (updatedUser.status === UserStatuses.ACTIVE) {
+        const event = new UserReactivatedEvent(ctx.activeUser, user);
+        this.eventEmitter.emit(event.name, event);
+      }
+      if (updatedUser.status === UserStatuses.INACTIVE) {
+        const event = new UserDeactivatedEvent(ctx.activeUser, user);
+        this.eventEmitter.emit(event.name, event);
+      }
+    }
 
     this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       userSuccessMessages.updatedUser,
-      updatedUser,
+      new GetUserResponseDTO(updatedUser),
     );
   }
 
-  async deleteUser(id: string) {
+  async deleteUser(ctx: RequestContext, id: string) {
     const user = await this.userRepository.findOne({
-      where: { id, companyId: this.requestContext.user!.companyId },
+      where: { id: Equal(id), companyId: Equal(ctx.activeUser.companyId) },
     });
 
     if (!user) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: userErrors.userNotFound,
+      });
+    }
+
+    if (user.id === ctx.activeUser.id) {
+      throw new IBadRequestException({
+        message: userErrors.cannotDeleteSelf,
       });
     }
 
     await this.userRepository.softDelete({ id: user.id });
 
-    const event = new UserDeletedEvent(this.requestContext.user!, user, {
+    const event = new UserDeletedEvent(ctx.activeUser, user, {
       pre: user,
       post: null,
     });
@@ -177,5 +312,29 @@ export class UsersService {
     this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(userSuccessMessages.deletedUser, null);
+  }
+
+  async getStats(ctx: RequestContext) {
+    const stats = await this.userRepository.query(
+      `SELECT IFNULL(count(users.id), 0) count, definitions.value
+    FROM
+      users
+      RIGHT OUTER JOIN (${Object.values(UserStatuses)
+        .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
+        .join(' UNION ')}) definitions ON users.status = definitions.key
+        AND users.deleted_at IS NULL
+        AND users.company_id = ?
+    GROUP BY
+      definitions.value
+        `,
+      [ctx.activeUser.companyId],
+    );
+    return ResponseFormatter.success(
+      userSuccessMessages.fetchedUsersStats,
+      stats.map(
+        (stat: { count: number; value: string }) =>
+          new GetStatsResponseDTO(stat),
+      ),
+    );
   }
 }

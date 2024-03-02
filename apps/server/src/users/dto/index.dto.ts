@@ -1,51 +1,27 @@
-import {
-  userConfig,
-  userErrors,
-} from 'src/common/constants/errors/user.errors';
+import { GetCompanyResponseDTO } from '@company/dto/index.dto';
+import { GetProfileResponseDTO } from '@profile/dto/index.dto';
+import { GetRoleResponseDTO } from '@roles/dto/index.dto';
+import { userConfig, userErrors } from '@users/user.errors';
+import { Expose, Type } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsString,
   Matches,
   MinLength,
 } from 'class-validator';
-import { UserStatuses } from 'src/common/database/entities';
+import { User, UserStatuses } from 'src/common/database/entities';
 
 export class CreateUserDto {
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: ({ property }) => userErrors.dto.isRequired(property),
+  })
   @IsString()
   @IsEmail()
   email: string;
-
-  @IsNotEmpty({
-    message: ({ property }) => userErrors.dto.isRequired(property),
-  })
-  @IsString()
-  @MinLength(userConfig.minNameLength, {
-    message: ({ property }) =>
-      userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
-  })
-  @Matches(/^[A-Za-z]+$/gi, {
-    message: ({ property }) =>
-      userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
-  })
-  firstName: string;
-
-  @IsNotEmpty({
-    message: ({ property }) => userErrors.dto.isRequired(property),
-  })
-  @IsString()
-  @MinLength(userConfig.minNameLength, {
-    message: ({ property }) =>
-      userErrors.dto.valueMustBeOfLength(property, userConfig.minNameLength),
-  })
-  @Matches(/^[A-Za-z]+$/gi, {
-    message: ({ property }) =>
-      userErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
-  })
-  lastName: string;
 
   @IsNotEmpty()
   @IsString()
@@ -53,9 +29,7 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
-  @IsNotEmpty({
-    message: ({ property }) => userErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
   @MinLength(userConfig.minNameLength, {
     message: ({ property }) =>
@@ -67,9 +41,7 @@ export class UpdateUserDto {
   })
   firstName: string;
 
-  @IsNotEmpty({
-    message: ({ property }) => userErrors.dto.isRequired(property),
-  })
+  @IsOptional()
   @IsString()
   @MinLength(userConfig.minNameLength, {
     message: ({ property }) =>
@@ -89,4 +61,58 @@ export class UpdateUserDto {
   @IsString()
   @IsEnum(UserStatuses)
   status: UserStatuses;
+}
+
+export class GetUserResponseDTO {
+  constructor(partial: Partial<User>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  id: string;
+
+  @Expose()
+  email: string;
+
+  @Expose()
+  twofaEnabled: boolean;
+
+  @Expose()
+  status: UserStatuses;
+
+  @Expose()
+  emailVerified: boolean;
+
+  @Expose()
+  otp: string;
+
+  @Expose()
+  @IsObject()
+  @Type(() => GetRoleResponseDTO)
+  role: GetRoleResponseDTO;
+
+  @Expose()
+  @IsObject()
+  @Type(() => GetCompanyResponseDTO)
+  company: GetCompanyResponseDTO;
+
+  @Expose()
+  @IsObject()
+  @Type(() => GetProfileResponseDTO)
+  profile: GetProfileResponseDTO;
+
+  @Expose()
+  createdAt: Date;
+}
+
+export class GetStatsResponseDTO {
+  constructor(partial: GetStatsResponseDTO) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  count: number;
+
+  @Expose()
+  value: string;
 }

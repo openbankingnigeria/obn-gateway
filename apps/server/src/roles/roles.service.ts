@@ -1,28 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Role } from 'src/common/database/entities';
-import { In, Not, Repository } from 'typeorm';
+import { Role, RoleStatuses } from 'src/common/database/entities';
+import { Equal, In, IsNull, Not, Repository } from 'typeorm';
 import slugify from 'slugify';
 import {
   CreateRoleDto,
+  GetPermissionResponseDTO,
+  GetRoleResponseDTO,
+  GetStatsResponseDTO,
   SetRolePermissionsDto,
   UpdateRoleDto,
 } from './dto/index.dto';
-import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
-import { roleErrors } from 'src/common/constants/errors/role.errors';
-import { ResponseFormatter } from 'src/common/utils/common/response.util';
-import { RequestContextService } from 'src/common/utils/request/request-context.service';
+import {
+  IBadRequestException,
+  IForbiddenException,
+  INotFoundException,
+} from 'src/common/utils/exceptions/exceptions';
+import { roleErrors } from '@roles/role.errors';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
 import { Permission } from 'src/common/database/entities/permission.entity';
 import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
-import {
-  roleErrorMessages,
-  roleSuccessMessages,
-} from '@common/constants/roles/role.constants';
+import { roleErrorMessages, roleSuccessMessages } from '@roles/role.constants';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { RequestContext } from '@common/utils/request/request-context';
+import { authErrors } from '@auth/auth.errors';
+import { PERMISSIONS } from '@permissions/types';
 
 @Injectable()
 export class RolesService {
   constructor(
-    private readonly requestContext: RequestContextService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Permission)
@@ -31,10 +40,12 @@ export class RolesService {
     private readonly rolePermissionRepository: Repository<RolePermission>,
   ) {}
 
-  async createRole(data: CreateRoleDto) {
+  // TODO fix problem where roles.company_id is nullable
+  async createRole(ctx: RequestContext, data: CreateRoleDto) {
     const roleExists = await this.roleRepository.count({
       where: {
         name: data.name,
+        companyId: ctx.activeUser.companyId,
       },
     });
 
@@ -44,7 +55,25 @@ export class RolesService {
       });
     }
 
-    const { name, description, status } = data;
+    const { name, description, status, permissions } = data;
+
+    const permissionsData = await this.permissionRepository.find({
+      where: {
+        id: In(permissions),
+        roles: { roleId: ctx.activeUser.role.parentId },
+      },
+    });
+
+    for (const permission of permissions) {
+      const permissionExists = permissionsData.find(
+        ({ id }) => id === permission,
+      );
+      if (!permissionExists) {
+        throw new IBadRequestException({
+          message: roleErrorMessages.permissionNotFound(permission),
+        });
+      }
+    }
 
     const role = await this.roleRepository.save(
       this.roleRepository.create({
@@ -52,117 +81,224 @@ export class RolesService {
         slug: slugify(name, { lower: true, strict: true }),
         description,
         status,
-        parentId: this.requestContext.user!.role.parentId,
+        parentId: ctx.activeUser.role.parentId,
+        companyId: ctx.activeUser.companyId,
       }),
     );
 
-    return ResponseFormatter.success(roleSuccessMessages.createdRole, role);
+    await this.rolePermissionRepository.insert(
+      permissions.map((permissionId) => ({ roleId: role.id, permissionId })),
+    );
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      roleSuccessMessages.createdRole,
+      new GetRoleResponseDTO(role),
+    );
   }
 
-  async listRoles() {
+  async listRoles(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
+    const where = {
+      ...filters,
+      parentId: Equal(ctx.activeUser.role.parentId),
+      companyId: Equal(ctx.activeUser.companyId),
+    };
+
+    const totalRoles = await this.roleRepository.count({ where });
+
     const roles = await this.roleRepository.find({
-      where: { parentId: this.requestContext.user!.role.parentId },
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
     });
-    return ResponseFormatter.success(roleSuccessMessages.fetchedRole, roles);
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRole,
+      roles.map((role) => new GetRoleResponseDTO(role)),
+      new ResponseMetaDTO({
+        totalNumberOfRecords: totalRoles,
+        totalNumberOfPages: Math.ceil(totalRoles / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
   }
 
-  async getRole(id: string) {
+  async getRole(ctx: RequestContext, id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
+      where: [
+        {
+          id: Equal(id),
+          parentId: Equal(ctx.activeUser.role.parentId),
+          companyId: Equal(ctx.activeUser.companyId),
+        },
+        {
+          id: Equal(id),
+          companyId: IsNull(),
+        },
+      ],
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }
 
-    return ResponseFormatter.success(roleSuccessMessages.fetchedRole, role);
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRole,
+      new GetRoleResponseDTO(role),
+    );
   }
 
-  async updateRole(id: string, data: UpdateRoleDto) {
+  async updateRole(ctx: RequestContext, id: string, data: UpdateRoleDto) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
-      // TODO update role by company
+      where: {
+        id: Equal(id),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
+      },
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }
 
     const { description, status } = data;
 
-    await this.roleRepository.update(
-      { id: role.id },
-      this.roleRepository.create({
-        description,
-        status,
-      }),
-    );
+    if (status && status !== role.status) {
+      if (
+        status === RoleStatuses.ACTIVE &&
+        !ctx?.hasPermission(PERMISSIONS.ACTIVATE_ROLE)
+      ) {
+        throw new IForbiddenException({
+          message: authErrors.inadequatePermissions(PERMISSIONS.ACTIVATE_ROLE),
+        });
+      }
+      if (
+        status === RoleStatuses.INACTIVE &&
+        !ctx?.hasPermission(PERMISSIONS.DEACTIVATE_ROLE)
+      ) {
+        throw new IForbiddenException({
+          message: authErrors.inadequatePermissions(
+            PERMISSIONS.DEACTIVATE_ROLE,
+          ),
+        });
+      }
+    }
 
-    return ResponseFormatter.success(roleSuccessMessages.updatedRole, role);
+    const updatedRole = this.roleRepository.create({
+      description,
+      status,
+    });
+
+    await this.roleRepository.update({ id: role.id }, updatedRole);
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      roleSuccessMessages.updatedRole,
+      new GetRoleResponseDTO(Object.assign({}, role, updatedRole)),
+    );
   }
 
-  async deleteRole(id: string) {
+  async deleteRole(ctx: RequestContext, id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
-      // TODO delete role by company
+      where: {
+        id: Equal(id),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
+      },
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }
 
     await this.roleRepository.softDelete({ id: role.id });
 
-    return ResponseFormatter.success(roleSuccessMessages.deletedRole, null);
+    // TODO emit event
+
+    return ResponseFormatter.success(roleSuccessMessages.deletedRole);
   }
 
-  async getRolePermissions(id: string) {
+  async getRolePermissions(ctx: RequestContext, id: string) {
     const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
-      relations: { permissions: { permission: true } },
-    });
-
-    if (!role) {
-      throw new IBadRequestException({
-        message: roleErrors.roleNotFound,
-      });
-    }
-
-    return ResponseFormatter.success(
-      roleSuccessMessages.fetchedRole,
-      role.permissions,
-    );
-  }
-
-  async setRolePermissions(
-    id: string,
-    permissions: SetRolePermissionsDto['permissions'],
-  ) {
-    const role = await this.roleRepository.findOne({
-      where: { id, parentId: this.requestContext.user!.role.parentId },
+      where: [
+        {
+          id: Equal(id),
+          parentId: Equal(ctx.activeUser.role.parentId),
+          companyId: Equal(ctx.activeUser.companyId),
+        },
+        {
+          id: Equal(id),
+          companyId: IsNull(),
+        },
+      ],
       relations: { permissions: true },
     });
 
     if (!role) {
-      throw new IBadRequestException({
+      throw new INotFoundException({
+        message: roleErrors.roleNotFound,
+      });
+    }
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRole,
+      role.permissions.map(
+        (permission) => new GetPermissionResponseDTO(permission),
+      ),
+    );
+  }
+
+  async setRolePermissions(
+    ctx: RequestContext,
+    id: string,
+    permissions: SetRolePermissionsDto['permissions'],
+  ) {
+    const role = await this.roleRepository.findOne({
+      where: {
+        id,
+        parentId: ctx.activeUser.role.parentId,
+        companyId: ctx.activeUser.companyId,
+      },
+      relations: { rolePermissions: true },
+    });
+
+    if (!role) {
+      throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
     }
 
     const newPermissions = permissions.filter((permission) => {
-      return !role.permissions.find(
+      return !role.rolePermissions.find(
         (rolePermission) => rolePermission.permissionId === permission,
       );
     });
 
     const newPermissionsData = await this.permissionRepository.find({
-      where: { id: In(newPermissions) },
+      where: {
+        id: In(newPermissions),
+        roles: { roleId: Equal(ctx.activeUser.role.parentId) },
+      },
     });
 
     for (const newPermission of newPermissions) {
@@ -176,7 +312,7 @@ export class RolesService {
       }
     }
 
-    await this.rolePermissionRepository.softDelete({
+    await this.rolePermissionRepository.delete({
       permissionId: Not(In(permissions)),
       roleId: role.id,
     });
@@ -185,14 +321,43 @@ export class RolesService {
       newPermissions.map((permissionId) => ({ roleId: role.id, permissionId })),
     );
 
+    // TODO emit event
+
     return ResponseFormatter.success(roleSuccessMessages.updatedRole);
   }
 
-  async getPermissions() {
-    const permissions = await this.permissionRepository.find({});
+  // TODO how do we ensure that if a parents permission is leaked to a created role, that permission cannot be used.
+  async getPermissions(ctx: RequestContext) {
+    const permissions = await this.permissionRepository.find({
+      where: { roles: { roleId: Equal(ctx.activeUser.role.parentId) } },
+    });
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedPermissions,
-      permissions,
+      permissions.map((permission) => new GetPermissionResponseDTO(permission)),
+    );
+  }
+
+  async getStats(ctx: RequestContext) {
+    const stats = await this.roleRepository.query(
+      `SELECT IFNULL(count(roles.id), 0) count, definitions.value
+    FROM
+      roles
+      RIGHT OUTER JOIN (${Object.values(RoleStatuses)
+        .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
+        .join(' UNION ')}) definitions ON roles.status = definitions.key
+        AND roles.deleted_at IS NULL
+        AND roles.company_id = ?
+    GROUP BY
+      definitions.value
+        `,
+      [ctx.activeUser.companyId],
+    );
+    return ResponseFormatter.success(
+      roleSuccessMessages.fetchedRolesStats,
+      stats.map(
+        (stat: { count: number; value: string }) =>
+          new GetStatsResponseDTO(stat),
+      ),
     );
   }
 }

@@ -4,6 +4,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -11,9 +13,16 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { RolePermission } from './rolepermission.entity';
+import { Company } from './company.entity';
+import { Permission } from './permission.entity';
+
+export enum RoleStatuses {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
 
 @Entity({ name: 'roles' })
-@Unique(['slug', 'parent'])
+@Unique(['slug', 'parent', 'company'])
 export class Role {
   @PrimaryGeneratedColumn('uuid')
   id?: string;
@@ -28,7 +37,7 @@ export class Role {
   description?: string;
 
   @Column()
-  status?: string;
+  status?: RoleStatuses;
 
   @JoinColumn({ name: 'parent_id' })
   @ManyToOne(() => Role, { nullable: true })
@@ -37,8 +46,24 @@ export class Role {
   @Column({ name: 'parent_id', nullable: true, length: 36 })
   parentId: string;
 
+  @JoinColumn({ name: 'company_id' })
+  @ManyToOne(() => Company, { nullable: true })
+  company: Company;
+
+  @Column({ name: 'company_id', nullable: true, length: 36 })
+  companyId: string;
+
   @OneToMany(() => RolePermission, (permission) => permission.role)
-  permissions: RolePermission[];
+  rolePermissions: RolePermission[];
+
+  @ManyToMany(() => Permission, (permission) => permission.roles)
+  @JoinTable({
+    name: 'role_permissions',
+    joinColumn: { name: 'role_id' },
+    inverseJoinColumn: { name: 'permission_id' },
+    synchronize: false,
+  })
+  permissions: Permission[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

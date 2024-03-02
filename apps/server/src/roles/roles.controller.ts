@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   UsePipes,
+  Query,
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import {
@@ -16,6 +17,19 @@ import {
   UpdateRoleDto,
 } from './dto/index.dto';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
+import {
+  PaginationParameters,
+  PaginationPipe,
+} from '@common/utils/pipes/query/pagination.pipe';
+import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
+import {
+  Ctx,
+  RequireTwoFA,
+  RequiredPermission,
+} from '@common/utils/authentication/auth.decorator';
+import { PERMISSIONS } from '@permissions/types';
+import { RoleFilters } from './roles.filter';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Controller('roles')
 export class RolesController {
@@ -23,52 +37,81 @@ export class RolesController {
 
   @Post()
   @UsePipes(IValidationPipe)
-  createRole(@Body() data: CreateRoleDto) {
-    return this.rolesService.createRole(data);
+  @RequiredPermission(PERMISSIONS.CREATE_ROLE)
+  @RequireTwoFA()
+  createRole(@Ctx() ctx: RequestContext, @Body() data: CreateRoleDto) {
+    return this.rolesService.createRole(ctx, data);
   }
 
   @Get()
   @UsePipes(IValidationPipe)
-  listRoles() {
-    return this.rolesService.listRoles();
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
+  listRoles(
+    @Ctx() ctx: RequestContext,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query(new FilterPipe(RoleFilters.listRoles))
+    filters: any,
+  ) {
+    return this.rolesService.listRoles(ctx, pagination, filters);
+  }
+
+  @Get('stats')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
+  getStats(@Ctx() ctx: RequestContext) {
+    return this.rolesService.getStats(ctx);
   }
 
   @Get('permissions')
   @UsePipes(IValidationPipe)
-  getPermissions() {
-    return this.rolesService.getPermissions();
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
+  getPermissions(@Ctx() ctx: RequestContext) {
+    return this.rolesService.getPermissions(ctx);
   }
 
   @Get(':id')
   @UsePipes(IValidationPipe)
-  getRole(@Param('id') id: string) {
-    return this.rolesService.getRole(id);
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
+  getRole(@Ctx() ctx: RequestContext, @Param('id') id: string) {
+    return this.rolesService.getRole(ctx, id);
   }
 
   @Patch(':id')
   @UsePipes(IValidationPipe)
-  updateRole(@Param('id') id: string, @Body() data: UpdateRoleDto) {
-    return this.rolesService.updateRole(id, data);
+  @RequiredPermission(PERMISSIONS.UPDATE_ROLE)
+  @RequireTwoFA()
+  updateRole(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+    @Body() data: UpdateRoleDto,
+  ) {
+    return this.rolesService.updateRole(ctx, id, data);
   }
 
   @Delete(':id')
   @UsePipes(IValidationPipe)
-  deleteRole(@Param('id') id: string) {
-    return this.rolesService.deleteRole(id);
+  @RequiredPermission(PERMISSIONS.DELETE_ROLE)
+  @RequireTwoFA()
+  deleteRole(@Ctx() ctx: RequestContext, @Param('id') id: string) {
+    return this.rolesService.deleteRole(ctx, id);
   }
 
   @Get(':id/permissions')
   @UsePipes(IValidationPipe)
-  getRolePermissions(@Param('id') id: string) {
-    return this.rolesService.getRolePermissions(id);
+  @RequiredPermission(PERMISSIONS.LIST_ROLES)
+  getRolePermissions(@Ctx() ctx: RequestContext, @Param('id') id: string) {
+    return this.rolesService.getRolePermissions(ctx, id);
   }
 
   @Put(':id/permissions')
   @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.UPDATE_ROLE)
+  @RequireTwoFA()
   setRolePermissions(
+    @Ctx() ctx: RequestContext,
     @Param('id') id: string,
     @Body() data: SetRolePermissionsDto,
   ) {
-    return this.rolesService.setRolePermissions(id, data.permissions);
+    return this.rolesService.setRolePermissions(ctx, id, data.permissions);
   }
 }

@@ -1,11 +1,23 @@
-import { Body, Controller, Param, Post, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  UsePipes,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
+  BaseSignupDto,
   ForgotPasswordDto,
   LoginDto,
+  ResendOtpDto,
   ResetPasswordDto,
   SetupDto,
-  SignupDto,
+  signupDtos,
+  TwoFADto,
+  VerifyEmailDto,
 } from './dto/index.dto';
 import { SkipAuthGuard } from 'src/common/utils/authentication/auth.decorator';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
@@ -16,16 +28,47 @@ export class AuthController {
 
   @Post('signup')
   @SkipAuthGuard()
-  // TODO Write custom validation pipe
   @UsePipes(IValidationPipe)
-  signup(@Body() data: SignupDto) {
-    return this.authService.signup(data);
+  async signup(@Body() data: BaseSignupDto) {
+    const validationPipe = new IValidationPipe();
+
+    await validationPipe.transform(data, {
+      type: 'body',
+      metatype: signupDtos[data.companyType],
+    });
+
+    return this.authService.signup(data, data.companyType);
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   @SkipAuthGuard()
   @UsePipes(IValidationPipe)
   login(@Body() data: LoginDto) {
+    return this.authService.login(data);
+  }
+
+  @Post('email/verify')
+  @HttpCode(HttpStatus.OK)
+  @SkipAuthGuard()
+  @UsePipes(IValidationPipe)
+  verifyEmail(@Body() data: VerifyEmailDto) {
+    return this.authService.verifyEmail(data);
+  }
+
+  // TODO rate limit
+  @Post('otp/resend')
+  @HttpCode(HttpStatus.OK)
+  @SkipAuthGuard()
+  @UsePipes(IValidationPipe)
+  resendOtp(@Body() data: ResendOtpDto) {
+    return this.authService.resendOtp(data);
+  }
+
+  @Post('login/two-fa')
+  @SkipAuthGuard()
+  @UsePipes(IValidationPipe)
+  twoFA(@Body() data: TwoFADto) {
     return this.authService.login(data);
   }
 
@@ -37,6 +80,7 @@ export class AuthController {
   }
 
   @Post('password/reset/:resetToken')
+  @HttpCode(HttpStatus.OK)
   @SkipAuthGuard()
   @UsePipes(IValidationPipe)
   resetPassword(

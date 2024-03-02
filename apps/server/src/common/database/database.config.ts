@@ -13,9 +13,7 @@ export const getDatabaseConfig: (
     database: config.get('database.name') as string,
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
     synchronize: false,
-    logging:
-      config.get<'development' | 'production'>('server.nodeEnv') ===
-      'development',
+    logging: config.get('database.logging') as boolean,
   };
 
   return options;

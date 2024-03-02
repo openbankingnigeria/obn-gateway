@@ -1,52 +1,115 @@
 import { Collection } from '@common/database/entities/collection.entity';
-import { ResponseFormatter } from '@common/utils/common/response.util';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
 import {
   IBadRequestException,
   INotFoundException,
 } from '@common/utils/exceptions/exceptions';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { KongRouteService } from '@shared/integrations/kong/route.kong.service';
-import { KongServiceService } from '@shared/integrations/kong/service.kong.service';
-import { Repository } from 'typeorm';
+import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
+import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
+import { Equal, In, Repository } from 'typeorm';
 import {
   CreateCollectionDto,
-  UpdateAPIDto,
+  GetCollectionResponseDTO,
+  GetCompanyCollectionResponseDTO,
   UpdateCollectionDto,
 } from './dto/index.dto';
 import slugify from 'slugify';
+import {
+  collectionErrorMessages,
+  collectionsSuccessMessages,
+} from './collections.constants';
+import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { RequestContext } from '@common/utils/request/request-context';
+import { GetAPIResponseDTO } from 'src/apis/dto/index.dto';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { Company } from '@common/database/entities';
+import { companyErrors } from '@company/company.errors';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 
 @Injectable()
 export class CollectionsService {
   constructor(
     @InjectRepository(Collection)
     private readonly collectionRepository: Repository<Collection>,
+    @InjectRepository(CollectionRoute)
+    private readonly routeRepository: Repository<CollectionRoute>,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
     private readonly kongService: KongServiceService,
     private readonly kongRouteService: KongRouteService,
+    private readonly kongConsumerService: KongConsumerService,
   ) {}
 
-  async listCollections() {
-    const collections = await this.collectionRepository.find({});
-    return ResponseFormatter.success('', collections);
+  async listCollections(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
+    const [collections, totalNumberOfRecords] =
+      await this.collectionRepository.findAndCount({
+        where: { ...filters },
+        skip: (page - 1) * limit,
+        take: limit,
+        order: { createdAt: 'DESC' },
+        relations: { apis: true },
+      });
+
+    // TODO emit event
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.fetchedCollections,
+      collections.map((collection) => {
+        const dto = new GetCollectionResponseDTO(collection);
+        dto.apis = collection.apis!.map(
+          (api) =>
+            new GetAPIResponseDTO({
+              ...api,
+              tiers: api.tiers || [],
+            }),
+        );
+        return dto;
+      }),
+      new ResponseMetaDTO({
+        totalNumberOfRecords,
+        totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
   }
 
-  async viewCollection(id: string) {
+  async viewCollection(ctx: RequestContext, idOrSlug: string) {
     const collection = await this.collectionRepository.findOne({
-      where: { id },
+      where: [{ id: Equal(idOrSlug) }, { slug: Equal(idOrSlug) }],
     });
-    return ResponseFormatter.success('', collection);
+
+    if (!collection) {
+      throw new INotFoundException({
+        message: collectionErrorMessages.collectionNotFound(idOrSlug),
+      });
+    }
+
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.fetchedCollection,
+      new GetCollectionResponseDTO(collection),
+    );
   }
 
-  async createCollection(data: CreateCollectionDto) {
-    const collectionExists = await this.collectionRepository.count({
-      where: {
-        name: data.name,
-      },
+  async createCollection(ctx: RequestContext, data: CreateCollectionDto) {
+    const collectionExists = await this.collectionRepository.countBy({
+      name: data.name,
     });
 
     if (collectionExists) {
       throw new IBadRequestException({
-        message: '',
+        message: collectionErrorMessages.collectionExists(data.name),
       });
     }
 
@@ -60,17 +123,26 @@ export class CollectionsService {
       }),
     );
 
-    return ResponseFormatter.success('', collection);
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.createdCollection,
+      new GetCollectionResponseDTO(collection),
+    );
   }
 
-  async updateCollection(id: string, data: UpdateCollectionDto) {
+  async updateCollection(
+    ctx: RequestContext,
+    id: string,
+    data: UpdateCollectionDto,
+  ) {
     const collection = await this.collectionRepository.findOne({
-      where: { id },
+      where: { id: Equal(id) },
     });
 
     if (!collection) {
-      throw new IBadRequestException({
-        message: '',
+      throw new INotFoundException({
+        message: collectionErrorMessages.collectionNotFound(id),
       });
     }
 
@@ -83,131 +155,144 @@ export class CollectionsService {
       }),
     );
 
-    return ResponseFormatter.success('', collection);
-  }
-
-  async viewAPIs(collectionId: string) {
-    const collection = await this.collectionRepository.findOne({
-      where: { id: collectionId },
-    });
-    if (!collection) {
-      throw new INotFoundException({
-        message: '',
-      });
-    }
-
-    const [apis, routes] = await Promise.all([
-      this.kongService.listServices({ tags: collection.slug }),
-      this.kongRouteService.listRoutes({ tags: collection.slug }),
-    ]);
+    // TODO emit event
 
     return ResponseFormatter.success(
-      '',
-      apis.data.map((api) => {
-        const route = routes.data.find((route) => route.service.id === api.id)!;
-        return {
-          id: api.id,
-          name: api.name,
-          enabled: api.enabled,
-          host: api.host,
-          protocol: api.protocol,
-          port: api.port,
-          path: api.path,
-          url: `${api.protocol}://${api.host}:${api.port}${api.path}`,
-          route: {
-            paths: route?.paths || [],
-            methods: route?.methods || [],
-          },
-        };
-      }),
+      collectionsSuccessMessages.updatedCollection,
+      new GetCollectionResponseDTO(collection),
     );
   }
 
-  async viewAPI(id: string) {
-    const api = await this.kongService.getService(id);
-    const routes = await this.kongService.getServiceRoutes(id);
-    return ResponseFormatter.success('', {
-      id: api.id,
-      name: api.name,
-      enabled: api.enabled,
-      host: api.host,
-      protocol: api.protocol,
-      port: api.port,
-      path: api.path,
-      url: `${api.protocol}://${api.host}:${api.port}${api.path}`,
-      route: {
-        paths: routes.data[0]?.paths || [],
-        methods: routes.data[0]?.methods || [],
-      },
-    });
-  }
-
-  async createAPI(collectionId: string, data: UpdateAPIDto) {
-    const { name, enabled, url, route } = data;
-
+  async deleteCollection(ctx: RequestContext, id: string) {
     const collection = await this.collectionRepository.findOne({
-      where: { id: collectionId },
+      where: { id: Equal(id) },
     });
 
     if (!collection) {
-      throw new IBadRequestException({
-        message: '',
+      throw new INotFoundException({
+        message: collectionErrorMessages.collectionNotFound(id),
       });
     }
 
-    const api = await this.kongService.createService({
-      name: slugify(name, { lower: true, strict: true }),
-      enabled,
-      url,
-      retries: 1,
-      tags: [collection.slug!],
+    const routes = await this.routeRepository.find({
+      where: { collectionId: Equal(id) },
     });
 
-    await this.kongRouteService.createRoute({
-      name: slugify(name, { lower: true, strict: true }),
-      tags: [collection.slug!],
-      paths: route.paths,
-      methods: route.methods,
-      service: {
-        id: api.id,
-      },
+    if (routes.length) {
+      throw new IBadRequestException({
+        message: collectionErrorMessages.collectionNotEmpty,
+      });
+    }
+
+    await this.collectionRepository.softDelete({
+      id,
     });
 
-    return ResponseFormatter.success('', {
-      id: api.id,
-      name: api.name,
-      enabled: api.enabled,
-      host: api.host,
-      protocol: api.protocol,
-      port: api.port,
-      path: api.path,
-      url: `${api.protocol}://${api.host}:${api.port}${api.path}`,
-      route,
-    });
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.deletedCollection,
+    );
   }
 
-  async updateAPI(id: string, data: UpdateAPIDto) {
-    const { name, enabled, url, route } = data;
+  async getCollectionsAssignedToCompany(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    companyId?: string,
+    pagination?: PaginationParameters,
+    filters?: any,
+  ) {
+    const { limit, page } = pagination!;
 
-    const routes = await this.kongService.getServiceRoutes(id);
-
-    const api = await this.kongService.updateService(id, {
-      name: slugify(name, { lower: true, strict: true }),
-      enabled,
-      url,
+    const company = await this.companyRepository.findOne({
+      where: { id: Equal(companyId ?? ctx.activeCompany.id) },
     });
-    await this.kongRouteService.updateRoute(routes.data[0].id, route);
 
-    return ResponseFormatter.success('', {
-      id: api.id,
-      name: api.name,
-      enabled: api.enabled,
-      host: api.host,
-      protocol: api.protocol,
-      port: api.port,
-      path: api.path,
-      url: `${api.protocol}://${api.host}:${api.port}${api.path}`,
-      route,
-    });
+    if (!company) {
+      throw new IBadRequestException({
+        message: companyErrors.companyNotFound(
+          companyId ?? ctx.activeCompany.id,
+        ),
+      });
+    }
+
+    let offset;
+    const tiers = [],
+      routes = [];
+    if (environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
+      const consumerId = company.consumerId || company.id;
+      do {
+        const response = await this.kongConsumerService.getConsumerAcls(
+          environment,
+          consumerId,
+          offset,
+        );
+        offset = response.offset;
+        for (const item of response.data) {
+          const [type, ...values] = item.group.split('-');
+          const value = values.join('-');
+          if (type === 'tier') {
+            tiers.push(value);
+          } else if (type === 'route') {
+            routes.push(value);
+          }
+        }
+      } while (offset);
+    }
+
+    const query = this.collectionRepository
+      .createQueryBuilder('collection')
+      .leftJoinAndSelect('collection.apis', 'route')
+      .where('route.environment = :environment', {
+        environment,
+      })
+      // TODO pass as parameter
+      .andWhere(
+        `collection.name LIKE '%${
+          filters?.name ?? ''
+        }%' AND collection.slug LIKE '%${filters?.slug ?? ''}%'`,
+      )
+      .orderBy('collection.name')
+      .offset((page - 1) * limit)
+      .limit(limit)
+      .select([
+        'collection.id AS id',
+        'collection.name AS name',
+        'collection.description AS description',
+        'COUNT(route.id) AS routeCount',
+      ])
+      .groupBy('collection.id')
+      .addGroupBy('collection.name');
+
+    if (routes.length || tiers.length) {
+      if (routes.length && tiers.length) {
+        query.andWhere('route.id IN (:routes) OR route.tiers IN (:tiers)', {
+          routes,
+          tiers,
+        });
+      } else if (routes.length) {
+        query.andWhere('route.id IN (:routes)', { routes });
+      } else if (tiers.length) {
+        query.andWhere('route.tiers IN (:tiers)', { tiers });
+      }
+    }
+
+    const [collections, totalNumberOfRecords] = await Promise.all([
+      await query.getRawMany(),
+      await query.getCount(),
+    ]);
+
+    return ResponseFormatter.success(
+      collectionsSuccessMessages.fetchedCollection,
+      collections.map(
+        (collection) => new GetCompanyCollectionResponseDTO(collection),
+      ),
+      new ResponseMetaDTO({
+        totalNumberOfRecords,
+        totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
   }
 }

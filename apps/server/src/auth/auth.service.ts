@@ -2,49 +2,84 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Company,
+  CompanyStatuses,
   Profile,
+  Settings,
   User,
   UserStatuses,
 } from 'src/common/database/entities';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, Equal } from 'typeorm';
 import {
+  BusinessSignupDto,
+  IndividualSignupDto,
+  LicensedEntitySignupDto,
   LoginDto,
+  ResendOtpDto,
   ResetPasswordDto,
   SetupDto,
-  SignupDto,
+  TwoFADto,
+  VerifyEmailDto,
 } from './dto/index.dto';
-import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
-import { userErrors } from 'src/common/constants/errors/user.errors';
 import {
-  ApiResponse,
+  IBadRequestException,
+  IPreconditionFailedException,
+} from 'src/common/utils/exceptions/exceptions';
+import { userErrors } from '@users/user.errors';
+import {
+  ResponseDTO,
   ResponseFormatter,
-} from 'src/common/utils/common/response.util';
+} from '@common/utils/response/response.formatter';
 import { compareSync, hashSync } from 'bcrypt';
-import { authErrors } from 'src/common/constants/errors/auth.errors';
+import { authErrors } from '@auth/auth.errors';
 import { Auth } from 'src/common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { Role } from 'src/common/database/entities/role.entity';
-import { ROLES } from 'src/roles/types';
-import { authSuccessMessages } from 'src/common/constants/auth/auth.constants';
+import { authSuccessMessages } from '@auth/auth.constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuthLoginEvent, AuthSignupEvent } from '@shared/events/auth.event';
+import {
+  AuthLoginEvent,
+  AuthResendOtpEvent,
+  AuthResetPasswordEvent,
+  AuthResetPasswordRequestEvent,
+  AuthSignupEvent,
+} from '@shared/events/auth.event';
+import * as speakeasy from 'speakeasy';
+import { CompanyTypes, ROLES } from '@common/database/constants';
+import { generateOtp } from '@common/utils/helpers/auth.helpers';
+import { ConfigService } from '@nestjs/config';
+import { isNumberString } from 'class-validator';
+import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
+
+import { GetUserResponseDTO } from '@users/dto/index.dto';
+import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
+import { commonErrors } from '@common/constants';
+import { BusinessSettings } from '@settings/types';
+import { CompanyTiers } from '@company/types';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Settings)
+    private readonly settingsRepository: Repository<Settings>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(Profile)
     private readonly profileRepository: Repository<Profile>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    @InjectRepository(TwoFaBackupCode)
+    private readonly backupCodesRepository: Repository<TwoFaBackupCode>,
+    private readonly kongConsumerService: KongConsumerService,
     private readonly auth: Auth,
     private readonly eventEmitter: EventEmitter2,
+    private readonly config: ConfigService,
   ) {}
 
-  async signup(data: SignupDto) {
+  async signup(data: any, companyType: CompanyTypes) {
     // Check if user with this email already exists
     const userExists = await this.userRepository.count({
       where: {
@@ -60,24 +95,35 @@ export class AuthService {
       });
     }
 
-    const {
-      companyName,
-      companyRole,
-      companyType,
-      country,
-      email,
-      firstName,
-      lastName,
-      password,
-      confirmPassword,
-      phone,
-    } = data;
+    if (data.rcNumber) {
+      const companyExists = await this.companyRepository.findOne({
+        where: {
+          rcNumber: Equal(data.rcNumber),
+        },
+      });
+
+      if (companyExists) {
+        throw new IBadRequestException({
+          message: userErrors.companyExists,
+        });
+      }
+    }
+
+    const { email, firstName, lastName, password, confirmPassword, phone } =
+      data;
 
     if (password !== confirmPassword) {
       throw new IBadRequestException({
         message: authErrors.passwordMismatch,
       });
     }
+
+    // Validate company type
+    const businessSettings = await this.settingsRepository.findOne({
+      where: {
+        name: Equal(BUSINESS_SETTINGS_NAME),
+      },
+    });
 
     const apiConsumerRole = await this.roleRepository.findOne({
       where: {
@@ -89,64 +135,322 @@ export class AuthService {
       },
     });
 
-    if (apiConsumerRole) {
-      const companyCreated = await this.companyRepository.save({
-        name: companyName,
-        type: companyType,
-      });
-      const user = await this.userRepository.save({
-        email: email.trim().toLowerCase(),
-        password: hashSync(password, 12),
-        roleId: apiConsumerRole.id,
-        companyId: companyCreated.id,
-        profile: {
-          firstName,
-          lastName,
-          phone,
-          country,
-          companyRole,
-        },
-      });
+    switch (companyType) {
+      case CompanyTypes.BUSINESS:
+        const {
+          accountNumber,
+          companyName: businessName,
+          companySubtype,
+          rcNumber,
+        } = data as BusinessSignupDto;
 
-      const event = new AuthSignupEvent(user);
-      this.eventEmitter.emit(event.name, event);
+        if (businessSettings) {
+          const parsedBusinessSettings: BusinessSettings = JSON.parse(
+            businessSettings.value,
+          );
 
-      return ResponseFormatter.success(authSuccessMessages.signup, {
-        ...user,
-        company: companyCreated,
-      });
-    } else {
-      throw new IBadRequestException({
-        message: authErrors.errorOccurredCreatingUser,
-      });
+          const allowedSubTypesForType: string[] = (
+            parsedBusinessSettings.companySubtypes as any
+          )[companyType];
+
+          if (
+            !allowedSubTypesForType.some((subtype) =>
+              subtype.includes(companySubtype),
+            ) &&
+            allowedSubTypesForType.length
+          ) {
+            throw new IBadRequestException({
+              message: commonErrors.invalidValue(companyType, companySubtype),
+            });
+          }
+        }
+
+        // create in ACL for tier 0
+        if (apiConsumerRole) {
+          const companyCreated = await this.companyRepository.save({
+            name: businessName,
+            type: companyType,
+            subtype: companySubtype,
+            rcNumber,
+            tier: CompanyTiers.TIER_0,
+          });
+
+          const otp = generateOtp(6);
+
+          const user = await this.userRepository.save({
+            email: email.trim().toLowerCase(),
+            password: hashSync(password, 12),
+            roleId: apiConsumerRole.id,
+            companyId: companyCreated.id,
+            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
+            emailVerificationOtp: otp.toString(),
+            emailVerificationExpires: moment()
+              .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
+              .toDate(),
+            profile: {
+              firstName,
+              lastName,
+              phone,
+            },
+            accountNumber,
+            status: UserStatuses.ACTIVE,
+          });
+
+          await this.companyRepository.update(
+            { id: companyCreated.id },
+            { primaryUser: user.id as any },
+          );
+
+          const event = new AuthSignupEvent(user, { otp });
+
+          user.company = companyCreated;
+
+          this.eventEmitter.emit(event.name, event);
+
+          return ResponseFormatter.success(
+            authSuccessMessages.signup,
+            new GetUserResponseDTO({
+              ...user,
+              company: companyCreated,
+            }),
+          );
+        } else {
+          throw new IBadRequestException({
+            message: authErrors.errorOccurredCreatingUser,
+          });
+        }
+      case CompanyTypes.INDIVIDUAL:
+        const { accountNumber: iAccountNumber, bvn } =
+          data as IndividualSignupDto;
+
+        if (apiConsumerRole) {
+          const companyCreated = await this.companyRepository.save({
+            name: `${firstName} ${lastName}`,
+            type: companyType,
+            tier: CompanyTiers.TIER_0,
+          });
+
+          const otp = generateOtp(6);
+
+          const user = await this.userRepository.save({
+            email: email.trim().toLowerCase(),
+            password: hashSync(password, 12),
+            roleId: apiConsumerRole.id,
+            companyId: companyCreated.id,
+            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
+            emailVerificationOtp: otp.toString(),
+            emailVerificationExpires: moment()
+              .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
+              .toDate(),
+            profile: {
+              firstName,
+              lastName,
+              phone,
+            },
+            accountNumber: iAccountNumber,
+            status: UserStatuses.ACTIVE,
+            bvn: hashSync(bvn, 12),
+          });
+
+          await this.companyRepository.update(
+            { id: companyCreated.id },
+            { primaryUser: user.id as any },
+          );
+
+          const event = new AuthSignupEvent(user, { otp });
+
+          user.company = companyCreated;
+
+          this.eventEmitter.emit(event.name, event);
+
+          return ResponseFormatter.success(
+            authSuccessMessages.signup,
+            new GetUserResponseDTO({
+              ...user,
+              company: companyCreated,
+            }),
+          );
+        } else {
+          throw new IBadRequestException({
+            message: authErrors.errorOccurredCreatingUser,
+          });
+        }
+      case CompanyTypes.LICENSED_ENTITY:
+        const {
+          companySubtype: licensedEntityCompanySubtype,
+          companyName: companyName,
+        } = data as LicensedEntitySignupDto;
+        if (businessSettings) {
+          const parsedBusinessSettings: BusinessSettings = JSON.parse(
+            businessSettings.value,
+          );
+
+          const allowedSubTypesForType: string[] = (
+            parsedBusinessSettings.companySubtypes as any
+          )[companyType];
+
+          if (
+            !allowedSubTypesForType.some((subtype) =>
+              subtype.includes(licensedEntityCompanySubtype),
+            ) &&
+            allowedSubTypesForType.length
+          ) {
+            throw new IBadRequestException({
+              message: commonErrors.invalidValue(
+                companyType,
+                licensedEntityCompanySubtype,
+              ),
+            });
+          }
+        }
+
+        if (apiConsumerRole) {
+          const companyCreated = await this.companyRepository.save({
+            name: companyName,
+            type: companyType,
+            subtype: licensedEntityCompanySubtype,
+          });
+
+          const otp = generateOtp(6);
+
+          const user = await this.userRepository.save({
+            email: email.trim().toLowerCase(),
+            password: hashSync(password, 12),
+            roleId: apiConsumerRole.id,
+            companyId: companyCreated.id,
+            status: UserStatuses.ACTIVE,
+            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
+            emailVerificationOtp: otp.toString(),
+            emailVerificationExpires: moment()
+              .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
+              .toDate(),
+            profile: {
+              firstName,
+              lastName,
+              phone,
+            },
+          });
+
+          await this.companyRepository.update(
+            { id: companyCreated.id },
+            { primaryUser: user.id as any },
+          );
+
+          const event = new AuthSignupEvent(user, { otp });
+
+          user.company = companyCreated;
+
+          this.eventEmitter.emit(event.name, event);
+
+          return ResponseFormatter.success(
+            authSuccessMessages.signup,
+            new GetUserResponseDTO({
+              ...user,
+              company: companyCreated,
+            }),
+          );
+        } else {
+          throw new IBadRequestException({
+            message: authErrors.errorOccurredCreatingUser,
+          });
+        }
     }
   }
 
-  async login({ email, password }: LoginDto) {
+  async login({ email, password }: LoginDto): Promise<ResponseDTO<string>>;
+  async login({
+    email,
+    password,
+    code,
+  }: TwoFADto): Promise<ResponseDTO<string>>;
+  async login({
+    email,
+    password,
+    code,
+  }: LoginDto & TwoFADto): Promise<ResponseDTO<string>> {
     const user = await this.userRepository.findOne({
       where: {
-        email,
+        email: Equal(email),
+      },
+      relations: {
+        company: true,
       },
     });
 
     if (!user) {
       throw new IBadRequestException({
-        message: userErrors.userWithEmailNotFound(email),
+        message: authErrors.invalidCredentials,
       });
     }
 
-    if (!compareSync(password, user.password)) {
+    if (!compareSync(password, user.password!)) {
       throw new IBadRequestException({
         message: authErrors.invalidCredentials,
       });
     }
 
+    if (!user.emailVerified) {
+      throw new IBadRequestException({
+        message: userErrors.userEmailNotVerified,
+      });
+    }
+
+    if (user.company?.status !== CompanyStatuses.ACTIVE) {
+      throw new IBadRequestException({
+        message: commonErrors.genericNoAccessError,
+      });
+    }
+
+    if (user.status !== UserStatuses.ACTIVE) {
+      throw new IBadRequestException({
+        message: authErrors.accountNotActive(user.status!),
+      });
+    }
+
+    if (user.twofaEnabled) {
+      if (!code) {
+        throw new IPreconditionFailedException({
+          message: userErrors.provide2FACode,
+        });
+      }
+      if (!isNumberString(code)) {
+        const backupCodes = await this.backupCodesRepository.findBy({
+          userId: Equal(user.id!),
+        });
+        const match = backupCodes.find((backupCode) => {
+          return compareSync(code, backupCode.value);
+        });
+        if (!match) {
+          throw new IBadRequestException({
+            message: authErrors.invalidTwoFA,
+          });
+        }
+        await this.backupCodesRepository.softDelete({ id: match.id });
+      } else {
+        const verified = speakeasy.totp.verify({
+          secret: user.twofaSecret!,
+          encoding: 'base32',
+          token: code,
+        });
+        if (!verified) {
+          throw new IBadRequestException({
+            message: authErrors.invalidTwoFA,
+          });
+        }
+      }
+    }
+
     const isFirstLogin = !user.lastLogin;
 
-    user.lastLogin = moment().toDate();
+    const accessToken = await this.auth.sign({
+      id: user.id,
+      count: 0,
+    });
 
+    const verifyToken = await this.auth.verify<{ iat: number }>(accessToken);
+
+    user.lastLogin = moment(verifyToken.iat * 1000).toDate();
     await this.userRepository.save(user);
-    const accessToken = await this.auth.sign({ id: user.id });
 
     const event = new AuthLoginEvent(user);
     this.eventEmitter.emit(event.name, event);
@@ -157,15 +461,56 @@ export class AuthService {
     );
   }
 
+  async refreshToken(token: string) {
+    let decoded: { id: string; count: number; iat: number };
+    const refreshTokenLimit = 96;
+    try {
+      decoded = await this.auth.verify(token);
+    } catch (err) {
+      throw new IBadRequestException({
+        message: authErrors.invalidCredentials,
+        _meta: err,
+      });
+    }
+
+    if (decoded.count >= refreshTokenLimit) {
+      throw new IBadRequestException({
+        message: authErrors.invalidCredentials,
+      });
+    }
+
+    const accessToken = await this.auth.sign({
+      ...decoded,
+      count: decoded.count + 1,
+    });
+
+    const verifyToken = await this.auth.verify<{ iat: number }>(accessToken);
+
+    const user = await this.userRepository.findOneBy({ id: Equal(decoded.id) });
+    if (!user) {
+      throw new IBadRequestException({
+        message: authErrors.invalidCredentials,
+      });
+    }
+
+    user.lastLogin = moment(verifyToken.iat * 1000).toDate();
+    await this.userRepository.save(user);
+
+    return ResponseFormatter.success(
+      authSuccessMessages.login(false),
+      accessToken,
+    );
+  }
+
   async forgotPassword(email: string) {
     const user = await this.userRepository.findOneBy({
-      email,
+      email: Equal(email),
     });
 
     if (!user) {
-      throw new IBadRequestException({
-        message: userErrors.userWithEmailNotFound(email),
-      });
+      return ResponseFormatter.success(
+        authSuccessMessages.forgotPassword(email),
+      );
     }
 
     const resetToken = await this.auth.getToken();
@@ -179,20 +524,22 @@ export class AuthService {
       },
     );
 
-    return ResponseFormatter.success(
-      authSuccessMessages.forgotPassword(email),
-      resetToken,
-    );
+    const event = new AuthResetPasswordRequestEvent(user, {
+      token: resetToken,
+    });
+    this.eventEmitter.emit(event.name, event);
+
+    return ResponseFormatter.success(authSuccessMessages.forgotPassword(email));
   }
 
   async resetPassword(
     { confirmPassword, password }: ResetPasswordDto,
     user: User,
-  ): Promise<ApiResponse<null>>;
+  ): Promise<ResponseDTO<null>>;
   async resetPassword(
     { confirmPassword, password }: ResetPasswordDto,
     resetToken: string,
-  ): Promise<ApiResponse<null>>;
+  ): Promise<ResponseDTO<null>>;
   async resetPassword(
     { confirmPassword, password }: any,
     userOrToken: any,
@@ -219,7 +566,7 @@ export class AuthService {
       });
     }
 
-    if (compareSync(password, userToUpdate!.password)) {
+    if (compareSync(password, userToUpdate!.password!)) {
       throw new IBadRequestException({
         message: authErrors.sameOldPassword,
       });
@@ -232,8 +579,12 @@ export class AuthService {
         resetPasswordExpires: null as any,
         password: hashSync(password, 12),
         lastPasswordChange: moment().toDate(),
+        emailVerified: true,
       },
     );
+
+    const event = new AuthResetPasswordEvent(userToUpdate);
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       userOrToken instanceof User
@@ -256,6 +607,7 @@ export class AuthService {
       resetPasswordExpires: MoreThan(moment().toDate()),
     });
 
+    // TODO what message to display here
     if (!user) {
       throw new IBadRequestException({
         message: userErrors.userNotFound,
@@ -270,6 +622,7 @@ export class AuthService {
         password: hashSync(password, 12),
         lastPasswordChange: moment().toDate(),
         status: UserStatuses.ACTIVE,
+        emailVerified: true,
       },
     );
 
@@ -283,6 +636,104 @@ export class AuthService {
       },
     );
 
+    // TODO emit event
+
     return ResponseFormatter.success(authSuccessMessages.signup);
+  }
+
+  async verifyEmail({ email, otp }: VerifyEmailDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: Equal(email),
+      },
+    });
+
+    if (!user) {
+      throw new IBadRequestException({
+        message: `Invalid OTP.`,
+      });
+    }
+
+    if (user.emailVerified) {
+      throw new IBadRequestException({
+        message: `Invalid OTP.`,
+      });
+    }
+
+    if (
+      user.emailVerificationOtp !== otp ||
+      (user.emailVerificationExpires &&
+        new Date(user.emailVerificationExpires).getTime() <
+          new Date().getTime())
+    ) {
+      throw new IBadRequestException({
+        message: `Invalid OTP.`,
+      });
+    }
+
+    await this.userRepository.update(
+      { id: user.id },
+      {
+        emailVerified: true,
+        emailVerificationExpires: undefined,
+        emailVerificationOtp: undefined,
+      },
+    );
+
+    // Create a consumer for development for the new company
+    const response = await this.kongConsumerService.updateOrCreateConsumer(
+      KONG_ENVIRONMENT.DEVELOPMENT,
+      {
+        custom_id: user.companyId,
+      },
+    );
+
+    await this.companyRepository.update(
+      {
+        id: user.companyId,
+      },
+      { consumerId: response.id },
+    );
+
+    return ResponseFormatter.success(
+      authSuccessMessages.verifyEmail,
+      new GetUserResponseDTO(user),
+    );
+  }
+
+  async resendOtp({ email }: ResendOtpDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: Equal(email),
+      },
+    });
+
+    if (!user) {
+      return ResponseFormatter.success(authSuccessMessages.resendOtp);
+    }
+
+    if (user.emailVerified) {
+      return ResponseFormatter.success(authSuccessMessages.resendOtp);
+    }
+
+    const otp = generateOtp(6);
+    const expiry = moment()
+      .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
+      .toDate();
+
+    await this.userRepository.update(
+      { email },
+      {
+        emailVerificationOtp: otp.toString(),
+        emailVerificationExpires: expiry,
+      },
+    );
+
+    const event = new AuthResendOtpEvent(user, {
+      otp: otp.toString(),
+    });
+    this.eventEmitter.emit(event.name, event);
+
+    return ResponseFormatter.success(authSuccessMessages.resendOtp);
   }
 }

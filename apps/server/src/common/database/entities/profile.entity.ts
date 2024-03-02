@@ -9,7 +9,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { CompanyRoles } from '../../../users/types';
 
 @Entity({ name: 'profiles' })
 export class Profile {
@@ -22,12 +21,8 @@ export class Profile {
   @Column({ name: 'last_name' })
   lastName: string;
 
-  @Column({
-    type: 'enum',
-    enum: CompanyRoles,
-    name: 'company_role',
-  })
-  companyRole: CompanyRoles;
+  @Column({ name: 'company_role', nullable: true })
+  companyRole: string;
 
   @Column({ nullable: true })
   phone?: string;
@@ -37,7 +32,7 @@ export class Profile {
 
   @OneToOne(() => User, (user) => user.profile, { nullable: false })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+  user?: User;
 
   @Column({ name: 'user_id', default: null, nullable: false, length: 36 })
   userId: string;

@@ -5,9 +5,13 @@ import {
   PaginationPipe,
 } from '@common/utils/pipes/query/pagination.pipe';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
-import { RequiredPermission } from '@common/utils/authentication/auth.decorator';
+import {
+  Ctx,
+  RequiredPermission,
+} from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
-import { AuditLogFilters } from '@common/constants/auditLogs/filter.constants';
+import { AuditLogFilters } from '@auditLogs/auditLogs.filter';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Controller('audit-trail')
 export class AuditLogsController {
@@ -16,15 +20,17 @@ export class AuditLogsController {
   @Get()
   @RequiredPermission(PERMISSIONS.LIST_AUDIT_LOGS)
   getLogs(
+    @Ctx() ctx: RequestContext,
     @Query(PaginationPipe) pagination: PaginationParameters,
     @Query(new FilterPipe(AuditLogFilters.getLogs))
     filters: any,
   ) {
-    return this.auditLogsService.getLogs(pagination, filters);
+    return this.auditLogsService.getLogs(ctx, pagination, filters);
   }
 
   @Get(':id')
-  getLogById(@Param('id') logId: string) {
-    return this.auditLogsService.getSingleLog(logId);
+  @RequiredPermission(PERMISSIONS.VIEW_AUDIT_LOG)
+  getLogById(@Ctx() ctx: RequestContext, @Param('id') logId: string) {
+    return this.auditLogsService.getSingleLog(ctx, logId);
   }
 }

@@ -1,20 +1,33 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
+  Query,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
+import { CreateCollectionDto, UpdateCollectionDto } from './dto/index.dto';
 import {
-  CreateAPIDto,
-  CreateCollectionDto,
-  UpdateAPIDto,
-  UpdateCollectionDto,
-} from './dto/index.dto';
+  PaginationParameters,
+  PaginationPipe,
+} from '@common/utils/pipes/query/pagination.pipe';
+import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
+import { CollectionFilters } from './collections.filter';
+import {
+  Ctx,
+  RequireTwoFA,
+  RequiredPermission,
+} from '@common/utils/authentication/auth.decorator';
+import { RequestContext } from '@common/utils/request/request-context';
+import { PERMISSIONS } from '@permissions/types';
+import { APIParam } from 'src/apis/dto/index.dto';
+import { APIInterceptor } from 'src/apis/apis.interceptor';
 
 @Controller('collections')
 export class CollectionsController {
@@ -22,49 +35,89 @@ export class CollectionsController {
 
   @Get()
   @UsePipes(IValidationPipe)
-  listCollections() {
-    return this.collectionsService.listCollections();
+  @RequiredPermission(PERMISSIONS.LIST_API_COLLECTIONS)
+  listCollections(
+    @Ctx() ctx: RequestContext,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query(new FilterPipe(CollectionFilters.listCollections))
+    filters: any,
+  ) {
+    return this.collectionsService.listCollections(ctx, pagination, filters);
   }
 
   @Post()
   @UsePipes(IValidationPipe)
-  createCollection(@Body() data: CreateCollectionDto) {
-    return this.collectionsService.createCollection(data);
+  @RequiredPermission(PERMISSIONS.CREATE_API_COLLECTION)
+  @RequireTwoFA()
+  createCollection(
+    @Ctx() ctx: RequestContext,
+    @Body() data: CreateCollectionDto,
+  ) {
+    return this.collectionsService.createCollection(ctx, data);
   }
 
   @Patch(':id')
   @UsePipes(IValidationPipe)
-  updateCollection(@Param('id') id: string, @Body() data: UpdateCollectionDto) {
-    return this.collectionsService.updateCollection(id, data);
+  @RequiredPermission(PERMISSIONS.UPDATE_API_COLLECTION)
+  @RequireTwoFA()
+  updateCollection(
+    @Ctx() ctx: RequestContext,
+    @Param('id') id: string,
+    @Body() data: UpdateCollectionDto,
+  ) {
+    return this.collectionsService.updateCollection(ctx, id, data);
   }
 
   @Get(':id')
   @UsePipes(IValidationPipe)
-  viewCollection(@Param('id') id: string) {
-    return this.collectionsService.viewCollection(id);
+  @RequiredPermission(PERMISSIONS.VIEW_API_COLLECTION)
+  viewCollection(@Ctx() ctx: RequestContext, @Param('id') id: string) {
+    return this.collectionsService.viewCollection(ctx, id);
   }
 
-  @Get(':id/apis')
+  @Delete(':id')
   @UsePipes(IValidationPipe)
-  viewAPIs(@Param('id') id: string) {
-    return this.collectionsService.viewAPIs(id);
+  @RequiredPermission(PERMISSIONS.DELETE_API_COLLECTION)
+  @RequireTwoFA()
+  deleteCollection(@Ctx() ctx: RequestContext, @Param('id') id: string) {
+    return this.collectionsService.deleteCollection(ctx, id);
   }
 
-  @Post(':id/apis')
+  @Get(':environment/company')
   @UsePipes(IValidationPipe)
-  createAPI(@Param('id') id: string, @Body() data: CreateAPIDto) {
-    return this.collectionsService.createAPI(id, data);
+  @RequiredPermission(PERMISSIONS.VIEW_ASSIGNED_API_ENDPOINTS)
+  @UseInterceptors(APIInterceptor)
+  viewMyCompanyApis(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query('filter') filters: any,
+  ) {
+    return this.collectionsService.getCollectionsAssignedToCompany(
+      ctx,
+      params.environment,
+      undefined,
+      pagination,
+      filters,
+    );
   }
 
-  @Get('apis/:id')
+  @Get(':environment/company/:companyId')
   @UsePipes(IValidationPipe)
-  viewAPI(@Param('id') id: string) {
-    return this.collectionsService.viewAPI(id);
-  }
-
-  @Patch('apis/:id')
-  @UsePipes(IValidationPipe)
-  updateAPI(@Param('id') id: string, @Body() data: UpdateAPIDto) {
-    return this.collectionsService.updateAPI(id, data);
+  @RequiredPermission(PERMISSIONS.AP_VIEW_ASSIGNED_API_ENDPOINTS)
+  viewCompanyApis(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('companyId') companyId: string,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+    @Query('filter') filters: any,
+  ) {
+    return this.collectionsService.getCollectionsAssignedToCompany(
+      ctx,
+      params.environment,
+      companyId,
+      pagination,
+      filters,
+    );
   }
 }

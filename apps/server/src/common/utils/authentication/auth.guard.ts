@@ -2,16 +2,25 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   REQUIRED_PERMISSION_METADATA_KEY,
+  REQUIRE_TWO_FA_KEY,
   SKIP_AUTH_METADATA_KEY,
 } from './auth.decorator';
 import { IRequest } from './auth.types';
-import { IUnauthorizedException } from '../exceptions/exceptions';
+import {
+  IBadRequestException,
+  IForbiddenException,
+  IPreconditionFailedException,
+  IUnauthorizedException,
+} from '../exceptions/exceptions';
 import { Auth } from './auth.helper';
-import { authErrors } from 'src/common/constants/errors/auth.errors';
+import { authErrors } from '@auth/auth.errors';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/common/database/entities';
-import { IsNull, Not, Repository } from 'typeorm';
+import { Equal, IsNull, Not, Repository } from 'typeorm';
 import { PERMISSIONS } from 'src/permissions/types';
+import * as speakeasy from 'speakeasy';
+import * as moment from 'moment';
+import { RequestContext } from '../request/request-context';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -30,6 +39,10 @@ export class AuthGuard implements CanActivate {
       this.reflector.get(REQUIRED_PERMISSION_METADATA_KEY, context.getHandler())
     );
 
+    const strictRequireTwoFA = <boolean | undefined>(
+      this.reflector.get(REQUIRE_TWO_FA_KEY, context.getHandler())
+    );
+
     if (shouldSkipAuth) {
       return true;
     }
@@ -37,6 +50,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<IRequest>();
 
     const accessToken = request.headers.authorization?.replace(/^Bearer\s/, '');
+    const twoFACode = request.get('x-twofa-code');
 
     if (!accessToken) {
       throw new IUnauthorizedException({
@@ -44,7 +58,7 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    let decoded: { id: string };
+    let decoded: { id: string; iat: number };
     try {
       decoded = await this.auth.verify(accessToken);
     } catch (err) {
@@ -60,9 +74,11 @@ export class AuthGuard implements CanActivate {
       });
     }
 
+    // TODO ensure user permission exists within parent's too
+    // TODO get back to this, use central getUserById implementation
     const user = await this.userRepository.findOne({
       where: {
-        id: decoded.id,
+        id: Equal(decoded.id),
         role: { parentId: Not(IsNull()) },
       },
       relations: {
@@ -70,28 +86,62 @@ export class AuthGuard implements CanActivate {
           permissions: true,
           parent: true,
         },
+        company: true,
       },
     });
 
-    if (!user) {
+    if (!user || !user.company) {
       throw new IUnauthorizedException({
         message: authErrors.invalidCredentials,
       });
     }
 
-    if (
-      user.role.slug !== 'admin' &&
-      requiredPermission &&
-      !user.role.permissions.some(
-        (permission) => permission.permission?.slug === requiredPermission,
-      )
-    ) {
+    request.ctx = new RequestContext({
+      user,
+    });
+
+    if (!moment(user.lastLogin).isSame(decoded?.iat * 1000, 'second')) {
       throw new IUnauthorizedException({
-        message: authErrors.inadequatePermissions,
+        message: authErrors.invalidCredentials,
       });
     }
 
-    request.user = user;
+    if (!request.ctx.hasPermission(requiredPermission)) {
+      throw new IForbiddenException({
+        message: authErrors.inadequatePermissions(requiredPermission),
+      });
+    }
+
+    if (strictRequireTwoFA !== undefined) {
+      if (strictRequireTwoFA === true) {
+        if (!twoFACode) {
+          throw new IBadRequestException({
+            message: authErrors.twoFARequired,
+          });
+        }
+        if (!user.twofaEnabled) {
+          throw new IPreconditionFailedException({
+            message: authErrors.twoFARequired,
+          });
+        }
+      } else if (user.twofaEnabled && !twoFACode) {
+        throw new IBadRequestException({
+          message: authErrors.provideTwoFA,
+        });
+      }
+      if (user.twofaEnabled) {
+        const verified = speakeasy.totp.verify({
+          secret: user.twofaSecret!,
+          encoding: 'base32',
+          token: twoFACode!,
+        });
+        if (!verified) {
+          throw new IBadRequestException({
+            message: authErrors.invalidTwoFA,
+          });
+        }
+      }
+    }
 
     return true;
   }

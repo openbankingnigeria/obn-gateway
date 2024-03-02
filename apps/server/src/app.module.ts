@@ -18,9 +18,14 @@ import { UsersModule } from './users/users.module';
 import { User } from './common/database/entities';
 import { RolesModule } from './roles/roles.module';
 import { ProfileModule } from './profile/profile.module';
-import { EmailService } from './shared/email/email.service';
 import { AuditLogsModule } from './auditLogs/auditLogs.module';
 import { CollectionsModule } from './collections/collections.module';
+import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
+import { HttpModule } from '@nestjs/axios';
+import { SettingsModule } from './settings/settings.module';
+import { CompanyModule } from './company/company.module';
+import { EmailModule } from '@shared/email/email.module';
+import { APIModule } from './apis/apis.module';
 
 @Module({
   imports: [
@@ -30,8 +35,8 @@ import { CollectionsModule } from './collections/collections.module';
       validationSchema,
       load: [globalConfig],
     }),
-    // Logging
     LoggerModule.forRoot({
+      // TODO mask auth headers.
       pinoHttp: {
         transport: {
           target: 'pino-pretty',
@@ -41,7 +46,6 @@ import { CollectionsModule } from './collections/collections.module';
         },
       },
     }),
-    // Database setup
     TypeOrmModule.forRootAsync({
       useFactory: (config: ConfigService) => {
         return getDatabaseConfig(config);
@@ -56,10 +60,16 @@ import { CollectionsModule } from './collections/collections.module';
     ProfileModule,
     AuditLogsModule,
     CollectionsModule,
+    APIModule,
+    HttpModule,
+    SettingsModule,
+    CompanyModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [
     JwtService,
+    KongPluginService,
     Auth,
     {
       provide: APP_FILTER,
@@ -70,7 +80,6 @@ import { CollectionsModule } from './collections/collections.module';
       useClass: AuthGuard,
     },
     AppService,
-    EmailService,
   ],
 })
 export class AppModule {}

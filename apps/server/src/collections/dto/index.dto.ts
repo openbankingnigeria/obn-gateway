@@ -1,13 +1,13 @@
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsBoolean,
-  IsNotEmpty,
-  IsString,
-  IsUrl,
-} from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { Expose } from 'class-transformer';
+import { Collection } from '@common/database/entities/collection.entity';
+import { GetAPIResponseDTO } from 'src/apis/dto/index.dto';
 
 export class CreateCollectionDto {
+  constructor(collection: CreateCollectionDto) {
+    Object.assign(this, collection);
+  }
+
   @IsNotEmpty()
   @IsString()
   name: string;
@@ -23,56 +23,45 @@ export class UpdateCollectionDto {
   description: string;
 }
 
-export class CreateAPIDto {
-  @IsNotEmpty()
-  @IsString()
+export class GetCollectionResponseDTO {
+  constructor(partial: Partial<Collection>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  id: string;
+
+  @Expose()
   name: string;
 
-  @IsBoolean()
-  enabled: boolean;
+  @Expose()
+  slug: string;
 
-  @IsNotEmpty()
-  @IsUrl()
-  url: string;
+  @Expose()
+  description: string;
 
-  route: CreateRouteDTO;
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  @IsArray()
+  apis: GetAPIResponseDTO[];
 }
 
-class CreateRouteDTO {
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayNotEmpty()
-  paths: string[];
+export class GetCompanyCollectionResponseDTO {
+  constructor(partial: Partial<any>) {
+    Object.assign(this, partial);
+  }
 
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayNotEmpty()
-  methods: string[];
-}
+  @Expose()
+  id: string;
 
-export class UpdateAPIDto {
-  @IsNotEmpty()
-  @IsString()
+  @Expose()
   name: string;
 
-  @IsBoolean()
-  enabled: boolean;
+  @Expose()
+  description: string;
 
-  @IsNotEmpty()
-  @IsUrl()
-  url: string;
-
-  route: UpdateRouteDTO;
-}
-
-class UpdateRouteDTO {
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayNotEmpty()
-  paths: string[];
-
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayNotEmpty()
-  methods: string[];
+  @Expose()
+  routeCount: string;
 }

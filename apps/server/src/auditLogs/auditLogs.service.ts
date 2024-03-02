@@ -1,21 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { auditLogsSuccessMessages } from 'src/common/constants/auditLogs/auditLogs.constants';
+import { auditLogsSuccessMessages } from './auditLogs.constants';
 import { AuditLog } from 'src/common/database/entities';
-import { Repository } from 'typeorm';
-import { RequestContextService } from '@common/utils/request/request-context.service';
+import { Equal, Repository } from 'typeorm';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
-import { ResponseFormatter } from '@common/utils/common/response.util';
-import { ROLES } from '@roles/types';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
 import { INotFoundException } from '@common/utils/exceptions/exceptions';
-import { auditLogErrors } from '@common/constants/errors/auditLogs.errors';
+import { auditLogErrors } from '@auditLogs/auditLogs.errors';
 import { BaseEvent } from '@shared/events/base.event';
+import { CompanyTypes } from '@common/database/constants';
+import { GetAuditLogResponseDTO } from './dto/index.dto';
+import { RequestContext } from '@common/utils/request/request-context';
 
 @Injectable()
 export class AuditLogsService {
   constructor(
-    private readonly requestContext: RequestContextService,
     @InjectRepository(AuditLog)
     private readonly auditLogRepository: Repository<AuditLog>,
   ) {}
@@ -33,14 +36,16 @@ export class AuditLogsService {
     );
   }
 
-  async getLogs({ limit, page }: PaginationParameters, filters?: any) {
+  async getLogs(
+    ctx: RequestContext,
+    { limit, page }: PaginationParameters,
+    filters?: any,
+  ) {
     const companyFilter: any = {};
 
-    if (this.requestContext.user!.role.parent?.slug === ROLES.API_CONSUMER) {
-      companyFilter.companyId = this.requestContext.user?.companyId;
+    if (ctx.activeCompany.type !== CompanyTypes.API_PROVIDER) {
+      companyFilter.companyId = ctx.activeUser.companyId;
     }
-
-    console.log({ filters: filters?.user?.profile[0] });
 
     const totalLogs = await this.auditLogRepository.count({
       where: {
@@ -63,18 +68,24 @@ export class AuditLogsService {
       },
     });
 
-    return ResponseFormatter.success(auditLogsSuccessMessages.fetchLogs, logs, {
-      totalNumberOfRecords: totalLogs,
-      totalNumberOfPages: Math.ceil(totalLogs / limit),
-      pageNumber: page,
-      pageSize: limit,
-    });
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      auditLogsSuccessMessages.fetchLogs,
+      logs.map((log) => new GetAuditLogResponseDTO(log)),
+      new ResponseMetaDTO({
+        totalNumberOfRecords: totalLogs,
+        totalNumberOfPages: Math.ceil(totalLogs / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
   }
 
-  async getSingleLog(id: string) {
+  async getSingleLog(ctx: RequestContext, id: string) {
     const log = await this.auditLogRepository.findOne({
       where: {
-        id,
+        id: Equal(id),
       },
       relations: {
         user: {
@@ -89,6 +100,11 @@ export class AuditLogsService {
       });
     }
 
-    return ResponseFormatter.success(auditLogsSuccessMessages.fetchLog, log);
+    // TODO emit event
+
+    return ResponseFormatter.success(
+      auditLogsSuccessMessages.fetchLog,
+      new GetAuditLogResponseDTO(log),
+    );
   }
 }
