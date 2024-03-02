@@ -80,10 +80,13 @@ const DashboardBanner = ({
                   {
                     rawData?.isVerified ? 
                       'Verification Successful' :
-                      (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ?
+                      (
+                        (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ||
+                        (rawData?.type == 'individual' && rawData?.kybStatus == 'pending')
+                      ) ?
                         'Verification in Progress' :
                         rawData?.kybStatus == 'denied' ?
-                          'Company verification denied' :
+                          'Verification denied' :
                           'Complete Your Account Setup'
                   }
                 </h2>
@@ -94,9 +97,12 @@ const DashboardBanner = ({
                       `Your account has been verified successfully! 
                       You now have full access to all API features 
                       and services.` :
-                      (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ?
+                      (
+                        (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ||
+                        (rawData?.type == 'individual' && rawData?.kybStatus == 'pending')
+                      ) ?
                         `Your account will be verified once your 
-                        business information is confirmed.` :
+                        ${rawData?.type == 'individual' ? '' : 'business'} information is confirmed.` :
                         rawData?.kybStatus == 'denied' ?
                           'Kindly resubmit your Information' :
                           `Provide your business information to get 
@@ -106,7 +112,7 @@ const DashboardBanner = ({
               </div>
 
               {
-                (!rawData?.isVerified && !rawData?.kybData?.taxIdentificationNumber) &&
+                (!rawData?.isVerified && rawData?.type != 'individual' && !rawData?.kybData?.taxIdentificationNumber) &&
                 <Button 
                   title={'Add business information'}
                   effect={() => setOpenModal('add')}
@@ -116,7 +122,7 @@ const DashboardBanner = ({
               }
 
               {
-                (rawData?.kybStatus == 'denied') &&
+                (rawData?.kybStatus == 'denied' && rawData?.type != 'individual') &&
                 <LinkButton 
                   title={'Update business information'}
                   path={'/app/system-settings'}
@@ -131,7 +137,10 @@ const DashboardBanner = ({
                 src={
                   rawData?.isVerified ? 
                     '/images/verification_successful.png' :
-                    (!rawData?.isVerified && rawData?.kybData?.taxIdentificationNumber) ?
+                    (
+                      (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ||
+                      (rawData?.type == 'individual' && rawData?.kybStatus == 'pending')
+                    ) ?
                       '/images/verification_pending.png' :
                       '/images/account_setup.png'
                 }
@@ -140,7 +149,10 @@ const DashboardBanner = ({
                 width={
                   rawData?.isVerified ?
                     218 :
-                    (!rawData?.isVerified && rawData?.kybData?.taxIdentificationNumber) ?
+                    (
+                      (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ||
+                      (rawData?.type == 'individual' && rawData?.kybStatus == 'pending')
+                    ) ?
                       169 :
                       290
                 }

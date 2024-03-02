@@ -54,6 +54,12 @@ const ConsumerBusinessDetails = ({
               value={rawData?.kybData?.taxIdentificationNumber}
             />
 
+            {/* <Image 
+              src={`data:image/png;base64,${rawData?.kybData?.companyStatusReport?.file}`} 
+              className='w-[120px] h-[120px]' 
+              alt='example' 
+            /> */}
+
             <ViewData 
               label='Company Status Report'
               value={

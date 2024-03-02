@@ -11,6 +11,7 @@ const CollectionsTable = ({
   rawData,
   altData,
   filters,
+  message,
   rows,
   page,
   totalElements,
@@ -60,7 +61,7 @@ const CollectionsTable = ({
             title='Nothing to show'
             type='DEFAULT'
             parentStyle='h-[calc(100vh-388px)]'
-            body='There’s no information to show for this query. Please try another query or clear your filters.'
+            body={message || 'There’s no information to show for this query. Please try another query or clear your filters.'}
           />
       }
     </div>

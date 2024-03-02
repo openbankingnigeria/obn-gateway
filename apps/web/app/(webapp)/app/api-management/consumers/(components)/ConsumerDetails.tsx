@@ -28,7 +28,7 @@ const ConsumerDetails = ({
   const consumerStatus = rawData?.status;
   const consumerKYBStatus = rawData?.kybStatus;
 
-  // console.log(rawData);
+  // console.log(profileData, rawData);
 
   const getAction = (kyb_status: string, status: string) => {
     return actions.filter(action => {
@@ -260,6 +260,7 @@ const ConsumerDetails = ({
             <ViewData 
               label='Phone Number'
               value={
+                profileData?.phone ||
                 rawData?.primaryUser?.phone ||
                 rawData?.primaryUser?.profile?.phone
               }

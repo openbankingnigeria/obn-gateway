@@ -25,7 +25,7 @@
 //   if (response?.status == 201) {
 //     // return { message: 'You sent an invite to [email_address]' };
 //     return { response }
-//   } else if ([401, 403]?.includes(Number(response?.status))) { 
+//   } else if ([401]?.includes(Number(response?.status))) { 
 //     deleteCookies('aperta-user-accessToken');
 //     redirect('/');
 //   } else {
@@ -56,7 +56,7 @@
 //     }
 //   });
 
-//   if ([401, 403]?.includes(Number(response?.status))) { 
+//   if ([401]?.includes(Number(response?.status))) { 
 //     deleteCookies('aperta-user-accessToken');
 //     redirect('/');
 //   } else {
@@ -101,7 +101,7 @@
 //     });
     
 //     return { response }
-//   } else if ([401, 403]?.includes(Number(response?.status))) { 
+//   } else if ([401]?.includes(Number(response?.status))) { 
 //     deleteCookies('aperta-user-accessToken');
 //     redirect('/');
 //   } else {

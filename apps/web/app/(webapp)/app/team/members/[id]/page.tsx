@@ -5,6 +5,7 @@ import { MEMBER_RECENT_ACTIVITIES, MEMBER_RECENT_ACTIVITIES_HEADER } from '@/dat
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
+import moment from 'moment';
 
 const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
   const memberId = params?.id;
@@ -13,7 +14,9 @@ const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
 
-  const filters = [search_query, date_filter]
+  const dateFilter = date_filter ? JSON.parse(date_filter) : {};
+  const filters = [search_query, date_filter, dateFilter?.start_date, dateFilter?.end_date];
+
   const fetchedRoles = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getRoles({
@@ -40,7 +43,29 @@ const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
   let member = fetchedMember?.data;
   let roles = fetchedRoles?.data;
 
-  let raw_data = MEMBER_RECENT_ACTIVITIES;
+  const fetchedAuditTrails: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getAuditTrails({
+      page: `${page}`,
+      limit: `${rows}`,
+      name: member?.profile?.firstName,
+      event: search_query,
+      createdAt_gt: moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z',
+      createdAt_l: moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z'
+    }),
+    method: 'GET',
+    data: null
+  });
+
+  let raw_data = fetchedAuditTrails?.data?.map((trail: any) => {
+    return({
+      ...trail,
+      member_name: `${trail?.user?.profile?.firstName} ${trail?.user?.profile?.lastName}`,
+      event_type: trail?.event,
+      description: trail?.description,
+      timestamp: trail?.createdAt
+    });
+  });
 
   let table_headers =  MEMBER_RECENT_ACTIVITIES_HEADER;
 

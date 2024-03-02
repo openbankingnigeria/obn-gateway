@@ -24,32 +24,28 @@ const MemberSections = ({
       />
 
       <div className='w-full flex flex-col h-full'>
-        {
-          (rawData && rawData?.length >= 1) ?
-            <div className='w-full bg-white border border-o-border rounded-[10px] h-fit'>
-              <h3 className='px-[20px] py-[16px] w-full border-b rounded-tr-[10px] rounded-tl-[10px] border-o-border bg-o-bg2'>
-                <div className='text-f16 font-[600] text-o-text-dark'>
-                  API Activities
-                </div>
-              </h3>
+        <div className='w-full bg-white border border-o-border rounded-[10px] h-fit'>
+          <h3 className='px-[20px] py-[16px] w-full border-b rounded-tr-[10px] rounded-tl-[10px] border-o-border bg-o-bg2'>
+            <div className='text-f16 font-[600] text-o-text-dark'>
+              API Activities
+            </div>
+          </h3>
 
-              <div className='w-full p-[20px] rounded-br-[10px] rounded-bl-[10px] flex flex-col gap-[12px] bg-white'>
-                <div className='w-full flex-wrap flex items-center gap-[12px]'>
-                  <SearchBar 
-                    placeholder={`Search recent activities`}
-                    searchQuery={filters[0]}
-                  />
+          <div className='w-full p-[20px] rounded-br-[10px] rounded-bl-[10px] flex flex-col gap-[12px] bg-white'>
+            <div className='w-full flex-wrap flex items-center gap-[12px]'>
+              <SearchBar 
+                placeholder={`Search recent activities`}
+                searchQuery={filters[0]}
+              />
 
-                  <DatePicker
-                    showShortcuts={true}
-                    dateFilter={filters[1]}
-                    name='date_filter'
-                    innerLabel='Date:'
-                    asSingle
-                    popoverDirection='up'
-                  />
-                </div>
-
+              <DatePicker 
+                showShortcuts={true}
+                name='date_filter'
+                dateFilter={filters[1]}
+              />
+            </div>
+            {
+              (rawData && rawData?.length >= 1) ?
                 <TableElement 
                   tableHeaders={tableHeaders}
                   rawData={rawData}
@@ -60,16 +56,16 @@ const MemberSections = ({
                   totalElements={totalElements}
                   totalPages={totalPages}
                 />
-              </div>
-            </div>
-            :
-            <EmptyState 
-              title='Nothing to show'
-              type='DEFAULT'
-              parentStyle='!h-[calc(100vh-600px)]'
-              body='There’s no information to show yet.'
-            />
-        }
+                :
+                <EmptyState 
+                  title='Nothing to show'
+                  type='DEFAULT'
+                  parentStyle='!h-[calc(100vh-600px)]'
+                  body='There’s no information to show yet.'
+                />
+            }
+          </div>
+        </div>
       </div>
     </section>
   )

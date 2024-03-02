@@ -91,6 +91,8 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     details?.type == 'business'
   );
 
+  // console.log(profile?.user?.role?.parent?.slug, details?.type);
+
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
       <TopPanel 

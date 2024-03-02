@@ -52,18 +52,32 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
 
   let meta_data = fetchedActivities?.meta_data;
   let profile = fetchedProfile?.data;
-  let activity = fetchedActivities?.data?.map((activity: any) => {
-    return({
-      ...activity,
-      reference_id: activity?.id,
-      consumer_name: activity?.company?.name,
-      email_address: activity?.email_address,
-      api_name: activity?.name,
-      status_code: activity?.response?.status,
-      endpoint_url: activity?.request?.url,
-      timestamp: activity?.timestamp,
+  const rawActivity = fetchedActivities?.data;
+  let activity = search_query ? 
+    [
+      {
+        ...rawActivity,
+        reference_id: rawActivity?.id,
+        consumer_name: rawActivity?.company?.name,
+        email_address: rawActivity?.email_address,
+        api_name: rawActivity?.name,
+        status_code: rawActivity?.response?.status,
+        endpoint_url: rawActivity?.request?.url,
+        timestamp: rawActivity?.timestamp,
+      }
+    ] : 
+    rawActivity?.map((activity: any) => {
+      return({
+        ...activity,
+        reference_id: activity?.id,
+        consumer_name: activity?.company?.name,
+        email_address: activity?.email_address,
+        api_name: activity?.name,
+        status_code: activity?.response?.status,
+        endpoint_url: activity?.request?.url,
+        timestamp: activity?.timestamp,
+      })
     })
-  })
 
   const userType = profile?.user?.role?.parent?.slug;
   const headers = (
