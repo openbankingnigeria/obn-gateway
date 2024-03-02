@@ -321,7 +321,7 @@ export const CONSUMER_COLLECTIONS_HEADERS = [
     accessor: 'endpoints'
   },
   {
-    header: 'Categories',
+    header: 'Paths',
     accessor: 'categories'
   },
 ];

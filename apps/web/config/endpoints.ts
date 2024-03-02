@@ -1,7 +1,10 @@
-import { DateFilterProps, GetEnvironmentProps, GetListProps, GetSingleEnvironmentProps, GetSingleProps, GetTypeProps, PostTokenProps, 
+import { DateFilterProps, GetEnvironmentProps, GetListProps, 
+  GetSingleEnvironmentProps, GetSingleProps, GetTypeProps, 
+  PostTokenProps, 
 } from "@/types/endpointTypes";
 
-const BASE_URL = 'http://3.134.253.153:4000';
+// const BASE_URL = 'http://3.134.253.153:4000';
+const BASE_URL = 'http://dev.gateway.openbanking.ng:4000';
 
 
 // AUTH
@@ -34,7 +37,7 @@ export const postTeam = () => `${BASE_URL}/users`;
 export const postReinviteMember = ({ id }: GetSingleProps) => `${BASE_URL}/users/${id}/resend`;
 export const getTeamStats = () => `${BASE_URL}/users/stats`;
 export const getTeams = ({ page, limit, name, status, email, role }: GetListProps) => 
-  `${BASE_URL}/users?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${role ? `&filter[role]=${role}`: ''}${email ? `&filter[email]=${email}`: ''}${status ? `&filter[status]=${status}`: ''}`;
+  `${BASE_URL}/users?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${role ? `&filter[roleId]=${role}`: ''}${email ? `&filter[email]=${email}`: ''}${status ? `&filter[status]=${status}`: ''}`;
 export const updateTeam = ({ id }: GetSingleProps) => 
   `${BASE_URL}/users/${id}`;
 export const getTeam = ({ id }: GetSingleProps) => 

@@ -228,6 +228,7 @@ const SignupFullForm = () => {
           
           <SelectElement 
             name='userType'
+            emptyState='No User Type at the moment'
             options={user_type_list}
             label='User type'
             placeholder='Select'
@@ -488,9 +489,19 @@ const SignupFullForm = () => {
           }
 
           <div className='text-f14 text-[#344054]'>
-            I agree to the <a href='https://openbanking.ng/terms-conditions/' className='cursor-pointer font-[600] text-o-light-blue'>
+            I agree to the <a 
+            target='_blank' 
+            rel='noreferrer noopener'
+            href='https://openbanking.ng/terms-conditions/' 
+            className='cursor-pointer font-[600] text-o-light-blue'
+            >
               Terms of Use</a> and&#160; 
-            <a href='https://openbanking.ng/privacy-notice/' className='cursor-pointer font-[600] text-o-light-blue'>
+            <a 
+              target='_blank' 
+              rel='noreferrer noopener'
+              href='https://openbanking.ng/privacy-notice/' 
+              className='cursor-pointer font-[600] text-o-light-blue'
+            >
               Privacy Policy</a>.
           </div>
         </div>

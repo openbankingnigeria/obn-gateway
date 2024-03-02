@@ -62,6 +62,7 @@ export interface TableProps {
   searchQuery?: string;
   dataList?: any[];
   path?: string;
+  message?: string;
   removePagination?: boolean;
 }
 
@@ -226,6 +227,9 @@ export interface PermissionCardProps {
   value: string;
   changePermissions: Dispatch<SetStateAction<PermissionValue[]>>;
   options: PermissionOptionsProps[];
+  deselectOptions?: boolean;
+  // permission_options?: PermissionOptionsProps[];
+  // setPermissionOptions?: Dispatch<SetStateAction<PermissionOptionsProps[]>>;
 }
 
 export interface ApiPermissionCardProps {

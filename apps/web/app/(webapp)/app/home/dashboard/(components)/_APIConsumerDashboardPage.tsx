@@ -56,17 +56,11 @@ const _APIConsumerDashboardPage = async ({
         {`${greetByTime()}, ${alt_data?.firstName + ' ' + alt_data?.lastName}!`}
       </h2>
 
-      {
-        (
-          details?.type == 'licensed-entity' ||
-          details?.type == 'business'
-        ) &&
-        <section className='w-full flex'>
-          <DashboardBanner 
-            rawData={details}
-          />
-        </section>
-      }
+      <section className='w-full flex'>
+        <DashboardBanner 
+          rawData={details}
+        />
+      </section>
 
       <div className='w-full flex flex-col'>
         <APIConsumerDashboardTable 

@@ -9,6 +9,7 @@ const PermissionCard = ({
   permissions,
   value,
   changePermissions,
+  deselectOptions,
   options
 }: PermissionCardProps) => {
   const isSelected = permissions?.some(obj => obj?.permission == value);
@@ -21,6 +22,12 @@ const PermissionCard = ({
     memoizedPermitOptions?.length >= 1 && 
     setPermissionOptions(memoizedPermitOptions);
   }, [memoizedPermitOptions]);
+
+  useEffect(() => {
+    (!deselectOptions) ? 
+      setPermissionOptions(memoizedPermitOptions) :
+      setPermissionOptions([])
+  }, [deselectOptions]);
 
   useEffect(() => {
     if (isSelected) {

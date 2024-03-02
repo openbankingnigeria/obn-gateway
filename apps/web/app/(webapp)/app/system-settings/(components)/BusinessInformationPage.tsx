@@ -25,10 +25,12 @@ const BusinessInformationPage = () => {
   const [company_status_report_file, setCompanyStatusReportFile] = useState('');
 
   const incorrect = (
-    cac?.length != 15 ||
+    cac?.length < 6 || 
+    cac?.length > 16 ||
     !regulator_license ||
     !certificate_of_incorporation ||
-    tin?.length != 15 ||
+    tin?.length < 6 ||
+    tin?.length > 16 ||
     !company_status_report
   );
 
@@ -79,13 +81,13 @@ const BusinessInformationPage = () => {
   });
 
   const handleCac = (value: string) => {
-    if (value?.length <= 15) {
+    if (value?.length <= 16) {
       setCac(value?.toString()?.replace(/[^0-9a-zA-Z]/g, ''));
     }
   }
 
   const handleTin = (value: string) => {
-    if (value?.length <= 15){
+    if (value?.length <= 16){
       setTin(value?.toString()?.replace(/[^0-9-]/g, ''));
     }
   }

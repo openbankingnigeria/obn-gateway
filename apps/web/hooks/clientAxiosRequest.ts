@@ -28,7 +28,8 @@ const clientAxiosRequest = async ({
 
     if (res.status == 200 || res.status == 201) {
       !noToast && toast.success(res.message);
-    } else if (res.status == 403 || res.status == 401) {
+    // } else if (res.status == 403 || res.status == 401) {
+    } else if (res.status == 401) {
       !noToast && toast.error(res?.message);
       removeJsCookies('aperta-user-accessToken');
       window.location.href = '/';

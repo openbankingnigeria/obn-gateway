@@ -42,11 +42,14 @@ const KybBanner = ({
             rawData?.isVerified ?
               `Verification successful. You now have full access to all API features 
               and services.` :
-              (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ?
+              (
+                (rawData?.kybStatus == 'pending' && rawData?.kybData?.taxIdentificationNumber) ||
+                (rawData?.type == 'individual' && rawData?.kybStatus == 'pending')
+              ) ?
               `Verification in progress. Your account will be verified once your 
-              business information is confirmed.` :
+              ${rawData?.type == 'individual' ? '' : 'business'} information is confirmed.` :
               rawData?.kybStatus == 'denied' ?
-              'Company verification denied. Kindly resubmit your Information' :
+              'Verification denied. Kindly resubmit your Information' :
               `Complete your account setup by providing your business information 
               to get your Aperta account up and running.`
           }

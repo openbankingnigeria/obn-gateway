@@ -66,6 +66,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   let meta_data = fetchedCollections?.meta_data;
   // let apis = fetchedAPIs?.data;
   // let apisId = apis?.map((item: any) => item?.collectionId);
+  let consumerCollectionMessage = fetchedConsumerCollections?.message;
   let collection_list = userType == 'api-consumer' ? 
     fetchedConsumerCollections?.data?.filter((collection: any) => collection?.name?.toLowerCase().includes(search_query?.toLowerCase())) : 
     fetchedCollections?.data?.filter((collection: any) => collection?.name?.toLowerCase().includes(search_query?.toLowerCase()));
@@ -105,6 +106,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
               filters={filters}
               rows={rows}
               totalElementsInPage={total_elements_in_page}
+              message={consumerCollectionMessage}
               page={page}
               totalElements={total_elements}
               totalPages={total_pages}

@@ -3,7 +3,7 @@
 import TextareaElement from '@/components/forms/TextareaElement';
 import { Button } from '@/components/globalComponents';
 import { ConfirmActionProps } from '@/types/webappTypes/appTypes';
-import React from 'react'
+import React, { useEffect } from 'react'
 
 const DeclineConsumer = ({
   close,
@@ -14,6 +14,10 @@ const DeclineConsumer = ({
 }: ConfirmActionProps) => {
 
   const incorrect = !reason;
+  
+  useEffect(() => {
+    setReason && setReason('');
+  }, []);
 
   return (
     <div className='flex flex-col gap-[24px] w-full'>
