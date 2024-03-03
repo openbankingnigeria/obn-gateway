@@ -3,8 +3,7 @@ import { DateFilterProps, GetEnvironmentProps, GetListProps,
   PostTokenProps, 
 } from "@/types/endpointTypes";
 
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_ENDPOINT;
-const BASE_URL = 'http://dev.gateway.openbanking.ng:4000';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_ENDPOINT;
 
 // AUTH
 export const postSignup = () => `${BASE_URL}/auth/signup`;
