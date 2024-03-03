@@ -19,7 +19,6 @@ const ActivitySections = ({
         const innerValue = value[innerKey];
         return applyStyle(innerKey, innerValue, depth + 1);
       });
-      console.log(styledObject)
       if (!styledObject.length) return `${indentation}<span style='color: #FB8F8F;'>"${key}"</span>: {}`;
       return `${indentation}<span style='color: #FB8F8F;'>"${key}"</span>: {<br>${styledObject.join(',<br>')}<br>${indentation}}`;
     } else {
