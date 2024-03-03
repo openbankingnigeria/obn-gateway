@@ -55,7 +55,7 @@ export class Migration1699268232421 implements MigrationInterface {
             CREATE TABLE \`companies\` (
                 \`id\` varchar(36) NOT NULL,
                 \`name\` varchar(255) NOT NULL,
-                \`type\` enum ('BANK') NOT NULL,
+                \`type\` varchar(255) NOT NULL,
                 \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                 \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                 \`deleted_at\` datetime(6) NULL,

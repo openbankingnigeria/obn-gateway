@@ -8,6 +8,7 @@ export enum ValueTypes {
   string = 'string',
   number = 'number',
   boolean = 'boolean',
+  stringLike = 'string-like',
 }
 
 // valid filter rules

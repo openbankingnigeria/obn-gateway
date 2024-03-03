@@ -5,3 +5,8 @@ export * from './role.entity';
 export * from './auditlog.entity';
 export * from './rolepermission.entity';
 export * from './permission.entity';
+export * from './settings.entity';
+export * from './collection.entity';
+export * from './collectionroute.entity';
+export * from './emailtemplate.entity';
+export * from './twofabackupcode.entity';

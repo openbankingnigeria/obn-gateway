@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, SerializeOptions } from '@nestjs/common';
 import { AppService } from './app.service';
 import { SkipAuthGuard } from './common/utils/authentication/auth.decorator';
 
@@ -8,6 +8,9 @@ export class AppController {
 
   @Get('health')
   @SkipAuthGuard()
+  @SerializeOptions({
+    strategy: 'exposeAll',
+  })
   health() {
     return this.appService.health();
   }

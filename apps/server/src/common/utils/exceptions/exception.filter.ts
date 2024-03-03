@@ -13,7 +13,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     // const request = ctx.getRequest<Request>();
 
     const err = ExceptionHandler(exception, this.config);
+    const { status, ...data } = err;
 
-    response.status(err.status).json(err);
+    response.status(status).json(data);
   }
 }

@@ -1,11 +1,13 @@
-import {
-  userConfig,
-  userErrors,
-} from 'src/common/constants/errors/user.errors';
+import { Profile } from '@common/database/entities';
+import { GetUserResponseDTO } from '@users/dto/index.dto';
+import { userConfig, userErrors } from '@users/user.errors';
+import { Expose, Type } from 'class-transformer';
 import {
   IsNotEmpty,
+  IsObject,
   IsString,
   IsStrongPassword,
+  Length,
   Matches,
   MinLength,
 } from 'class-validator';
@@ -52,4 +54,55 @@ export class UpdatePasswordDto {
   @IsStrongPassword()
   @IsString()
   confirmPassword: string;
+}
+
+export class UpdateTwoFADto {
+  @IsNotEmpty()
+  @IsString()
+  @Length(6, 6)
+  code: string;
+}
+
+export class GetProfileResponseDTO {
+  constructor(partial: Partial<Profile>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  id: string;
+
+  @Expose()
+  firstName: string;
+
+  @Expose()
+  lastName: string;
+
+  @Expose()
+  companyRole: string;
+
+  @Expose()
+  phone: string;
+
+  @Expose()
+  country: string;
+
+  @Expose()
+  @IsObject()
+  @Type(() => GetUserResponseDTO)
+  user: GetUserResponseDTO;
+
+  @Expose()
+  createdAt: Date;
+}
+
+export class GenerateTwoFaResponseDTO {
+  constructor(partial: Partial<{ otpAuthURL: string; qrCodeImage: string }>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  otpAuthURL: string;
+
+  @Expose()
+  qrCodeImage: string;
 }

@@ -1,10 +1,12 @@
 import { User } from 'src/common/database/entities';
 import { BaseEvent } from './base.event';
 
-export enum USER_EVENTS {
+export enum UserEvents {
   USER_CREATED = 'user.created',
   USER_UPDATED = 'user.updated',
   USER_DELETED = 'user.deleted',
+  USER_DEACTIVATED = 'user.deactivated',
+  USER_REACTIVATED = 'user.reactivated',
 }
 
 export class UserEvent extends BaseEvent {
@@ -21,10 +23,9 @@ export class UserCreatedEvent extends UserEvent {
   constructor(
     public readonly author: User,
     public readonly user: User,
-    public readonly token: string,
-    public readonly metadata: any = {},
+    public readonly metadata: { token: string; [k: string]: any },
   ) {
-    super(USER_EVENTS.USER_CREATED, author, user, metadata);
+    super(UserEvents.USER_CREATED, author, user, metadata);
   }
 }
 
@@ -34,7 +35,7 @@ export class UserUpdatedEvent extends UserEvent {
     public readonly user: User,
     public readonly metadata: any = {},
   ) {
-    super(USER_EVENTS.USER_UPDATED, author, user, metadata);
+    super(UserEvents.USER_UPDATED, author, user, metadata);
   }
 }
 
@@ -44,6 +45,24 @@ export class UserDeletedEvent extends UserEvent {
     public readonly user: User,
     public readonly metadata: any = {},
   ) {
-    super(USER_EVENTS.USER_DELETED, author, user, metadata);
+    super(UserEvents.USER_DELETED, author, user, metadata);
+  }
+}
+
+export class UserDeactivatedEvent extends UserEvent {
+  constructor(
+    public readonly author: User,
+    public readonly user: User,
+  ) {
+    super(UserEvents.USER_DEACTIVATED, author, user);
+  }
+}
+
+export class UserReactivatedEvent extends UserEvent {
+  constructor(
+    public readonly author: User,
+    public readonly user: User,
+  ) {
+    super(UserEvents.USER_REACTIVATED, author, user);
   }
 }

@@ -3,10 +3,13 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
+import { RolePermission } from './rolepermission.entity';
+import { PERMISSIONS } from '../../../permissions/types';
 
 @Entity({ name: 'permissions' })
 @Unique(['slug'])
@@ -18,10 +21,13 @@ export class Permission {
   name?: string;
 
   @Column()
-  slug?: string;
+  slug?: PERMISSIONS;
 
   @Column({ type: 'text' })
   description?: string;
+
+  @OneToMany(() => RolePermission, (role) => role.permission)
+  roles: RolePermission[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

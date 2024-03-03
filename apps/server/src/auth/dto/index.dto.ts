@@ -1,18 +1,20 @@
 import {
+  IsAlphanumeric,
   IsEmail,
-  IsEnum,
+  IsIn,
   IsMobilePhone,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsStrongPassword,
+  Length,
   Matches,
   MinLength,
 } from 'class-validator';
-import {
-  authConfig,
-  authValidationErrors,
-} from 'src/common/constants/auth/auth.config';
-import { CompanyRoles, CompanyTypes } from 'src/users/types';
+import { authConfig, authValidationErrors } from '@auth/auth.config';
+import { CompanyTypes } from '@common/database/constants';
+import { Expose } from 'class-transformer';
+import { companyValidationErrors } from '@company/company.config';
 
 const passwordConfig = {
   minLength: authConfig.minPasswordLength,
@@ -53,7 +55,44 @@ export class ResetPasswordDto {
   confirmPassword: string;
 }
 
-export class LoginDto extends ForgotPasswordDto {
+export class LoginDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  password: string;
+}
+
+export class TwoFADto extends ForgotPasswordDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  password: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  @Length(6, 6)
+  code: string;
+}
+
+export class BaseSignupDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  @IsEmail()
+  email: string;
+
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
@@ -63,9 +102,7 @@ export class LoginDto extends ForgotPasswordDto {
       authValidationErrors.dto.passwordStrengthMismatch(property),
   })
   password: string;
-}
 
-export class SignupDto extends LoginDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
@@ -77,7 +114,7 @@ export class SignupDto extends LoginDto {
         authConfig.minNameLength,
       ),
   })
-  @Matches(/^[A-Za-z]+$/gi, {
+  @Matches(/^[A-Za-z\-]+$/gi, {
     message: ({ property }) =>
       authValidationErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
   })
@@ -114,17 +151,79 @@ export class SignupDto extends LoginDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  country: string;
-
-  @IsNotEmpty({
-    message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  })
-  @IsString()
   @IsMobilePhone('en-NG', undefined, {
     message: authValidationErrors.dto.invalidPhone,
   })
   phone: string;
 
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  @IsIn(
+    Object.values(CompanyTypes).filter(
+      (type) => type !== CompanyTypes.API_PROVIDER,
+    ),
+  )
+  companyType: CompanyTypes;
+}
+
+export class IndividualSignupDto extends BaseSignupDto {
+  @IsOptional()
+  @IsString()
+  @Length(10, 10)
+  @Matches(/\d/gi, {
+    message: ({ property }) =>
+      authValidationErrors.dto.valueMustContainOnlyType(property, 'numbers'),
+  })
+  accountNumber: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  @Length(11, 11)
+  @Matches(/\d/gi, {
+    message: ({ property }) =>
+      authValidationErrors.dto.valueMustContainOnlyType(property, 'numbers'),
+  })
+  bvn: string;
+}
+export class BusinessSignupDto extends BaseSignupDto {
+  @IsOptional()
+  @IsString()
+  @Length(10, 10)
+  @Matches(/\d/gi, {
+    message: ({ property }) =>
+      authValidationErrors.dto.valueMustContainOnlyType(property, 'numbers'),
+  })
+  accountNumber: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  companyName: string;
+
+  @IsOptional()
+  @IsAlphanumeric('en-US', {
+    message: ({ property }) =>
+      companyValidationErrors.dto.typeMismatch(
+        property,
+        'alphabets and numbers',
+      ),
+  })
+  @Length(15, 15, { message: 'rcNumber must be exactly 15 digits long.' })
+  rcNumber: string;
+
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  @IsString()
+  companySubtype: string;
+}
+
+export class LicensedEntitySignupDto extends BaseSignupDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
@@ -135,16 +234,15 @@ export class SignupDto extends LoginDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @IsEnum(CompanyTypes)
-  companyType: CompanyTypes;
-
-  @IsNotEmpty({
-    message: ({ property }) => authValidationErrors.dto.isRequired(property),
-  })
-  @IsString()
-  @IsEnum(CompanyRoles)
-  companyRole: CompanyRoles;
+  companySubtype: string;
 }
+
+export const signupDtos: Record<CompanyTypes, any> = {
+  individual: IndividualSignupDto,
+  business: BusinessSignupDto,
+  ['licensed-entity']: LicensedEntitySignupDto,
+  'api-provider': '',
+};
 
 export class SetupDto {
   @IsNotEmpty({
@@ -189,4 +287,27 @@ export class SetupDto {
   })
   @IsString()
   confirmPassword: string;
+}
+
+export class ResendOtpDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  email: string;
+}
+
+export class VerifyEmailDto extends ResendOtpDto {
+  @IsNotEmpty({
+    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  })
+  otp: string;
+}
+
+export class AuthOTPResponseDTO {
+  constructor(partial: Partial<{ otp: string }>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  otp: string;
 }
