@@ -198,6 +198,7 @@ export class CompanyService {
       {
         rcNumber: data.rcNumber,
         kybStatus: KybStatuses.PENDING,
+        kybDataId: kybData.id,
       },
     );
 

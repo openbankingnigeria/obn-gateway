@@ -56,7 +56,7 @@ export class UpdateKybStatusDto {
 }
 
 export class ProfileDto {
-  constructor(partial: any) {
+  constructor(partial: Partial<ProfileDto>) {
     Object.assign(this, partial);
   }
 
@@ -65,6 +65,9 @@ export class ProfileDto {
 
   @Expose()
   lastName: string;
+
+  @Expose()
+  phone?: string;
 }
 
 export class PrimaryUserDto {
@@ -77,6 +80,9 @@ export class PrimaryUserDto {
 
   @Expose()
   email: string;
+
+  @Expose()
+  bvn?: string;
 
   @ValidateNested()
   @Type(() => ProfileDto)
