@@ -7,7 +7,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: '',
     name: 'general_settings',
     type: 'api-provider',
-    subType: ''
+    subType: 'api-provider'
   },
   {
     id: 2,
@@ -15,7 +15,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'onboarding_settings',
     name: 'onboarding_settings',
     type: 'api-provider',
-    subType: ''
+    subType: 'api-provider'
   },
   {
     id: 3,
@@ -23,7 +23,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'email_settings',
     name: 'email_settings',
     type: 'api-provider',
-    subType: ''
+    subType: 'api-provider'
   },
   {
     id: 4,
@@ -31,7 +31,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'email_templates',
     name: 'email_templates',
     type: 'api-provider',
-    subType: ''
+    subType: 'api-provider'
   },
   {
     id: 5,
@@ -39,7 +39,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'external_services',
     name: 'external_services',
     type: 'api-provider',
-    subType: ''
+    subType: 'api-provider'
   },
   {
     id: 6,
@@ -47,7 +47,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'mock_services',
     name: 'mock_services',
     type: 'api-provider',
-    subType: ''
+    subType: 'api-provider'
   },
   {
     id: 7,

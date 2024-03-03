@@ -108,7 +108,8 @@ export class IPRestrictionRequest {
   @IsArray()
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
-  @IsIP(undefined, { each: true })
+  // TODO add CIDR check
+  // @IsIP(undefined, { each: true })
   @ArrayNotEmpty()
   @ArrayUnique()
   ips: string[];

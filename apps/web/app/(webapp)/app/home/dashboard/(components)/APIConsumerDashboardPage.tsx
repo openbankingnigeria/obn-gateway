@@ -56,17 +56,11 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
         {`${greetByTime()}, ${profile_data?.firstName + ' ' + profile_data?.lastName}!`}
       </h2>
 
-      {
-        (
-          alt_data?.type == 'licensed-entity' ||
-          alt_data?.type == 'business'
-        ) &&
-        <section className='w-full flex'>
-          <DashboardBanner 
-            rawData={alt_data}
-          />
-        </section>
-      }
+      <section className='w-full flex'>
+        <DashboardBanner 
+          rawData={alt_data}
+        />
+      </section>
 
       <section className='w-full flex-col flex gap-[12px]'>
         <h3 className='text-o-text-dark flex items-center gap-[8px] text-f18 font-[500]'>

@@ -163,13 +163,17 @@ export const MEMBERS_ROLES = [
 
 export const MEMBER_RECENT_ACTIVITIES_HEADER = [
   {
+    header: 'Name',
+    accessor: 'member_name'
+  },
+  {
     header: 'Event Type',
     accessor: 'event_type'
   },
-  {
-    header: 'Description',
-    accessor: 'description'
-  },
+  // {
+  //   header: 'Description',
+  //   accessor: 'description'
+  // },
   {
     header: 'Timestamp',
     accessor: 'timestamp'

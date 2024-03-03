@@ -40,6 +40,7 @@ export class RolesService {
     private readonly rolePermissionRepository: Repository<RolePermission>,
   ) {}
 
+  // TODO fix problem where roles.company_id is nullable
   async createRole(ctx: RequestContext, data: CreateRoleDto) {
     const roleExists = await this.roleRepository.count({
       where: {
@@ -183,7 +184,7 @@ export class RolesService {
         !ctx?.hasPermission(PERMISSIONS.ACTIVATE_ROLE)
       ) {
         throw new IForbiddenException({
-          message: authErrors.inadequatePermissions,
+          message: authErrors.inadequatePermissions(PERMISSIONS.ACTIVATE_ROLE),
         });
       }
       if (
@@ -191,7 +192,9 @@ export class RolesService {
         !ctx?.hasPermission(PERMISSIONS.DEACTIVATE_ROLE)
       ) {
         throw new IForbiddenException({
-          message: authErrors.inadequatePermissions,
+          message: authErrors.inadequatePermissions(
+            PERMISSIONS.DEACTIVATE_ROLE,
+          ),
         });
       }
     }

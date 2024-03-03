@@ -4,7 +4,7 @@ import { InputElement } from '@/components/forms'
 import TextareaElement from '@/components/forms/TextareaElement'
 import { Button } from '@/components/globalComponents'
 import { CreateRolePageProps } from '@/types/webappTypes/appTypes'
-import React from 'react'
+import React, { useState } from 'react'
 import { PermissionCard } from '.'
 import { dataToPermissions } from '@/utils/dataToPermissions'
 
@@ -21,6 +21,7 @@ const CreateRolePage = ({
   setPermissions
 }: CreateRolePageProps) => {
   const ROLES_PERMISSIONS = dataToPermissions(data);
+  const [deselectOptions, setDeselectOptions] = useState(false);
 
   const incorrect = (
     !role_name ||
@@ -29,6 +30,25 @@ const CreateRolePage = ({
       permissions?.length <= 0 
     )
   );
+
+  let allPermission = ROLES_PERMISSIONS?.map((data: any) => {
+    return({
+      permission: data?.value,
+      options: data?.permission_options
+    })
+  })
+
+  // console.log(allPermission, permissions);
+
+  const handleSelectAll = () => {
+    if (permissions?.length == ROLES_PERMISSIONS?.length) { 
+      setPermissions([]);
+      setDeselectOptions(true);
+    } else {
+      setPermissions(allPermission);
+      setDeselectOptions(false);
+    }
+  }
 
   return (
     <form
@@ -57,9 +77,18 @@ const CreateRolePage = ({
         />
 
         <div className='w-full flex flex-col gap-[12px]'>
-          <h3 className='text-f14 font-[600] text-o-text-medium2'>
-            Permissions
-          </h3>
+          <div className='w-full flex items-center justify-between'>
+            <h3 className='text-f14 font-[600] text-o-text-medium2'>
+              Permissions
+            </h3>
+
+            <div 
+              className='w-fit text-f14 font-[500] text-o-green2 cursor-pointer'
+              onClick={handleSelectAll}
+            >
+              Select All
+            </div>
+          </div>
 
           <div className='flex flex-col w-full gap-[16px]'>
             {
@@ -70,6 +99,7 @@ const CreateRolePage = ({
                   value={data?.value}
                   permissions={permissions}
                   options={data?.permission_options}
+                  deselectOptions={deselectOptions}
                   changePermissions={setPermissions}
                 />
               ))
