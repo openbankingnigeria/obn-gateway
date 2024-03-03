@@ -63,7 +63,7 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
       </div>
 
       {
-        !(userType == 'api-consumer') &&
+        // !(userType == 'api-consumer') &&
         <>
           <DownStreamForm 
             rawData={apiDetails}
