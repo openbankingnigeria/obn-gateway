@@ -590,6 +590,22 @@ export class APIService {
       });
     }
 
+    const routesFound = await this.routeRepository.find({
+      where: {
+        id: In(apiIds),
+      },
+    });
+
+    const missingRoutes = apiIds.filter(
+      (apiId) => !routesFound.some((route) => route.id === apiId),
+    );
+
+    if (missingRoutes.length > 0) {
+      throw new INotFoundException({
+        message: `Routes with ids ${missingRoutes.join(', ')} were not found.`,
+      });
+    }
+
     let offset;
     const routeAcls = [];
     const consumerId =
