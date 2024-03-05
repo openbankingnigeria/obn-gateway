@@ -9,7 +9,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { RolePermission } from './rolepermission.entity';
-import { PERMISSIONS } from '../../../permissions/types';
 
 @Entity({ name: 'permissions' })
 @Unique(['slug'])
@@ -21,7 +20,7 @@ export class Permission {
   name?: string;
 
   @Column()
-  slug?: (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+  slug?: string;
 
   @Column({ type: 'text' })
   description?: string;
