@@ -177,6 +177,7 @@ services:
        echo "Waiting for Elasticsearch availability";
        until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
        echo "All done!";
+       sleep 6s;
      '
     healthcheck:
       test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
