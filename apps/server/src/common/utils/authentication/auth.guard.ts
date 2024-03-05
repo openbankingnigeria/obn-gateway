@@ -35,7 +35,7 @@ export class AuthGuard implements CanActivate {
       this.reflector.get(SKIP_AUTH_METADATA_KEY, context.getHandler())
     );
 
-    const requiredPermission = <PERMISSIONS>(
+    const requiredPermission = <(typeof PERMISSIONS)[keyof typeof PERMISSIONS]>(
       this.reflector.get(REQUIRED_PERMISSION_METADATA_KEY, context.getHandler())
     );
 

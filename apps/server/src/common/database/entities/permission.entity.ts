@@ -21,7 +21,7 @@ export class Permission {
   name?: string;
 
   @Column()
-  slug?: PERMISSIONS;
+  slug?: (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
   @Column({ type: 'text' })
   description?: string;

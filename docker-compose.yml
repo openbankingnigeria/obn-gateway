@@ -46,6 +46,7 @@ networks:
 services:
   kong-db:
     image: postgres:9.5
+    command: -c 'max_connections=100'
     container_name: obn-kong-db
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
