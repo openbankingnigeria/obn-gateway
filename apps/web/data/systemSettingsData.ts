@@ -9,14 +9,14 @@ export const SYSTEM_SETTINGS_PATHS = [
     type: 'api-provider',
     subType: 'api-provider'
   },
-  {
-    id: 2,
-    label: 'Onboarding Settings',
-    value: 'onboarding_settings',
-    name: 'onboarding_settings',
-    type: 'api-provider',
-    subType: 'api-provider'
-  },
+  // {
+  //   id: 2,
+  //   label: 'Onboarding Settings',
+  //   value: 'onboarding_settings',
+  //   name: 'onboarding_settings',
+  //   type: 'api-provider',
+  //   subType: 'api-provider'
+  // },
   {
     id: 3,
     label: 'Email Service',
@@ -33,22 +33,22 @@ export const SYSTEM_SETTINGS_PATHS = [
     type: 'api-provider',
     subType: 'api-provider'
   },
-  {
-    id: 5,
-    label: 'External Services',
-    value: 'external_services',
-    name: 'external_services',
-    type: 'api-provider',
-    subType: 'api-provider'
-  },
-  {
-    id: 6,
-    label: 'Mock Services',
-    value: 'mock_services',
-    name: 'mock_services',
-    type: 'api-provider',
-    subType: 'api-provider'
-  },
+  // {
+  //   id: 5,
+  //   label: 'External Services',
+  //   value: 'external_services',
+  //   name: 'external_services',
+  //   type: 'api-provider',
+  //   subType: 'api-provider'
+  // },
+  // {
+  //   id: 6,
+  //   label: 'Mock Services',
+  //   value: 'mock_services',
+  //   name: 'mock_services',
+  //   type: 'api-provider',
+  //   subType: 'api-provider'
+  // },
   {
     id: 7,
     label: 'Business Information',

@@ -27,7 +27,7 @@ const UpStreamForm = ({
     rawData?.upstream?.querystring ? [...rawData?.upstream?.querystring] : []
   );
   const [endpointUrl, setEndpointUrl] = useState(rawData?.upstream?.url || '');
-
+  const [tiers, setTiers] = useState(rawData?.tiers || '');
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const environment = getJsCookies('environment');
@@ -128,7 +128,7 @@ const UpStreamForm = ({
           data: {
             "name": rawData?.name,
             "enabled": rawData?.enabled,
-            "tiers": rawData?.tiers,
+            "tiers": tiers,
             "upstream": {
               ...rawData?.upstream,
               url: endpointUrl,
@@ -166,6 +166,13 @@ const UpStreamForm = ({
   const handle2FA = (value: string) => {
     handleSubmit('', value);
   };
+
+  const handleTiers = (value: any) => {
+    console.log(value);
+    if (/^[0-3,\b]+$/.test(value) || value === '') {
+      setTiers(value);
+    }
+  }
 
   return (
     <>
@@ -214,6 +221,17 @@ const UpStreamForm = ({
               value={endpointUrl}
               disabled={previewPage}
               changeValue={setEndpointUrl}
+              required
+            />
+
+            <InputElement 
+              name='tiers'
+              type='text'
+              placeholder='Enter tiers'
+              label='Tiers'
+              value={tiers}
+              disabled={previewPage}
+              changeValue={(value: any) => handleTiers(value)}
               required
             />
 
