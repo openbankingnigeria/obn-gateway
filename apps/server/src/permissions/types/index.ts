@@ -75,6 +75,12 @@ export enum PROVIDER_PERMISSIONS {
   UPDATE_COMPANY_KYB_STATUS = 'update-company-kyb-status',
   UPDATE_COMPANY_ACCESS = 'update-company-access',
   UPDATE_COMPANY_DETAILS = 'update-company-details',
+
+  VIEW_PROFILE = 'view-profile',
+  UPDATE_PROFILE = 'update-profile',
+  ENABLE_TWOFA = 'enable-twofa',
+  DISABLE_TWOFA = 'disable-twofa',
+  CHANGE_PASSWORD = 'change-password',
 }
 
 export enum CONSUMER_PERMISSIONS {
@@ -97,16 +103,14 @@ export enum CONSUMER_PERMISSIONS {
   DEACTIVATE_ROLE = 'deactivate-role',
   VIEW_ROLE = 'view-role',
   DELETE_ROLE = 'delete-role',
-  LIST_SYSTEM_SETTINGS = 'list-system-settings',
-  VIEW_SYSTEM_SETTING = 'view-system-setting',
-  UPDATE_SYSTEM_SETTING = 'update-system-setting',
   LIST_AUDIT_LOGS = 'list-audit-logs',
   VIEW_AUDIT_LOG = 'view-audit',
 
   LIST_API_COLLECTIONS = 'list-api-collection',
-  VIEW_API_COLLECTIONS = 'View-api-collection',
+  VIEW_API_COLLECTIONS = 'view-api-collection',
   UPDATE_COMPANY_KYB_DETAILS = 'update-company-kyb-details',
   UPDATE_COMPANY_DETAILS = 'update-company-details',
+  VIEW_COMPANY_DETAILS = 'view-company-details',
   VIEW_ASSIGNED_API_ENDPOINTS = 'view-assigned-api-endpoints',
 
   SET_API_RESTRICTIONS = 'set-api-restrictions',
@@ -116,6 +120,12 @@ export enum CONSUMER_PERMISSIONS {
   VIEW_API_KEY = 'view-api-key',
 
   VIEW_KYB_REQUIREMENTS = 'view-kyb-requirements',
+
+  VIEW_PROFILE = 'view-profile',
+  UPDATE_PROFILE = 'update-profile',
+  ENABLE_TWOFA = 'enable-twofa',
+  DISABLE_TWOFA = 'disable-twofa',
+  CHANGE_PASSWORD = 'change-password',
 }
 
 export const PERMISSIONS = {

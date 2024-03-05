@@ -182,7 +182,6 @@ export class AuthService {
             password: hashSync(password, 12),
             roleId: apiConsumerRole.id,
             companyId: companyCreated.id,
-            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
             emailVerificationOtp: otp.toString(),
             emailVerificationExpires: moment()
               .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
@@ -237,7 +236,6 @@ export class AuthService {
             password: hashSync(password, 12),
             roleId: apiConsumerRole.id,
             companyId: companyCreated.id,
-            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
             emailVerificationOtp: otp.toString(),
             emailVerificationExpires: moment()
               .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
@@ -319,7 +317,6 @@ export class AuthService {
             roleId: apiConsumerRole.id,
             companyId: companyCreated.id,
             status: UserStatuses.ACTIVE,
-            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
             emailVerificationOtp: otp.toString(),
             emailVerificationExpires: moment()
               .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')

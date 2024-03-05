@@ -84,7 +84,7 @@ export class AuthGuard implements CanActivate {
       relations: {
         role: {
           permissions: true,
-          parent: true,
+          parent: { permissions: true },
         },
         company: true,
       },

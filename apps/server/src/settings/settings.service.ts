@@ -256,7 +256,6 @@ export class SettingsService {
     return response.id;
   }
 
-  // TODO ensure that non development api key can only be generated for non development environment until company is approved
   async generateApiKey(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
     const consumerId =
       ctx.activeCompany.consumerId ||
