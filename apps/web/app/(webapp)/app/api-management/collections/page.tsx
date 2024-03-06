@@ -7,6 +7,7 @@ import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import { getJsCookies } from '@/config/jsCookie'
+import { ToastMessage } from '@/app/(webapp)/(components)'
 
 const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
@@ -66,7 +67,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   let meta_data = fetchedCollections?.meta_data;
   // let apis = fetchedAPIs?.data;
   // let apisId = apis?.map((item: any) => item?.collectionId);
-  let consumerCollectionMessage = fetchedConsumerCollections?.message;
+  let consumerCollectionMessage = fetchedConsumerCollections?.message || fetchedCollections?.message;
   let collection_list = userType == 'api-consumer' ? 
     fetchedConsumerCollections?.data?.filter((collection: any) => collection?.name?.toLowerCase().includes(search_query?.toLowerCase())) : 
     fetchedCollections?.data?.filter((collection: any) => collection?.name?.toLowerCase().includes(search_query?.toLowerCase()));
