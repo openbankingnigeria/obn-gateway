@@ -11,7 +11,7 @@ const Logout = () => {
   useEffect(() => {
     if (myButtonRef.current) {
       myButtonRef.current.click();
-      console.log('clicked')
+      console.log('logged out')
     }
   }, []);
 

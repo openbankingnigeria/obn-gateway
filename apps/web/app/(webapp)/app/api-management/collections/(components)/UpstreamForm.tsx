@@ -128,7 +128,7 @@ const UpStreamForm = ({
           data: {
             "name": rawData?.name,
             "enabled": rawData?.enabled,
-            "tiers": tiers,
+            "tiers": tiers?.split(','),
             "upstream": {
               ...rawData?.upstream,
               url: endpointUrl,
@@ -168,8 +168,8 @@ const UpStreamForm = ({
   };
 
   const handleTiers = (value: any) => {
-    console.log(value);
-    if (/^[0-3,\b]+$/.test(value) || value === '') {
+    // console.log(value);
+    if (/^[0-3\b]+$/.test(value) || value === '') {
       setTiers(value);
     }
   }
