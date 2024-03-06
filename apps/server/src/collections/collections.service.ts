@@ -11,7 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { Equal, In, Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import {
   CreateCollectionDto,
   GetCollectionResponseDTO,
