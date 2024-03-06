@@ -124,6 +124,7 @@ export enum PROVIDER_PERMISSIONS {
   UPDATE_KYB_REQUIREMENTS = 'update-kyb-requirements',
 
   AP_VIEW_ASSIGNED_API_ENDPOINTS = 'ap-view-assigned-api-endpoints',
+  UPDATE_COMPANY_TYPES = 'update-company-types',
 }
 
 export enum CONSUMER_PERMISSIONS {
