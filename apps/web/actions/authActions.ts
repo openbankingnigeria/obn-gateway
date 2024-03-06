@@ -20,7 +20,7 @@ export async function postSignIn(prevState: any, formData: FormData) {
   });
 
   if (response?.data) {
-    setCookies('aperta-user-accessToken', response?.data);
+    setCookies('aperta-user-accessToken', response?.data?.accessToken);
   }
 
   return {
@@ -45,7 +45,7 @@ export async function postSignInWith2FA(prevState: any, formData: FormData) {
   });
 
   if (response?.data) {
-    setCookies('aperta-user-accessToken', response?.data);
+    setCookies('aperta-user-accessToken', response?.data?.accessToken);
   }
 
   return {

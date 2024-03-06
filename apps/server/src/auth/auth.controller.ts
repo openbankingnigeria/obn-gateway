@@ -12,6 +12,7 @@ import {
   BaseSignupDto,
   ForgotPasswordDto,
   LoginDto,
+  RefreshTokenDto,
   ResendOtpDto,
   ResetPasswordDto,
   SetupDto,
@@ -46,6 +47,14 @@ export class AuthController {
   @UsePipes(IValidationPipe)
   login(@Body() data: LoginDto) {
     return this.authService.login(data);
+  }
+
+  @Post('token')
+  @HttpCode(HttpStatus.OK)
+  @SkipAuthGuard()
+  @UsePipes(IValidationPipe)
+  refresh(@Body() data: RefreshTokenDto) {
+    return this.authService.refreshToken(data.refreshToken);
   }
 
   @Post('email/verify')

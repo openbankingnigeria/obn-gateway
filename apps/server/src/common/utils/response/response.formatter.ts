@@ -26,7 +26,7 @@ export class ResponseMetaDTO<
   pageSize: number;
 }
 
-export class ResponseDTO<T> {
+export class ResponseDTO<T = any> {
   constructor(partial: ResponseDTO<T>) {
     Object.assign(this, partial);
   }
