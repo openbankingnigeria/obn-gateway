@@ -31,7 +31,6 @@ import {
   GetCompanyCustomFieldsResponseDTO,
   GetCompanyKYBDataResponseDTO,
   GetCompanyResponseDTO,
-  GetCompanySubTypesResponseDTO,
   GetCompanyTypesResponseDTO,
   GetStatsDto,
   GetStatsResponseDTO,
@@ -497,7 +496,7 @@ export class CompanyService {
     return ResponseFormatter.success(
       'Company types fetched successfully',
       new GetCompanyTypesResponseDTO({
-        companySubtypes: new GetCompanySubTypesResponseDTO(companySubtypes),
+        companySubtypes,
         companyTypes,
       }),
     );

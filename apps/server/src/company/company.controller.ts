@@ -58,6 +58,9 @@ export class CompanyController {
 
   @Get('company/types')
   @SkipAuthGuard()
+  @SerializeOptions({
+    strategy: 'exposeAll',
+  })
   getCompanyTypes() {
     return this.companyService.getCompanyTypes();
   }

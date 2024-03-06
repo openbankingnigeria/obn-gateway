@@ -9,7 +9,7 @@ export type CompanySubtypes = Record<
   | CompanyTypes.INDIVIDUAL
   | CompanyTypes.LICENSED_ENTITY
   | CompanyTypes.BUSINESS,
-  string[]
+  { value: string; default: boolean }[]
 >;
 
 export interface BusinessSettings {

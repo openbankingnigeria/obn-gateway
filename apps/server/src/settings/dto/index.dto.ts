@@ -15,13 +15,13 @@ import {
   ArrayUnique,
   IsArray,
   IsEnum,
-  IsIP,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
   ValidateNested,
 } from 'class-validator';
+import { CompanyTypes } from '@common/database/constants';
 
 export class KybRequirements {
   @IsNotEmpty({
@@ -59,16 +59,16 @@ export class UpdateKybRequirementsDto {
 
 export class UpdateCompanySubtypesRequest {
   @IsOptional()
-  newCompanySubtypes: Record<
-    'individual' | 'licensedEntity' | 'business',
-    string[]
-  >;
+  @IsString({ each: true })
+  [CompanyTypes.INDIVIDUAL]: string[];
 
   @IsOptional()
-  removedCompanySubtypes: Record<
-    'individual' | 'licensedEntity' | 'business',
-    string[]
-  >;
+  @IsString({ each: true })
+  [CompanyTypes.BUSINESS]: string[];
+
+  @IsOptional()
+  @IsString({ each: true })
+  [CompanyTypes.LICENSED_ENTITY]: string[];
 }
 
 export class KybRequirementsResponse {

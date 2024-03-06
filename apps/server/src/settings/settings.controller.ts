@@ -48,7 +48,7 @@ export class SettingsController {
     return this.settingsService.updateKybRequirements(ctx, data);
   }
 
-  @Patch('company/types')
+  @Put('company/types')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.UPDATE_COMPANY_TYPES)
   updateCompanySubtypes(
