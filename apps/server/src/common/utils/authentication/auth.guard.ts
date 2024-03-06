@@ -74,7 +74,6 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    // TODO ensure user permission exists within parent's too
     // TODO get back to this, use central getUserById implementation
     const user = await this.userRepository.findOne({
       where: {
@@ -90,7 +89,7 @@ export class AuthGuard implements CanActivate {
       },
     });
 
-    if (!user || !user.company) {
+    if (!user?.company) {
       throw new IUnauthorizedException({
         message: authErrors.invalidCredentials,
       });

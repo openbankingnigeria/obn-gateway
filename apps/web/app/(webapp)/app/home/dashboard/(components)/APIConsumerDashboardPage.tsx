@@ -53,7 +53,7 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
   return (
     <section className='flex flex-col gap-[24px] w-full'>
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
-        {`${greetByTime()}, ${profile_data?.firstName + ' ' + profile_data?.lastName}!`}
+        {`${greetByTime()}, ${((profile_data?.firstName || '') + ' ' + (profile_data?.lastName || '')).trim()}!`}
       </h2>
 
       <section className='w-full flex'>

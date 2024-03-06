@@ -620,7 +620,6 @@ export class APIService {
       company.consumerId ??
       (await this.updateConsumerId(company.id!, environment));
     do {
-      // TODO goto next page
       const response = await this.kongConsumerService.getConsumerAcls(
         environment,
         consumerId,
