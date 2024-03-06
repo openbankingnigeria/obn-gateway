@@ -31,6 +31,7 @@ import ListPanel from "./ListPanel";
 import CodeEditor from "./CodeEditor";
 import ReportingSection from "./ReportingSection";
 import TwoFactorAuthBottomModal from "./TwoFactorAuthBottomModal";
+import ToastMessage from "./ToastMessage";
 
 export {
   DatePicker,
@@ -65,5 +66,6 @@ export {
   ListPanel,
   CodeEditor,
   TwoFactorAuthBottomModal,
-  ReportingSection
+  ReportingSection,
+  ToastMessage
 }

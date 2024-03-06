@@ -100,6 +100,7 @@ const AddBusinessInformation = ({
               name='cac'
               type='cac'
               placeholder='RC Number'
+              invalid={Boolean(cac && (cac?.length < 6))}
               label='CAC Registration Number'
               value={cac}
               changeValue={(value: string) => handleCac(value)}
@@ -116,6 +117,7 @@ const AddBusinessInformation = ({
             <InputElement 
               name='tin'
               type='tin'
+              invalid={Boolean(tin && (tin?.length < 6))}
               placeholder='Tax identification number'
               label='Tax Identification Number (TIN)'
               value={tin}

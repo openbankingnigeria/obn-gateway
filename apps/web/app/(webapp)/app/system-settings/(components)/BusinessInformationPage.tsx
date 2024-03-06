@@ -214,6 +214,13 @@ const BusinessInformationPage = () => {
                       type={data?.type}
                       placeholder={data?.placeholder}
                       value={data?.value}
+                      invalid={
+                        data?.name == 'cac' ?
+                        Boolean(cac && (cac?.length < 6)) :
+                          data?.name == 'tin' ?
+                            Boolean(tin && (tin?.length < 6)) : 
+                            false
+                      }
                       disabled={businessDetails?.kybStatus == 'approved'}
                       changeEvent={(e: ChangeEvent<HTMLInputElement>) => {
                         data?.name == 'cac' ? 
