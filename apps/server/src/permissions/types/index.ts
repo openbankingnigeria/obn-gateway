@@ -106,7 +106,7 @@ export enum CONSUMER_PERMISSIONS {
   LIST_AUDIT_LOGS = 'list-audit-logs',
   VIEW_AUDIT_LOG = 'view-audit',
 
-  LIST_API_COLLECTIONS = 'list-api-collection',
+  LIST_API_COLLECTIONS = 'list-api-collections',
   VIEW_API_COLLECTIONS = 'view-api-collection',
   UPDATE_COMPANY_KYB_DETAILS = 'update-company-kyb-details',
   UPDATE_COMPANY_DETAILS = 'update-company-details',
