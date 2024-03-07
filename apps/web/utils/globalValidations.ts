@@ -14,7 +14,7 @@ export const greaterThan8 = (value: string) =>
   value?.toString()?.match(/^(?=.{8,}$)/);
 
 export const validateEmail = (value: string) => 
-  value?.toString()?.match(/^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/);
+  value?.toString()?.match(/^[A-Za-z0-9._%-+]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/);
 
 export const validateName = (value: string) => 
   value?.toString()?.match(/^[a-zA-Z-]+$/) && value.length >= 2
