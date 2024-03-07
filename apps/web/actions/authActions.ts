@@ -20,7 +20,7 @@ export async function postSignIn(prevState: any, formData: FormData) {
   });
 
   if (response?.data) {
-    setCookies('aperta-user-accessToken', response?.data);
+    setCookies('aperta-user-accessToken', response?.data?.accessToken);
   }
 
   return {

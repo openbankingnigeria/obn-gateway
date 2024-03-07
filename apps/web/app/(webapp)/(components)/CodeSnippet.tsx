@@ -13,14 +13,31 @@ const CodeSnippet = ({
   noCopy
 }: CodeSnippetProps) => {
 
+  // const handleCopy = () => {
+  //   copyTextToClipboard(rawCode)
+  //     .then(() => {
+  //       console.log('Copied.');
+  //       toast.success('Code snippet copied');
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //       toast.error('Error copying Code snippet');
+  //     });
+  // };
+
   const handleCopy = () => {
     copyTextToClipboard(rawCode)
-      .then(() => {
-        console.log('Copied.');
-        toast.success('Code snippet copied');
+      .then((success) => {
+        if (success) {
+          console.log('Copied.');
+          toast.success('Code snippet copied');
+        } else {
+          console.log('Copy failed.');
+          toast.error('Error copying Code snippet');
+        }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         toast.error('Error copying Code snippet');
       });
   };
