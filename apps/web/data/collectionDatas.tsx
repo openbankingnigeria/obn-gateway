@@ -96,7 +96,8 @@ export const COLLECTIONS_API_HEADERS = [
   //   accessor: 'tier'
   // },
   {
-    header: 'Paths',
+    // header: 'Paths',
+    header: 'Tiers',
     accessor: 'parameters'
   },
   {

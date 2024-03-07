@@ -16,14 +16,31 @@ const TwoFactoAuthEnabled = ({
 
     const stringifyBackupCodes = backup_codes?.toString()?.replace(/,/g, ' ')
 
+  // const handleCopy = () => {
+  //   copyTextToClipboard(stringifyBackupCodes)
+  //     .then(() => {
+  //       console.log('Copied.');
+  //       toast.success('Backup codes copied');
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //       toast.error('Error copying Backup codes');
+  //     });
+  // };
+
   const handleCopy = () => {
     copyTextToClipboard(stringifyBackupCodes)
-      .then(() => {
-        console.log('Copied.');
-        toast.success('Backup codes copied');
+      .then((success) => {
+        if (success) {
+          console.log('Copied.');
+          toast.success('Backup codes copied');
+        } else {
+          console.log('Copy failed.');
+          toast.error('Error copying Backup codes');
+        }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         toast.error('Error copying Backup codes');
       });
   };

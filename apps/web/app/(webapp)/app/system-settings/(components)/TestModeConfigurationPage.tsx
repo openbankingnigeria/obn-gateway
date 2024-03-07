@@ -57,14 +57,31 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     })
   };
 
+  // const handleCopy = (value: string) => {
+  //   copyTextToClipboard(value)
+  //     .then(() => {
+  //       console.log('Copied.');
+  //       toast.success('Test key copied');
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //       toast.error('Error copying Test key');
+  //     });
+  // };
+
   const handleCopy = (value: string) => {
     copyTextToClipboard(value)
-      .then(() => {
-        console.log('Copied.');
-        toast.success('Test key copied');
+      .then((success) => {
+        if (success) {
+          console.log('Copied.');
+          toast.success('Test key copied');
+        } else {
+          console.log('Copy failed.');
+          toast.error('Error copying Test key');
+        }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         toast.error('Error copying Test key');
       });
   };
