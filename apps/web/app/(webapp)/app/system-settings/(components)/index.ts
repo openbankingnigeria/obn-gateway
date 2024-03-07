@@ -7,6 +7,7 @@ import TestModeConfigurationPage from "./TestModeConfigurationPage";
 import LiveModeConfigurationPage from "./LiveModeConfigurationPage";
 import BusinessInformationPage from "./BusinessInformationPage";
 import OnboardingSettingsPage from "./OnboardingSettingsPage";
+import UserAgreementsPage from "./UserAgreementsPage";
 
 export {
   GeneralSettingsPage,
@@ -17,5 +18,6 @@ export {
   TestModeConfigurationPage,
   LiveModeConfigurationPage,
   BusinessInformationPage,
-  OnboardingSettingsPage
+  OnboardingSettingsPage,
+  UserAgreementsPage
 }

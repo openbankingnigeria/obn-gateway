@@ -46,13 +46,13 @@ const EmailServicePage = ({ rawData }: APIConfigurationProps) => {
 
   const isChanged = (
     // email_provider != 'sendgrid' ||
-    form?.emailBaseUrl != rawData?.emailBaseUrl ||
-    form?.emailFrom != rawData?.emailFrom||
-    form?.emailHost != rawData?.emailHost ||
-    form?.emailPassword != rawData?.emailPassword ||
-    form?.emailPort != rawData?.emailPort ||
+    form?.emailBaseUrl != rawData?.emailBaseUrl?.value  ||
+    form?.emailFrom != rawData?.emailFrom?.value ||
+    form?.emailHost != rawData?.emailHost?.value  ||
+    form?.emailPassword != rawData?.emailPassword?.value  ||
+    form?.emailPort != rawData?.emailPort?.value  ||
     // form?.emailSecure != rawData?.emailSecure ||
-    form?.emailUser != rawData?.emailUser
+    form?.emailUser != rawData?.emailUser?.value 
   );
 
   // const email_provider_list = EMAIL_PROVIDERS?.map((provider) => {
