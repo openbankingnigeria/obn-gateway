@@ -3,7 +3,7 @@ import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { AUDIT_TRAIL_TABLE_HEADERS, AUDIT_TRAIL_EVENT_TYPE } from '@/data/auditTrailData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { AuditTrailTable } from './(components)'
-import { DatePicker } from '@/app/(webapp)/(components)'
+import { DatePicker, ToastMessage } from '@/app/(webapp)/(components)'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
@@ -62,6 +62,13 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedAuditTrails?.status != 200 && fetchedAuditTrails?.status != 201) && 
+        <ToastMessage 
+          message={fetchedAuditTrails?.message} 
+        />
+      }
       <div className='w-full h-full gap-[24px] flex flex-col'>
         <h2 className='text-f18 w-full font-[500] text-o-text-dark'>
           Audit Trail

@@ -4,7 +4,7 @@ import { ACTIVITY_TABLE_HEADERS, ACTIVITY_TABLE_DATA, ACTIVITY_STATUS_DATA, ACTI
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ActivityTable } from './(components)'
 import { APIS_DATA_WITH_ALL } from '@/data/apisData'
-import { DatePicker, ExportButton } from '@/app/(webapp)/(components)'
+import { DatePicker, ExportButton, ToastMessage } from '@/app/(webapp)/(components)'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
@@ -133,6 +133,13 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedActivities?.status != 200 && fetchedActivities?.status != 201) && 
+        <ToastMessage 
+          message={fetchedActivities?.message} 
+        />
+      }
       <div className='w-full h-full gap-[24px] flex flex-col'>
         <h2 className='text-f18 w-full font-[500] text-o-text-dark'>
           Activity

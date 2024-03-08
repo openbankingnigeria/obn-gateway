@@ -6,7 +6,7 @@ import { applyAxiosRequest } from '@/hooks';
 import { DashboardBanner, DashboardMetricCard } from '.';
 import { greetByTime } from '@/utils/greetByTime';
 import { API_COLLECTIONS_STATS, USERS_STATS } from '@/data/dashboardData';
-import { ReportingSection } from '@/app/(webapp)/(components)';
+import { ReportingSection, ToastMessage } from '@/app/(webapp)/(components)';
 import { StatDataProps } from '@/types/dataTypes';
 import { getCookies } from '@/config/cookies';
 
@@ -52,6 +52,28 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedAPIs?.status != 200 && fetchedAPIs?.status != 201) && 
+        <ToastMessage 
+          message={fetchedAPIs?.message} 
+        />
+      }
+      {
+        /* SSR TOAST ERROR */
+        (fetchedCollections?.status != 200 && fetchedCollections?.status != 201) && 
+        <ToastMessage 
+          message={fetchedCollections?.message} 
+        />
+      }
+      {
+        /* SSR TOAST ERROR */
+        (fetchedTeamStat?.status != 200 && fetchedTeamStat?.status != 201) && 
+        <ToastMessage 
+          message={fetchedTeamStat?.message} 
+        />
+      }
+
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
         {`${greetByTime()}, ${((profile_data?.firstName || '') + ' ' + (profile_data?.lastName || '')).trim()}!`}
       </h2>

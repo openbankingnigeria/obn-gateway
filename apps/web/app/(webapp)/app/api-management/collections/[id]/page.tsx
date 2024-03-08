@@ -6,6 +6,7 @@ import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { getCookies } from '@/config/cookies';
+import { ToastMessage } from '@/app/(webapp)/(components)';
 
 const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
   const collectionId = params?.id;
@@ -112,6 +113,14 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
 
   return (
     <section className='w-full flex flex-col gap-[20px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedCollection?.status != 200 && fetchedCollection?.status != 201) && 
+        <ToastMessage 
+          message={fetchedCollection?.message} 
+        />
+      }
+
       <header className='w-full flex flex-col gap-[12px]'>
         <h3 className='text-f18 font-[500] capitalize text-o-text-dark'>
           {collection?.name}

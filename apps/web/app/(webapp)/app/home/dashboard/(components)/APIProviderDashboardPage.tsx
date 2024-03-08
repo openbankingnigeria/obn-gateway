@@ -2,7 +2,7 @@ import React from 'react'
 import { greetByTime } from '@/utils/greetByTime'
 import { searchParamsProps } from '@/types/webappTypes/appTypes'
 import { API_CALLS_DATA, API_CONSUMERS_TABLE_DATA } from '@/data/dashboardData'
-import { DatePicker } from '@/app/(webapp)/(components)'
+import { DatePicker, ToastMessage } from '@/app/(webapp)/(components)'
 import { DashboardMetricCard } from '.'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
@@ -86,6 +86,27 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsP
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedConsumerStat?.status != 200 && fetchedConsumerStat?.status != 201) && 
+        <ToastMessage 
+          message={fetchedConsumerStat?.message} 
+        />
+      }
+      {
+        /* SSR TOAST ERROR */
+        (fetchedKybStats?.status != 200 && fetchedKybStats?.status != 201) && 
+        <ToastMessage 
+          message={fetchedKybStats?.message} 
+        />
+      }
+      {
+        /* SSR TOAST ERROR */
+        (fetchedReport?.status != 200 && fetchedReport?.status != 201) && 
+        <ToastMessage 
+          message={fetchedReport?.message} 
+        />
+      }
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
         {`${greetByTime()}, ${((alt_data?.firstName || '') + ' ' + (alt_data?.lastName || '')).trim()}!`}
       </h2>
