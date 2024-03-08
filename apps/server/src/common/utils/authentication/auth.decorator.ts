@@ -11,8 +11,9 @@ export const REQUIRE_TWO_FA_KEY = 'require_two_fa';
 
 export const SkipAuthGuard = () => SetMetadata(SKIP_AUTH_METADATA_KEY, true);
 
-export const RequiredPermission = (permission: PERMISSIONS) =>
-  SetMetadata(REQUIRED_PERMISSION_METADATA_KEY, permission);
+export const RequiredPermission = (
+  permission: (typeof PERMISSIONS)[keyof typeof PERMISSIONS],
+) => SetMetadata(REQUIRED_PERMISSION_METADATA_KEY, permission);
 
 export const RequireTwoFA = (strict: boolean = false) =>
   SetMetadata(REQUIRE_TWO_FA_KEY, strict);

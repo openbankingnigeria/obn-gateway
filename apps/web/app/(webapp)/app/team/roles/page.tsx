@@ -6,6 +6,7 @@ import { CreateRoleButton, RolesTable } from './(components)';
 import * as API from '@/config/endpoints';
 import { applyAxiosRequest } from '@/hooks';
 import Logout from '@/components/globalComponents/Logout';
+import { ToastMessage } from '@/app/(webapp)/(components)';
 
 const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -73,6 +74,13 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full w-full'>
+      {
+        /* SSR TOAST ERROR */
+        (roles?.status != 200 && roles?.status != 201) && 
+        <ToastMessage 
+          message={roles?.message} 
+        />
+      }
       <div className='w-full h-full gap-[24px] flex flex-col'>
         <h2 className='text-f18 w-full font-[500] text-o-text-dark'>
           Roles

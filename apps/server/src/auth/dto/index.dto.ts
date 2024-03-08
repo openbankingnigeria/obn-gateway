@@ -2,6 +2,7 @@ import {
   IsAlphanumeric,
   IsEmail,
   IsIn,
+  IsJWT,
   IsMobilePhone,
   IsNotEmpty,
   IsOptional,
@@ -68,6 +69,30 @@ export class LoginDto {
   })
   @IsString()
   password: string;
+}
+
+export class RefreshTokenDto {
+  @IsNotEmpty()
+  @IsJWT()
+  refreshToken: string;
+}
+
+export class LoginResponseDto {
+  constructor(partial: LoginResponseDto) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  tokenType: 'Bearer';
+
+  @Expose()
+  accessToken: string;
+
+  @Expose()
+  refreshToken: string;
+
+  @Expose()
+  expiresIn: number;
 }
 
 export class TwoFADto extends ForgotPasswordDto {
@@ -300,14 +325,5 @@ export class VerifyEmailDto extends ResendOtpDto {
   @IsNotEmpty({
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
-  otp: string;
-}
-
-export class AuthOTPResponseDTO {
-  constructor(partial: Partial<{ otp: string }>) {
-    Object.assign(this, partial);
-  }
-
-  @Expose()
   otp: string;
 }

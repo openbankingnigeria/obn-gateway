@@ -46,6 +46,7 @@ networks:
 services:
   kong-db:
     image: postgres:9.5
+    command: -c 'max_connections=100'
     container_name: obn-kong-db
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
@@ -176,6 +177,7 @@ services:
        echo "Waiting for Elasticsearch availability";
        until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
        echo "All done!";
+       sleep 6s;
      '
     healthcheck:
       test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
@@ -290,7 +292,10 @@ services:
       retries: 3
 
   web:
-    build: ./apps/web
+    build:
+      context: ./apps/web
+      args:
+      - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
     container_name: obn-web
     environment:
       - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}

@@ -50,7 +50,6 @@ export class RolesService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // TODO fix problem where roles.company_id is nullable
   async createRole(ctx: RequestContext, data: CreateRoleDto) {
     const roleExists = await this.roleRepository.count({
       where: {
@@ -350,7 +349,6 @@ export class RolesService {
     return ResponseFormatter.success(roleSuccessMessages.updatedRole);
   }
 
-  // TODO how do we ensure that if a parents permission is leaked to a created role, that permission cannot be used.
   async getPermissions(ctx: RequestContext) {
     const permissions = await this.permissionRepository.find({
       where: { roles: { roleId: Equal(ctx.activeUser.role.parentId) } },

@@ -62,7 +62,7 @@ export class GetPermissionResponseDTO {
   name: string;
 
   @Expose()
-  slug: PERMISSIONS;
+  slug: (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
   @Expose()
   description: string;

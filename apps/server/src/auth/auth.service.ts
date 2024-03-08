@@ -14,6 +14,7 @@ import {
   IndividualSignupDto,
   LicensedEntitySignupDto,
   LoginDto,
+  LoginResponseDto,
   ResendOtpDto,
   ResetPasswordDto,
   SetupDto,
@@ -57,6 +58,7 @@ import { BusinessSettings } from '@settings/types';
 import { CompanyTiers } from '@company/types';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import assert from 'assert';
 
 @Injectable()
 export class AuthService {
@@ -182,7 +184,6 @@ export class AuthService {
             password: hashSync(password, 12),
             roleId: apiConsumerRole.id,
             companyId: companyCreated.id,
-            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
             emailVerificationOtp: otp.toString(),
             emailVerificationExpires: moment()
               .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
@@ -237,7 +238,6 @@ export class AuthService {
             password: hashSync(password, 12),
             roleId: apiConsumerRole.id,
             companyId: companyCreated.id,
-            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
             emailVerificationOtp: otp.toString(),
             emailVerificationExpires: moment()
               .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
@@ -319,7 +319,6 @@ export class AuthService {
             roleId: apiConsumerRole.id,
             companyId: companyCreated.id,
             status: UserStatuses.ACTIVE,
-            emailVerified: moment().isBefore(moment('2024-03-01')), // TODO remove
             emailVerificationOtp: otp.toString(),
             emailVerificationExpires: moment()
               .add(this.config.get('auth.defaultOtpExpiresMinutes'), 'minutes')
@@ -357,17 +356,13 @@ export class AuthService {
     }
   }
 
-  async login({ email, password }: LoginDto): Promise<ResponseDTO<string>>;
+  async login({ email, password }: LoginDto): Promise<ResponseDTO>;
+  async login({ email, password, code }: TwoFADto): Promise<ResponseDTO>;
   async login({
     email,
     password,
     code,
-  }: TwoFADto): Promise<ResponseDTO<string>>;
-  async login({
-    email,
-    password,
-    code,
-  }: LoginDto & TwoFADto): Promise<ResponseDTO<string>> {
+  }: LoginDto & TwoFADto): Promise<ResponseDTO> {
     const user = await this.userRepository.findOne({
       where: {
         email: Equal(email),
@@ -447,9 +442,20 @@ export class AuthService {
       count: 0,
     });
 
-    const verifyToken = await this.auth.verify<{ iat: number }>(accessToken);
+    // TODO verify if this is optimal
+    const refreshToken = await this.auth.sign(
+      {
+        id: user.id,
+      },
+      { secret: user.password },
+    );
+
+    const verifyToken = await this.auth.verify<{ iat: number; exp: number }>(
+      accessToken,
+    );
 
     user.lastLogin = moment(verifyToken.iat * 1000).toDate();
+    user.refreshToken = refreshToken;
     await this.userRepository.save(user);
 
     const event = new AuthLoginEvent(user);
@@ -457,15 +463,26 @@ export class AuthService {
 
     return ResponseFormatter.success(
       authSuccessMessages.login(isFirstLogin),
-      accessToken,
+      new LoginResponseDto({
+        tokenType: 'Bearer',
+        accessToken,
+        refreshToken,
+        expiresIn: moment(verifyToken.exp * 1000).diff(moment(), 'seconds'),
+      }),
     );
   }
 
   async refreshToken(token: string) {
-    let decoded: { id: string; count: number; iat: number };
+    let decoded: { id: string; count: number; iat: number }, user;
     const refreshTokenLimit = 96;
     try {
-      decoded = await this.auth.verify(token);
+      user = await this.userRepository.findOneByOrFail({ refreshToken: token });
+      decoded = await this.auth.verify(token, user.password);
+      if (decoded.id !== user.id) {
+        throw new IBadRequestException({
+          message: authErrors.invalidCredentials,
+        });
+      }
     } catch (err) {
       throw new IBadRequestException({
         message: authErrors.invalidCredentials,
@@ -480,25 +497,34 @@ export class AuthService {
     }
 
     const accessToken = await this.auth.sign({
-      ...decoded,
+      id: user.id,
       count: decoded.count + 1,
     });
 
-    const verifyToken = await this.auth.verify<{ iat: number }>(accessToken);
+    // TODO verify if this is optimal
+    const refreshToken = await this.auth.sign(
+      {
+        id: user.id,
+      },
+      { secret: user.password },
+    );
 
-    const user = await this.userRepository.findOneBy({ id: Equal(decoded.id) });
-    if (!user) {
-      throw new IBadRequestException({
-        message: authErrors.invalidCredentials,
-      });
-    }
+    const verifyToken = await this.auth.verify<{ iat: number; exp: number }>(
+      accessToken,
+    );
 
     user.lastLogin = moment(verifyToken.iat * 1000).toDate();
+    user.refreshToken = refreshToken;
     await this.userRepository.save(user);
 
     return ResponseFormatter.success(
       authSuccessMessages.login(false),
-      accessToken,
+      new LoginResponseDto({
+        tokenType: 'Bearer',
+        accessToken,
+        refreshToken,
+        expiresIn: moment(verifyToken.exp * 1000).diff(moment(), 'seconds'),
+      }),
     );
   }
 

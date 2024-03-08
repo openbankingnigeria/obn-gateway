@@ -9,6 +9,7 @@ import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { getCookies } from '@/config/cookies';
+import { ToastMessage } from '@/app/(webapp)/(components)';
 
 const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || '';
@@ -123,6 +124,14 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
 
   return (
     <section className='w-full h-full flex flex-col gap-[20px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedCollection?.status != 200 && fetchedCollection?.status != 201) && 
+        <ToastMessage 
+          message={fetchedCollection?.message} 
+        />
+      }
+
       <ConsumerDetails 
         status={status}
         rawData={consumer}

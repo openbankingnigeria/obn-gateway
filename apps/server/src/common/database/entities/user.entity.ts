@@ -86,6 +86,9 @@ export class User {
   @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
   auditLogs?: AuditLog[];
 
+  @Column({ name: 'refresh_token', nullable: true })
+  refreshToken?: string;
+
   @Column({ name: 'reset_password_token', nullable: true })
   resetPasswordToken?: string;
 

@@ -4,7 +4,7 @@ import { DownStreamForm, EnabledToggle, TransformationForm, UpstreamForm } from 
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
-import { StatusBox } from '@/app/(webapp)/(components)';
+import { StatusBox, ToastMessage } from '@/app/(webapp)/(components)';
 import { ToggleSwitch } from '@/components/forms';
 import { getCookies } from '@/config/cookies';
 
@@ -40,6 +40,13 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
 
   return (
     <section className='w-full gap-[20px] flex flex-col h-full'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedAPI?.status != 200 && fetchedAPI?.status != 201) && 
+        <ToastMessage 
+          message={fetchedAPI?.message} 
+        />
+      }
       <div className='w-full flex items-center justify-between'>
         <h3 className='w-full text-f18 font-[500] text-o-text-dark'>
           {

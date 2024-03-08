@@ -1,4 +1,4 @@
-import { BusinessInformationDataProps, EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, TestModeConfigurationProps } from "@/types/dataTypes";
+import { BusinessInformationDataProps, EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, TestModeConfigurationProps, UserAgreementsProps } from "@/types/dataTypes";
 
 export const SYSTEM_SETTINGS_PATHS = [
   {
@@ -9,14 +9,14 @@ export const SYSTEM_SETTINGS_PATHS = [
     type: 'api-provider',
     subType: 'api-provider'
   },
-  {
-    id: 2,
-    label: 'Onboarding Settings',
-    value: 'onboarding_settings',
-    name: 'onboarding_settings',
-    type: 'api-provider',
-    subType: 'api-provider'
-  },
+  // {
+  //   id: 2,
+  //   label: 'Onboarding Settings',
+  //   value: 'onboarding_settings',
+  //   name: 'onboarding_settings',
+  //   type: 'api-provider',
+  //   subType: 'api-provider'
+  // },
   {
     id: 3,
     label: 'Email Service',
@@ -33,22 +33,22 @@ export const SYSTEM_SETTINGS_PATHS = [
     type: 'api-provider',
     subType: 'api-provider'
   },
-  {
-    id: 5,
-    label: 'External Services',
-    value: 'external_services',
-    name: 'external_services',
-    type: 'api-provider',
-    subType: 'api-provider'
-  },
-  {
-    id: 6,
-    label: 'Mock Services',
-    value: 'mock_services',
-    name: 'mock_services',
-    type: 'api-provider',
-    subType: 'api-provider'
-  },
+  // {
+  //   id: 5,
+  //   label: 'External Services',
+  //   value: 'external_services',
+  //   name: 'external_services',
+  //   type: 'api-provider',
+  //   subType: 'api-provider'
+  // },
+  // {
+  //   id: 6,
+  //   label: 'Mock Services',
+  //   value: 'mock_services',
+  //   name: 'mock_services',
+  //   type: 'api-provider',
+  //   subType: 'api-provider'
+  // },
   {
     id: 7,
     label: 'Business Information',
@@ -80,6 +80,22 @@ export const SYSTEM_SETTINGS_PATHS = [
     name: 'live_mode_configuration',
     type: 'api-consumer',
     subType: 'individual,licensed-entity,business'
+  },
+  {
+    id: 11,
+    label: 'User Agreements',
+    value: 'user_agreements',
+    name: 'user_agreements',
+    type: 'api-provider',
+    subType: 'api-provider'
+  },
+  {
+    id: 12,
+    label: 'Onboarding Settings',
+    value: 'onboarding_custom_fields',
+    name: 'onboarding_custom_fields',
+    type: 'api-provider',
+    subType: 'api-provider'
   },
 ];
 
@@ -398,6 +414,28 @@ export const _EMAIL_SERVICE_DATA = ({
     name: 'email_base_url',
     type: 'text',
     value: email_base_url
+  },
+];
+
+export const USER_AGREEMENTS_DATA = ({
+  privacyPolicy,
+  termsAndConditions
+}: UserAgreementsProps) => [
+  {
+    id: 1,
+    label: 'Privacy Policy',
+    description: '',
+    name: 'privacyPolicy',
+    type: 'text',
+    value: privacyPolicy
+  },
+  {
+    id: 2,
+    label: 'Terms And Conditions',
+    description: '',
+    name: 'termsAndConditions',
+    type: 'text',
+    value: termsAndConditions
   },
 ];
 

@@ -7,6 +7,7 @@ import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import { getJsCookies } from '@/config/jsCookie'
+import { ToastMessage } from '@/app/(webapp)/(components)'
 
 const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
@@ -59,14 +60,14 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   //   :
   //   null;
 
-  if (fetchedCollections?.status == 401) {
+  if (fetchedCollections?.status == 401 || fetchedConsumerCollections?.status == 401) {
     return <Logout />
   }
 
   let meta_data = fetchedCollections?.meta_data;
   // let apis = fetchedAPIs?.data;
   // let apisId = apis?.map((item: any) => item?.collectionId);
-  let consumerCollectionMessage = fetchedConsumerCollections?.message;
+  let consumerCollectionMessage = fetchedConsumerCollections?.message || fetchedCollections?.message;
   let collection_list = userType == 'api-consumer' ? 
     fetchedConsumerCollections?.data?.filter((collection: any) => collection?.name?.toLowerCase().includes(search_query?.toLowerCase())) : 
     fetchedCollections?.data?.filter((collection: any) => collection?.name?.toLowerCase().includes(search_query?.toLowerCase()));
@@ -83,9 +84,27 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const total_elements_in_page = collection_list?.length || meta_data?.pageSize;
   const total_elements = meta_data?.totalNumberOfRecords;
 
+  // console.log(fetchedCollections);
+
   return (
     <section className='flex flex-col h-full  w-full'>
       <div className='w-full h-full gap-[24px] flex flex-col'>
+        {
+          /* SSR TOAST ERROR */
+          (fetchedCollections?.status != 200 && fetchedCollections?.status != 201) && 
+          <ToastMessage 
+            message={fetchedCollections?.message} 
+          />
+        }
+
+        {
+          /* SSR TOAST ERROR */
+          (fetchedConsumerCollections?.status != 200 && fetchedConsumerCollections?.status != 201) && 
+          <ToastMessage 
+            message={fetchedConsumerCollections?.message} 
+          />
+        }
+
         <h2 className='text-f18 w-full font-[500] text-o-text-dark'>
           Collections
         </h2>

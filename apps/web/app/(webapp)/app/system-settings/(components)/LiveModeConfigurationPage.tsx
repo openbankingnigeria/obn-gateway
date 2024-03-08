@@ -57,14 +57,31 @@ const LiveModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     })
   };
 
+  // const handleCopy = (value: string) => {
+  //   copyTextToClipboard(value)
+  //     .then(() => {
+  //       console.log('Copied.');
+  //       toast.success('Live key copied');
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //       toast.error('Error copying Live key');
+  //     });
+  // };
+
   const handleCopy = (value: string) => {
     copyTextToClipboard(value)
-      .then(() => {
-        console.log('Copied.');
-        toast.success('Live key copied');
+      .then((success) => {
+        if (success) {
+          console.log('Copied.');
+          toast.success('Live key copied');
+        } else {
+          console.log('Copy failed.');
+          toast.error('Error copying Live key');
+        }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         toast.error('Error copying Live key');
       });
   };

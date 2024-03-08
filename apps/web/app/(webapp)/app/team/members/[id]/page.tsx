@@ -6,6 +6,7 @@ import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import moment from 'moment';
+import { ToastMessage } from '@/app/(webapp)/(components)';
 
 const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
   const memberId = params?.id;
@@ -27,7 +28,7 @@ const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
     data: null
   });
 
-  const fetchedMember = await applyAxiosRequest({
+  const fetchedMember: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getTeam({
       id: memberId || ''
@@ -75,6 +76,14 @@ const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
 
   return (
     <section className='w-full h-full flex flex-col gap-[20px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedMember?.status != 200 && fetchedMember?.status != 201) && 
+        <ToastMessage 
+          message={fetchedMember?.message} 
+        />
+      }
+
       <MemberDetails 
         member={member} 
         roles={roles}

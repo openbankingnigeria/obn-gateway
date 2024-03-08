@@ -1,8 +1,8 @@
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
-import { TopPanel } from '../../(components)';
+import { ToastMessage, TopPanel } from '../../(components)';
 import { SYSTEM_SETTINGS_PATHS } from '@/data/systemSettingsData';
-import { BusinessInformationPage, EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage } from './(components)';
+import { BusinessInformationPage, EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage, UserAgreementsPage } from './(components)';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
@@ -14,16 +14,6 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     'development' : 'production'
   );
 ;
-  const emailAndGeneralPath = (
-    path == 'email_templates' || 
-    path == 'email_settings' || 
-    path == ''
-  );
-
-  const modeConfigurationPath = (
-    path == 'test_mode_configuration' || 
-    path == 'live_mode_configuration'
-  );
 
   const fetchedProfile: any = await applyAxiosRequest({
     headers: {},
@@ -32,6 +22,14 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  if (fetchedProfile?.status == 401) {
+    return <Logout />
+  }
+
+  let profile = fetchedProfile?.data;
+
+  const apiProvider = profile?.user?.role?.parent?.slug == 'api-provider'
+
   const fetchedDetails : any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCompanyDetails(),
@@ -39,7 +37,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
-  const fetchedSettings : any = emailAndGeneralPath ? await applyAxiosRequest({
+  const fetchedSettings : any = apiProvider ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getSettings({
       type: path || 'general'
@@ -48,7 +46,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
-  const fetchedIps: any = modeConfigurationPath ? await applyAxiosRequest({
+  const fetchedIps: any = !apiProvider ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getIPWhitelist({
       environment
@@ -57,7 +55,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
-  const fetchedAPI: any = modeConfigurationPath ? await applyAxiosRequest({
+  const fetchedAPI: any = !apiProvider ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPIKey({
       environment
@@ -66,20 +64,20 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
-  if (fetchedProfile?.status == 401) {
-    return <Logout />
-  }
-
-  let profile = fetchedProfile?.data;
   let details = fetchedDetails?.data;
   let ips = fetchedIps?.data;
   let apiKey = fetchedAPI?.data;
   let settings = fetchedSettings?.data;
 
   const panel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => 
-    path?.type?.includes(profile?.user?.role?.parent?.slug) &&
-    path?.subType?.includes(details?.type)
+    path?.type?.includes(profile?.user?.role?.parent?.slug) && (
+      profile?.user?.role?.parent?.slug == 'api-provider' ? 
+        true : 
+        path?.subType?.includes(details?.type)
+    )
   );
+
+  // console.log(profile?.user?.role?.parent?.slug, details?.type)
 
   const configData = {
     ips: ips?.ips,
@@ -95,6 +93,27 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedSettings?.status != 200 && fetchedSettings?.status != 201) && 
+        <ToastMessage 
+          message={fetchedSettings?.message} 
+        />
+      }
+      {
+        /* SSR TOAST ERROR */
+        (fetchedIps?.status != 200 && fetchedIps?.status != 201) && 
+        <ToastMessage 
+          message={fetchedIps?.message} 
+        />
+      }
+      {
+        /* SSR TOAST ERROR */
+        (fetchedAPI?.status != 200 && fetchedAPI?.status != 201) && 
+        <ToastMessage 
+          message={fetchedAPI?.message} 
+        />
+      }
       <TopPanel 
         name='path'
         panel={panel}
@@ -107,17 +126,19 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
             (
               path == '' ? 
                 <GeneralSettingsPage rawData={settings} /> :
-                path == 'onboarding_settings' ?
-                  <OnboardingSettingsPage /> :
-                  path == 'email_settings' ?
-                    <EmailServicePage rawData={settings} /> :
-                    path == 'email_templates' ? 
-                      <EmailTemplatePage rawData={settings} /> :
-                      path == 'external_services' ? 
-                        <ExternalServicesPage /> :
-                        path == 'mock_services' ? 
-                          <MockServicesPage /> :
-                          null
+                path == 'onboarding_custom_fields' ?
+                  <OnboardingSettingsPage rawData={settings} /> :
+                  path == 'user_agreements' ?
+                    <UserAgreementsPage rawData={settings}/> :
+                    path == 'email_settings' ?
+                      <EmailServicePage rawData={settings} /> :
+                      path == 'email_templates' ? 
+                        <EmailTemplatePage rawData={settings} /> :
+                        path == 'external_services' ? 
+                          <ExternalServicesPage /> :
+                          path == 'mock_services' ? 
+                            <MockServicesPage /> :
+                            null
             ) : (
               (
                 notIndividual ? 

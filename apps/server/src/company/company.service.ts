@@ -265,7 +265,6 @@ export class CompanyService {
     );
   }
 
-  // TODO is this for APs?
   async listCompanies(
     ctx: RequestContext,
     { limit, page }: PaginationParameters,

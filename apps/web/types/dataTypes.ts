@@ -51,6 +51,11 @@ export interface BusinessInformationDataProps {
   company_status_report_file: string;
 }
 
+export interface UserAgreementsProps {
+  privacyPolicy: string;
+  termsAndConditions: string;
+}
+
 export interface EmailServiceProps {
   emailBaseUrl: string,
   emailFrom: string,

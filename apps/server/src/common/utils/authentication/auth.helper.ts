@@ -23,8 +23,8 @@ export class Auth {
    */
   async sign(payload: object, options?: JwtSignOptions) {
     const token = await this.jwtService.signAsync(payload, {
-      expiresIn: this.config.get('auth.jwtExpires'),
-      secret: this.authSecret,
+      expiresIn: options?.expiresIn ?? this.config.get('auth.jwtExpires'),
+      secret: options?.secret ?? this.authSecret,
       ...options,
     });
 
@@ -36,9 +36,9 @@ export class Auth {
    * @param token The token to be decoded
    * @returns The decoded payload
    */
-  async verify<T extends object>(token: string) {
+  async verify<T extends object>(token: string, secret = this.authSecret) {
     const decoded = await this.jwtService.verifyAsync<T>(token, {
-      secret: this.authSecret,
+      secret,
     });
 
     return decoded;

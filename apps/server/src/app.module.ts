@@ -36,7 +36,6 @@ import { APIModule } from './apis/apis.module';
       load: [globalConfig],
     }),
     LoggerModule.forRoot({
-      // TODO mask auth headers.
       pinoHttp: {
         transport: {
           target: 'pino-pretty',
@@ -44,6 +43,7 @@ import { APIModule } from './apis/apis.module';
             singleLine: true,
           },
         },
+        redact: ['req.headers.authorization'],
       },
     }),
     TypeOrmModule.forRootAsync({

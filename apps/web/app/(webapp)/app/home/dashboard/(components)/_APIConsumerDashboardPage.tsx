@@ -53,7 +53,7 @@ const _APIConsumerDashboardPage = async ({
   return (
     <section className='flex flex-col gap-[24px] w-full'>
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
-        {`${greetByTime()}, ${alt_data?.firstName + ' ' + alt_data?.lastName}!`}
+        {`${greetByTime()}, ${((alt_data?.firstName || '') + ' ' + (alt_data?.lastName || '')).trim()}!`}
       </h2>
 
       <section className='w-full flex'>

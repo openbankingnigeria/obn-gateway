@@ -371,24 +371,32 @@ export class APIService {
 
     // Create an ACL on the route created and assign it an ACL group name
     // TODO move to an event listener
-    if (environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
-      await this.kongRouteService.updateOrCreatePlugin(
-        environment,
-        gatewayRoute.id,
-        {
-          config: {
-            allow: [`route-${routeId}`, ...tiers.map((tier) => `tier-${tier}`)],
-            hide_groups_header: true,
+    if (tiers || environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
+      const allow = [
+        environment !== KONG_ENVIRONMENT.DEVELOPMENT
+          ? `route-${routeId}`
+          : undefined,
+        ...tiers.map((tier) => `tier-${tier}`),
+      ].filter(Boolean);
+      if (allow.length) {
+        await this.kongRouteService.updateOrCreatePlugin(
+          environment,
+          gatewayRoute.id,
+          {
+            config: {
+              allow,
+              hide_groups_header: true,
+            },
+            name: KONG_PLUGINS.ACL,
+            enabled: true,
           },
-          name: KONG_PLUGINS.ACL,
-          enabled: true,
-        },
-      );
-      // Update API provider consumer to allow access to this new route
-      await this.kongConsumerService.updateConsumerAcl(environment, {
-        aclAllowedGroupName: `route-${routeId}`,
-        consumerId: apiProviderConsumerId,
-      });
+        );
+        // Update API provider consumer to allow access to this new route
+        await this.kongConsumerService.updateConsumerAcl(environment, {
+          aclAllowedGroupName: `route-${routeId}`,
+          consumerId: apiProviderConsumerId,
+        });
+      }
     }
 
     let cleanPath = data.downstream.path.replace(/\([^)]*\)\$/, '');
@@ -639,7 +647,6 @@ export class APIService {
       company.consumerId ??
       (await this.updateConsumerId(company.id!, environment));
     do {
-      // TODO goto next page
       const response = await this.kongConsumerService.getConsumerAcls(
         environment,
         consumerId,
@@ -831,19 +838,27 @@ export class APIService {
       );
     }
 
-    if (tiers && environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
-      await this.kongRouteService.updateOrCreatePlugin(
-        environment,
-        gatewayRoute.id,
-        {
-          config: {
-            allow: [`route-${routeId}`, ...tiers.map((tier) => `tier-${tier}`)],
-            hide_groups_header: true,
+    if (tiers) {
+      const allow = [
+        environment !== KONG_ENVIRONMENT.DEVELOPMENT
+          ? `route-${routeId}`
+          : undefined,
+        ...tiers.map((tier) => `tier-${tier}`),
+      ].filter(Boolean);
+      if (allow.length) {
+        await this.kongRouteService.updateOrCreatePlugin(
+          environment,
+          gatewayRoute.id,
+          {
+            config: {
+              allow,
+              hide_groups_header: true,
+            },
+            name: KONG_PLUGINS.ACL,
+            enabled: true,
           },
-          name: KONG_PLUGINS.ACL,
-          enabled: true,
-        },
-      );
+        );
+      }
     }
 
     const event = new UpdateApiEvent(ctx.activeUser, {});

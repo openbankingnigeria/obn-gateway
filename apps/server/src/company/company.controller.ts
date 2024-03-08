@@ -50,8 +50,8 @@ export class CompanyController {
     return this.companyService.updateCompanyKybDetails(ctx, data, files);
   }
 
-  // TODO review permission
   @Get('company/me')
+  @RequiredPermission(PERMISSIONS.VIEW_COMPANY_DETAILS)
   getCompanyDetails(@Ctx() ctx: RequestContext) {
     return this.companyService.getCompanyDetails(ctx);
   }
