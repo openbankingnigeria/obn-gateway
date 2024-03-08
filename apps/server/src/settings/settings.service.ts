@@ -29,6 +29,15 @@ import {
 import { RequestContext } from '@common/utils/request/request-context';
 import { CompanyTypes } from '@common/database/constants';
 import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  EditSettingsEvent,
+  GenerateApiKeyEvent,
+  GetApiKeyEvent,
+  SetIPRestrictionEvent,
+  UpdateCompanySubtypesEvent,
+  UpdateKybRequirementsEvent,
+} from '@shared/events/settings.event';
 
 @Injectable()
 export class SettingsService {
@@ -40,6 +49,7 @@ export class SettingsService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly kongConsumerService: KongConsumerService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getKybRequirements() {
@@ -135,6 +145,9 @@ export class SettingsService {
         }),
       },
     );
+
+    const event = new UpdateKybRequirementsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success('Updated KYB settings successfully');
   }
@@ -296,6 +309,9 @@ export class SettingsService {
       },
     );
 
+    const event = new UpdateCompanySubtypesEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success('Updated company subtypes successfully');
   }
 
@@ -308,6 +324,9 @@ export class SettingsService {
       environment,
       consumer.id,
     );
+
+    const event = new GetApiKeyEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       'API Key retrieved successfully',
@@ -369,6 +388,9 @@ export class SettingsService {
       );
     }
 
+    const event = new GenerateApiKeyEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       'API Key generated successfully',
       new ApiKeyResponse({ key: consumerKey.key, environment }),
@@ -416,6 +438,9 @@ export class SettingsService {
         config: { allow: data.ips },
       },
     );
+
+    const event = new SetIPRestrictionEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       'IP Restriction set successfully',
@@ -573,6 +598,9 @@ export class SettingsService {
         { value: JSON.stringify(settingsValue) },
       );
     }
+
+    const event = new EditSettingsEvent(ctx.activeUser, { settingType });
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success('System settings updated successfully.');
   }

@@ -11,7 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { Equal, In, Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import {
   CreateCollectionDto,
   GetCollectionResponseDTO,
@@ -31,6 +31,14 @@ import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { Company } from '@common/database/entities';
 import { companyErrors } from '@company/company.errors';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  CreateCollectionEvent,
+  DeleteCollectionEvent,
+  UpdateCollectionEvent,
+  ViewCollectionEvent,
+  ViewCompanyCollectionEvent,
+} from '@shared/events/collections.event';
 
 @Injectable()
 export class CollectionsService {
@@ -44,6 +52,7 @@ export class CollectionsService {
     private readonly kongService: KongServiceService,
     private readonly kongRouteService: KongRouteService,
     private readonly kongConsumerService: KongConsumerService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async listCollections(
@@ -59,6 +68,9 @@ export class CollectionsService {
         order: { createdAt: 'DESC' },
         relations: { apis: true },
       });
+
+    const event = new ViewCollectionEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     // TODO emit event
     return ResponseFormatter.success(
@@ -95,6 +107,8 @@ export class CollectionsService {
     }
 
     // TODO emit event
+    const event = new ViewCollectionEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollection,
@@ -124,6 +138,8 @@ export class CollectionsService {
     );
 
     // TODO emit event
+    const event = new CreateCollectionEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.createdCollection,
@@ -156,6 +172,8 @@ export class CollectionsService {
     );
 
     // TODO emit event
+    const event = new UpdateCollectionEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.updatedCollection,
@@ -189,6 +207,8 @@ export class CollectionsService {
     });
 
     // TODO emit event
+    const event = new DeleteCollectionEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.deletedCollection,
@@ -281,6 +301,9 @@ export class CollectionsService {
       await query.getRawMany(),
       await query.getCount(),
     ]);
+
+    const event = new ViewCompanyCollectionEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollection,

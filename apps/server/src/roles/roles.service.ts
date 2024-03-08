@@ -28,6 +28,15 @@ import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe'
 import { RequestContext } from '@common/utils/request/request-context';
 import { authErrors } from '@auth/auth.errors';
 import { PERMISSIONS } from '@permissions/types';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  CreateRoleEvent,
+  DeleteRolesEvent,
+  GetRolePermissionsEvent,
+  ListRolesEvent,
+  SetRolePermissionsEvent,
+  UpdateRolesEvent,
+} from '@shared/events/roles.event';
 
 @Injectable()
 export class RolesService {
@@ -38,6 +47,7 @@ export class RolesService {
     private readonly permissionRepository: Repository<Permission>,
     @InjectRepository(RolePermission)
     private readonly rolePermissionRepository: Repository<RolePermission>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // TODO fix problem where roles.company_id is nullable
@@ -91,6 +101,8 @@ export class RolesService {
     );
 
     // TODO emit event
+    const event = new CreateRoleEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       roleSuccessMessages.createdRole,
@@ -119,6 +131,8 @@ export class RolesService {
     });
 
     // TODO emit event
+    const event = new ListRolesEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRole,
@@ -154,6 +168,8 @@ export class RolesService {
     }
 
     // TODO emit event
+    const event = new ListRolesEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRole,
@@ -207,6 +223,8 @@ export class RolesService {
     await this.roleRepository.update({ id: role.id }, updatedRole);
 
     // TODO emit event
+    const event = new UpdateRolesEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       roleSuccessMessages.updatedRole,
@@ -232,6 +250,8 @@ export class RolesService {
     await this.roleRepository.softDelete({ id: role.id });
 
     // TODO emit event
+    const event = new DeleteRolesEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(roleSuccessMessages.deletedRole);
   }
@@ -259,6 +279,8 @@ export class RolesService {
     }
 
     // TODO emit event
+    const event = new GetRolePermissionsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRole,
@@ -322,6 +344,8 @@ export class RolesService {
     );
 
     // TODO emit event
+    const event = new SetRolePermissionsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(roleSuccessMessages.updatedRole);
   }
@@ -331,6 +355,7 @@ export class RolesService {
     const permissions = await this.permissionRepository.find({
       where: { roles: { roleId: Equal(ctx.activeUser.role.parentId) } },
     });
+
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedPermissions,
       permissions.map((permission) => new GetPermissionResponseDTO(permission)),

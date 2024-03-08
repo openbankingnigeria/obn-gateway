@@ -44,6 +44,20 @@ import { RequestContext } from '@common/utils/request/request-context';
 import * as moment from 'moment';
 import { ConfigService } from '@nestjs/config';
 import { Acl } from '@shared/integrations/kong/consumer/consumer.kong.interface';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  AssignApiEvent,
+  CreateApiEvent,
+  DeleteApisEvent,
+  GetApiLogEvent,
+  GetApiLogStatsEvent,
+  GetApiTransformationEvent,
+  SetApiTransformationEvent,
+  UnassignApiEvent,
+  UpdateApiEvent,
+  ViewApisEvent,
+  ViewCompanyApisEvent,
+} from '@shared/events/api.event';
 
 @Injectable()
 export class APIService {
@@ -62,6 +76,7 @@ export class APIService {
     private readonly kongConsumerService: KongConsumerService,
     private readonly elasticsearchService: ElasticsearchService,
     private readonly config: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async viewAPIs(
@@ -94,7 +109,9 @@ export class APIService {
       }),
     ]);
 
-    // TODO emit event
+    const event = new ViewApisEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPIs,
       routes.map((route) => {
@@ -187,7 +204,8 @@ export class APIService {
       );
     }
 
-    // TODO emit event
+    const event = new ViewApisEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPI,
@@ -264,7 +282,8 @@ export class APIService {
       environment,
     });
 
-    // TODO emit event
+    const event = new DeleteApisEvent(ctx.activeUser, { route });
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(apiSuccessMessages.deletedAPI);
   }
@@ -439,7 +458,8 @@ export class APIService {
       );
     }
 
-    // TODO emit event
+    const event = new CreateApiEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.createdAPI,
@@ -471,6 +491,7 @@ export class APIService {
     acls: Acl[],
     company: Company,
     environment: KONG_ENVIRONMENT,
+    user: User,
   ) {
     const consumerId =
       company.consumerId ??
@@ -522,6 +543,9 @@ export class APIService {
       }
     }
 
+    const event = new AssignApiEvent(user, { apiIds, company });
+    this.eventEmitter.emit(event.name, event);
+
     return { success: true };
   }
 
@@ -530,6 +554,7 @@ export class APIService {
     acls: Acl[],
     company: Company,
     environment: KONG_ENVIRONMENT,
+    user: User,
   ) {
     const consumerId = company.consumerId!;
 
@@ -555,7 +580,6 @@ export class APIService {
       }
     });
 
-    // TODO Handle failures
     const results = await Promise.allSettled(promises);
 
     for (const result of results) {
@@ -563,6 +587,9 @@ export class APIService {
         console.log({ result });
       }
     }
+
+    const event = new UnassignApiEvent(user, { apiIds, company });
+    this.eventEmitter.emit(event.name, event);
 
     return { success: true };
   }
@@ -650,12 +677,19 @@ export class APIService {
     );
 
     await Promise.allSettled([
-      await this.assignAPIs(routesToAssign, routeAcls, company, environment),
+      await this.assignAPIs(
+        routesToAssign,
+        routeAcls,
+        company,
+        environment,
+        ctx.activeUser,
+      ),
       await this.unassignAPIs(
         routesToUnassign,
         routeAcls,
         company,
         environment,
+        ctx.activeUser,
       ),
     ]);
 
@@ -812,7 +846,8 @@ export class APIService {
       );
     }
 
-    // TODO emit event
+    const event = new UpdateApiEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.updatedAPI,
@@ -939,6 +974,9 @@ export class APIService {
       hit._source.consumer = companiesDtoStore[hit._source.consumer?.id];
     }
 
+    const event = new GetApiLogEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogs,
       logs.hits.hits.map((i) => new APILogResponseDTO(i._source, ctx)),
@@ -990,6 +1028,9 @@ export class APIService {
     }
 
     logs.hits.hits[0]._source.consumer = company;
+
+    const event = new GetApiLogEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILog,
@@ -1071,6 +1112,9 @@ export class APIService {
       },
     });
 
+    const event = new GetApiLogStatsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogsStats,
       new APILogStatsResponseDTO(stats.aggregations, ctx),
@@ -1120,6 +1164,10 @@ export class APIService {
         },
       },
     });
+
+    const event = new GetApiLogStatsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogsStats,
       stats.aggregations!['aggregated'].buckets.map(
@@ -1247,6 +1295,11 @@ export class APIService {
       );
     }
 
+    const event = new ViewCompanyApisEvent(ctx.activeUser, {
+      companyId: company.id,
+    });
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPIs,
       populatedRoutes,
@@ -1292,6 +1345,9 @@ export class APIService {
       });
     }
 
+    const event = new GetApiTransformationEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPITransformation,
       new GetAPITransformationResponseDTO(plugin.config, ctx),
@@ -1331,6 +1387,9 @@ export class APIService {
         enabled: true,
       },
     );
+
+    const event = new SetApiTransformationEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.updatedAPI,
