@@ -4,6 +4,7 @@ import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
+import { ToastMessage } from '../../(components)';
 
 const ProfilePage = async ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
@@ -23,6 +24,13 @@ const ProfilePage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <div className='w-full flex-col flex gap-[24px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedProfile?.status != 200 && fetchedProfile?.status != 201) && 
+        <ToastMessage 
+          message={fetchedProfile?.message} 
+        />
+      }
       <PersonalDetails 
         profile={profile}
       />

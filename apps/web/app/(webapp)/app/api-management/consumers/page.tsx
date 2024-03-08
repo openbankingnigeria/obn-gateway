@@ -1,6 +1,6 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
-import { TopPanel } from '@/app/(webapp)/(components)'
+import { ToastMessage, TopPanel } from '@/app/(webapp)/(components)'
 import { CONSUMERS_TABLE_DATA, CONSUMERS_TABLE_HEADERS, CONSUMERS_TOP_STATUS_DATA, CONSUMERS_KYB_STATUS_DATA, CONSUMERS_STATUS_DATA } from '@/data/consumerData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { ConsumersTable } from './(components)'
@@ -102,6 +102,14 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedConsumers?.status != 200 && fetchedConsumers?.status != 201) && 
+        <ToastMessage 
+          message={fetchedConsumers?.message} 
+        />
+      }
+
       <TopPanel 
         name='kybStatus'
         panel={panel}

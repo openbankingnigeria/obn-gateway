@@ -1,6 +1,6 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
-import { TopPanel } from '@/app/(webapp)/(components)'
+import { ToastMessage, TopPanel } from '@/app/(webapp)/(components)'
 import { MEMBERS_TABLE_HEADERS, MEMBERS_STATUS_DATA, INVITED_MEMBERS_TABLE_HEADERS } from '@/data/membersData'
 import { SearchBar, SelectElement } from '@/components/forms'
 import { InviteMembersButton, MembersTable } from './(components)'
@@ -120,6 +120,13 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedMembers?.status != 200 && fetchedMembers?.status != 201) && 
+        <ToastMessage 
+          message={fetchedMembers?.message} 
+        />
+      }
       <TopPanel 
         name='status'
         panel={panel}

@@ -60,7 +60,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   //   :
   //   null;
 
-  if (fetchedCollections?.status == 401) {
+  if (fetchedCollections?.status == 401 || fetchedConsumerCollections?.status == 401) {
     return <Logout />
   }
 
@@ -84,9 +84,27 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const total_elements_in_page = collection_list?.length || meta_data?.pageSize;
   const total_elements = meta_data?.totalNumberOfRecords;
 
+  // console.log(fetchedCollections);
+
   return (
     <section className='flex flex-col h-full  w-full'>
       <div className='w-full h-full gap-[24px] flex flex-col'>
+        {
+          /* SSR TOAST ERROR */
+          (fetchedCollections?.status != 200 && fetchedCollections?.status != 201) && 
+          <ToastMessage 
+            message={fetchedCollections?.message} 
+          />
+        }
+
+        {
+          /* SSR TOAST ERROR */
+          (fetchedConsumerCollections?.status != 200 && fetchedConsumerCollections?.status != 201) && 
+          <ToastMessage 
+            message={fetchedConsumerCollections?.message} 
+          />
+        }
+
         <h2 className='text-f18 w-full font-[500] text-o-text-dark'>
           Collections
         </h2>

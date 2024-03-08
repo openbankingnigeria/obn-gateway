@@ -6,6 +6,7 @@ import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { getCookies } from '@/config/cookies';
+import { ToastMessage } from '@/app/(webapp)/(components)';
 
 const ActivityPage = async ({ params, searchParams }: UrlParamsProps) => {
   const activityId = params?.id;
@@ -36,6 +37,14 @@ const ActivityPage = async ({ params, searchParams }: UrlParamsProps) => {
 
   return (
     <section className='w-full h-full flex flex-col gap-[20px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedActivity?.status != 200 && fetchedActivity?.status != 201) && 
+        <ToastMessage 
+          message={fetchedActivity?.message} 
+        />
+      }
+
       <ActivityDetails 
         path='details'
         rawData={activity}

@@ -1,6 +1,6 @@
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
-import { TopPanel } from '../../(components)';
+import { ToastMessage, TopPanel } from '../../(components)';
 import { SYSTEM_SETTINGS_PATHS } from '@/data/systemSettingsData';
 import { BusinessInformationPage, EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage, UserAgreementsPage } from './(components)';
 import { applyAxiosRequest } from '@/hooks';
@@ -93,6 +93,27 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
+      {
+        /* SSR TOAST ERROR */
+        (fetchedSettings?.status != 200 && fetchedSettings?.status != 201) && 
+        <ToastMessage 
+          message={fetchedSettings?.message} 
+        />
+      }
+      {
+        /* SSR TOAST ERROR */
+        (fetchedIps?.status != 200 && fetchedIps?.status != 201) && 
+        <ToastMessage 
+          message={fetchedIps?.message} 
+        />
+      }
+      {
+        /* SSR TOAST ERROR */
+        (fetchedAPI?.status != 200 && fetchedAPI?.status != 201) && 
+        <ToastMessage 
+          message={fetchedAPI?.message} 
+        />
+      }
       <TopPanel 
         name='path'
         panel={panel}
