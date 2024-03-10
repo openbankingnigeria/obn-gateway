@@ -11,6 +11,7 @@ import { REPORTING_DATA } from '@/data/dashboardData';
 import { DashboardMetricCard } from '../app/home/dashboard/(components)';
 import moment from 'moment';
 import { getJsCookies } from '@/config/jsCookie';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [from, setFrom] = useState<string | undefined>('');
@@ -25,6 +26,8 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [consumersList, setConsumerList] = useState<any[]>([]);
   const [logStats, setLogStats] = useState<any>(null);
   const environment = getJsCookies('environment');
+  let userPermissions = profile_data?.user?.role?.permissions;
+  let viewReport = findPermissionSlug(userPermissions, 'view-report')
   const apiConsumer = profile_data?.user?.role?.parent?.slug == 'api-consumer';
 
   // console.log('Company details >>>>>>', alt_data);
@@ -192,6 +195,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
                 name={'from'}
                 changeValue={setFrom}
                 label='From'
+                // disabled={!viewReport}
                 fieldStyle='!px-[14px] !w-full justify-between !py-[12px]'
                 popoverDirection='down'
                 placeholder='YYYY-MM-DD'
@@ -217,6 +221,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
                 name={'to'}
                 changeValue={setTo}
                 label='To'
+                // disabled={!viewReport}
                 fieldStyle='!px-[14px] !w-full justify-between !py-[12px]'
                 popoverDirection='down'
                 placeholder='YYYY-MM-DD'
@@ -248,6 +253,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
                   placeholder='Select consumer'
                   // multiple
                   required
+                  disabled={!viewReport}
                   optionStyle='top-[70px]'
                   clickerStyle='!w-full'
                   value={consumers}
@@ -260,6 +266,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
                   label='Select Collection'
                   placeholder='Select Collection'
                   required
+                  disabled={!viewReport}
                   optionStyle='top-[70px]'
                   clickerStyle='!w-full'
                   value={collection}
@@ -276,6 +283,7 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
                   options={allObject?.concat(apis_list)}
                   label='Select API'
                   placeholder='Select API'
+                  disabled={!viewReport}
                   required
                   optionStyle='top-[70px]'
                   clickerStyle='!min-w-[49%]'
@@ -286,23 +294,26 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
             </div>
           </div>
 
-          <div className='w-full bg-white flex items-center gap-[24px] justify-between'>
-            <Button 
-              title='Clear all'
-              effect={handleClearAll}
-              small
-              outlined
-            />
+          {
+            viewReport &&
+            <div className='w-full bg-white flex items-center gap-[24px] justify-between'>
+              <Button 
+                title='Clear all'
+                effect={handleClearAll}
+                small
+                outlined
+              />
 
-            <Button 
-              type='submit'
-              title='Generate'
-              loading={loading}
-              containerStyle='!w-[90px]'
-              disabled={incorrect}
-              small
-            />
-          </div>
+              <Button 
+                type='submit'
+                title='Generate'
+                loading={loading}
+                containerStyle='!w-[90px]'
+                disabled={incorrect}
+                small
+              />
+            </div>
+          }
         </form>
       </section>
 {/* "totalCount": 1,

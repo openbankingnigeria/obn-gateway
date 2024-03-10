@@ -125,15 +125,30 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
           profile?.user?.role?.parent?.slug == 'api-provider' ?
             (
               path == '' ? 
-                <GeneralSettingsPage rawData={settings} /> :
+                <GeneralSettingsPage 
+                  rawData={settings}
+                  profileData={profile} 
+                /> :
                 path == 'onboarding_custom_fields' ?
-                  <OnboardingSettingsPage rawData={settings} /> :
+                  <OnboardingSettingsPage 
+                    rawData={settings}
+                    profileData={profile} 
+                  /> :
                   path == 'user_agreements' ?
-                    <UserAgreementsPage rawData={settings}/> :
+                    <UserAgreementsPage 
+                      rawData={settings}
+                      profileData={profile}/
+                    > :
                     path == 'email_settings' ?
-                      <EmailServicePage rawData={settings} /> :
+                      <EmailServicePage 
+                        rawData={settings}
+                        profileData={profile} 
+                      /> :
                       path == 'email_templates' ? 
-                        <EmailTemplatePage rawData={settings} /> :
+                        <EmailTemplatePage 
+                          rawData={settings}
+                          profileData={profile} 
+                        /> :
                         path == 'external_services' ? 
                           <ExternalServicesPage /> :
                           path == 'mock_services' ? 
@@ -155,7 +170,10 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                     profileData={profile}
                   /> :
                   notIndividual && path == '' ? 
-                    <BusinessInformationPage /> :
+                    <BusinessInformationPage 
+                      rawData={null}
+                      profileData={profile}
+                    /> :
                     null
             ) 
         }

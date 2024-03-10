@@ -3,6 +3,7 @@
 import { DragAndUploadFileProps } from '@/types/webappTypes/componentsTypes';
 import React, { ChangeEvent, useState } from 'react'
 import { toast } from 'react-toastify';
+import ImageViewer from './ImageViewer';
 
 const DragAndUploadFile = ({
   name,
@@ -15,6 +16,7 @@ const DragAndUploadFile = ({
   const allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
   const maxFileSizeInBytes = 2 * 1024 * 1024; // 2MB
   const [editFile, setEditFile] = useState('');
+  const [openModal, setOpenModal] = useState(false);
 
   const formatBytes = (bytes: number, decimals = 2) => {
     if (!bytes) return '0 Bytes';
@@ -60,8 +62,22 @@ const DragAndUploadFile = ({
     window.open(path, '_blank')
   }
 
+  const closeModal = () => {
+    setOpenModal(false);
+  }
+
   return (
     <>
+    {
+        openModal && (
+          <ImageViewer 
+            title={name}
+            file={file ? `data:image/png;base64,${file}` : ''}
+            effect={closeModal}
+          />
+        )
+      }
+
       {
         !editFile && file ?
           <div className='w-full justify-start items-center gap-[8px] flex'>
@@ -83,7 +99,7 @@ const DragAndUploadFile = ({
             </div>
 
             <span 
-              onClick={() => handlePreview(file || '')} 
+              onClick={() => setOpenModal(true)} 
               className='cursor-pointer whitespace-nowrap font-500 text-f14 text-o-light-blue'
             >
               Preview

@@ -107,6 +107,7 @@ export const CONSUMER_ACTIONS_DATA = [
     id: 1,
     label: 'View',
     name: 'view',
+    permit: 'view-api-consumer, view-company',
     type: ['all'],
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M1.61342 8.47562C1.52262 8.33186 1.47723 8.25998 1.45182 8.14911C1.43273 8.06583 1.43273 7.9345 1.45182 7.85122C1.47723 7.74035 1.52262 7.66847 1.61341 7.52471C2.36369 6.33672 4.59693 3.3335 8.00027 3.3335C11.4036 3.3335 13.6369 6.33672 14.3871 7.52471C14.4779 7.66847 14.5233 7.74035 14.5487 7.85122C14.5678 7.9345 14.5678 8.06583 14.5487 8.14911C14.5233 8.25998 14.4779 8.33186 14.3871 8.47562C13.6369 9.6636 11.4036 12.6668 8.00027 12.6668C4.59693 12.6668 2.36369 9.6636 1.61342 8.47562Z" fill="transparent" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -117,6 +118,7 @@ export const CONSUMER_ACTIONS_DATA = [
     id: 2,
     label: 'Approve',
     name: 'approve',
+    permit: 'approve-api-consumer, update-company-kyb-status',
     type: ['pending'],
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_705_20563)">
@@ -134,6 +136,7 @@ export const CONSUMER_ACTIONS_DATA = [
     id: 3,
     label: 'Decline',
     name: 'decline',
+    permit: 'decline-api-consumer, update-company-kyb-status',
     type: ['pending'],
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_705_4774)">
@@ -150,6 +153,7 @@ export const CONSUMER_ACTIONS_DATA = [
     id: 4,
     label: 'Deactivate',
     name: 'deactivate',
+    permit: 'deactivate-api-consumer',
     type: ['approved', 'active'],
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M4.66683 11.3332H11.3335C13.1744 11.3332 14.6668 9.84079 14.6668 7.99984C14.6668 6.15889 13.1744 4.6665 11.3335 4.6665H4.66683M4.66683 11.3332C2.82588 11.3332 1.3335 9.84079 1.3335 7.99984C1.3335 6.15889 2.82588 4.6665 4.66683 4.6665M4.66683 11.3332C6.50778 11.3332 8.00016 9.84079 8.00016 7.99984C8.00016 6.15889 6.50778 4.6665 4.66683 4.6665" fill="transparent" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -159,6 +163,7 @@ export const CONSUMER_ACTIONS_DATA = [
     id: 5,
     label: 'Activate',
     name: 'activate',
+    permit: 'activate-api-consumer',
     type: ['approved', 'inactive'],
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M9.33317 10.6665H4.00016C2.5274 10.6665 1.3335 9.4726 1.3335 7.99984C1.3335 6.52708 2.5274 5.33317 4.00016 5.33317H9.33317M14.6665 7.99984C14.6665 9.84079 13.1741 11.3332 11.3332 11.3332C9.49222 11.3332 7.99984 9.84079 7.99984 7.99984C7.99984 6.15889 9.49222 4.6665 11.3332 4.6665C13.1741 4.6665 14.6665 6.15889 14.6665 7.99984Z" fill="transparent" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

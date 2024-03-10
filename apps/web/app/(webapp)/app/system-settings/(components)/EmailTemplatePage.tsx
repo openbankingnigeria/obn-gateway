@@ -2,7 +2,7 @@ import React from 'react'
 import { EmailTemplateComponent } from './(emailTemplate)'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
 
-const EmailTemplatePage = ({ rawData }: APIConfigurationProps) => {
+const EmailTemplatePage = ({ rawData, profileData }: APIConfigurationProps) => {
   return (
     <div className='w-full flex-col flex gap-[24px]'>
       {
@@ -10,6 +10,7 @@ const EmailTemplatePage = ({ rawData }: APIConfigurationProps) => {
           <EmailTemplateComponent 
             key={template.id}
             rawData={template}
+            profileData={profileData}
           />
         ))
       }

@@ -8,10 +8,12 @@ import { motion } from 'framer-motion'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
 import { setJsCookies } from '@/config/jsCookie'
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const pathname = usePathname();
   const [profile, setProfile] = useState<any>();
+  let userPermissions = profile?.user?.role?.permissions
 
   async function fetchProfile() {
     const result: any = await clientAxiosRequest({
@@ -84,6 +86,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
         <div className='w-full h-fit flex flex-col gap-[20px]'>
           {
             LEFT_SIDE_BAR_TOP_DATA?.map((data: any) => (
+              findPermissionSlug(userPermissions, data?.permit) &&
               <div
                 key={data?.id}
                 className='w-full flex flex-col gap-[4px]'
@@ -95,6 +98,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
                 <div className='w-full flex flex-col gap-[4px]'>
                   {
                     data?.links?.map((link: any) => (
+                      findPermissionSlug(userPermissions, link?.permit) &&
                       (
                         link?.access == profile?.user?.role?.parent?.slug ||
                         link?.access == 'all'
@@ -134,6 +138,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
           <div className='w-full flex flex-col pt-[24px] border-t border-o-border'>
             {
               LEFT_SIDE_BAR_BOTTOM_DATA?.map((link) => (
+                findPermissionSlug(userPermissions, link?.permit) &&
                 <div
                   key={link?.id}
                   className='w-full relative h-fit'

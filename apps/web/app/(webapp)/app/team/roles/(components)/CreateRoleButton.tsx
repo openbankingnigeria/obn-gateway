@@ -21,6 +21,8 @@ const CreateRoleButton = ({
   const [permissions, setPermissions] = useState<PermissionValue[]>([]);
   const router = useRouter();
 
+  console.log(permissions_list);
+
   const fetchProfile = async () => {
     const result: any = await clientAxiosRequest({
       headers: {},

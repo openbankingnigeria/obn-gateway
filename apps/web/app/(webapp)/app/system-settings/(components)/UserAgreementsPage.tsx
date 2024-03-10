@@ -7,9 +7,13 @@ import * as API from '@/config/endpoints';
 import { InputElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
 import { USER_AGREEMENTS_DATA } from '@/data/systemSettingsData';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
-const UserAgreementsPage = ({ rawData }: APIConfigurationProps) => {
+const UserAgreementsPage = ({ rawData, profileData }: APIConfigurationProps) => {
   const [loading, setLoading] = useState(false);
+  let userPermissions = profileData?.user?.role?.permissions;
+  let updateSettings = findPermissionSlug(userPermissions, 'update-system-setting')
+
 
   const [form, setForm] = useState({
     privacyPolicy: rawData?.privacyPolicy?.value,
@@ -67,14 +71,17 @@ const UserAgreementsPage = ({ rawData }: APIConfigurationProps) => {
           </h3>
         </div>
 
-        <Button 
-          title='Save changes'
-          type='submit'
-          loading={loading}
-          containerStyle='!w-[120px]'
-          disabled={incorrect || !isChanged}
-          small
-        />
+        {
+          updateSettings &&
+          <Button 
+            title='Save changes'
+            type='submit'
+            loading={loading}
+            containerStyle='!w-[120px]'
+            disabled={incorrect || !isChanged}
+            small
+          />
+        }
       </div>
 
       <div className='w-full gap-[20px] p-[24px] flex flex-col bg-white rounded-[12px] border border-o-border'>
@@ -103,6 +110,7 @@ const UserAgreementsPage = ({ rawData }: APIConfigurationProps) => {
                     name={data?.name}
                     type={data?.type}
                     placeholder=''
+                    disabled={!updateSettings}
                     value={data?.value}
                     changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
                     required

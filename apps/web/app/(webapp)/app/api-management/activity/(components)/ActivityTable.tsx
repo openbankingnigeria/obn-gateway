@@ -1,10 +1,13 @@
 'use client'
 
 import { EmptyState, TableElement } from '@/app/(webapp)/(components)'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import { TableProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import Link from 'next/link'
-import React from 'react'
+import * as API from '@/config/endpoints';
+import React, { useEffect, useState } from 'react'
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const ActivityTable = ({
   tableHeaders,
@@ -17,8 +20,25 @@ const ActivityTable = ({
   totalPages
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
-
+  const [profile, setProfile] = useState<any>(null);
+  let userPermissions = profile?.user?.role?.permissions
   // console.log(rawData);
+
+  const fetchProfile = async () => {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setProfile(result?.data);
+  }
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',
@@ -44,10 +64,17 @@ const ActivityTable = ({
           <TableElement 
             tableHeaders={tableHeaders}
             rawData={rawData}
-            actionColumn={actionColumn}
+            actionColumn={
+              findPermissionSlug(userPermissions, 'view-api-call') ? 
+              actionColumn : undefined
+            }
             filters={filters}
             totalElementsInPage={totalElementsInPage}
-            redirect={(value: string) => handleRedirect(value)}
+            redirect={
+              findPermissionSlug(userPermissions, 'view-api-call') ?
+              (value: string) => handleRedirect(value)
+            : null
+            }
             module='activity'
             rows={rows}
             page={page}

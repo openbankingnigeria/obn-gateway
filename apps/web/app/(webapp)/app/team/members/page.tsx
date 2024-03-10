@@ -7,6 +7,7 @@ import { InviteMembersButton, MembersTable } from './(components)'
 import Logout from '@/components/globalComponents/Logout'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -16,6 +17,16 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   const role = searchParams?.role || ''
 
   const filters = [search_query, status, role];
+
+  const fetchedProfile: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getProfile(),
+    method: 'GET',
+    data: null
+  });
+
+  let profile = fetchedProfile?.data;
+  let userPermissions = profile?.user?.role?.permissions
 
   const fetchedMembers: any = await applyAxiosRequest({
     headers: {},
@@ -105,12 +116,12 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
     })
   });
 
-  const roleList = roles?.map((data: any) => {
+  const roleList = roles ? roles?.map((data: any) => {
     return({
       label: data?.name,
       value: data?.id
     })
-  });
+  }) : [];
 
   const role_list = [
     { label: 'All', value: '' },
@@ -171,7 +182,10 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
               />
             </div>
 
-            <InviteMembersButton roles={roles} />
+            {
+              findPermissionSlug(userPermissions, "add-team-member") &&
+              <InviteMembersButton roles={roles} />
+            }
           </div>
 
           <section className='w-full min-h-full flex flex-col items-center'>

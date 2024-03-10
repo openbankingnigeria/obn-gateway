@@ -10,6 +10,7 @@ import * as API from '@/config/endpoints';
 import { ActivateDeactivateRole, EditRolePage, ViewRolePage } from '.'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import { dataToPermissions } from '@/utils/dataToPermissions'
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const RolesTable = ({
   tableHeaders,
@@ -34,6 +35,7 @@ const RolesTable = ({
   const [permissions, setPermissions] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [refresh, setRefresh] = useState(false);
+  let userPermissions = profile?.user?.role?.permissions
 
   const actions = ROLES_ACTIONS_DATA;
 
@@ -83,8 +85,11 @@ const RolesTable = ({
   const getAction = (status: string) => {
     return actions.filter(action => {
       return (
-        action?.type == status?.toLowerCase() ||
-        action?.type == 'all'
+        findPermissionSlug(userPermissions, action?.permit) &&
+        (
+          action?.type == status?.toLowerCase() ||
+          action?.type == 'all'
+        )
       );
     });
   }

@@ -5,10 +5,13 @@ import { TableProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { RevokeConsent } from '.'
 import { CONSENT_ACTIONS_DATA } from '@/data/consentData'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest'
+import * as API from '@/config/endpoints';
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const ConsentsTable = ({
   tableHeaders,
@@ -22,16 +25,37 @@ const ConsentsTable = ({
 }: TableProps) => {
   const columnHelper = createColumnHelper<any>();
   const router = useRouter();
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState('');
   const actions = CONSENT_ACTIONS_DATA;
   const USER_TYPE = 'API_CONSUMER';
+  let userPermissions = profile?.user?.role?.permissions
+
+  const fetchProfile = async () => {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getProfile(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setProfile(result?.data);
+  }
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   const getAction = (status: string) => {
     return actions.filter(action => {
       return (
-        action?.type == status?.toLowerCase() ||
-        action?.type == 'all'
+        findPermissionSlug(userPermissions, action?.permit) && 
+        (
+          action?.type == status?.toLowerCase() ||
+          action?.type == 'all'
+        )
       );
     });
   }

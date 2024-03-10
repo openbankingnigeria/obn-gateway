@@ -5,6 +5,7 @@ import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { ToastMessage } from '../../(components)';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const ProfilePage = async ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
@@ -21,6 +22,7 @@ const ProfilePage = async ({ searchParams }: UrlParamsProps) => {
   }
 
   let profile = fetchedProfile?.data;
+  let userPermissions = profile?.user?.role?.permissions
 
   return (
     <div className='w-full flex-col flex gap-[24px]'>
@@ -31,13 +33,23 @@ const ProfilePage = async ({ searchParams }: UrlParamsProps) => {
           message={fetchedProfile?.message} 
         />
       }
-      <PersonalDetails 
-        profile={profile}
-      />
-      <SecurityDetails
-        profile={profile} 
-        successful={successful}
-      />
+
+      {
+        findPermissionSlug(userPermissions, "view-profile") &&
+        <PersonalDetails 
+          profile={profile}
+        />
+      }
+
+      {
+        (findPermissionSlug(userPermissions, "change-password") ||
+        findPermissionSlug(userPermissions, "enable-twofa") ||
+        findPermissionSlug(userPermissions, "disable-twofa")) &&
+        <SecurityDetails
+          profile={profile} 
+          successful={successful}
+        />
+      }
     </div>
   )
 }

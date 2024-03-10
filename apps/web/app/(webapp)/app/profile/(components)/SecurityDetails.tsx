@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import TwoFactoAuthEnabled from './TwoFactoAuthEnabled'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const SecurityDetails = ({
   successful,
@@ -17,6 +18,8 @@ const SecurityDetails = ({
   successful: boolean,
   profile: any
 }) => {
+  // console.log(profile?.user?.role?.permissions?.find((permission: any) => permission?.slug));
+
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState('');
@@ -25,6 +28,11 @@ const SecurityDetails = ({
   const [qrcode_image, setQRCodeImage] = useState('');
   const [code, setCode] = useState('');
   const [backup_codes, setBackupCodes] = useState([]);
+
+  let userPermissions = profile?.user?.role?.permissions
+  let enable2faPermit = findPermissionSlug(userPermissions, "enable-twofa");
+  let diable2faPermit = findPermissionSlug(userPermissions, "disable-twofa");
+  let passwordPermit = findPermissionSlug(userPermissions, 'change-password' )
 
   const handleOpenModal = (type: string) => {
     setOpenModal(type)
@@ -35,7 +43,7 @@ const SecurityDetails = ({
   }
 
   const handleToggle2FA = async (code: string) => {
-    if (enable2FA) {
+    if (enable2FA && diable2faPermit) {
       // DISABLE 2FA
       if (!code) {
         handleOpenModal('disable2fa');
@@ -56,7 +64,7 @@ const SecurityDetails = ({
           handleCloseModal();
         }
       }
-    } else {
+    } else if (enable2faPermit) {
       // ENABLE 2FA
       const result: any = await clientAxiosRequest({
         headers: {},
@@ -70,6 +78,8 @@ const SecurityDetails = ({
         setQRCodeImage(result?.data?.qrCodeImage)
         handleOpenModal('enable2fa');
       }
+    } else {
+      null
     }
   }
 
@@ -181,49 +191,55 @@ const SecurityDetails = ({
         </div>
 
         <div className='w-full gap-[20px] p-[24px] flex flex-col bg-white rounded-[12px] border border-o-border'>
-          <div className='w-full flex items-start justify-between gap-[7px] pb-[20px] border-b border-o-border'>
-            <div className='w-full flex flex-col gap-[8px]'>
-              <div className='text-f14 font-[500] text-o-text-dark'>
-                Password
+          {
+            passwordPermit &&
+            <div className='w-full flex items-start justify-between gap-[7px] pb-[20px] border-b border-o-border'>
+              <div className='w-full flex flex-col gap-[8px]'>
+                <div className='text-f14 font-[500] text-o-text-dark'>
+                  Password
+                </div>
+
+                <div className='text-f14 text-o-text-medium3'>
+                  Change your current password
+                </div>
               </div>
 
-              <div className='text-f14 text-o-text-medium3'>
-                Change your current password
+              <div className='w-full flex items-start justify-end'>
+                <Button 
+                  title='Change Password'
+                  effect={() => handleOpenModal('password')}
+                  outlined
+                  small
+                />
               </div>
             </div>
+          }
 
-            <div className='w-full flex items-start justify-end'>
-              <Button 
-                title='Change Password'
-                effect={() => handleOpenModal('password')}
-                outlined
-                small
-              />
-            </div>
-          </div>
+          {
+            (enable2faPermit || diable2faPermit) &&
+            <div className='w-full flex items-start justify-between gap-[7px]'>
+              <div className='w-full flex flex-col gap-[8px]'>
+                <label 
+                  className='text-f14 font-[500] text-o-text-dark'
+                  htmlFor='role'
+                >
+                  Enable Two-Factor Authentication
+                </label>
 
-          <div className='w-full flex items-start justify-between gap-[7px]'>
-            <div className='w-full flex flex-col gap-[8px]'>
-              <label 
-                className='text-f14 font-[500] text-o-text-dark'
-                htmlFor='role'
-              >
-                Enable Two-Factor Authentication
-              </label>
+                <div className='text-f14 text-o-text-medium3'>
+                  Two-Factor authentication adds another layer of 
+                  security to your account.
+                </div>
+              </div>
 
-              <div className='text-f14 text-o-text-medium3'>
-                Two-Factor authentication adds another layer of 
-                security to your account.
+              <div className='w-full flex items-start justify-end'>
+                <ToggleSwitch 
+                  setToggle={() => handleToggle2FA('')}
+                  toggle={enable2FA}
+                />
               </div>
             </div>
-
-            <div className='w-full flex items-start justify-end'>
-              <ToggleSwitch 
-                setToggle={() => handleToggle2FA('')}
-                toggle={enable2FA}
-              />
-            </div>
-          </div>
+          }
         </div>
       </section>
     </>
