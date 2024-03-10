@@ -9,9 +9,11 @@ import { API_COLLECTIONS_STATS, USERS_STATS } from '@/data/dashboardData';
 import { ReportingSection, ToastMessage } from '@/app/(webapp)/(components)';
 import { StatDataProps } from '@/types/dataTypes';
 import { getCookies } from '@/config/cookies';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParamsProps) => {
   const environment = getCookies('environment');
+  let userPermissions = profile_data?.user?.role?.permissions
 
   const fetchedAPIs: any = await applyAxiosRequest({
     headers: {},
@@ -157,28 +159,31 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
         </div>
       </section>
 
-      <section className='w-full flex-col flex gap-[12px]'>
-        <h3 className='text-o-text-dark flex items-center gap-[8px] text-f18 font-[500]'>
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0.333333" y="0.333333" width="31.3333" height="31.3333" rx="3.66667" fill="#F6F8FA" stroke="#F1F2F4" strokeWidth="0.666667"/>
-            <path 
-              d="M17.3333 9.51318V12.2669C17.3333 12.6402 17.3333 12.8269 17.406 12.9695C17.4699 13.095 17.5719 13.197 17.6973 13.2609C17.8399 13.3335 18.0266 13.3335 18.4 13.3335H21.1537M13.3333 18.0002V20.0002M18.6667 16.6668V20.0002M16 15.0002V20.0002M21.3333 14.659V19.4668C21.3333 20.5869 21.3333 21.147 21.1153 21.5748C20.9236 21.9511 20.6176 22.2571 20.2413 22.4488C19.8135 22.6668 19.2534 22.6668 18.1333 22.6668H13.8667C12.7466 22.6668 12.1865 22.6668 11.7587 22.4488C11.3824 22.2571 11.0764 21.9511 10.8846 21.5748C10.6667 21.147 10.6667 20.5869 10.6667 19.4668V12.5335C10.6667 11.4134 10.6667 10.8533 10.8846 10.4255C11.0764 10.0492 11.3824 9.74323 11.7587 9.55148C12.1865 9.3335 12.7466 9.3335 13.8667 9.3335H16.0078C16.497 9.3335 16.7416 9.3335 16.9718 9.38876C17.1759 9.43775 17.3709 9.51856 17.5499 9.62822C17.7517 9.7519 17.9247 9.92485 18.2706 10.2708L20.3961 12.3962C20.742 12.7421 20.9149 12.9151 21.0386 13.1169C21.1483 13.2959 21.2291 13.491 21.2781 13.695C21.3333 13.9252 21.3333 14.1698 21.3333 14.659Z" 
-              stroke="#666D80" 
-              strokeWidth="1.33333" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              fill='transparent'
-            />
-          </svg>
+      {
+        findPermissionSlug(userPermissions, 'list-reports') &&
+        <section className='w-full flex-col flex gap-[12px]'>
+          <h3 className='text-o-text-dark flex items-center gap-[8px] text-f18 font-[500]'>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0.333333" y="0.333333" width="31.3333" height="31.3333" rx="3.66667" fill="#F6F8FA" stroke="#F1F2F4" strokeWidth="0.666667"/>
+              <path 
+                d="M17.3333 9.51318V12.2669C17.3333 12.6402 17.3333 12.8269 17.406 12.9695C17.4699 13.095 17.5719 13.197 17.6973 13.2609C17.8399 13.3335 18.0266 13.3335 18.4 13.3335H21.1537M13.3333 18.0002V20.0002M18.6667 16.6668V20.0002M16 15.0002V20.0002M21.3333 14.659V19.4668C21.3333 20.5869 21.3333 21.147 21.1153 21.5748C20.9236 21.9511 20.6176 22.2571 20.2413 22.4488C19.8135 22.6668 19.2534 22.6668 18.1333 22.6668H13.8667C12.7466 22.6668 12.1865 22.6668 11.7587 22.4488C11.3824 22.2571 11.0764 21.9511 10.8846 21.5748C10.6667 21.147 10.6667 20.5869 10.6667 19.4668V12.5335C10.6667 11.4134 10.6667 10.8533 10.8846 10.4255C11.0764 10.0492 11.3824 9.74323 11.7587 9.55148C12.1865 9.3335 12.7466 9.3335 13.8667 9.3335H16.0078C16.497 9.3335 16.7416 9.3335 16.9718 9.38876C17.1759 9.43775 17.3709 9.51856 17.5499 9.62822C17.7517 9.7519 17.9247 9.92485 18.2706 10.2708L20.3961 12.3962C20.742 12.7421 20.9149 12.9151 21.0386 13.1169C21.1483 13.2959 21.2291 13.491 21.2781 13.695C21.3333 13.9252 21.3333 14.1698 21.3333 14.659Z" 
+                stroke="#666D80" 
+                strokeWidth="1.33333" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                fill='transparent'
+              />
+            </svg>
 
-          Reporting
-        </h3>
+            Reporting
+          </h3>
 
-        <ReportingSection 
-          profile_data={profile_data}
-          alt_data={alt_data}
-        />
-      </section>
+          <ReportingSection 
+            profile_data={profile_data}
+            alt_data={alt_data}
+          />
+        </section>
+      }
     </section>
   )
 }

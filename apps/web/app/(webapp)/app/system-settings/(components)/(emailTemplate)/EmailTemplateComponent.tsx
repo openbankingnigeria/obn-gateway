@@ -7,9 +7,12 @@ import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
 import React, { useState } from 'react'
 import * as API from '@/config/endpoints';
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
-const EmailTemplateComponent = ({ rawData }: APIConfigurationProps) => {
+const EmailTemplateComponent = ({ rawData, profileData }: APIConfigurationProps) => {
   const [loading, setLoading] = useState(false);
+  let userPermissions = profileData?.user?.role?.permissions;
+  let updateSettings = findPermissionSlug(userPermissions, 'update-system-setting')
 
   const [title, setTitle] = useState(rawData?.title);
   const [body, setBody] = useState(rawData?.body);
@@ -70,7 +73,9 @@ const EmailTemplateComponent = ({ rawData }: APIConfigurationProps) => {
             small
           />
 
-          <Button 
+          {
+            updateSettings &&
+            <Button 
             title='Save changes'
             type='submit'
             loading={loading}
@@ -78,6 +83,7 @@ const EmailTemplateComponent = ({ rawData }: APIConfigurationProps) => {
             disabled={incorrect || !isChanged}
             small
           />
+          }
         </div>
       </div>
 
@@ -87,6 +93,7 @@ const EmailTemplateComponent = ({ rawData }: APIConfigurationProps) => {
             name='title'
             label='Title'
             placeholder='Email title'
+            disabled={!updateSettings}
             value={title}
             changeValue={setTitle}
             required

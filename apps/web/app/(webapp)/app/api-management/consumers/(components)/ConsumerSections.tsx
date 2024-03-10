@@ -14,6 +14,7 @@ import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import { useRouter } from 'next/navigation';
 import * as API from '@/config/endpoints';
 import { getJsCookies } from '@/config/jsCookie';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const ConsumerSections = ({
   path,
@@ -39,6 +40,9 @@ const ConsumerSections = ({
   const profile = profileData;
   const [api_endpoint, setApiEndpoint] = useState<any>(null);
   const environment = getJsCookies('environment');
+
+  let userPermissions = profile?.user?.role?.permissions
+  let assignPermit = findPermissionSlug(userPermissions, "assign-api-endpoints");
 
   const enabledConsumer = altData?.status == 'active' && altData?.kybStatus == 'approved';
 
@@ -286,7 +290,7 @@ const ConsumerSections = ({
                     </div>
 
                     {
-                      enabledConsumer && (path == '') &&
+                      assignPermit && enabledConsumer && (path == '') &&
                       <EditPermissionButton 
                         rawData={altData}
                         searchQuery={filters[0]}
@@ -314,7 +318,7 @@ const ConsumerSections = ({
                 parentStyle='!h-[calc(100vh-600px)]'
                 altData={altData}
                 body='There’s no information to show for this user yet.'
-                button={path == ''}
+                button={assignPermit ? path == '' : false}
                 searchQuery={filters[0]}
                 buttonType='ADD_PERMISSIONS'
               />

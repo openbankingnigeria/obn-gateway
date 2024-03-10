@@ -8,9 +8,12 @@ import { SettingsInputProps } from '@/types/dataTypes'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
 import React, { ChangeEvent, useState } from 'react'
 import * as API from '@/config/endpoints';
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
-const GeneralSettingsPage = ({ rawData }: APIConfigurationProps) => {
+const GeneralSettingsPage = ({ rawData, profileData }: APIConfigurationProps) => {
   const [loading, setLoading] = useState(false);
+  let userPermissions = profileData?.user?.role?.permissions;
+  let updateSettings = findPermissionSlug(userPermissions, 'update-system-setting')
 
   const [form, setForm] = useState({
     inactivityTimeout: rawData?.inactivityTimeout,
@@ -91,14 +94,17 @@ const GeneralSettingsPage = ({ rawData }: APIConfigurationProps) => {
           </h3>
         </div>
 
-        <Button 
-          title='Save changes'
-          type='submit'
-          loading={loading}
-          containerStyle='!w-[120px]'
-          disabled={incorrect || !isChanged}
-          small
-        />
+        {
+          updateSettings &&
+          <Button 
+            title='Save changes'
+            type='submit'
+            loading={loading}
+            containerStyle='!w-[120px]'
+            disabled={incorrect || !isChanged}
+            small
+          />
+        }
       </div>
 
       <div className='w-full gap-[20px] p-[24px] flex flex-col bg-white rounded-[12px] border border-o-border'>
@@ -126,6 +132,7 @@ const GeneralSettingsPage = ({ rawData }: APIConfigurationProps) => {
                   name={data?.name}
                   type={data?.type}
                   placeholder=''
+                  disabled={!updateSettings}
                   value={data?.value}
                   changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e, data)}
                   required

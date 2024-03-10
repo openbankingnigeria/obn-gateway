@@ -12,6 +12,7 @@ import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
 import { ActivateDeactivateDeleteApi } from '.'
 import { getJsCookies } from '@/config/jsCookie'
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const CollectionSection = ({
   rawData,
@@ -37,6 +38,7 @@ const CollectionSection = ({
   const [loading, setLoading] = useState(false);
   const [api, setApi] = useState<any>(null);
   const profile = altData;
+  let userPermissions = profile?.user?.role?.permissions;
   const userType = profile?.user?.role?.parent?.slug;
   // const [api_endpoint, setApiEndpoint] = useState<any>(null);
   const environment = getJsCookies('environment');
@@ -94,8 +96,11 @@ const CollectionSection = ({
   const getAction = (enabled: boolean) => {
     return actions.filter(action => {
       return (
-        action?.type == (enabled ? 'enabled' : 'disabled') ||
-        action?.type == 'all'
+        findPermissionSlug(userPermissions, action?.permit) &&
+        (
+          action?.type == (enabled ? 'enabled' : 'disabled') ||
+          action?.type == 'all'
+        )
       );
     });
   }

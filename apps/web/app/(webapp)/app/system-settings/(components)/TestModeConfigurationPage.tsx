@@ -10,6 +10,7 @@ import React, { ChangeEvent, useState } from 'react'
 import { toast } from 'react-toastify';
 import * as API from '@/config/endpoints';
 import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationProps) => {
   /* API CONSUMERS */
@@ -17,6 +18,10 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
   const [loading, setLoading] = useState(false);
   const [open2FA, setOpen2FA] = useState(false);
   const environment = 'development';
+  let userPermissions = profileData?.user?.role?.permissions;
+  let updateSettings = findPermissionSlug(userPermissions, 'update-system-setting')
+  let viewAPIKey = findPermissionSlug(userPermissions, 'view-api-key')
+  let resetAPIKey = findPermissionSlug(userPermissions, 'reset-api-key')
 
   const [form, setForm] = useState({
     // test_secret_key: 'pspk_test_f8q9u9kg5ocosk1kqlgolgxuzu0wmk6coo6smceg',
@@ -177,7 +182,9 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
           </div>
 
           <div className='w-fit flex items-center gap-[8px]'>
-            <Button 
+            {
+              (resetAPIKey) &&
+              <Button 
               title='Reset keys'
               type='button'
               outlined
@@ -186,20 +193,25 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
               containerStyle='!w-[100px]'
               small
             />
+            }
 
-            <Button 
+            {
+              updateSettings &&
+              <Button 
               title='Save changes'
               type='submit'
               containerStyle='!w-[120px]'
               disabled={incorrect || !isChanged}
               small
             />
+            }
           </div>
         </div>
 
         <div className='w-full gap-[20px] p-[24px] flex flex-col bg-white rounded-[12px] border border-o-border'>
           {
             testModeConfig?.map((data) => (
+              findPermissionSlug(userPermissions, data?.permit) &&
               <div 
                 key={data?.id}
                 className='w-full last-of-type:border-0 last-of-type:pb-0 flex items-start justify-between gap-[40px] pb-[20px] border-b border-o-border'
@@ -222,7 +234,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
                     name={data?.name}
                     type={data?.type}
                     placeholder=''
-                    disabled={data?.name?.includes('key')}
+                    disabled={!updateSettings || data?.name?.includes('key')}
                     value={data?.value}
                     changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
                     required

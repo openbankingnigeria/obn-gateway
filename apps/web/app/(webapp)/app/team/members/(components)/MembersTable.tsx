@@ -11,6 +11,7 @@ import * as API from '@/config/endpoints';
 import { ActivateDeactivateMember } from '.'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import { Loader } from '@/components/globalComponents'
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const MembersTable = ({
   tableHeaders,
@@ -33,6 +34,8 @@ const MembersTable = ({
   const [loading, setLoading] = useState(false);
   const [loadingReinvitation, setLoadingReinvitation] = useState(false);
   const actions = MEMBERS_ACTIONS_DATA;
+  let userPermissions = profile?.user?.role?.permissions
+
 
   const fetchProfile = async () => {
     const result: any = await clientAxiosRequest({
@@ -86,8 +89,11 @@ const MembersTable = ({
         return action?.type == status?.toLowerCase()
       } else {
         return (
-          action?.type == status?.toLowerCase() ||
-          action?.type == 'all'
+          findPermissionSlug(userPermissions, action?.permit) &&
+          (
+            action?.type == status?.toLowerCase() ||
+            action?.type == 'all'
+          )
         );
       }
     });

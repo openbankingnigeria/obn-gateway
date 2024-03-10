@@ -7,6 +7,7 @@ import * as API from '@/config/endpoints';
 import { applyAxiosRequest } from '@/hooks';
 import Logout from '@/components/globalComponents/Logout';
 import { ToastMessage } from '@/app/(webapp)/(components)';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -15,6 +16,13 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
   const role = searchParams?.role || ''
+
+  const fetchedProfile: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getProfile(),
+    method: 'GET',
+    data: null
+  });
 
   const roles: any = await applyAxiosRequest({
     headers: {},
@@ -39,6 +47,9 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
     return <Logout />
   }
 
+  let profile = fetchedProfile?.data;
+  let userPermissions = profile?.user?.role?.permissions;
+  let createRolePermit = findPermissionSlug(userPermissions, 'create-role')
   let permission_list = permissions?.data;
   let meta_data = roles?.meta_data;
   let role_list = roles?.data?.map((role: any) => {
@@ -119,9 +130,12 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
               /> */}
             </div>
 
-            <CreateRoleButton 
-              permissions_list={permission_list}
-            />
+           { 
+              createRolePermit &&
+              <CreateRoleButton 
+                permissions_list={permission_list}
+              />
+            }
           </div>
 
           <section className='w-full min-h-full flex flex-col items-center'>

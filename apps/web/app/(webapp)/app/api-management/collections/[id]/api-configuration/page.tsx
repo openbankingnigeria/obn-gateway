@@ -7,6 +7,7 @@ import Logout from '@/components/globalComponents/Logout';
 import { StatusBox, ToastMessage } from '@/app/(webapp)/(components)';
 import { ToggleSwitch } from '@/components/forms';
 import { getCookies } from '@/config/cookies';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => {
   const api_id = searchParams?.api_id || '';
@@ -37,6 +38,9 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
   let apiDetails = fetchedAPI?.data;
   let profile = fetchedProfile?.data;
   const userType = profile?.user?.role?.parent?.slug;
+  let userPermissions = profile?.user?.role?.permissions;
+  let viewTransformation = findPermissionSlug(userPermissions, 'view-api-transformation');
+  let setTransformation = findPermissionSlug(userPermissions, 'set-api-transformation');
 
   return (
     <section className='w-full gap-[20px] flex flex-col h-full'>
@@ -83,11 +87,14 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
         </>
       }
       
-      <TransformationForm 
-        rawData={apiDetails}
-        profileData={profile}
-        preview={preview}
-      />
+      {
+        ((preview == 'true' && viewTransformation) || (!preview && setTransformation)) &&
+        <TransformationForm 
+          rawData={apiDetails}
+          profileData={profile}
+          preview={preview}
+        />
+      }
     </section>
   )
 }

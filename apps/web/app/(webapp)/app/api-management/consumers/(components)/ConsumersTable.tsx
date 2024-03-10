@@ -10,6 +10,7 @@ import { ActivateDeactivateConsumer, ApproveConsumer, DeclineConsumer } from '.'
 import { toast } from 'react-toastify'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
 const ConsumersTable = ({
   tableHeaders,
@@ -33,6 +34,7 @@ const ConsumersTable = ({
   const [loading, setLoading] = useState(false);
   const [consumer, setConsumer] = useState<any>(null);
   const actions = CONSUMER_ACTIONS_DATA;
+  let userPermissions = profile?.user?.role?.permissions
 
   const fetchProfile = async () => {
     const result: any = await clientAxiosRequest({
@@ -54,13 +56,19 @@ const ConsumersTable = ({
     return actions.filter(action => {
       if (kyb_status?.includes('approved')) {
         return (
-          action?.type?.includes(status?.toLowerCase()) ||
-          action?.type?.includes('all')
+          findPermissionSlug(userPermissions, action?.permit) &&
+          (
+            action?.type?.includes(status?.toLowerCase()) ||
+            action?.type?.includes('all')
+          )
         );
       } else {
         return (
-          action?.type?.includes(kyb_status?.toLowerCase()) ||
-          action?.type?.includes('all')
+          findPermissionSlug(userPermissions, action?.permit) &&
+          (
+            action?.type?.includes(kyb_status?.toLowerCase()) ||
+            action?.type?.includes('all')
+          )
         );
       }
     });

@@ -27,6 +27,7 @@ export const ROLES_ACTIONS_DATA = [
     label: 'View',
     name: 'view',
     type: 'all',
+    permit: 'view-role',
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M1.61342 8.4761C1.52262 8.33234 1.47723 8.26046 1.45182 8.1496C1.43273 8.06632 1.43273 7.93498 1.45182 7.85171C1.47723 7.74084 1.52262 7.66896 1.61341 7.5252C2.36369 6.33721 4.59693 3.33398 8.00027 3.33398C11.4036 3.33398 13.6369 6.33721 14.3871 7.5252C14.4779 7.66896 14.5233 7.74084 14.5487 7.85171C14.5678 7.93498 14.5678 8.06632 14.5487 8.1496C14.5233 8.26046 14.4779 8.33234 14.3871 8.4761C13.6369 9.66409 11.4036 12.6673 8.00027 12.6673C4.59693 12.6673 2.36369 9.66409 1.61342 8.4761Z" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="transparent" />
       <path d="M8.00027 10.0007C9.10484 10.0007 10.0003 9.10522 10.0003 8.00065C10.0003 6.89608 9.10484 6.00065 8.00027 6.00065C6.8957 6.00065 6.00027 6.89608 6.00027 8.00065C6.00027 9.10522 6.8957 10.0007 8.00027 10.0007Z" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="transparent" />
@@ -37,6 +38,7 @@ export const ROLES_ACTIONS_DATA = [
     label: 'Edit',
     name: 'edit',
     type: 'all',
+    permit: 'update-role',
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_1135_20837)">
         <path d="M1.91732 12.0766C1.94795 11.801 1.96326 11.6632 2.00497 11.5343C2.04197 11.42 2.09425 11.3113 2.16038 11.211C2.23493 11.0979 2.33299 10.9999 2.52911 10.8037L11.3333 1.99955C12.0697 1.26317 13.2636 1.26317 14 1.99955C14.7364 2.73593 14.7364 3.92984 14 4.66622L5.19578 13.4704C4.99966 13.6665 4.9016 13.7646 4.78855 13.8391C4.68826 13.9053 4.57949 13.9575 4.46519 13.9945C4.33636 14.0362 4.19853 14.0516 3.92287 14.0822L1.66663 14.3329L1.91732 12.0766Z" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="transparent" />
@@ -54,6 +56,7 @@ export const ROLES_ACTIONS_DATA = [
     label: 'Deactivate',
     name: 'deactivate',
     type: 'active',
+    permit: 'deactivate-role',
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M4.66683 11.3332H11.3335C13.1744 11.3332 14.6668 9.84079 14.6668 7.99984C14.6668 6.15889 13.1744 4.6665 11.3335 4.6665H4.66683M4.66683 11.3332C2.82588 11.3332 1.3335 9.84079 1.3335 7.99984C1.3335 6.15889 2.82588 4.6665 4.66683 4.6665M4.66683 11.3332C6.50778 11.3332 8.00016 9.84079 8.00016 7.99984C8.00016 6.15889 6.50778 4.6665 4.66683 4.6665" fill="transparent" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg> 
@@ -63,6 +66,7 @@ export const ROLES_ACTIONS_DATA = [
     label: 'Activate',
     name: 'activate',
     type: 'inactive',
+    permit: 'activate-role',
     icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M9.33317 10.6665H4.00016C2.5274 10.6665 1.3335 9.4726 1.3335 7.99984C1.3335 6.52708 2.5274 5.33317 4.00016 5.33317H9.33317M14.6665 7.99984C14.6665 9.84079 13.1741 11.3332 11.3332 11.3332C9.49222 11.3332 7.99984 9.84079 7.99984 7.99984C7.99984 6.15889 9.49222 4.6665 11.3332 4.6665C13.1741 4.6665 14.6665 6.15889 14.6665 7.99984Z" fill="transparent" stroke="#344054" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>

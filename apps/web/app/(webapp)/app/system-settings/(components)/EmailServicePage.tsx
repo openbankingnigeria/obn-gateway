@@ -8,9 +8,12 @@ import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
 import { EMAIL_PROVIDERS, EMAIL_SERVICE_DATA } from '@/data/systemSettingsData'
 import React, { ChangeEvent, useState } from 'react'
 import * as API from '@/config/endpoints';
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
-const EmailServicePage = ({ rawData }: APIConfigurationProps) => {
+const EmailServicePage = ({ rawData, profileData }: APIConfigurationProps) => {
   const [loading, setLoading] = useState(false);
+  let userPermissions = profileData?.user?.role?.permissions;
+  let updateSettings = findPermissionSlug(userPermissions, 'update-system-setting')
 
   // const [email_provider, setEmailProvider] = useState('sendgrid');
   const [form, setForm] = useState({
@@ -93,7 +96,9 @@ const EmailServicePage = ({ rawData }: APIConfigurationProps) => {
           </h3>
         </div>
 
-        <Button 
+        {
+          updateSettings &&
+          <Button 
           title='Save changes'
           type='submit'
           loading={loading}
@@ -101,6 +106,7 @@ const EmailServicePage = ({ rawData }: APIConfigurationProps) => {
           disabled={incorrect || !isChanged}
           small
         />
+        }
       </div>
 
       <div className='w-full gap-[20px] p-[24px] flex flex-col bg-white rounded-[12px] border border-o-border'>
@@ -150,6 +156,7 @@ const EmailServicePage = ({ rawData }: APIConfigurationProps) => {
                       name={data?.name}
                       type={data?.type}
                       placeholder=''
+                      disabled={!updateSettings}
                       value={data?.value}
                       changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
                       required

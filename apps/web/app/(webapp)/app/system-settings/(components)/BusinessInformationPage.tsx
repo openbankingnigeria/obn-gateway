@@ -10,8 +10,10 @@ import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
 import { StatusBox } from '@/app/(webapp)/(components)'
 import { useRouter } from 'next/navigation'
+import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
+import { findPermissionSlug } from '@/utils/findPermissionSlug'
 
-const BusinessInformationPage = () => {
+const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
   const [loading, setLoading] = useState(false);
   const [businessDetails, setBusinessDetails] = useState<any>(null);
   const [cac, setCac] = useState('');
@@ -23,6 +25,8 @@ const BusinessInformationPage = () => {
   const [tin, setTin] = useState('');
   const [company_status_report, setCompanyStatusReport] = useState('');
   const [company_status_report_file, setCompanyStatusReportFile] = useState('');
+  let userPermissions = profileData?.user?.role?.permissions;
+  let updateKybPermit = findPermissionSlug(userPermissions, 'update-company-kyb-details')
 
   const incorrect = (
     cac?.length < 6 || 
@@ -147,24 +151,28 @@ const BusinessInformationPage = () => {
                 businessDetails?.kybStatus == 'pending' &&
                 <StatusBox status='submitted' />
               }
-              <Button 
-                title={
-                  (businessDetails?.kybStatus == 'pending' || 
-                  businessDetails?.kybStatus == 'denied') ? 
-                  'Update' : 
-                  'Submit'
-                }
-                type='submit'
-                loading={loading}
-                containerStyle='!w-[120px]'
-                disabled={
-                  (businessDetails?.kybStatus == 'pending' || 
-                  businessDetails?.kybStatus == 'denied') ?
-                  (incorrect || loading || !allowEdit) :
-                  (incorrect || loading)
-                }
-                small
-              />
+
+              {
+                updateKybPermit &&
+                <Button 
+                  title={
+                    (businessDetails?.kybStatus == 'pending' || 
+                    businessDetails?.kybStatus == 'denied') ? 
+                    'Update' : 
+                    'Submit'
+                  }
+                  type='submit'
+                  loading={loading}
+                  containerStyle='!w-[120px]'
+                  disabled={
+                    (businessDetails?.kybStatus == 'pending' || 
+                    businessDetails?.kybStatus == 'denied') ?
+                    (incorrect || loading || !allowEdit) :
+                    (incorrect || loading)
+                  }
+                  small
+                />
+              }
             </div>
         }
       </div>
@@ -195,7 +203,7 @@ const BusinessInformationPage = () => {
                     <DragAndUploadElement 
                       required={true}
                       name={data?.name}
-                      disabled={businessDetails?.kybStatus == 'approved'}
+                      disabled={!updateKybPermit || businessDetails?.kybStatus == 'approved'}
                       changeValue={
                         data?.name == 'regulator_license' ? 
                           setRegulatorLicense :
@@ -221,7 +229,7 @@ const BusinessInformationPage = () => {
                             Boolean(tin && (tin?.length < 6)) : 
                             false
                       }
-                      disabled={businessDetails?.kybStatus == 'approved'}
+                      disabled={!updateKybPermit || businessDetails?.kybStatus == 'approved'}
                       changeEvent={(e: ChangeEvent<HTMLInputElement>) => {
                         data?.name == 'cac' ? 
                           handleCac(e.target.value) :

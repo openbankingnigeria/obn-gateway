@@ -220,6 +220,7 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
     description: 'A public key used for client-side operations in a test environment.',
     name: 'test_api_key',
     type: 'text',
+    permit: 'view-api-key',
     value: test_api_key,
     rightLabel: 'copy',
     role: 'Super AC'
@@ -248,6 +249,7 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
     description: 'A list of IP addresses that are allowed to access this API. Requests from IPs not on this list will be denied.',
     name: 'ip_whitelist',
     type: 'text',
+    permit: '',
     value: ip_whitelist,
     rightLabel: '',
     role: 'Other AC'
@@ -309,6 +311,7 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
     description: 'A public key used for client-side operations in a test environment.',
     name: 'api_key',
     type: 'text',
+    permit: 'view-api-key',
     value: api_key,
     rightLabel: 'copy',
     role: 'Super AC'
@@ -337,6 +340,7 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
     description: 'A list of IP addresses that are allowed to access this API. Requests from IPs not on this list will be denied.',
     name: 'ip_whitelist',
     type: 'text',
+    permit: '',
     value: ip_whitelist,
     rightLabel: '',
     role: 'Other AC'
