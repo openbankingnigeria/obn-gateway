@@ -9,6 +9,7 @@ const DragAndUploadFile = ({
   name,
   disabled,
   selectedFile,
+  fileType,
   file,
   setSelectedFile
 }: DragAndUploadFileProps) => {
@@ -72,7 +73,8 @@ const DragAndUploadFile = ({
         openModal && (
           <ImageViewer 
             title={name}
-            file={file ? `data:image/png;base64,${file}` : ''}
+            fileType={fileType || ''}
+            file={file || ''}
             effect={closeModal}
           />
         )

@@ -6,6 +6,8 @@ import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { ToastMessage } from '../../(components)';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
+import { RefreshStoredToken } from '@/components/globalComponents';
+import { getCookies } from '@/config/cookies';
 
 const ProfilePage = async ({ searchParams }: UrlParamsProps) => {
   const successful = searchParams?.status == 'successful';
@@ -17,8 +19,22 @@ const ProfilePage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedProfile?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let profile = fetchedProfile?.data;
@@ -26,6 +42,14 @@ const ProfilePage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <div className='w-full flex-col flex gap-[24px]'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedProfile?.status != 200 && fetchedProfile?.status != 201) && 

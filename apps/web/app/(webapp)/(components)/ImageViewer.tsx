@@ -5,14 +5,22 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ImageViewerProps } from '@/types/webappTypes/componentsTypes';
 import Image from 'next/image';
 import { ImFilePicture } from "react-icons/im";
+import { base64toBlob } from '@/utils/base64toBlob';
 
 function ImageViewer({
   effect,
   title,
   file,
+  fileType,
   backgroundStyles,
   modalStyles
 }: ImageViewerProps) {
+
+  // const blob = base64toBlob(file);
+  // const url = URL.createObjectURL(blob);
+  // console.log(url);
+
+  const dataUrl = `data:application/pdf;base64,${file}`;
 
   return (
     <AnimatePresence>
@@ -62,13 +70,18 @@ function ImageViewer({
            rounded-[12px] bg-transparent justify-center ${title && 'pt-[56px]'} ${modalStyles}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <Image 
-            src={`${file}`} 
-            className='object-contain' 
-            alt='example' 
-            width={650}
-            height={650}
-          />
+          {
+            fileType?.includes('application') ?
+              <iframe src={dataUrl} width="650px%" height="650px"></iframe>
+              :
+              <Image 
+                src={`data:${fileType};base64,${file}`} 
+                className='object-contain' 
+                alt='example' 
+                width={650}
+                height={650}
+              />
+          }
         </motion.div>
       </motion.div>
     </AnimatePresence>

@@ -4,6 +4,8 @@ import { ReportingSection } from '@/app/(webapp)/(components)'
 import Logout from '@/components/globalComponents/Logout';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
+import { getCookies } from '@/config/cookies';
+import { RefreshStoredToken } from '@/components/globalComponents';
 
 const ReportsPage = async () => {
   const fetchedProfile: any = await applyAxiosRequest({
@@ -20,8 +22,22 @@ const ReportsPage = async () => {
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedProfile?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let profile = fetchedProfile?.data;
@@ -29,6 +45,14 @@ const ReportsPage = async () => {
 
   return (
     <div className='w-full flex flex-col gap-[20px]'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       <h3 className='text-o-text-dark text-f18 font-[500]'>
         Reports
       </h3>

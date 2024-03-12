@@ -8,6 +8,8 @@ import Logout from '@/components/globalComponents/Logout'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
+import { getCookies } from '@/config/cookies'
+import { RefreshStoredToken } from '@/components/globalComponents'
 
 const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -59,8 +61,22 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedMembers?.status == 401 || fetchedRoles?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let roles = fetchedRoles?.data;
@@ -131,6 +147,14 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedMembers?.status != 200 && fetchedMembers?.status != 201) && 

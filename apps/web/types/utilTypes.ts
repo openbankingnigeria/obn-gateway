@@ -10,6 +10,12 @@ export interface PermissionArrayItem {
   permission_options: PermissionItem[];
 }
 
+export interface ConverToObjectProps { 
+  key: string, 
+  label: string, 
+  type: string
+}
+
 export interface ApiPermissionItem {
   id: string;
   label: string;

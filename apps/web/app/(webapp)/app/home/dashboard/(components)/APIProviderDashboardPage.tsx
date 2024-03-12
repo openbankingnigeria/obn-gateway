@@ -10,6 +10,7 @@ import { applyAxiosRequest } from '@/hooks'
 import { StatDataProps } from '@/types/dataTypes'
 import { getCookies } from '@/config/cookies'
 import moment from 'moment'
+import { RefreshStoredToken } from '@/components/globalComponents'
 
 const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsProps) => {
   const dateFilter = date_filter ? JSON.parse(date_filter) : {};
@@ -59,8 +60,22 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsP
   //   data: null
   // })
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedConsumerStat?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let consumerStats = fetchedConsumerStat?.data || []
@@ -86,6 +101,14 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsP
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedConsumerStat?.status != 200 && fetchedConsumerStat?.status != 201) && 

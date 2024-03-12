@@ -8,10 +8,11 @@ import React, { useState } from 'react'
 const ConsumerBusinessDetails = ({
   rawData
 }: ConsumerBusinessDetailsProps) => {
-  // console.log(rawData);
+  console.log(rawData);
   const [openModal, setOpenModal] = useState(false);
   const [fileName, setFileName] = useState('');
   const [file, setFile] = useState('');
+  const [fileType, setFileType] = useState('');
 
   const closeModal = () => {
     setOpenModal(false);
@@ -24,6 +25,7 @@ const ConsumerBusinessDetails = ({
           <ImageViewer 
             title={fileName}
             file={file}
+            fileType={fileType}
             effect={closeModal}
           />
         )
@@ -48,8 +50,9 @@ const ConsumerBusinessDetails = ({
                   <span 
                     className='cursor-pointer text-f14 text-o-light-blue font-500 whitespace-nowrap'
                     onClick={() => {
-                      setFile(`data:image/png;base64,${rawData?.kybData?.registryLicense?.file}`);
+                      setFile(`${rawData?.kybData?.registryLicense?.file}`);
                       setFileName(rawData?.kybData?.registryLicense?.fileName);
+                      setFileType(rawData?.kybData?.registryLicense?.fileMimeType);
                       setOpenModal(true);
                     }}
                   >
@@ -64,7 +67,7 @@ const ConsumerBusinessDetails = ({
                   <span 
                     className='cursor-pointer text-f14 text-o-light-blue font-500 whitespace-nowrap'
                     onClick={() => {
-                      setFile(`data:image/png;base64,${rawData?.kybData?.certificateOfIncorporation?.file}`);
+                      setFile(`${rawData?.kybData?.certificateOfIncorporation?.file}`);
                       setFileName(rawData?.kybData?.certificateOfIncorporation?.fileName);
                       setOpenModal(true);
                     }}
@@ -85,7 +88,7 @@ const ConsumerBusinessDetails = ({
                   <span 
                     className='cursor-pointer text-f14 text-o-light-blue font-500 whitespace-nowrap'
                     onClick={() => {
-                      setFile(`data:image/png;base64,${rawData?.kybData?.companyStatusReport?.file}`);
+                      setFile(`${rawData?.kybData?.companyStatusReport?.file}`);
                       setFileName(rawData?.kybData?.companyStatusReport?.fileName);
                       setOpenModal(true);
                     }}

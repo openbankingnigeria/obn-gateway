@@ -6,6 +6,8 @@ import { COLLECTIONS_APIS, COLLECTIONS_REQUEST_METHOD, COLLECTIONS_TIER, DASHBOA
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
+import { getCookies } from '@/config/cookies'
+import { RefreshStoredToken } from '@/components/globalComponents'
 
 const _APIConsumerDashboardPage = async ({
   search_query, request_method, tier, rows, page, alt_data
@@ -18,8 +20,22 @@ const _APIConsumerDashboardPage = async ({
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedDetails?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let details = fetchedDetails?.data;
@@ -52,6 +68,14 @@ const _APIConsumerDashboardPage = async ({
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
         {`${greetByTime()}, ${alt_data?.firstName + ' ' + alt_data?.lastName}!`}
       </h2>

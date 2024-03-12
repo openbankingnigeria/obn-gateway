@@ -5,6 +5,7 @@ import { getCookies } from '@/config/cookies';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
+import { RefreshStoredToken } from '@/components/globalComponents';
 
 const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
   const date_filter = searchParams?.date_filter || '';
@@ -28,8 +29,22 @@ const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedProfile?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let profile = fetchedProfile?.data;
@@ -40,25 +55,37 @@ const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
   // const userType = userProfile?.userType;
   
   return (
-    // userType == 'api-provider' ?
-    (profile?.user?.role?.parent?.slug == 'api-provider') ?
-      <APIProviderDashboardPage
-        date_filter={date_filter}
-        alt_data={profile}
-      />
-      :
-      <APIConsumerDashboardPage 
-        alt_data={companyDetails}
-        profile_data={profile}
-      />
-      // <APIConsumerDashboardPage 
-      //   search_query={search_query}
-      //   alt_data={profile}
-      //   request_method={request_method}
-      //   tier={tier}
-      //   rows={rows}
-      //   page={page}
-      // />
+    <>
+    {/* REFRESH TOKEN SECTION */}
+    {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+    
+    {
+      // userType == 'api-provider' ?
+      (profile?.user?.role?.parent?.slug == 'api-provider') ?
+        <APIProviderDashboardPage
+          date_filter={date_filter}
+          alt_data={profile}
+        />
+        :
+        <APIConsumerDashboardPage 
+          alt_data={companyDetails}
+          profile_data={profile}
+        />
+        // <APIConsumerDashboardPage 
+        //   search_query={search_query}
+        //   alt_data={profile}
+        //   request_method={request_method}
+        //   tier={tier}
+        //   rows={rows}
+        //   page={page}
+        // />
+    }
+    </>
   )
 }
 

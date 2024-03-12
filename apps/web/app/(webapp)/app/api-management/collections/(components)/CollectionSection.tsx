@@ -366,15 +366,15 @@ const CollectionSection = ({
                     </div>
                     
                     <ConfigurationBox 
-                      value={details?.configuration}
+                      value={rawData?.filter((data: any) => data?.enabled)?.length}
                     />
                   </div>
                   :
                   <div className='text-f14 text-o-text-medium3 w-fit flex items-center gap-[8px]'>
                     Configured: 
                     <ConfigurationBox 
-                      value={details?.configuration}
-                      noOfApis={details?.no_of_apis}
+                      value={rawData?.filter((data: any) => data?.enabled)?.length}
+                      noOfApis={rawData?.length}
                     />
                   </div>
               }

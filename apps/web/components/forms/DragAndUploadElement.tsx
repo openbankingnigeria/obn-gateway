@@ -9,6 +9,7 @@ const DragAndUploadElement = ({
   label,
   disabled,
   name,
+  fileType,
   changeValue,
   file,
   value,
@@ -32,6 +33,7 @@ const DragAndUploadElement = ({
         name={name}
         selectedFile={value}
         file={file}
+        fileType={fileType}
         disabled={disabled}
         setSelectedFile={changeValue}
       />

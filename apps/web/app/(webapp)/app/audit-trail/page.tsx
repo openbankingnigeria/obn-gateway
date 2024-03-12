@@ -8,6 +8,8 @@ import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import moment from 'moment'
+import { RefreshStoredToken } from '@/components/globalComponents'
+import { getCookies } from '@/config/cookies'
 
 const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
   const type = searchParams?.type || ''
@@ -33,8 +35,22 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedAuditTrails?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let meta_data = fetchedAuditTrails?.meta_data;
@@ -62,6 +78,14 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedAuditTrails?.status != 200 && fetchedAuditTrails?.status != 201) && 

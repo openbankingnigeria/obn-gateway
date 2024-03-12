@@ -8,6 +8,8 @@ import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import { getJsCookies } from '@/config/jsCookie'
 import { ToastMessage } from '@/app/(webapp)/(components)'
+import { getCookies } from '@/config/cookies'
+import { RefreshStoredToken } from '@/components/globalComponents'
 
 const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
@@ -60,8 +62,23 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   //   :
   //   null;
 
+ 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedCollections?.status == 401 || fetchedConsumerCollections?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let meta_data = fetchedCollections?.meta_data;
@@ -88,6 +105,14 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       <div className='w-full h-full gap-[24px] flex flex-col'>
         {
           /* SSR TOAST ERROR */

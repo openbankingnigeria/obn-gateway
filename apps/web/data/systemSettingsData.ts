@@ -1,4 +1,4 @@
-import { BusinessInformationDataProps, EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, TestModeConfigurationProps, UserAgreementsProps } from "@/types/dataTypes";
+import { BusinessInformationDataProps, EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, OnboardingSettingsProps, TestModeConfigurationProps, UserAgreementsProps } from "@/types/dataTypes";
 
 export const SYSTEM_SETTINGS_PATHS = [
   {
@@ -443,6 +443,97 @@ export const USER_AGREEMENTS_DATA = ({
   },
 ];
 
+export const ONBOARDING_SETTINGS_DATA = ({
+  businessType,
+  businessLabel,
+  businessKey,
+  licensedEntityType,
+  licensedEntityLabel,
+  licensedEntityKey,
+  individualType,
+  individualLabel,
+  individualKey,
+}: OnboardingSettingsProps) => [
+  {
+    id: 1,
+    label: 'Business',
+    description: '',
+    name: 'business',
+    values: [
+      {
+        id: 1,
+        label: 'Label',
+        name: 'businessLabel',
+        value: businessLabel
+      },
+      {
+        id: 2,
+        label: 'Type ("text", "email", "password", "dropdown")',
+        name: 'businessType',
+        value: businessType
+      },
+      {
+        id: 3,
+        label: 'Key',
+        name: 'businessKey',
+        value: businessKey
+      }
+    ]
+  },
+  {
+    id: 2,
+    label: 'Licensed Entity',
+    description: '',
+    name: 'licensedEntity',
+    values: [
+      {
+        id: 1,
+        label: 'Label',
+        name: 'licensedEntityLabel',
+        value: licensedEntityLabel
+      },
+      {
+        id: 2,
+        label: 'Type ("text", "email", "password", "dropdown")',
+        name: 'licensedEntityType',
+        value: licensedEntityType
+      },
+      {
+        id: 3,
+        label: 'Key',
+        name: 'licensedEntityKey',
+        value: licensedEntityKey
+      }
+    ]
+  },
+  {
+    id: 3,
+    label: 'Individual',
+    description: '',
+    name: 'individual',
+    values: [
+      {
+        id: 1,
+        label: 'Label',
+        name: 'individualLabel',
+        value: individualLabel
+      },
+      {
+        id: 2,
+        label: 'Type ("text", "email", "password", "dropdown")',
+        name: 'individualType',
+        value: individualType
+      },
+      {
+        id: 3,
+        label: 'Key',
+        name: 'individualKey',
+        value: individualKey
+      }
+    ]
+  },
+]
+
 export const EMAIL_SERVICE_DATA = ({
   emailBaseUrl,
   emailFrom,
@@ -507,10 +598,13 @@ export const BUSINESS_INFORMATION_DATA = ({
   tin,
   regulator_license,
   regulator_license_file,
+  regulator_license_file_type,
   certificate_of_incorporation,
   certificate_of_incorporation_file,
+  certificate_of_incorporation_file_type,
   company_status_report,
-  company_status_report_file
+  company_status_report_file,
+  company_status_report_file_type
 }: BusinessInformationDataProps) => [
   {
     id: 1,
@@ -518,6 +612,7 @@ export const BUSINESS_INFORMATION_DATA = ({
     description: '',
     name: 'cac',
     type: 'string',
+    fileType: '',
     placeholder: 'RC Number',
     rightLabel: '',
     value: cac
@@ -527,6 +622,7 @@ export const BUSINESS_INFORMATION_DATA = ({
     label: 'Tax Identification Number (TIN)',
     description: '',
     name: 'tin',
+    fileType: '',
     placeholder: 'Tax Identification Number',
     type: 'number',
     rightLabel: '',
@@ -538,6 +634,7 @@ export const BUSINESS_INFORMATION_DATA = ({
     description: '',
     name: 'regulator_license',
     type: 'file',
+    fileType: regulator_license_file_type,
     file: regulator_license_file,
     rightLabel: '',
     value: regulator_license
@@ -548,6 +645,7 @@ export const BUSINESS_INFORMATION_DATA = ({
     description: '',
     name: 'certificate_of_incorporation',
     type: 'file',
+    fileType: certificate_of_incorporation_file_type,
     file: certificate_of_incorporation_file,
     rightLabel: '',
     value: certificate_of_incorporation
@@ -558,6 +656,7 @@ export const BUSINESS_INFORMATION_DATA = ({
     description: '',
     name: 'company_status_report',
     type: 'file',
+    fileType: company_status_report_file_type,
     file: company_status_report_file,
     rightLabel: '',
     value: company_status_report

@@ -10,6 +10,7 @@ import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import moment from 'moment'
 import { getCookies } from '@/config/cookies'
+import { RefreshStoredToken } from '@/components/globalComponents'
 
 const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -46,8 +47,23 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+ 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedActivities?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let meta_data = fetchedActivities?.meta_data;
@@ -133,6 +149,14 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedActivities?.status != 200 && fetchedActivities?.status != 201) && 
