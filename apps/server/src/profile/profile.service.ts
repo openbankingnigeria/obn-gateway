@@ -26,6 +26,12 @@ import { isNumberString } from 'class-validator';
 import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
 import { generateRandomCode } from '@common/utils/helpers/auth.helpers';
 import { RequestContext } from '@common/utils/request/request-context';
+import {
+  Disable2FaEvent,
+  Generate2FaEvent,
+  UpdateProfileEvent,
+  Verify2FaEvent,
+} from '@shared/events/profile.event';
 
 @Injectable()
 export class ProfileService {
@@ -90,6 +96,8 @@ export class ProfileService {
     );
 
     // TODO emit event
+    const event = new UpdateProfileEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       profileSuccessMessages.updatedProfile,
@@ -162,6 +170,10 @@ export class ProfileService {
         twofaSecret: base32,
       },
     );
+
+    const event = new Generate2FaEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       profileSuccessMessages.generatedTwoFA,
       new GenerateTwoFaResponseDTO({
@@ -208,6 +220,10 @@ export class ProfileService {
         twofaEnabled: true,
       },
     );
+
+    const event = new Verify2FaEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       profileSuccessMessages.twoFaEnabled,
       backupCodes,
@@ -259,6 +275,9 @@ export class ProfileService {
     await this.backupCodesRepository.softDelete({
       userId: ctx.activeUser.id,
     });
+
+    const event = new Disable2FaEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(profileSuccessMessages.twoFaDisabled);
   }

@@ -22,10 +22,22 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
-import { BUSINESS_SETTINGS_NAME } from './settings.constants';
+import {
+  BUSINESS_SETTINGS_NAME,
+  defaultBusinessSettings,
+} from './settings.constants';
 import { RequestContext } from '@common/utils/request/request-context';
 import { CompanyTypes } from '@common/database/constants';
 import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  EditSettingsEvent,
+  GenerateApiKeyEvent,
+  GetApiKeyEvent,
+  SetIPRestrictionEvent,
+  UpdateCompanySubtypesEvent,
+  UpdateKybRequirementsEvent,
+} from '@shared/events/settings.event';
 
 @Injectable()
 export class SettingsService {
@@ -37,6 +49,7 @@ export class SettingsService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly kongConsumerService: KongConsumerService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getKybRequirements() {
@@ -133,15 +146,35 @@ export class SettingsService {
       },
     );
 
+    const event = new UpdateKybRequirementsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success('Updated KYB settings successfully');
   }
 
+  structureCompanySubtypes(
+    prevData: any,
+    newData: any,
+    category: CompanyTypes,
+  ) {
+    const updatedData = newData[category].map((subtype: any) => {
+      return {
+        value: subtype,
+        default: !!prevData[category].find(
+          (existing: any) =>
+            existing.value.trim().toLowerCase().replace(/\W/gi, '-') ===
+            subtype.trim().toLowerCase().replace(/\W/gi, '-'),
+        )?.default,
+      };
+    });
+
+    return updatedData;
+  }
+
   async updateCompanySubTypes(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ctx: RequestContext,
-    {
-      newCompanySubtypes,
-      removedCompanySubtypes,
-    }: UpdateCompanySubtypesRequest,
+    data: UpdateCompanySubtypesRequest,
   ) {
     const businessSettings = await this.settingsRepository.findOne({
       where: {
@@ -160,52 +193,124 @@ export class SettingsService {
     );
 
     const prevCompanySubtypes = parsedBusinessSettings.companySubtypes || {
-      business: [],
-      individual: [],
-      licensedEntity: [],
-    };
-
-    const updatedCompanySubtypes: CompanySubtypes = {
       [CompanyTypes.BUSINESS]: [],
       [CompanyTypes.INDIVIDUAL]: [],
       [CompanyTypes.LICENSED_ENTITY]: [],
     };
 
-    if (newCompanySubtypes && Object.keys(newCompanySubtypes).length > 0) {
-      Object.keys(newCompanySubtypes).forEach((companyType) => {
-        if ((newCompanySubtypes as any)[companyType].length) {
-          (updatedCompanySubtypes as any)[companyType] = [
-            ...(prevCompanySubtypes as any)[companyType],
-            ...(newCompanySubtypes as any)[companyType].filter(
-              (subtype: string) =>
-                !(prevCompanySubtypes as any)[companyType].includes(subtype),
-            ),
-          ];
+    let hasRestrictedValues = false;
+    const restrictedCompanySubtypes = {
+      [CompanyTypes.BUSINESS]: [],
+      [CompanyTypes.INDIVIDUAL]: [],
+      [CompanyTypes.LICENSED_ENTITY]: [],
+    };
+
+    let hasExistingValues = false;
+    const existingCompanySubtypes = {
+      [CompanyTypes.BUSINESS]: [],
+      [CompanyTypes.INDIVIDUAL]: [],
+      [CompanyTypes.LICENSED_ENTITY]: [],
+    };
+
+    // Validate removal request
+    Object.keys(data).forEach((key) => {
+      const valuesToRemove: { value: string; default: boolean }[] = (
+        prevCompanySubtypes as any
+      )[key].filter(
+        (subType: { value: string; default: boolean }) =>
+          !(data as any)[key]
+            .map((subType: string) =>
+              subType.trim().toLowerCase().replace(/\W/gi, '-'),
+            )
+            .includes(subType.value.trim().toLowerCase().replace(/\W/gi, '-')),
+      );
+
+      const defaultBusinessSettingsValues: {
+        value: string;
+        default: boolean;
+      }[] = (defaultBusinessSettings.companySubtypes as any)[key];
+
+      const restrictedValues: any = defaultBusinessSettingsValues.filter(
+        (subtype) =>
+          valuesToRemove
+            .map((subtype) =>
+              subtype.value.trim().toLowerCase().replace(/\W/gi, '-'),
+            )
+            .includes(subtype.value.trim().toLowerCase().replace(/\W/gi, '-')),
+      );
+
+      if (restrictedValues.length > 0) {
+        hasRestrictedValues = true;
+      }
+
+      (restrictedCompanySubtypes as any)[key] = restrictedValues;
+    });
+
+    // Validate addition request
+    Object.keys(data).forEach((key) => {
+      const keysCount: { originalName: string; name: string }[] = [];
+      (data as any)[key].forEach((value: string) => {
+        if (
+          keysCount.some(
+            (key) =>
+              key.name === value.trim().toLowerCase().replace(/\W/gi, '-'),
+          )
+        ) {
+          hasExistingValues = true;
+          (existingCompanySubtypes as any)[key].push(value);
+        } else {
+          keysCount.push({
+            originalName: value,
+            name: value.trim().toLowerCase().replace(/\W/gi, '-'),
+          });
         }
+      });
+    });
+
+    if (hasRestrictedValues) {
+      throw new IBadRequestException({
+        message: 'Cannot change default values',
+        data: restrictedCompanySubtypes,
       });
     }
 
-    Object.keys(removedCompanySubtypes).forEach((companyType) => {
-      const existingCompanySubtypes: string[] = (prevCompanySubtypes as any)[
-        companyType
-      ];
+    if (hasExistingValues) {
+      throw new IBadRequestException({
+        message: 'Cannot add values because they already exist.',
+        data: existingCompanySubtypes,
+      });
+    }
 
-      (updatedCompanySubtypes as any)[companyType] =
-        existingCompanySubtypes.filter(
-          (subtype) =>
-            !(removedCompanySubtypes as any)[companyType].includes(subtype),
-        );
-    });
+    const updatedCompanySubtypes: CompanySubtypes = {
+      [CompanyTypes.BUSINESS]: this.structureCompanySubtypes(
+        prevCompanySubtypes,
+        data,
+        CompanyTypes.BUSINESS,
+      ),
+      [CompanyTypes.INDIVIDUAL]: this.structureCompanySubtypes(
+        prevCompanySubtypes,
+        data,
+        CompanyTypes.INDIVIDUAL,
+      ),
+      [CompanyTypes.LICENSED_ENTITY]: this.structureCompanySubtypes(
+        prevCompanySubtypes,
+        data,
+        CompanyTypes.LICENSED_ENTITY,
+      ),
+    };
 
     await this.settingsRepository.update(
       { id: businessSettings.id },
       {
         value: JSON.stringify({
-          ...businessSettings,
+          ...parsedBusinessSettings,
           companySubtypes: updatedCompanySubtypes,
         }),
       },
     );
+
+    const event = new UpdateCompanySubtypesEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success('Updated company subtypes successfully');
   }
@@ -219,6 +324,9 @@ export class SettingsService {
       environment,
       consumer.id,
     );
+
+    const event = new GetApiKeyEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       'API Key retrieved successfully',
@@ -279,6 +387,9 @@ export class SettingsService {
       );
     }
 
+    const event = new GenerateApiKeyEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       'API Key generated successfully',
       new ApiKeyResponse({ key: consumerKey.key, environment }),
@@ -326,6 +437,9 @@ export class SettingsService {
         config: { allow: data.ips },
       },
     );
+
+    const event = new SetIPRestrictionEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       'IP Restriction set successfully',
@@ -483,6 +597,9 @@ export class SettingsService {
         { value: JSON.stringify(settingsValue) },
       );
     }
+
+    const event = new EditSettingsEvent(ctx.activeUser, { settingType });
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success('System settings updated successfully.');
   }
