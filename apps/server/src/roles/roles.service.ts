@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Role, RoleStatuses } from 'src/common/database/entities';
+import {
+  Role,
+  RoleStatuses,
+  Permission,
+  RolePermission,
+} from '@common/database/entities';
 import { Equal, In, IsNull, Not, Repository } from 'typeorm';
 import slugify from 'slugify';
 import {
@@ -15,14 +20,12 @@ import {
   IBadRequestException,
   IForbiddenException,
   INotFoundException,
-} from 'src/common/utils/exceptions/exceptions';
+} from '@common/utils/exceptions/exceptions';
 import { roleErrors } from '@roles/role.errors';
 import {
   ResponseFormatter,
   ResponseMetaDTO,
 } from '@common/utils/response/response.formatter';
-import { Permission } from 'src/common/database/entities/permission.entity';
-import { RolePermission } from 'src/common/database/entities/rolepermission.entity';
 import { roleErrorMessages, roleSuccessMessages } from '@roles/role.constants';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { RequestContext } from '@common/utils/request/request-context';

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuditLogsService } from './auditLogs.service';
 import { AuditLogsController } from './auditLogs.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuditLog } from 'src/common/database/entities';
+import { AuditLog } from '@common/database/entities';
 
 @Module({
   controllers: [AuditLogsController],

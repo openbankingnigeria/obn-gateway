@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Profile, User } from 'src/common/database/entities';
+import { Profile, User, TwoFaBackupCode } from '@common/database/entities';
 import { Equal, Repository } from 'typeorm';
-import { IBadRequestException } from 'src/common/utils/exceptions/exceptions';
+import { IBadRequestException } from '@common/utils/exceptions/exceptions';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import {
   GenerateTwoFaResponseDTO,
@@ -23,7 +23,6 @@ import * as QRCode from 'qrcode';
 import { AuthSetPasswordEvent } from '@shared/events/auth.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { isNumberString } from 'class-validator';
-import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
 import { generateRandomCode } from '@common/utils/helpers/auth.helpers';
 import { RequestContext } from '@common/utils/request/request-context';
 

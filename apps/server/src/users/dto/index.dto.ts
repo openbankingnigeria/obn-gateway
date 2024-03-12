@@ -13,7 +13,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import { User, UserStatuses } from 'src/common/database/entities';
+import { User, UserStatuses } from '@common/database/entities';
 
 export class CreateUserDto {
   @IsNotEmpty({

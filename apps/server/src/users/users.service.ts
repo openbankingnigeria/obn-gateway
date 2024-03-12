@@ -6,17 +6,12 @@ import {
   UpdateUserDto,
 } from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Profile,
-  Role,
-  User,
-  UserStatuses,
-} from 'src/common/database/entities';
+import { Profile, Role, User, UserStatuses } from '@common/database/entities';
 import { Equal, Repository } from 'typeorm';
 import {
   IBadRequestException,
   INotFoundException,
-} from 'src/common/utils/exceptions/exceptions';
+} from '@common/utils/exceptions/exceptions';
 import {
   ResponseFormatter,
   ResponseMetaDTO,
@@ -30,7 +25,7 @@ import {
   UserUpdatedEvent,
   UserReactivatedEvent,
 } from 'src/shared/events/user.event';
-import { Auth } from 'src/common/utils/authentication/auth.helper';
+import { Auth } from '@common/utils/authentication/auth.helper';
 import * as moment from 'moment';
 import { userSuccessMessages } from '@users/user.constants';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';

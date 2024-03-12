@@ -38,7 +38,6 @@ export const IsNumberOrArrayOfNumbers = (
       options: validationOptions,
       validator: {
         validate(value: any, validationArguments: ValidationArguments) {
-          console.log(validationArguments);
           // TODO find more efficient way to fix es query for numbers
           if (isNumberString(value)) {
             // @ts-ignore

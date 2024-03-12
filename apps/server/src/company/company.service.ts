@@ -13,6 +13,7 @@ import {
   KybStatuses,
   Settings,
   User,
+  CompanyKybData,
 } from '@common/database/entities';
 import { Equal, Not, Repository } from 'typeorm';
 import {
@@ -49,7 +50,6 @@ import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.inter
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { ConfigService } from '@nestjs/config';
 import { CompanyTiers } from './types';
-import { CompanyKybData } from '@common/database/entities/company-kyb.entity';
 
 @Injectable()
 export class CompanyService {

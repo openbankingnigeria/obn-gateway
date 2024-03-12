@@ -9,11 +9,15 @@ import {
 import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
 import { Equal, Repository } from 'typeorm';
 import { IBadRequestException } from '@common/utils/exceptions/exceptions';
 import Handlebars from 'handlebars';
-import { Company, Settings, User } from '@common/database/entities';
+import {
+  Company,
+  Settings,
+  User,
+  EmailTemplate,
+} from '@common/database/entities';
 import {
   CompanyTypes,
   EMAIL_TEMPLATES,

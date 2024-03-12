@@ -10,7 +10,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
-import { IInternalServerErrorException } from 'src/common/utils/exceptions/exceptions';
+import { IInternalServerErrorException } from '@common/utils/exceptions/exceptions';
 import { ConfigService } from '@nestjs/config';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 

@@ -6,11 +6,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 
-import { Collection } from '@common/database/entities/collection.entity';
-import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
+import {
+  Collection,
+  CollectionRoute,
+  Company,
+  User,
+} from '@common/database/entities';
+
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Company, User } from '@common/database/entities';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 
 @Module({

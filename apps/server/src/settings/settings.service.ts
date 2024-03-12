@@ -11,7 +11,7 @@ import {
   UpdateKybRequirementsDto,
 } from './dto/index.dto';
 import { CompanySubtypes, SETTINGS_TYPES, BusinessSettings } from './types';
-import { Settings, Company } from '@common/database/entities';
+import { Settings, Company, EmailTemplate } from '@common/database/entities';
 import { Equal, Repository } from 'typeorm';
 import { settingsErrors } from './settings.errors';
 import {
@@ -25,7 +25,6 @@ import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.inter
 import { BUSINESS_SETTINGS_NAME } from './settings.constants';
 import { RequestContext } from '@common/utils/request/request-context';
 import { CompanyTypes } from '@common/database/constants';
-import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
 
 @Injectable()
 export class SettingsService {

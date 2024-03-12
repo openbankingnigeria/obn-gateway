@@ -1,4 +1,4 @@
-import { Company, User } from 'src/common/database/entities';
+import { Company, User } from '@common/database/entities';
 import { BaseEvent } from './base.event';
 
 export enum CompanyEvents {

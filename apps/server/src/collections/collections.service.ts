@@ -1,4 +1,3 @@
-import { Collection } from '@common/database/entities/collection.entity';
 import {
   ResponseFormatter,
   ResponseMetaDTO,
@@ -23,12 +22,15 @@ import {
   collectionErrorMessages,
   collectionsSuccessMessages,
 } from './collections.constants';
-import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { RequestContext } from '@common/utils/request/request-context';
 import { GetAPIResponseDTO } from 'src/apis/dto/index.dto';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
-import { Company } from '@common/database/entities';
+import {
+  Company,
+  Collection,
+  CollectionRoute,
+} from '@common/database/entities';
 import { companyErrors } from '@company/company.errors';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 
