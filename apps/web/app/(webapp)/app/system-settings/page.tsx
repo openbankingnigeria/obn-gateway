@@ -6,6 +6,8 @@ import { BusinessInformationPage, EmailServicePage, EmailTemplatePage, ExternalS
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
+import { RefreshStoredToken } from '@/components/globalComponents';
+import { getCookies } from '@/config/cookies';
 
 const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   const path = searchParams?.path || ''
@@ -22,8 +24,22 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedProfile?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let profile = fetchedProfile?.data;
@@ -93,6 +109,14 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedSettings?.status != 200 && fetchedSettings?.status != 201) && 

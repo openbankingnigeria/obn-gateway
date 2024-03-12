@@ -8,6 +8,7 @@ import { StatusBox, ToastMessage } from '@/app/(webapp)/(components)';
 import { ToggleSwitch } from '@/components/forms';
 import { getCookies } from '@/config/cookies';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
+import { RefreshStoredToken } from '@/components/globalComponents';
 
 const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => {
   const api_id = searchParams?.api_id || '';
@@ -31,8 +32,22 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedAPI?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let apiDetails = fetchedAPI?.data;
@@ -44,6 +59,14 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
 
   return (
     <section className='w-full gap-[20px] flex flex-col h-full'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedAPI?.status != 200 && fetchedAPI?.status != 201) && 

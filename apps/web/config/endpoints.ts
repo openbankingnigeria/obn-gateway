@@ -6,6 +6,7 @@ import { DateFilterProps, GetEnvironmentProps, GetListProps,
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_ENDPOINT;
 
 // AUTH
+export const refreshToken = () => `${BASE_URL}/auth/token`;
 export const postSignup = () => `${BASE_URL}/auth/signup`;
 export const postVerfiyEmail = () => `${BASE_URL}/auth/email/verify`;
 export const postLoginWith2FA = () => `${BASE_URL}/auth/login/two-fa`;

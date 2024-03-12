@@ -8,6 +8,8 @@ import { APIS_DATA } from '@/data/apisData'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
+import { RefreshStoredToken } from '@/components/globalComponents'
+import { getCookies } from '@/config/cookies'
 
 const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -46,8 +48,22 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedConsumers?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let meta_data = fetchedConsumers?.meta_data;
@@ -102,6 +118,14 @@ const ConsumersPage = async({ searchParams }: UrlParamsProps) => {
 
   return (
     <section className='flex flex-col h-full  w-full pt-[56px]'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedConsumers?.status != 200 && fetchedConsumers?.status != 201) && 

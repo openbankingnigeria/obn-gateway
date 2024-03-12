@@ -20,11 +20,14 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
   const router = useRouter();
   const [regulator_license, setRegulatorLicense] = useState('');
   const [regulator_license_file, setRegulatorLicenseFile] = useState('');
+  const [regulator_license_file_type, setRegulatorLicenseFileType] = useState('');
   const [certificate_of_incorporation, setCertificationOfIncorporation] = useState('');
   const [certificate_of_incorporation_file, setCertificationOfIncorporationFile] = useState('');
+  const [certificate_of_incorporation_file_type, setCertificationOfIncorporationFileType] = useState('');
   const [tin, setTin] = useState('');
   const [company_status_report, setCompanyStatusReport] = useState('');
   const [company_status_report_file, setCompanyStatusReportFile] = useState('');
+  const [company_status_report_file_type, setCompanyStatusReportFileType] = useState('');
   let userPermissions = profileData?.user?.role?.permissions;
   let updateKybPermit = findPermissionSlug(userPermissions, 'update-company-kyb-details')
 
@@ -66,10 +69,13 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
     setCac(businessDetails?.kybData?.rcNumber || businessDetails?.rcNumber || '');
     setCertificationOfIncorporation(businessDetails?.kybData?.certificateOfIncorporation?.fileName || '');
     setCertificationOfIncorporationFile(businessDetails?.kybData?.certificateOfIncorporation?.file || '')
+    setCertificationOfIncorporationFileType(businessDetails?.kybData?.certificateOfIncorporation?.fileMimeType || '')
     setCompanyStatusReport(businessDetails?.kybData?.companyStatusReport?.fileName || '');
     setCompanyStatusReportFile(businessDetails?.kybData?.companyStatusReport?.file || '');
+    setCompanyStatusReportFileType(businessDetails?.kybData?.companyStatusReport?.fileMimeType || '');
     setRegulatorLicense(businessDetails?.kybData?.registryLicense?.fileName || '');
     setRegulatorLicenseFile(businessDetails?.kybData?.registryLicense?.file || '');
+    setRegulatorLicenseFileType(businessDetails?.kybData?.registryLicense?.fileMimeType || '');
     setTin(businessDetails?.kybData?.taxIdentificationNumber || '');
   }, [businessDetails]);
 
@@ -78,10 +84,13 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
     tin: tin,
     regulator_license: regulator_license,
     regulator_license_file,
+    regulator_license_file_type,
     certificate_of_incorporation: certificate_of_incorporation,
     certificate_of_incorporation_file,
+    certificate_of_incorporation_file_type,
     company_status_report: company_status_report,
-    company_status_report_file
+    company_status_report_file,
+    company_status_report_file_type
   });
 
   const handleCac = (value: string) => {
@@ -95,6 +104,8 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
       setTin(value?.toString()?.replace(/[^0-9-]/g, ''));
     }
   }
+
+  // console.log(businessDetails);
 
   // const initialState = {}
   // const [state, formAction] = useServerAction(postAddBusinessInfo, initialState);
@@ -149,6 +160,7 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
             <div className='w-fit flex gap-5 items-end'>
               {
                 businessDetails?.kybStatus == 'pending' &&
+                businessDetails?.rcNumber &&
                 <StatusBox status='submitted' />
               }
 
@@ -215,6 +227,7 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
                       }
                       value={data?.value}
                       file={data?.file}
+                      fileType={data?.fileType}
                     />
                     :
                     <InputElement 

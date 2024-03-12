@@ -33,6 +33,7 @@ export interface ImageViewerProps {
   effect: MouseEventHandler<HTMLDivElement>
   title?: string
   file: string;
+  fileType: string;
   backgroundStyles?: string
   modalStyles?: string
   childrenStyle?: string;
@@ -189,6 +190,7 @@ export interface DownloadButtonProps {
 
 export interface DragAndUploadFileProps {
   name: string
+  fileType?: string;
   selectedFile: any;
   file?: string;
   disabled?: boolean;

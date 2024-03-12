@@ -21,6 +21,9 @@ export async function postSignIn(prevState: any, formData: FormData) {
 
   if (response?.data) {
     setCookies('aperta-user-accessToken', response?.data?.accessToken);
+    setCookies('aperta-user-refreshToken', response?.data?.refreshToken);
+    setCookies('aperta-user-tokenType', response?.data?.tokenType);
+    setCookies('aperta-user-expiresIn', response?.data?.expiresIn);
   }
 
   return {

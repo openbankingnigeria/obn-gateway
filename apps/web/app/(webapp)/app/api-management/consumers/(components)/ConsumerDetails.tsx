@@ -197,9 +197,11 @@ const ConsumerDetails = ({
           <div className='w-full flex flex-col gap-[4px]'>
             <h2 className='w-full text-f18 text-o-text-dark font-[500]'>
               {
-                rawData?.primaryUser?.profile?.firstName ?
-                `${rawData?.primaryUser?.profile?.firstName} ${rawData?.primaryUser?.profile?.lastName}`
-                : rawData?.name
+                rawData?.name ?
+                  rawData?.name :
+                  rawData?.primaryUser?.profile?.firstName ?
+                  `${rawData?.primaryUser?.profile?.firstName} ${rawData?.primaryUser?.profile?.lastName}`
+                  : rawData?.name
               }
             </h2>
 

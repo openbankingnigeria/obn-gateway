@@ -5,6 +5,7 @@ import { getCookies } from '@/config/cookies'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
+import { RefreshStoredToken } from '@/components/globalComponents'
 
 export const metadata: Metadata = {
   title: 'Aperta - App',
@@ -31,9 +32,23 @@ export default async function RootLayout({
       method: 'GET',
       data: null
     });
+
+    /** REFRESH TOKEN CHECK */
+    let refreshTokenRes = null; 
   
     if (fetchedDetails?.status == 401) {
-      return <Logout />
+      refreshTokenRes = await applyAxiosRequest({
+        headers: { },
+        apiEndpoint: API?.refreshToken(),
+        method: 'POST',
+        data: {
+          refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        }
+      });
+
+      if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+        return <Logout />
+      }
     }
   
     let details = fetchedDetails?.data;
@@ -43,10 +58,16 @@ export default async function RootLayout({
       !details?.isVerified
     );
 
-    // console.log('details type >>>', details?.type);
-
     return (
       <section className='max-w-full min-h-screen relative bg-[#FCFDFD]'>
+        {/* REFRESH TOKEN SECTION */}
+        {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
         { 
           profile?.user?.role?.parent?.slug == 'api-consumer' && 
           showBanner && 

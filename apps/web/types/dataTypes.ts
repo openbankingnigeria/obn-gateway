@@ -45,15 +45,30 @@ export interface BusinessInformationDataProps {
   tin: string,
   regulator_license: string,
   regulator_license_file: string,
+  regulator_license_file_type: string,
   certificate_of_incorporation: string,
   certificate_of_incorporation_file: string,
+  certificate_of_incorporation_file_type: string,
   company_status_report: string,
   company_status_report_file: string;
+  company_status_report_file_type: string;
 }
 
 export interface UserAgreementsProps {
   privacyPolicy: string;
   termsAndConditions: string;
+}
+
+export interface OnboardingSettingsProps {
+  businessType: string;
+  businessLabel: string;
+  businessKey: string;
+  licensedEntityType: string;
+  licensedEntityLabel: string;
+  licensedEntityKey: string;
+  individualType: string;
+  individualLabel: string;
+  individualKey: string;
 }
 
 export interface EmailServiceProps {

@@ -10,6 +10,7 @@ import { ReportingSection, ToastMessage } from '@/app/(webapp)/(components)';
 import { StatDataProps } from '@/types/dataTypes';
 import { getCookies } from '@/config/cookies';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
+import { RefreshStoredToken } from '@/components/globalComponents';
 
 const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParamsProps) => {
   const environment = getCookies('environment');
@@ -42,8 +43,22 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
     data: null
   })
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedTeamStat?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let collectionMeta = fetchedCollections?.meta_data;
@@ -54,6 +69,14 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
 
   return (
     <section className='flex flex-col gap-[24px] w-full'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedAPIs?.status != 200 && fetchedAPIs?.status != 201) && 

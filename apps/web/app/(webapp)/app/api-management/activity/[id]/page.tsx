@@ -7,6 +7,7 @@ import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { getCookies } from '@/config/cookies';
 import { ToastMessage } from '@/app/(webapp)/(components)';
+import { RefreshStoredToken } from '@/components/globalComponents';
 
 const ActivityPage = async ({ params, searchParams }: UrlParamsProps) => {
   const activityId = params?.id;
@@ -23,8 +24,22 @@ const ActivityPage = async ({ params, searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  /** REFRESH TOKEN CHECK */
+  let refreshTokenRes = null; 
+  
   if (fetchedActivity?.status == 401) {
-    return <Logout />
+    refreshTokenRes = await applyAxiosRequest({
+      headers: { },
+      apiEndpoint: API?.refreshToken(),
+      method: 'POST',
+      data: {
+        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+      }
+    });
+
+    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+      return <Logout />
+    }
   }
 
   let activity = fetchedActivity?.data
@@ -37,6 +52,14 @@ const ActivityPage = async ({ params, searchParams }: UrlParamsProps) => {
 
   return (
     <section className='w-full h-full flex flex-col gap-[20px]'>
+      {/* REFRESH TOKEN SECTION */}
+      {
+          refreshTokenRes?.data &&
+          <RefreshStoredToken 
+            data={refreshTokenRes?.data} 
+          />
+        }
+
       {
         /* SSR TOAST ERROR */
         (fetchedActivity?.status != 200 && fetchedActivity?.status != 201) && 
