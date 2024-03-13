@@ -283,13 +283,12 @@ export class AuthService {
             businessSettings.value,
           );
 
-          const allowedSubTypesForType: string[] = (
-            parsedBusinessSettings.companySubtypes as any
-          )[companyType];
+          const allowedSubTypesForType: { value: string; default: boolean }[] =
+            (parsedBusinessSettings.companySubtypes as any)[companyType];
 
           if (
             !allowedSubTypesForType.some((subtype) =>
-              subtype.includes(licensedEntityCompanySubtype),
+              subtype.value.includes(licensedEntityCompanySubtype),
             ) &&
             allowedSubTypesForType.length
           ) {
