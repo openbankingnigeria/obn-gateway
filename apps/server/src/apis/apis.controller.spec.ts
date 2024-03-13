@@ -18,19 +18,6 @@ describe('APIController', () => {
   beforeEach(async () => {
     module = await Test.createTestingModule({
       controllers: [APIController],
-      // providers: [
-      //   KongServiceService,
-      //   KongRouteService,
-      //   {
-      //     provide: getRepositoryToken(CollectionRoute),
-      //     useValue: {
-      //       findOne: jest.fn().mockResolvedValue(new CollectionRoute()),
-      //       findAndCount: jest
-      //         .fn()
-      //         .mockResolvedValue([new CollectionRoute(), 1]),
-      //     },
-      //   },
-      // ],
     })
       .useMocker((token) => {
         if (typeof token === 'function') {
