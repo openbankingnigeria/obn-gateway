@@ -58,7 +58,6 @@ import { BusinessSettings } from '@settings/types';
 import { CompanyTiers } from '@company/types';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
-import assert from 'assert';
 
 @Injectable()
 export class AuthService {
@@ -151,13 +150,12 @@ export class AuthService {
             businessSettings.value,
           );
 
-          const allowedSubTypesForType: string[] = (
-            parsedBusinessSettings.companySubtypes as any
-          )[companyType];
+          const allowedSubTypesForType: { value: string; default: boolean }[] =
+            (parsedBusinessSettings.companySubtypes as any)[companyType];
 
           if (
             !allowedSubTypesForType.some((subtype) =>
-              subtype.includes(companySubtype),
+              subtype.value.includes(companySubtype),
             ) &&
             allowedSubTypesForType.length
           ) {
