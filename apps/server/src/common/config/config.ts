@@ -81,16 +81,14 @@ export const globalConfig = (): {
   };
   // TODO throw an error if multiple envs share same value.
   for (const env in process.env) {
-    if (env.startsWith('KONG_ADMIN_API_ENDPOINT_')) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    if (env.startsWith('KONG_ADMIN_API_ENDPOINT_') && process.env[env]) {
       const environment = env
         .split('KONG_ADMIN_API_ENDPOINT_')[1]
         .toLowerCase();
       config.kong.adminEndpoint[environment] = process.env[env];
     }
 
-    if (env.startsWith('KONG_GATEWAY_API_ENDPOINT_')) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    if (env.startsWith('KONG_GATEWAY_API_ENDPOINT_') && process.env[env]) {
       const environment = env
         .split('KONG_GATEWAY_API_ENDPOINT_')[1]
         .toLowerCase();
