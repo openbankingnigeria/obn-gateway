@@ -15,6 +15,7 @@ import {
   ArrayUnique,
   IsArray,
   IsEnum,
+  IsIP,
   IsNotEmpty,
   IsOptional,
   IsString,
