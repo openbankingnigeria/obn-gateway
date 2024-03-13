@@ -20,7 +20,7 @@ import {
   TwoFADto,
   VerifyEmailDto,
 } from './dto/index.dto';
-import { SkipAuthGuard } from 'src/common/utils/authentication/auth.decorator';
+import { SkipAuthGuard } from '@common/utils/authentication/auth.decorator';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 
 @Controller('auth')

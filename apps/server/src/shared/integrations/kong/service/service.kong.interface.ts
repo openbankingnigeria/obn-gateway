@@ -6,7 +6,7 @@ export interface ListRequest {
 
 export interface ListResponse<T> {
   data: T[];
-  next: string;
+  next?: string;
 }
 
 export interface Service {

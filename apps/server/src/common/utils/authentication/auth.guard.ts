@@ -15,7 +15,7 @@ import {
 import { Auth } from './auth.helper';
 import { authErrors } from '@auth/auth.errors';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/common/database/entities';
+import { User } from '@common/database/entities';
 import { Equal, IsNull, Not, Repository } from 'typeorm';
 import { PERMISSIONS } from 'src/permissions/types';
 import * as speakeasy from 'speakeasy';

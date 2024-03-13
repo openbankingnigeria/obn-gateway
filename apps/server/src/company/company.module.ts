@@ -3,10 +3,14 @@ import { CompanyService } from './company.service';
 import { CompanyController } from './company.controller';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Company, Settings, User } from '@common/database/entities';
+import {
+  Company,
+  Settings,
+  User,
+  CompanyKybData,
+} from '@common/database/entities';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { HttpModule } from '@nestjs/axios';
-import { CompanyKybData } from '@common/database/entities/company-kyb.entity';
 
 @Module({
   imports: [

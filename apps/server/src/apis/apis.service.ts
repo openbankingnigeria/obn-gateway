@@ -1,4 +1,3 @@
-import { Collection } from '@common/database/entities/collection.entity';
 import {
   ResponseFormatter,
   ResponseMetaDTO,
@@ -28,7 +27,6 @@ import {
   UpdateCompanyAPIAccessDto,
 } from './dto/index.dto';
 import slugify from 'slugify';
-import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
@@ -36,7 +34,12 @@ import { apiErrorMessages, apiSuccessMessages } from './apis.constants';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { v4 as uuidV4 } from 'uuid';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
-import { Company, User } from '@common/database/entities';
+import {
+  Company,
+  User,
+  CollectionRoute,
+  Collection,
+} from '@common/database/entities';
 import { companyErrors } from '@company/company.errors';
 import { CompanyTypes } from '@common/database/constants';
 import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';

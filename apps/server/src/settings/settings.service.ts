@@ -11,7 +11,7 @@ import {
   UpdateKybRequirementsDto,
 } from './dto/index.dto';
 import { CompanySubtypes, SETTINGS_TYPES, BusinessSettings } from './types';
-import { Settings, Company } from '@common/database/entities';
+import { Settings, Company, EmailTemplate } from '@common/database/entities';
 import { Equal, Repository } from 'typeorm';
 import { settingsErrors } from './settings.errors';
 import {
@@ -28,7 +28,6 @@ import {
 } from './settings.constants';
 import { RequestContext } from '@common/utils/request/request-context';
 import { CompanyTypes } from '@common/database/constants';
-import { EmailTemplate } from '@common/database/entities/emailtemplate.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   EditSettingsEvent,

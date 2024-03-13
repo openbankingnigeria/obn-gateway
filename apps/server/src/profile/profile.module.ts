@@ -2,8 +2,7 @@ import { Module } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { ProfileController } from './profile.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Profile, User } from 'src/common/database/entities';
-import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
+import { Profile, User, TwoFaBackupCode } from '@common/database/entities';
 
 @Module({
   controllers: [ProfileController],

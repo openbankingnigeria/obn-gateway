@@ -10,3 +10,4 @@ export * from './collection.entity';
 export * from './collectionroute.entity';
 export * from './emailtemplate.entity';
 export * from './twofabackupcode.entity';
+export * from './company-kyb.entity';

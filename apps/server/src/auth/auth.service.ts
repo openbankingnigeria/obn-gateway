@@ -7,7 +7,9 @@ import {
   Settings,
   User,
   UserStatuses,
-} from 'src/common/database/entities';
+  Role,
+  TwoFaBackupCode,
+} from '@common/database/entities';
 import { Repository, MoreThan, Equal } from 'typeorm';
 import {
   BusinessSignupDto,
@@ -24,7 +26,7 @@ import {
 import {
   IBadRequestException,
   IPreconditionFailedException,
-} from 'src/common/utils/exceptions/exceptions';
+} from '@common/utils/exceptions/exceptions';
 import { userErrors } from '@users/user.errors';
 import {
   ResponseDTO,
@@ -32,9 +34,8 @@ import {
 } from '@common/utils/response/response.formatter';
 import { compareSync, hashSync } from 'bcrypt';
 import { authErrors } from '@auth/auth.errors';
-import { Auth } from 'src/common/utils/authentication/auth.helper';
+import { Auth } from '@common/utils/authentication/auth.helper';
 import * as moment from 'moment';
-import { Role } from 'src/common/database/entities/role.entity';
 import { authSuccessMessages } from '@auth/auth.constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
@@ -49,7 +50,6 @@ import { CompanyTypes, ROLES } from '@common/database/constants';
 import { generateOtp } from '@common/utils/helpers/auth.helpers';
 import { ConfigService } from '@nestjs/config';
 import { isNumberString } from 'class-validator';
-import { TwoFaBackupCode } from '@common/database/entities/twofabackupcode.entity';
 
 import { GetUserResponseDTO } from '@users/dto/index.dto';
 import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';

@@ -1,4 +1,4 @@
-import { UserStatuses } from 'src/common/database/entities';
+import { UserStatuses } from '@common/database/entities';
 
 export interface AuditLogEventPayload {
   event: string;

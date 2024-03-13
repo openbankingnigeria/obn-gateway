@@ -61,7 +61,7 @@ export interface ListRequest {
 
 export interface ListResponse<T> {
   data: T[];
-  next: string;
+  next?: string;
   offset: string;
 }
 

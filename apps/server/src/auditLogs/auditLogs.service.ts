@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { auditLogsSuccessMessages } from './auditLogs.constants';
-import { AuditLog } from 'src/common/database/entities';
+import { AuditLog } from '@common/database/entities';
 import { Equal, Repository } from 'typeorm';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import {
