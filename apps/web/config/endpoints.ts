@@ -71,6 +71,8 @@ export const getCompanyCollectionsById = ({ environment, id }: GetSingleEnvironm
 
 
 // APIS 
+export const postAPIs = ({ environment }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/apis/${environment}`;
 export const getAPIs = ({ page, limit, environment, collectionId, name, method }: GetEnvironmentProps) => 
   `${BASE_URL}/apis/${environment}?page=${page}${limit ? `&limit=${limit}`: ''}${name ? `&filter[name]=${name}`: ''}${method ? `&filter[method]=${method}`: ''}${collectionId ? `&filter[collectionId]=${collectionId}` : ''}`;
 export const getAPI = ({ environment, id }: GetSingleEnvironmentProps) => 
@@ -130,6 +132,7 @@ export const getCompanyKybStat = () =>
 
 
 // SETTINGS
+export const updateCompanyTypes = () => `${BASE_URL}/settings/company/types`
 export const getSettings = ({ type }: GetTypeProps) => 
   `${BASE_URL}/settings/${type}`; // email_templates, email_settings, and general
 export const updateSettings = ({ type }: GetTypeProps) => 

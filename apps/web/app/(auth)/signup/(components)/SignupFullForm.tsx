@@ -107,12 +107,12 @@ const SignupFullForm = () => {
         userType == 'licensed-entity' ? 
           subTypes?.['licensed-entity'] :
           []
-  )?.map((type?: string[]) => {
+  )?.map((type?: any) => {
     return ({
-      label: type || '',
-      value: type || ''
+      label: type?.value || '',
+      value: type?.value || ''
     });
-  })
+  });
 
   // const role_list = CONSUMER_ROLES?.map(role => {
   //   return ({
@@ -192,6 +192,8 @@ const SignupFullForm = () => {
     // @ts-ignore
     type: requiredFields[key].type
   }));
+
+  // console.log(sanitizedFields)
 
   return (
     <form

@@ -11,11 +11,14 @@ import { getCookies } from '@/config/cookies';
 
 const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   const path = searchParams?.path || ''
-  const environment = (
-    path == 'test_mode_configuration' ? 
-    'development' : 'production'
-  );
-;
+  const fetchedDetails : any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyDetails(),
+    method: 'GET',
+    data: null
+  });
+
+  let details = fetchedDetails?.data;
 
   const fetchedProfile: any = await applyAxiosRequest({
     headers: {},
@@ -23,6 +26,13 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     method: 'GET',
     data: null
   });
+
+  const environment = (
+    path == 'test_mode_configuration' ? 
+    'development' : 
+      details?.isVerified ?
+      'production' : 'development'
+  );
 
   /** REFRESH TOKEN CHECK */
   let refreshTokenRes = null; 
@@ -46,13 +56,6 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
 
   const apiProvider = profile?.user?.role?.parent?.slug == 'api-provider'
 
-  const fetchedDetails : any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getCompanyDetails(),
-    method: 'GET',
-    data: null
-  });
-
   const fetchedSettings : any = apiProvider ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getSettings({
@@ -71,6 +74,13 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
+  const fetchedTypes: any = !apiProvider ? await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getCompanyTypes(),
+    method: 'GET',
+    data: null
+  }) : null;
+
   const fetchedAPI: any = !apiProvider ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPIKey({
@@ -80,18 +90,22 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
-  let details = fetchedDetails?.data;
+  let companyTypes = fetchedTypes?.data?.companySubtypes;
   let ips = fetchedIps?.data;
   let apiKey = fetchedAPI?.data;
   let settings = fetchedSettings?.data;
 
-  const panel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => 
+  const rawPanel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => 
     path?.type?.includes(profile?.user?.role?.parent?.slug) && (
       profile?.user?.role?.parent?.slug == 'api-provider' ? 
         true : 
         path?.subType?.includes(details?.type)
     )
   );
+
+  const panel = rawPanel?.filter((panel: any) => (
+    details?.isVerified || panel?.name != 'live_mode_configuration'
+  ))
 
   // console.log(profile?.user?.role?.parent?.slug, details?.type)
 
@@ -104,7 +118,6 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     details?.type == 'licensed-entity' ||
     details?.type == 'business'
   );
-
   // console.log(profile?.user?.role?.parent?.slug, details?.type);
 
   return (
@@ -155,7 +168,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                 /> :
                 path == 'onboarding_custom_fields' ?
                   <OnboardingSettingsPage 
-                    rawData={settings}
+                    rawData={companyTypes}
                     profileData={profile} 
                   /> :
                   path == 'user_agreements' ?
@@ -188,7 +201,10 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                   rawData={configData}
                   profileData={profile}
                 /> :
-                  path == 'live_mode_configuration' ? 
+                  (
+                    path == 'live_mode_configuration' && 
+                    details?.isVerified
+                  ) ? 
                   <LiveModeConfigurationPage 
                     rawData={configData}
                     profileData={profile}

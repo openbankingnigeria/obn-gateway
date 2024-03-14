@@ -444,93 +444,30 @@ export const USER_AGREEMENTS_DATA = ({
 ];
 
 export const ONBOARDING_SETTINGS_DATA = ({
-  businessType,
-  businessLabel,
-  businessKey,
-  licensedEntityType,
-  licensedEntityLabel,
-  licensedEntityKey,
-  individualType,
-  individualLabel,
-  individualKey,
+  business,
+  licensedEntity,
+  individual,
 }: OnboardingSettingsProps) => [
   {
     id: 1,
     label: 'Business',
     description: '',
     name: 'business',
-    values: [
-      {
-        id: 1,
-        label: 'Label',
-        name: 'businessLabel',
-        value: businessLabel
-      },
-      {
-        id: 2,
-        label: 'Type ("text", "email", "password", "dropdown")',
-        name: 'businessType',
-        value: businessType
-      },
-      {
-        id: 3,
-        label: 'Key',
-        name: 'businessKey',
-        value: businessKey
-      }
-    ]
+    values: business
   },
   {
     id: 2,
     label: 'Licensed Entity',
     description: '',
     name: 'licensedEntity',
-    values: [
-      {
-        id: 1,
-        label: 'Label',
-        name: 'licensedEntityLabel',
-        value: licensedEntityLabel
-      },
-      {
-        id: 2,
-        label: 'Type ("text", "email", "password", "dropdown")',
-        name: 'licensedEntityType',
-        value: licensedEntityType
-      },
-      {
-        id: 3,
-        label: 'Key',
-        name: 'licensedEntityKey',
-        value: licensedEntityKey
-      }
-    ]
+    values: licensedEntity
   },
   {
     id: 3,
     label: 'Individual',
     description: '',
     name: 'individual',
-    values: [
-      {
-        id: 1,
-        label: 'Label',
-        name: 'individualLabel',
-        value: individualLabel
-      },
-      {
-        id: 2,
-        label: 'Type ("text", "email", "password", "dropdown")',
-        name: 'individualType',
-        value: individualType
-      },
-      {
-        id: 3,
-        label: 'Key',
-        name: 'individualKey',
-        value: individualKey
-      }
-    ]
+    values: individual
   },
 ]
 
