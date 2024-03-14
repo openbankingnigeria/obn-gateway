@@ -14,6 +14,7 @@ import { ActivateDeactivateDeleteApi } from '.'
 import { getJsCookies } from '@/config/jsCookie'
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
 import { Loader } from '@/components/globalComponents'
+import { toast } from 'react-toastify'
 
 const CollectionSection = ({
   rawData,
@@ -238,6 +239,7 @@ const CollectionSection = ({
   };
 
   const handlePublish = (name: string, api: any) => {
+    toast.info('Publishing in progress')
     setLoadingPublish(true);
     handleCreateAPI('', api);
     setOpenModal(name);

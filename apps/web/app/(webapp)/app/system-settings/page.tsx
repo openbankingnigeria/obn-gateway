@@ -74,7 +74,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
-  const fetchedTypes: any = !apiProvider ? await applyAxiosRequest({
+  const fetchedTypes: any = apiProvider ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCompanyTypes(),
     method: 'GET',

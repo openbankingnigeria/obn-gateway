@@ -294,7 +294,14 @@ const SignupFullForm = () => {
                   changeValue={(value: string) => handleFieldsInput(value, field?.name)}
                   showGuide={field?.name == 'password'}
                   hint={(field?.name == 'confirmPassword') && !passwordMatch ? 'Password does not match' : ''}
-                  invalid={(field?.name == 'confirmPassword') && !passwordMatch && !!confirmPassword}
+                  invalid={
+                    (field?.name == 'confirmPassword') ? 
+                     ( !passwordMatch && !!confirmPassword) :
+                     (field?.name == 'email') ? Boolean(email && !validateEmail(email)) : 
+                      (field?.name == 'phone') ? Boolean(phone && (phone?.length !== 11)) :
+                      (field?.name == 'bvn') ? Boolean(bvn && (bvn?.length != 11)) :
+                      false
+                  }
                   required
                 />
                 :

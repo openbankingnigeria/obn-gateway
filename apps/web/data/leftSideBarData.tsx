@@ -80,7 +80,8 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
   {
     id: 2,
     label: 'Api Management',
-    permit: 'list-api-consumers, list-companies, list-api-calls, list-api-collections',
+    // permit: 'list-api-consumers, list-companies, list-api-calls, list-api-collections',
+    permit: '',
     links: [
       {
         id: 1,
@@ -103,7 +104,8 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
         id: 2,
         access: 'all',
         title: 'Collections',
-        permit: 'list-api-collections',
+        // permit: 'list-api-collections',
+        permit: '',
         path: '/app/api-management/collections',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path 
