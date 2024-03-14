@@ -9,6 +9,7 @@ const KybBanner = ({
   rawData
 }: { rawData: any }) => {
   const [openModal, setOpenModal] = useState('');
+  // console.log(rawData);
 
   const cancelModal = () => {
     setOpenModal('cancel');
@@ -55,7 +56,11 @@ const KybBanner = ({
           }
           &#160;
           {
-            (!rawData?.isVerified && !rawData?.kybData?.taxIdentificationNumber) &&
+            (
+              !rawData?.isVerified && 
+              !rawData?.kybData?.taxIdentificationNumber &&
+              rawData?.type != 'individual'
+            ) &&
             <span 
               onClick={() => setOpenModal('add')}
               className='text-[#DD6B20] cursor-pointer font-[600]'
@@ -65,7 +70,10 @@ const KybBanner = ({
           }
 
           {
-            (rawData?.kybStatus == 'denied') &&
+            (
+              rawData?.kybStatus == 'denied' &&
+              rawData?.type != 'individual'
+            ) &&
             <Link 
               href={'/app/system-settings'}
               className='text-[#DD6B20] cursor-pointer font-[600]'

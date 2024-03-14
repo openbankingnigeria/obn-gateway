@@ -150,7 +150,8 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
         </h3>
 
         <div className='text-o-text-medium3 text-f14'>
-          <div dangerouslySetInnerHTML={{ __html: collection?.description }} />
+          {/* <div dangerouslySetInnerHTML={{ __html: collection?.description }} /> */}
+          {collection?.description}
         </div>
       </header>
 

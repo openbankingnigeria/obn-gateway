@@ -60,15 +60,9 @@ export interface UserAgreementsProps {
 }
 
 export interface OnboardingSettingsProps {
-  businessType: string;
-  businessLabel: string;
-  businessKey: string;
-  licensedEntityType: string;
-  licensedEntityLabel: string;
-  licensedEntityKey: string;
-  individualType: string;
-  individualLabel: string;
-  individualKey: string;
+  business: any;
+  licensedEntity: any;
+  individual: any;
 }
 
 export interface EmailServiceProps {

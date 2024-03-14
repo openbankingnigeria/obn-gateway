@@ -17,68 +17,32 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
   let updateKYB = findPermissionSlug(userPermissions, 'update-kyb-requirements')
 
   const [form, setForm] = useState({
-    businessType: '',
-    businessLabel: '',
-    businessKey: '',
-    licensedEntityType: '',
-    licensedEntityLabel: '',
-    licensedEntityKey: '',
-    individualType: '',
-    individualLabel: '',
-    individualKey: '',
+    individual: rawData?.individual,
+    business: rawData?.business,
+    licensedEntity: rawData?.['licensed-entity'],
   });
 
-  // console.log(rawData)
+  console.log(rawData)
   const onboardingSettings = ONBOARDING_SETTINGS_DATA({ ...form });
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    // console.log(e);
     setForm({
       ...form,
       [e.target.name]: e.target.value
     })
   };
 
-  const isChanged = (
-    form?.businessType != ''  ||
-    form?.businessLabel != '' ||
-    form?.businessKey != ''  ||
-    form?.licensedEntityType != ''  ||
-    form?.licensedEntityLabel != ''  ||
-    form?.licensedEntityKey != '' ||
-    form?.individualType != ''  ||
-    form?.individualLabel != ''  ||
-    form?.individualKey != '' 
-  );
-
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     const result: any = await clientAxiosRequest({
         headers: {},
-        apiEndpoint: API.updateSettings({
-          type: 'onboarding_custom_fields',
-        }),
+        apiEndpoint: API.updateCompanyTypes(),
         method: 'PUT',
         data: {
-          "business": form?.businessKey ?
-            converToObject({
-              key: form?.businessKey,
-              label: form?.businessLabel || '',
-              type: form?.businessType || ''
-            }): {},
-          "licensed-entity": form?.licensedEntityKey ?
-            converToObject({
-              key: form?.licensedEntityKey,
-              label: form?.licensedEntityLabel || '',
-              type: form?.licensedEntityType || ''
-            }) : {},
-          "individual": form?.individualKey ? 
-            converToObject({
-              key: form?.individualKey,
-              label: form?.individualLabel || '',
-              type: form?.individualType || ''
-            }) : {}
+          "business": form?.business,
+          "licensed-entity": form?.licensedEntity,
+          "individual": form?.individual
         }
       });
 
@@ -95,7 +59,7 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
       <div className='w-full justify-between flex items-start gap-5'>
         <div className='w-full flex flex-col gap-[4px]'>
           <h3 className='w-full text-f18 font-[500] text-o-text-dark'>
-            Email Service
+            Onboarding Settings
           </h3>
         </div>
 
@@ -106,7 +70,7 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
           type='submit'
           loading={loading}
           containerStyle='!w-[120px]'
-          disabled={!isChanged}
+          disabled={loading}
           small
         />
         } 
@@ -132,11 +96,20 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
                 </div>
               </div>
 
+              <div className="w-[60%] flex flex-row flex-wrap gap-[12px]">
+                {
+                  data?.values?.map((value: any) => {
+                    <div className="type-shadow text-f14 font-[600] text-[#36394A] gap-[6px] py-[6px] px-[12px] rounded-[6px]">
+                      {value?.value}
+                    </div>
+                  })
+                }
+              </div>
+
               <div className='w-[60%] flex flex-col gap-3'>
                 {
-                  data?.values?.map((value: any) => (
                     <>
-                      <InputElement 
+                      {/* <InputElement 
                         name={value?.name}
                         type={'text'}
                         placeholder={value?.label}
@@ -144,9 +117,8 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
                         value={value?.value}
                         changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
                         // required
-                      />
+                      /> */}
                     </>
-                  ))
                 }
               </div>
             </div>
