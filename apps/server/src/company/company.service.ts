@@ -355,6 +355,21 @@ export class CompanyService {
     };
   }
 
+  private async updateConsumerId(
+    companyId: string,
+    environment: KONG_ENVIRONMENT,
+  ) {
+    // Update API provider consumer to allow access to route
+    const response = await this.kongConsumerService.updateOrCreateConsumer(
+      environment,
+      {
+        custom_id: companyId,
+      },
+    );
+
+    return response.id;
+  }
+
   // TODO throw an error if updating to current status
   async updateKYBStatus(
     ctx: RequestContext,
@@ -401,20 +416,22 @@ export class CompanyService {
 
     switch (action) {
       case 'approve':
-        if (company.consumerId) {
-          for (const environment in this.config.get<
-            Record<KONG_ENVIRONMENT, string>
-          >('kong.adminEndpoint')) {
-            if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
-            await this.kongConsumerService.updateOrCreatePlugin(
-              environment as KONG_ENVIRONMENT,
-              company.consumerId,
-              {
-                name: KONG_PLUGINS.REQUEST_TERMINATION,
-                enabled: false,
-              },
-            );
-          }
+        for (const environment in this.config.get<
+          Record<KONG_ENVIRONMENT, string>
+        >('kong.adminEndpoint')) {
+          if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
+          const consumerId = await this.updateConsumerId(
+            company.id,
+            environment as KONG_ENVIRONMENT,
+          );
+          await this.kongConsumerService.updateOrCreatePlugin(
+            environment as KONG_ENVIRONMENT,
+            consumerId,
+            {
+              name: KONG_PLUGINS.REQUEST_TERMINATION,
+              enabled: false,
+            },
+          );
         }
         await this.companyRepository.update(
           { id: companyId },
@@ -434,20 +451,22 @@ export class CompanyService {
             message: companyErrors.reasonNotProvided,
           });
         }
-        if (company.consumerId) {
-          for (const environment in this.config.get<
-            Record<KONG_ENVIRONMENT, string>
-          >('kong.adminEndpoint')) {
-            if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
-            await this.kongConsumerService.updateOrCreatePlugin(
-              environment as KONG_ENVIRONMENT,
-              company.consumerId,
-              {
-                name: KONG_PLUGINS.REQUEST_TERMINATION,
-                enabled: true,
-              },
-            );
-          }
+        for (const environment in this.config.get<
+          Record<KONG_ENVIRONMENT, string>
+        >('kong.adminEndpoint')) {
+          if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
+          const consumerId = await this.updateConsumerId(
+            company.id,
+            environment as KONG_ENVIRONMENT,
+          );
+          await this.kongConsumerService.updateOrCreatePlugin(
+            environment as KONG_ENVIRONMENT,
+            consumerId,
+            {
+              name: KONG_PLUGINS.REQUEST_TERMINATION,
+              enabled: true,
+            },
+          );
         }
         await this.companyRepository.update(
           { id: companyId },
@@ -570,19 +589,21 @@ export class CompanyService {
       });
     }
 
-    if (company.consumerId) {
-      for (const environment in this.config.get<
-        Record<KONG_ENVIRONMENT, string>
-      >('kong.adminEndpoint')) {
-        await this.kongConsumerService.updateOrCreatePlugin(
-          environment as KONG_ENVIRONMENT,
-          company.consumerId,
-          {
-            name: KONG_PLUGINS.REQUEST_TERMINATION,
-            enabled: !isActive,
-          },
-        );
-      }
+    for (const environment in this.config.get<Record<KONG_ENVIRONMENT, string>>(
+      'kong.adminEndpoint',
+    )) {
+      const consumerId = await this.updateConsumerId(
+        company.id,
+        environment as KONG_ENVIRONMENT,
+      );
+      await this.kongConsumerService.updateOrCreatePlugin(
+        environment as KONG_ENVIRONMENT,
+        consumerId,
+        {
+          name: KONG_PLUGINS.REQUEST_TERMINATION,
+          enabled: !isActive,
+        },
+      );
     }
 
     await this.companyRepository.update(

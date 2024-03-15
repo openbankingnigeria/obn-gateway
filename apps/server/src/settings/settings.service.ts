@@ -348,13 +348,6 @@ export class SettingsService {
       },
     );
 
-    await this.companyRepository.update(
-      {
-        id: company.id,
-      },
-      { consumerId: response.id },
-    );
-
     await this.kongConsumerService.updateConsumerAcl(environment, {
       aclAllowedGroupName: `tier-${company.tier}`,
       consumerId: response.id,
@@ -364,9 +357,10 @@ export class SettingsService {
   }
 
   async generateApiKey(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
-    const consumerId =
-      ctx.activeCompany.consumerId ||
-      (await this.updateConsumerId(ctx.activeCompany, environment));
+    const consumerId = await this.updateConsumerId(
+      ctx.activeCompany,
+      environment,
+    );
 
     const consumerKey = await this.kongConsumerService.createConsumerKey(
       environment,
@@ -423,9 +417,10 @@ export class SettingsService {
     environment: KONG_ENVIRONMENT,
     data: IPRestrictionRequest,
   ) {
-    const consumerId =
-      ctx.activeCompany.consumerId ||
-      (await this.updateConsumerId(ctx.activeCompany, environment));
+    const consumerId = await this.updateConsumerId(
+      ctx.activeCompany,
+      environment,
+    );
 
     await this.kongConsumerService.updateOrCreatePlugin(
       environment,

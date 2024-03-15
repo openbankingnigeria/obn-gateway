@@ -242,7 +242,7 @@ export class CollectionsService {
     const tiers = [],
       routes = [];
     if (environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
-      const consumerId = company.consumerId || company.id;
+      const consumerId = company.id;
       do {
         const response = await this.kongConsumerService.getConsumerAcls(
           environment,

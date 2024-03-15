@@ -704,18 +704,11 @@ export class AuthService {
     );
 
     // Create a consumer for development for the new company
-    const response = await this.kongConsumerService.updateOrCreateConsumer(
+    await this.kongConsumerService.updateOrCreateConsumer(
       KONG_ENVIRONMENT.DEVELOPMENT,
       {
         custom_id: user.companyId,
       },
-    );
-
-    await this.companyRepository.update(
-      {
-        id: user.companyId,
-      },
-      { consumerId: response.id },
     );
 
     return ResponseFormatter.success(

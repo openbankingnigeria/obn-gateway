@@ -303,13 +303,6 @@ export class APIService {
       },
     );
 
-    await this.companyRepository.update(
-      {
-        id: companyId,
-      },
-      { consumerId: response.id },
-    );
-
     return response.id;
   }
 
@@ -368,9 +361,10 @@ export class APIService {
     const routeId = uuidV4();
 
     // If the api provider does not already have an associated consumer on the API gateway, create a new consumer for the API provider
-    const apiProviderConsumerId =
-      ctx.activeCompany.consumerId ||
-      (await this.updateConsumerId(ctx.activeCompany.id!, environment));
+    const apiProviderConsumerId = await this.updateConsumerId(
+      ctx.activeCompany.id!,
+      environment,
+    );
 
     // Create an ACL on the route created and assign it an ACL group name
     // TODO move to an event listener
@@ -504,9 +498,7 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     user: User,
   ) {
-    const consumerId =
-      company.consumerId ??
-      (await this.updateConsumerId(company.id!, environment));
+    const consumerId = await this.updateConsumerId(company.id!, environment);
 
     const routes = await this.routeRepository.find({
       where: {
@@ -567,7 +559,7 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     user: User,
   ) {
-    const consumerId = company.consumerId!;
+    const consumerId = company.id!;
 
     const promises: Promise<void>[] = [];
 
@@ -646,9 +638,7 @@ export class APIService {
 
     let offset;
     const routeAcls = [];
-    const consumerId =
-      company.consumerId ??
-      (await this.updateConsumerId(company.id!, environment));
+    const consumerId = await this.updateConsumerId(company.id!, environment);
     do {
       const response = await this.kongConsumerService.getConsumerAcls(
         environment,
@@ -972,7 +962,7 @@ export class APIService {
 
     const companies = await this.companyRepository.find({
       where: {
-        consumerId: In(
+        id: In(
           Array.from(
             new Set(logs.hits.hits.map((hit) => hit._source.consumer?.id)),
           ),
@@ -1040,7 +1030,7 @@ export class APIService {
     if (logs.hits.hits[0]._source.consumer?.id) {
       company = await this.companyRepository.findOne({
         where: {
-          consumerId: Equal(logs.hits.hits[0]._source.consumer?.id),
+          id: Equal(logs.hits.hits[0]._source.consumer?.id),
         },
       });
     }
@@ -1221,7 +1211,7 @@ export class APIService {
     if (environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
       let offset;
       const routesIds = [];
-      const consumerId = company.consumerId || company.id;
+      const consumerId = company.id;
       do {
         const response = await this.kongConsumerService.getConsumerAcls(
           environment,
