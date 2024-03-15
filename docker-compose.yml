@@ -1,6 +1,5 @@
 version: '3.9'
 
-
 volumes:
   mysql_data: {}
   redis_data: {}
@@ -34,6 +33,29 @@ networks:
   elastic-net:
     external: false
 
+x-kong-dev-config:
+  &kong_dev_config
+  depends_on:
+    kong-dev-db:
+      condition: service_healthy
+  environment:
+      KONG_PG_HOST: kong-dev-db
+  volumes:
+    - kong_dev_prefix_vol:/var/run/kong
+    - kong_dev_tmp_vol:/tmp
+
+x-kong-prod-config:
+  &kong_prod_config
+  depends_on:
+    kong-prod-db:
+      condition: service_healthy
+  environment:
+      KONG_PG_HOST: kong-prod-db
+  volumes:
+    - kong_prod_prefix_vol:/var/run/kong
+    - kong_prod_tmp_vol:/tmp
+
+
 services:
   kong-dev-db:
     container_name: obn-kong-dev-db
@@ -47,43 +69,22 @@ services:
     extends:
       file: docker-compose-kong.yml
       service: kong-migrations
-    depends_on:
-      kong-dev-db:
-        condition: service_healthy
-    environment:
-        KONG_PG_HOST: kong-dev-db
-    volumes:
-      - kong_dev_prefix_vol:/var/run/kong
-      - kong_dev_tmp_vol:/tmp
+    <<: *kong_dev_config
   kong-dev-migrations-up:
     container_name: obn-kong-dev-migrations-up
     extends:
       file: docker-compose-kong.yml
       service: kong-migrations-up
-    depends_on:
-      kong-dev-db:
-        condition: service_healthy
-    environment:
-        KONG_PG_HOST: kong-dev-db
-    volumes:
-      - kong_dev_prefix_vol:/var/run/kong
-      - kong_dev_tmp_vol:/tmp
+    <<: *kong_dev_config
   kong-dev:
     container_name: obn-kong-dev
     extends:
       file: docker-compose-kong.yml
       service: kong
-    depends_on:
-      kong-dev-db:
-        condition: service_healthy
-    environment:
-        KONG_PG_HOST: kong-dev-db
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8000:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8443:8443/tcp"
-    volumes:
-      - kong_dev_prefix_vol:/var/run/kong
-      - kong_dev_tmp_vol:/tmp
+    <<: *kong_dev_config
 
   kong-prod-db:
     container_name: obn-kong-prod-db
@@ -97,43 +98,22 @@ services:
     extends:
       file: docker-compose-kong.yml
       service: kong-migrations
-    depends_on:
-      kong-prod-db:
-        condition: service_healthy
-    environment:
-        KONG_PG_HOST: kong-prod-db
-    volumes:
-      - kong_prod_prefix_vol:/var/run/kong
-      - kong_prod_tmp_vol:/tmp
+    <<: *kong_prod_config
   kong-prod-migrations-up:
     container_name: obn-kong-prod-migrations-up
     extends:
       file: docker-compose-kong.yml
       service: kong-migrations-up
-    depends_on:
-      kong-prod-db:
-        condition: service_healthy
-    environment:
-        KONG_PG_HOST: kong-prod-db
-    volumes:
-      - kong_prod_prefix_vol:/var/run/kong
-      - kong_prod_tmp_vol:/tmp
+    <<: *kong_prod_config
   kong-prod:
     container_name: obn-kong-prod
     extends:
       file: docker-compose-kong.yml
       service: kong
-    depends_on:
-      kong-prod-db:
-        condition: service_healthy
-    environment:
-        KONG_PG_HOST: kong-prod-db
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8100:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8543:8443/tcp"
-    volumes:
-      - kong_prod_prefix_vol:/var/run/kong
-      - kong_prod_tmp_vol:/tmp
+    <<: *kong_prod_config
 
   elk-setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION:-8.11.1}
@@ -309,7 +289,6 @@ services:
       DATABASE_PORT: ${DATABASE_PORT:-3306}
       DATABASE_TYPE: mysql
       JWT_SECRET_FILE: /run/secrets/jwt_secret
-      NODE_ENV: ${NODE_ENV:-production}
       SERVER_PORT: ${SERVER_PORT:-4000}
       EMAIL_HOST: ${EMAIL_HOST}
       EMAIL_PORT: ${EMAIL_PORT}

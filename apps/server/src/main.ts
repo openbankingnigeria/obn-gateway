@@ -20,6 +20,7 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   const logger = new NestLogger();
 
+  // TODO
   if (corsOrigins) {
     // app.enableCors({ origin: corsOrigins.split(',') });
   }

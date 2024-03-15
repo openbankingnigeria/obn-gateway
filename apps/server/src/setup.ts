@@ -196,7 +196,7 @@ export class SetupService {
       relations: {
         role: {
           permissions: true,
-          parent: true,
+          parent: { permissions: true },
         },
         company: true,
       },
