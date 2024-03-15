@@ -114,6 +114,24 @@ export class SetupService {
     const kongPluginService = app.get(KongPluginService);
     const config = app.get(ConfigService);
 
+    const schema = await axios.get('https://apis.openbanking.ng/', {
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    });
+    const data = await axios.get(
+      `https://apis.openbanking.ng/api/collections/${schema.data.collection.info.collectionId}/${schema.data.collection.info.publishedId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    const folders = processItem(data.data.item);
+
     for (const environment in config.get<Record<KONG_ENVIRONMENT, string>>(
       'kong.adminEndpoint',
     )) {
@@ -167,112 +185,94 @@ export class SetupService {
           },
         })
         .catch(console.error);
-    }
 
-    const schema = await axios.get('https://apis.openbanking.ng/', {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-    });
-    const data = await axios.get(
-      `https://apis.openbanking.ng/api/collections/${schema.data.collection.info.collectionId}/${schema.data.collection.info.publishedId}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+      // TODO get back to this, use central getUserByEmail implementation
+      const user = await apiService.userRepository.findOne({
+        where: {
+          email: Equal(process.env.COMPANY_EMAIL!),
+          role: { parentId: Not(IsNull()) },
         },
-      },
-    );
-
-    const folders = processItem(data.data.item);
-
-    // TODO get back to this, use central getUserByEmail implementation
-    const user = await apiService.userRepository.findOne({
-      where: {
-        email: Equal(process.env.COMPANY_EMAIL!),
-        role: { parentId: Not(IsNull()) },
-      },
-      relations: {
-        role: {
-          permissions: true,
-          parent: { permissions: true },
+        relations: {
+          role: {
+            permissions: true,
+            parent: { permissions: true },
+          },
+          company: true,
         },
-        company: true,
-      },
-    });
+      });
 
-    const ctx = new RequestContext({ user: user! });
+      const ctx = new RequestContext({ user: user! });
 
-    for (const folder in folders) {
-      try {
-        let collection = await collectionService
-          .viewCollection(ctx, slugify(folder))
-          .catch(console.error);
+      for (const folder in folders) {
+        try {
+          let collection = await collectionService
+            .viewCollection(ctx, slugify(folder))
+            .catch(console.error);
 
-        if (!collection) {
-          // get collection description, and remove html tags.
-          const description = folders[folder].description
-            ?.split('\n')?.[0]
-            ?.replace(/(<([^>]+)>)/gi, '');
-          if (!description) continue;
+          if (!collection) {
+            // get collection description, and remove html tags.
+            const description = folders[folder].description
+              ?.split('\n')?.[0]
+              ?.replace(/(<([^>]+)>)/gi, '');
+            if (!description) continue;
 
-          collection = await collectionService.createCollection(
-            ctx,
-            new CreateCollectionDto({
-              name: folder,
-              description,
-            }),
-          );
-        }
-
-        for (const { name, request, response } of folders[folder].data) {
-          try {
-            let api = await apiService
-              .viewAPI(ctx, KONG_ENVIRONMENT.DEVELOPMENT, name)
-              .catch(console.error);
-            if (api) continue;
-
-            const regexPath =
-              '~' +
-              request.urlObject.path.reduce((acc: string, curr: string) => {
-                if (curr.startsWith(':')) {
-                  curr = `(?P<${curr.slice(1)}>[^/]+)`;
-                }
-                return acc + '/' + curr;
-              }, '') +
-              '$';
-            api = await apiService.createAPI(
+            collection = await collectionService.createCollection(
               ctx,
-              KONG_ENVIRONMENT.DEVELOPMENT,
-              new CreateAPIDto({
-                collectionId: collection.data!.id,
-                name,
-                enabled: false,
-                upstream: {
-                  url: request.url,
-                },
-                downstream: {
-                  path: regexPath,
-                  method: request.method,
-                  url: `${
-                    config.get('kong.gatewayEndpoint')[
-                      KONG_ENVIRONMENT.DEVELOPMENT
-                    ]
-                  }/${request.urlObject.path.join('/')}`,
-                  // TODO revisit and update host
-                  request,
-                  response,
-                },
-                tiers: [CompanyTiers.TIER_3],
+              new CreateCollectionDto({
+                name: folder,
+                description,
               }),
             );
-            await apiService.setTransformation(
-              ctx,
-              KONG_ENVIRONMENT.DEVELOPMENT,
-              api.data!.id,
-              {
-                upstream: `
+          }
+
+          for (const { name, request, response } of folders[folder].data) {
+            try {
+              let api = await apiService
+                .viewAPI(ctx, environment as KONG_ENVIRONMENT, name)
+                .catch(console.error);
+              if (api) continue;
+
+              const regexPath =
+                '~' +
+                request.urlObject.path.reduce((acc: string, curr: string) => {
+                  if (curr.startsWith(':')) {
+                    curr = `(?P<${curr.slice(1)}>[^/]+)`;
+                  }
+                  return acc + '/' + curr;
+                }, '') +
+                '$';
+              api = await apiService.createAPI(
+                ctx,
+                environment as KONG_ENVIRONMENT,
+                new CreateAPIDto({
+                  collectionId: collection.data!.id,
+                  name,
+                  enabled: false,
+                  upstream: {
+                    url:
+                      environment === KONG_ENVIRONMENT.DEVELOPMENT
+                        ? request.url
+                        : 'http://localhost',
+                  },
+                  downstream: {
+                    path: regexPath,
+                    method: request.method,
+                    url: `${
+                      config.get('kong.gatewayEndpoint')[environment]
+                    }/${request.urlObject.path.join('/')}`,
+                    // TODO revisit and update host
+                    request,
+                    response,
+                  },
+                  tiers: [CompanyTiers.TIER_3],
+                }),
+              );
+              await apiService.setTransformation(
+                ctx,
+                environment as KONG_ENVIRONMENT,
+                api.data!.id,
+                {
+                  upstream: `
               local function transform_upstream_request()
               -- Read the request body
               kong.service.request.enable_buffering()  -- Enable buffering to read body
@@ -300,7 +300,7 @@ export class SetupService {
             end
             return transform_upstream_request
             `,
-                downstream: `
+                  downstream: `
               local cjson = require 'cjson.safe'
             
               local function transform_downstream_response()
@@ -323,14 +323,15 @@ export class SetupService {
 
               return transform_downstream_response
             `,
-              },
-            );
-          } catch (error) {
-            console.error(error);
+                },
+              );
+            } catch (error) {
+              console.error(error);
+            }
           }
+        } catch (error) {
+          console.error(error);
         }
-      } catch (error) {
-        console.error(error);
       }
     }
 
