@@ -1,33 +1,24 @@
 version: '3.9'
 
-# TODO pin every image to specific versions
-
-x-kong-config:
-  &kong-env
-  KONG_DATABASE: ${KONG_DATABASE:-postgres}
-  KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
-  KONG_PG_HOST: kong-db
-  KONG_PG_USER: ${KONG_PG_USER:-kong}
-  KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
-  KONG_ADMIN_ACCESS_LOG: /dev/stdout
-  KONG_ADMIN_ERROR_LOG: /dev/stderr
-  KONG_PROXY_LISTEN: "${KONG_PROXY_LISTEN:-0.0.0.0:8000}"
-  KONG_ADMIN_LISTEN: "${KONG_ADMIN_LISTEN:-0.0.0.0:8001}"
-  KONG_PROXY_ACCESS_LOG: /dev/stdout
-  KONG_PROXY_ERROR_LOG: /dev/stderr
-  KONG_PREFIX: ${KONG_PREFIX:-/var/run/kong}
-  # KONG_UNTRUSTED_LUA_SANDBOX_ENVIRONMENT: setmetatable
-  KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: cjson.safe
 
 volumes:
   mysql_data: {}
   redis_data: {}
-  kong_data: {}
-  kong_prefix_vol:
+  kong_dev_data: {}
+  kong_dev_prefix_vol:
     driver_opts:
      type: tmpfs
      device: tmpfs
-  kong_tmp_vol:
+  kong_dev_tmp_vol:
+    driver_opts:
+     type: tmpfs
+     device: tmpfs
+  kong_prod_data: {}
+  kong_prod_prefix_vol:
+    driver_opts:
+     type: tmpfs
+     device: tmpfs
+  kong_prod_tmp_vol:
     driver_opts:
      type: tmpfs
      device: tmpfs
@@ -44,100 +35,105 @@ networks:
     external: false
 
 services:
-  kong-db:
-    image: postgres:9.5
-    command: -c 'max_connections=100'
-    container_name: obn-kong-db
-    environment:
-      POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
-      POSTGRES_USER: ${KONG_PG_USER:-kong}
-      POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
-    secrets:
-      - kong_postgres_password
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${KONG_PG_USER:-kong}"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-    restart: on-failure
-    stdin_open: true
-    tty: true
-    networks:
-      - kong-net
+  kong-dev-db:
+    container_name: obn-kong-dev-db
+    extends:
+      file: docker-compose-kong.yml
+      service: kong-db
     volumes:
-      - kong_data:/var/lib/postgresql/data
-
-  kong-migrations:
-    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
-    container_name: obn-kong-migrations
-    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations bootstrap"] #replace x-kong- headers with x-
+      - kong_dev_data:/var/lib/postgresql/data
+  kong-dev-migrations:
+    container_name: obn-kong-dev-migrations
+    extends:
+      file: docker-compose-kong.yml
+      service: kong-migrations
     depends_on:
-      kong-db:
+      kong-dev-db:
         condition: service_healthy
     environment:
-      <<: *kong-env
-    secrets:
-      - kong_postgres_password
-    networks:
-      - kong-net
-    restart: on-failure
+        KONG_PG_HOST: kong-dev-db
     volumes:
-      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
-      - kong_tmp_vol:/tmp
-      - ./config:/opt/kong
-
-  kong-migrations-up:
-    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
-    container_name: obn-kong-migrations-up
-    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations up && /docker-entrypoint.sh kong migrations finish"] #replace x-kong- headers with x-
+      - kong_dev_prefix_vol:/var/run/kong
+      - kong_dev_tmp_vol:/tmp
+  kong-dev-migrations-up:
+    container_name: obn-kong-dev-migrations-up
+    extends:
+      file: docker-compose-kong.yml
+      service: kong-migrations-up
     depends_on:
-      kong-db:
+      kong-dev-db:
         condition: service_healthy
     environment:
-      <<: *kong-env
-    secrets:
-      - kong_postgres_password
-    networks:
-      - kong-net
-    restart: on-failure
+        KONG_PG_HOST: kong-dev-db
     volumes:
-      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
-      - kong_tmp_vol:/tmp
-      - ./config:/opt/kong
-
-  kong:
-    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
-    container_name: obn-kong
-    user: "${KONG_USER:-kong}"
+      - kong_dev_prefix_vol:/var/run/kong
+      - kong_dev_tmp_vol:/tmp
+  kong-dev:
+    container_name: obn-kong-dev
+    extends:
+      file: docker-compose-kong.yml
+      service: kong
+    depends_on:
+      kong-dev-db:
+        condition: service_healthy
     environment:
-      <<: *kong-env
-    secrets:
-      - kong_postgres_password
-    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong docker-start"] #replace x-kong- headers with x-
-    networks:
-      - kong-net
-      - elastic-net
+        KONG_PG_HOST: kong-dev-db
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8000:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8443:8443/tcp"
-      - "127.0.0.1:8001:8001/tcp" # TODO unpublish port 
-      - "127.0.0.1:8444:8444/tcp"
-    depends_on:
-      kong-db:
-        condition: service_healthy
-
-    healthcheck:
-      test: ["CMD", "kong", "health"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    restart: on-failure:5
     volumes:
-      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
-      - kong_tmp_vol:/tmp
-      - ./config:/opt/kong
-    security_opt:
-      - no-new-privileges
+      - kong_dev_prefix_vol:/var/run/kong
+      - kong_dev_tmp_vol:/tmp
+
+  kong-prod-db:
+    container_name: obn-kong-prod-db
+    extends:
+      file: docker-compose-kong.yml
+      service: kong-db
+    volumes:
+      - kong_prod_data:/var/lib/postgresql/data
+  kong-prod-migrations:
+    container_name: obn-kong-prod-migrations
+    extends:
+      file: docker-compose-kong.yml
+      service: kong-migrations
+    depends_on:
+      kong-prod-db:
+        condition: service_healthy
+    environment:
+        KONG_PG_HOST: kong-prod-db
+    volumes:
+      - kong_prod_prefix_vol:/var/run/kong
+      - kong_prod_tmp_vol:/tmp
+  kong-prod-migrations-up:
+    container_name: obn-kong-prod-migrations-up
+    extends:
+      file: docker-compose-kong.yml
+      service: kong-migrations-up
+    depends_on:
+      kong-prod-db:
+        condition: service_healthy
+    environment:
+        KONG_PG_HOST: kong-prod-db
+    volumes:
+      - kong_prod_prefix_vol:/var/run/kong
+      - kong_prod_tmp_vol:/tmp
+  kong-prod:
+    container_name: obn-kong-prod
+    extends:
+      file: docker-compose-kong.yml
+      service: kong
+    depends_on:
+      kong-prod-db:
+        condition: service_healthy
+    environment:
+        KONG_PG_HOST: kong-prod-db
+    ports:
+      - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8100:8000/tcp"
+      - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8543:8443/tcp"
+    volumes:
+      - kong_prod_prefix_vol:/var/run/kong
+      - kong_prod_tmp_vol:/tmp
 
   elk-setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION:-8.11.1}
@@ -324,10 +320,10 @@ services:
       COMPANY_EMAIL: ${COMPANY_EMAIL:?COMPANY_EMAIL is required}
       COMPANY_NAME: ${COMPANY_NAME:?COMPANY_NAME is required}
       DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD is required}
-      KONG_ADMIN_API_ENDPOINT: ${KONG_ADMIN_API_ENDPOINT:-http://kong:8001}
-      KONG_GATEWAY_API_ENDPOINT: ${KONG_GATEWAY_API_ENDPOINT:-http://kong:8000}
-      KONG_ADMIN_API_ENDPOINT_PRODUCTION: ${KONG_ADMIN_API_ENDPOINT_PRODUCTION}
-      KONG_GATEWAY_API_ENDPOINT_PRODUCTION: ${KONG_GATEWAY_API_ENDPOINT_PRODUCTION}
+      KONG_ADMIN_API_ENDPOINT: ${KONG_ADMIN_API_ENDPOINT:-http://kong-dev:8001}
+      KONG_GATEWAY_API_ENDPOINT: ${KONG_GATEWAY_API_ENDPOINT:-http://kong-dev:8000}
+      KONG_ADMIN_API_ENDPOINT_PRODUCTION: ${KONG_ADMIN_API_ENDPOINT_PRODUCTION:-http://kong-prod:8001}
+      KONG_GATEWAY_API_ENDPOINT_PRODUCTION: ${KONG_GATEWAY_API_ENDPOINT_PRODUCTION:-http://kong-prod:8000}
       MANAGEMENT_URL: ${MANAGEMENT_URL:-http://localhost:3000}
       LOGSTASH_ENDPOINT: ${LOGSTASH_ENDPOINT:-http://obn-logstash:8080}
       ELASTICSEARCH_ENDPOINT: ${ELASTICSEARCH_ENDPOINT:-https://es:9200}
@@ -348,7 +344,9 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-      kong:
+      kong-dev:
+        condition: service_healthy
+      kong-prod:
         condition: service_healthy
       es:
         condition: service_healthy

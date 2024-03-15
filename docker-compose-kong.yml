@@ -1,0 +1,93 @@
+version: "3.9"
+
+# TODO pin every image to specific versions
+
+x-kong-config:
+  &kong-env
+  KONG_DATABASE: ${KONG_DATABASE:-postgres}
+  KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
+  KONG_PG_USER: ${KONG_PG_USER:-kong}
+  KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
+  KONG_ADMIN_ACCESS_LOG: /dev/stdout
+  KONG_ADMIN_ERROR_LOG: /dev/stderr
+  KONG_PROXY_ACCESS_LOG: /dev/stdout
+  KONG_PROXY_ERROR_LOG: /dev/stderr
+  KONG_PREFIX: ${KONG_PREFIX:-/var/run/kong}
+  # KONG_UNTRUSTED_LUA_SANDBOX_ENVIRONMENT: setmetatable
+  KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: cjson.safe
+
+services:
+  kong-db:
+    image: postgres:9.5
+    command: -c 'max_connections=100'
+    environment:
+      POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
+      POSTGRES_USER: ${KONG_PG_USER:-kong}
+      POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
+    secrets:
+      - kong_postgres_password
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${KONG_PG_USER:-kong}"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: on-failure
+    stdin_open: true
+    tty: true
+    networks:
+      - kong-net
+
+  kong-migrations:
+    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations bootstrap"] #replace x-kong- headers with x-
+    environment:
+      <<: *kong-env
+    secrets:
+      - kong_postgres_password
+    networks:
+      - kong-net
+    restart: on-failure
+    volumes:
+      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
+      - kong_tmp_vol:/tmp
+      - ./config:/opt/kong
+
+  kong-migrations-up:
+    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations up && /docker-entrypoint.sh kong migrations finish"] #replace x-kong- headers with x-
+    environment:
+      <<: *kong-env
+    secrets:
+      - kong_postgres_password
+    networks:
+      - kong-net
+    restart: on-failure
+    volumes:
+      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
+      - kong_tmp_vol:/tmp
+      - ./config:/opt/kong
+
+  kong:
+    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
+    user: "${KONG_USER:-kong}"
+    environment:
+      <<: *kong-env
+    secrets:
+      - kong_postgres_password
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong docker-start"] #replace x-kong- headers with x-
+    networks:
+      - kong-net
+      - elastic-net
+
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: on-failure:5
+    volumes:
+      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
+      - kong_tmp_vol:/tmp
+      - ./config:/opt/kong
+    security_opt:
+      - no-new-privileges
