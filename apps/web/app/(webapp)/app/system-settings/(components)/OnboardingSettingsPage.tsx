@@ -6,8 +6,9 @@ import { APIConfigurationProps } from "@/types/webappTypes/appTypes"
 import { findPermissionSlug } from "@/utils/findPermissionSlug";
 import { ChangeEvent, useState } from "react";
 import * as API from '@/config/endpoints';
-import { converToObject } from "@/utils/converToObject";
 import { Button } from "@/components/globalComponents";
+import Image from "next/image";
+import { FaCheck } from "react-icons/fa6";
 import { InputElement } from "@/components/forms";
 
 const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps) => {
@@ -16,69 +17,30 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
   let updateKYBSettings = findPermissionSlug(userPermissions, 'update-kyb-requirement-setting')
   let updateKYB = findPermissionSlug(userPermissions, 'update-kyb-requirements')
 
-  const [form, setForm] = useState({
-    businessType: '',
-    businessLabel: '',
-    businessKey: '',
-    licensedEntityType: '',
-    licensedEntityLabel: '',
-    licensedEntityKey: '',
-    individualType: '',
-    individualLabel: '',
-    individualKey: '',
-  });
+  const [individual, setIndividual] = useState([...rawData?.individual?.map((item: any) => item?.value)]);
+  const [business, setBusiness] = useState([...rawData?.business?.map((item: any) => item?.value)]);
+  const [licensedEntity, setLicensedEntity] = useState([...rawData?.['licensed-entity']?.map((item: any) => item?.value)]);
+
+  const [individualText, setIndividualText] = useState('');
+  const [businessText, setBusinessText] = useState('');
+  const [licensedEntityText, setLicensedEntityText] = useState('');
 
   // console.log(rawData)
-  const onboardingSettings = ONBOARDING_SETTINGS_DATA({ ...form });
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    // console.log(e);
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    })
-  };
-
-  const isChanged = (
-    form?.businessType != ''  ||
-    form?.businessLabel != '' ||
-    form?.businessKey != ''  ||
-    form?.licensedEntityType != ''  ||
-    form?.licensedEntityLabel != ''  ||
-    form?.licensedEntityKey != '' ||
-    form?.individualType != ''  ||
-    form?.individualLabel != ''  ||
-    form?.individualKey != '' 
-  );
+  const onboardingSettings = ONBOARDING_SETTINGS_DATA({ 
+    individual, business, licensedEntity
+   });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     const result: any = await clientAxiosRequest({
         headers: {},
-        apiEndpoint: API.updateSettings({
-          type: 'onboarding_custom_fields',
-        }),
+        apiEndpoint: API.updateCompanyTypes(),
         method: 'PUT',
         data: {
-          "business": form?.businessKey ?
-            converToObject({
-              key: form?.businessKey,
-              label: form?.businessLabel || '',
-              type: form?.businessType || ''
-            }): {},
-          "licensed-entity": form?.licensedEntityKey ?
-            converToObject({
-              key: form?.licensedEntityKey,
-              label: form?.licensedEntityLabel || '',
-              type: form?.licensedEntityType || ''
-            }) : {},
-          "individual": form?.individualKey ? 
-            converToObject({
-              key: form?.individualKey,
-              label: form?.individualLabel || '',
-              type: form?.individualType || ''
-            }) : {}
+          "business": business,
+          "licensed-entity": licensedEntity,
+          "individual": individual
         }
       });
 
@@ -86,6 +48,36 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
       setLoading(false);
     }
   };
+
+  console.log(onboardingSettings);
+
+  const handleDelete = (value: string, name: string) => {
+    const types = onboardingSettings?.find((type: any) => type?.name == name)?.values;
+     if (name == 'individual') {
+      setIndividual(types?.filter((type: string) => type != value))
+     } 
+     if (name == 'business') {
+      setBusiness(types?.filter((type: string) => type != value))
+     }
+     if (name == 'licensedEntity') {
+      setLicensedEntity(types?.filter((type: string) => type != value))
+     }
+  }
+
+  const handleAdd = (name: string, value: string) => {
+    if (name == 'individual') {
+      setIndividual(prev => [...prev, value]);
+      setIndividualText('');
+     } 
+     if (name == 'business') {
+      setBusiness(prev => [...prev, value]);
+      setBusinessText('');
+     }
+     if (name == 'licensedEntity') {
+      setLicensedEntity(prev => [...prev, value]);
+      setLicensedEntityText('');
+     }
+  }
 
   return (
     <form
@@ -95,7 +87,7 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
       <div className='w-full justify-between flex items-start gap-5'>
         <div className='w-full flex flex-col gap-[4px]'>
           <h3 className='w-full text-f18 font-[500] text-o-text-dark'>
-            Email Service
+            Onboarding Settings
           </h3>
         </div>
 
@@ -106,7 +98,7 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
           type='submit'
           loading={loading}
           containerStyle='!w-[120px]'
-          disabled={!isChanged}
+          disabled={loading}
           small
         />
         } 
@@ -132,22 +124,56 @@ const OnboardingSettingsPage = ({ rawData, profileData }: APIConfigurationProps)
                 </div>
               </div>
 
-              <div className='w-[60%] flex flex-col gap-3'>
+              <div className="w-[60%] flex flex-row flex-wrap gap-[12px]">
                 {
-                  data?.values?.map((value: any) => (
-                    <>
-                      <InputElement 
-                        name={value?.name}
-                        type={'text'}
-                        placeholder={value?.label}
-                        disabled={!(updateKYBSettings || updateKYB)}
-                        value={value?.value}
-                        changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
-                        // required
+                  data?.values?.map((value: string) => (
+                    <div 
+                      onClick={() => handleDelete(value, data?.name)}
+                      className="type-shadow text-f14 font-[600] flex items-center gap-3 text-[#36394A] py-[6px] px-[12px] rounded-[6px]"
+                      key={value}
+                    >
+                      {value}
+
+                      <Image 
+                        src={'/icons/trash.svg'}
+                        alt='remove'
+                        width={15}
+                        height={15}
                       />
-                    </>
+                    </div>
                   ))
                 }
+
+                <div className="w-[50%] flex items-center">
+                  <InputElement 
+                    name='type_input'
+                    type={'text'}
+                    placeholder='Enter type'
+                    containerStyle="w-[100%]"
+                    fieldStyle='py-[6px]'
+                    changeValue={
+                      (data?.name == 'licensedEntity') ?
+                      setLicensedEntityText :
+                      (data?.name == 'business') ?
+                      setBusinessText :
+                      setIndividualText
+                    }
+                    // required
+                  />
+                  <div 
+                    className="h-full text-o-green2 flex items-center justify-center w-[10%] rounded-tr-[6px] rounded-br-[6px] bg-o-blue"
+                    onClick={() => handleAdd(
+                      data?.name, (
+                        (data?.name == 'licensedEntity') ?
+                          licensedEntityText :
+                          (data?.name == 'business') ?
+                          businessText :
+                          individualText)
+                    )}
+                  >
+                    <FaCheck size={16} />  
+                  </div>
+                </div>
               </div>
             </div>
           ))

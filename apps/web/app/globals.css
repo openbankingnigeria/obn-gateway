@@ -23,6 +23,11 @@
   background: rgb(255, 255, 255, 0.6);
 }
 
+/* TYPES SHADOW */
+.type-shadow {
+  box-shadow: 0px 0px 0px 1px #12376914, 0px 1px 2px 0px #A4ACB93D;
+}
+
 
 /* REACT-ACE (CODE EDITOR) CUSTOM STYLES */
 #code-editor {

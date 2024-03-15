@@ -107,12 +107,12 @@ const SignupFullForm = () => {
         userType == 'licensed-entity' ? 
           subTypes?.['licensed-entity'] :
           []
-  )?.map((type?: string[]) => {
+  )?.map((type?: any) => {
     return ({
-      label: type || '',
-      value: type || ''
+      label: type?.value || '',
+      value: type?.value || ''
     });
-  })
+  });
 
   // const role_list = CONSUMER_ROLES?.map(role => {
   //   return ({
@@ -192,6 +192,8 @@ const SignupFullForm = () => {
     // @ts-ignore
     type: requiredFields[key].type
   }));
+
+  // console.log(sanitizedFields)
 
   return (
     <form
@@ -292,7 +294,14 @@ const SignupFullForm = () => {
                   changeValue={(value: string) => handleFieldsInput(value, field?.name)}
                   showGuide={field?.name == 'password'}
                   hint={(field?.name == 'confirmPassword') && !passwordMatch ? 'Password does not match' : ''}
-                  invalid={(field?.name == 'confirmPassword') && !passwordMatch && !!confirmPassword}
+                  invalid={
+                    (field?.name == 'confirmPassword') ? 
+                     ( !passwordMatch && !!confirmPassword) :
+                     (field?.name == 'email') ? Boolean(email && !validateEmail(email)) : 
+                      (field?.name == 'phone') ? Boolean(phone && (phone?.length !== 11)) :
+                      (field?.name == 'bvn') ? Boolean(bvn && (bvn?.length != 11)) :
+                      false
+                  }
                   required
                 />
                 :

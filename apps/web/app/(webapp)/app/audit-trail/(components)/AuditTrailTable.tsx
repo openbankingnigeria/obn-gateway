@@ -15,6 +15,8 @@ const AuditTrailTable = ({
   totalPages
 }: TableProps) => {
 
+  // console.log(rawData);
+
   return (
     <>
       {

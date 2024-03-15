@@ -1,13 +1,43 @@
+'use client'
+
 import { InputElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
-import React from 'react'
+import clientAxiosRequest from '@/hooks/clientAxiosRequest';
+import React, { ChangeEvent, useState } from 'react'
+import * as API from '@/config/endpoints';
+import { useRouter } from 'next/navigation';
 
 const PersonalDetails = ({
   profile
 }: { profile: any }) => {
+
+  const [firstName, setFirstName] = useState(profile?.firstName);
+  const [lastName, setLastName] = useState(profile?.lastName);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
+    const result: any = await clientAxiosRequest({
+        headers: {},
+        apiEndpoint: API.updateProfile(),
+        method: 'PATCH',
+        data: {
+          "firstName": firstName,
+          "lastName": lastName
+        }
+      });
+
+    if (result?.message) {
+      setLoading(false);
+      router.refresh();
+    }
+  };
+
   return (
     <form 
-      action={''}
+      onSubmit={handleSubmit}
       className='gap-[20px] flex flex-col w-full pb-[24px] border-b border-o-border'
     >
       <div className='w-full justify-between flex items-start gap-5'>
@@ -21,12 +51,14 @@ const PersonalDetails = ({
           </div>
         </div>
 
-        {/* <Button 
+        <Button 
           title='Save changes'
           type='submit'
-          disabled
+          loading={loading}
+          containerStyle='!w-[120px]'
+          disabled={loading || !firstName || !lastName}
           small
-        /> */}
+        />
       </div>
 
       <div className='w-full gap-[20px] p-[24px] flex flex-col bg-white rounded-[12px] border border-o-border'>
@@ -45,8 +77,9 @@ const PersonalDetails = ({
               <InputElement 
                 name='first_name'
                 placeholder='First name'
-                value={profile?.firstName}
-                disabled
+                value={firstName}
+                changeValue={setFirstName}
+                // disabled
                 required
               />
             </div>
@@ -55,8 +88,9 @@ const PersonalDetails = ({
               <InputElement 
                 name='last_name'
                 placeholder='Last name'
-                value={profile?.lastName}
-                disabled
+                value={lastName}
+                changeValue={setLastName}
+                // disabled
                 required
               />
             </div>

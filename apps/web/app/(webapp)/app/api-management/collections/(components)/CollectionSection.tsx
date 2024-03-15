@@ -13,6 +13,8 @@ import * as API from '@/config/endpoints';
 import { ActivateDeactivateDeleteApi } from '.'
 import { getJsCookies } from '@/config/jsCookie'
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
+import { Loader } from '@/components/globalComponents'
+import { toast } from 'react-toastify'
 
 const CollectionSection = ({
   rawData,
@@ -37,6 +39,7 @@ const CollectionSection = ({
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const [api, setApi] = useState<any>(null);
+  const [loadingPublish, setLoadingPublish] = useState(false);
   const profile = altData;
   let userPermissions = profile?.user?.role?.permissions;
   const userType = profile?.user?.role?.parent?.slug;
@@ -154,6 +157,29 @@ const CollectionSection = ({
     }
   }
 
+  const handleCreateAPI = async (code: string, data: any) => {
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      const result: any = await clientAxiosRequest({
+          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          apiEndpoint: API.postAPIs({ 
+            environment: 'production'
+          }),
+          method: 'POST',
+          data: data || api
+        });
+
+      if (result?.message) {
+        close2FAModal();
+        setLoading(false);
+        setLoadingPublish(false);
+        router.refresh();
+      }
+    }
+  }
+
   // const handleApiConfiguration = (code: string, e?: FormEvent<HTMLFormElement>) => {
   //   e && e.preventDefault();
 
@@ -207,8 +233,17 @@ const CollectionSection = ({
     //   handleApiConfiguration(value, undefined) :
     //   openModal == 'modify' ?
     //     handleApiModification(value, undefined) :
-    handleActivateDeactivateDeleteApi(value);
+    openModal == 'publish' ?
+      handleCreateAPI('', api) :
+      handleActivateDeactivateDeleteApi(value);
   };
+
+  const handlePublish = (name: string, api: any) => {
+    toast.info('Publishing in progress')
+    setLoadingPublish(true);
+    handleCreateAPI('', api);
+    setOpenModal(name);
+  }
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',
@@ -222,7 +257,7 @@ const CollectionSection = ({
           </svg>
         </button>
 
-        <div className='hidden peer-focus:flex hover:flex absolute bg-white rounded-lg flex-col z-10 border border-o-border right-0 top-[30px] py-[4px] w-[158px] items-start justify-start tablemenu-boxshadow'>
+        <div className='hidden peer-focus:flex hover:flex absolute bg-white rounded-lg flex-col z-10 border border-o-border right-0 top-[30px] py-[4px] w-[200px] items-start justify-start tablemenu-boxshadow'>
           {
             getAction(row.original.enabled)?.map((action) => (
               <button
@@ -239,13 +274,20 @@ const CollectionSection = ({
                     router.push(`/app/api-management/collections/${details?.id}/api-configuration?api_id=${row.original.id}`) :
                     action.name == 'preview' ?
                     router.push(`/app/api-management/collections/${details?.id}/api-configuration?api_id=${row.original.id}&preview=true`) :
-                    setOpenModal(action.name);
+                      action.name == 'publish' ?
+                        handlePublish(action.name, api)
+                        :
+                        setOpenModal(action.name)
                 }}
               >
                 {action.icon}
                 
                 <span className='whitespace-nowrap'>
-                  {action.label}
+                  {
+                    (loadingPublish && action.name == 'publish') ?
+                      <Loader /> :
+                      action.label
+                  }
                 </span>
               </button>
             ))
