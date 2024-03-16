@@ -292,16 +292,23 @@ export class APIService {
   }
 
   private async updateConsumerId(
-    companyId: string,
+    company: Company,
     environment: KONG_ENVIRONMENT,
   ) {
     // Update API provider consumer to allow access to route
     const response = await this.kongConsumerService.updateOrCreateConsumer(
       environment,
       {
-        custom_id: companyId,
+        custom_id: company.id,
       },
     );
+
+    if (company.tier) {
+      await this.kongConsumerService.updateConsumerAcl(environment, {
+        aclAllowedGroupName: `tier-${company.tier}`,
+        consumerId: response.id,
+      });
+    }
 
     return response.id;
   }
@@ -362,7 +369,7 @@ export class APIService {
 
     // If the api provider does not already have an associated consumer on the API gateway, create a new consumer for the API provider
     const apiProviderConsumerId = await this.updateConsumerId(
-      ctx.activeCompany.id!,
+      ctx.activeCompany,
       environment,
     );
 
@@ -498,7 +505,7 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     user: User,
   ) {
-    const consumerId = await this.updateConsumerId(company.id!, environment);
+    const consumerId = await this.updateConsumerId(company, environment);
 
     const routes = await this.routeRepository.find({
       where: {
@@ -638,7 +645,7 @@ export class APIService {
 
     let offset;
     const routeAcls = [];
-    const consumerId = await this.updateConsumerId(company.id!, environment);
+    const consumerId = await this.updateConsumerId(company, environment);
     do {
       const response = await this.kongConsumerService.getConsumerAcls(
         environment,
@@ -775,6 +782,7 @@ export class APIService {
         method: downstream.method,
         request: downstream.request,
         response: downstream.response,
+        tiers,
       },
     );
 
@@ -862,10 +870,10 @@ export class APIService {
       new GetAPIResponseDTO(
         {
           id: route.id,
-          name: route.name,
-          enabled: route.enabled,
+          name: data.name || route.name,
+          enabled: data.enabled || route.enabled,
           collectionId: route.collectionId,
-          tiers: route.tiers || [],
+          tiers: data.tiers || route.tiers || [],
           upstream: new GETAPIUpstreamResponseDTO(
             {
               ...data.upstream,

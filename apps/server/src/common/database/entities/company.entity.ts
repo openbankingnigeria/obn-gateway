@@ -39,9 +39,6 @@ export class Company {
   @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified: boolean;
 
-  // @Column({ name: 'consumer_id', nullable: true })
-  // consumerId?: string;
-
   @Column({
     default: CompanyStatuses.ACTIVE,
     type: 'enum',

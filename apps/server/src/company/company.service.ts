@@ -356,16 +356,23 @@ export class CompanyService {
   }
 
   private async updateConsumerId(
-    companyId: string,
+    company: Company,
     environment: KONG_ENVIRONMENT,
   ) {
     // Update API provider consumer to allow access to route
     const response = await this.kongConsumerService.updateOrCreateConsumer(
       environment,
       {
-        custom_id: companyId,
+        custom_id: company.id,
       },
     );
+
+    if (company.tier) {
+      await this.kongConsumerService.updateConsumerAcl(environment, {
+        aclAllowedGroupName: `tier-${company.tier}`,
+        consumerId: response.id,
+      });
+    }
 
     return response.id;
   }
@@ -421,7 +428,7 @@ export class CompanyService {
         >('kong.adminEndpoint')) {
           if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
           const consumerId = await this.updateConsumerId(
-            company.id,
+            company,
             environment as KONG_ENVIRONMENT,
           );
           await this.kongConsumerService.updateOrCreatePlugin(
@@ -456,7 +463,7 @@ export class CompanyService {
         >('kong.adminEndpoint')) {
           if (environment === KONG_ENVIRONMENT.DEVELOPMENT) continue;
           const consumerId = await this.updateConsumerId(
-            company.id,
+            company,
             environment as KONG_ENVIRONMENT,
           );
           await this.kongConsumerService.updateOrCreatePlugin(
@@ -593,7 +600,7 @@ export class CompanyService {
       'kong.adminEndpoint',
     )) {
       const consumerId = await this.updateConsumerId(
-        company.id,
+        company,
         environment as KONG_ENVIRONMENT,
       );
       await this.kongConsumerService.updateOrCreatePlugin(

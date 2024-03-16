@@ -335,6 +335,7 @@ export class SetupService {
       }
     }
 
+    // TODO wait for pending events to finish before closing.
     await app.close();
   }
 }

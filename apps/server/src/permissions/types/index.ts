@@ -50,8 +50,8 @@ export const PROVIDER_PERMISSIONS = {
 
   AP_VIEW_ASSIGNED_API_ENDPOINTS: 'ap-view-assigned-api-endpoints',
 
-  SET_API_RESTRICTIONS: 'set-api-restrictions',
-  VIEW_API_RESTRICTIONS: 'view-api-restrictions',
+  SET_API_RESTRICTIONS: 'set-api-ip-restrictions',
+  VIEW_API_RESTRICTIONS: 'view-api-ip-restrictions',
 
   RESET_API_KEY: 'reset-api-key',
   VIEW_API_KEY: 'view-api-key',
@@ -114,8 +114,8 @@ export const CONSUMER_PERMISSIONS = {
   VIEW_ASSIGNED_API_ENDPOINTS: 'view-assigned-api-endpoints',
   VIEW_API_ENDPOINT: 'view-api-endpoint',
 
-  SET_API_RESTRICTIONS: 'set-api-restrictions',
-  VIEW_API_RESTRICTIONS: 'view-api-restrictions',
+  SET_API_RESTRICTIONS: 'set-api-ip-restrictions',
+  VIEW_API_RESTRICTIONS: 'view-api-ip-restrictions',
 
   RESET_API_KEY: 'reset-api-key',
   VIEW_API_KEY: 'view-api-key',
