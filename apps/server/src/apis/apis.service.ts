@@ -10,7 +10,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { Equal, In, Not, Repository } from 'typeorm';
+import { Equal, In, Like, Not, Repository } from 'typeorm';
 import {
   APILogResponseDTO,
   APILogStatsResponseDTO,
@@ -519,6 +519,7 @@ export class APIService {
               }),
           ), // Where the API Ids are not already part of the allowed APIs for this company
         ),
+        environment,
       },
     });
 
@@ -630,6 +631,7 @@ export class APIService {
     const routesFound = await this.routeRepository.find({
       where: {
         id: In(apiIds),
+        environment,
       },
     });
 
@@ -1237,10 +1239,19 @@ export class APIService {
       } while (offset);
       const [iRoutes, iTotalNumberOfRecords] =
         await this.routeRepository.findAndCount({
-          where: {
-            ...filters,
-            id: In(routesIds),
-          },
+          where: [
+            {
+              ...filters,
+              environment,
+              id: In(routesIds),
+            },
+            {
+              ...filters,
+              environment,
+              // TODO find much more optimal way.
+              tiers: Like(`%${company.tier}%`),
+            },
+          ],
           order: { createdAt: 'DESC' },
           skip: (page - 1) * limit,
           take: limit,
