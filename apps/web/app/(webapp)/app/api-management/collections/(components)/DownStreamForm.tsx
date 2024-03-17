@@ -23,6 +23,32 @@ const DownStreamForm = ({
     setPath(rawData?.downstream?.path?.toString());
   }, []);
 
+  const request = rawData?.downstream?.request;
+  const response = rawData?.downstream?.response;
+
+  const applyStyle = (key: string, value: any, depth = 0): string => {
+    const indentation = ' '.repeat(depth * 2);
+
+    if (typeof value === 'object' && value !== null) {
+      const styledObject = Object.keys(value).map(innerKey => {
+        const innerValue = value[innerKey];
+        return applyStyle(innerKey, innerValue, depth + 1);
+      });
+      if (!styledObject.length) return `${indentation}<span style='color: #FB8F8F;'>"${key}"</span>: {}`;
+      return `${indentation}<span style='color: #FB8F8F;'>"${key}"</span>: {<br>${styledObject.join(',<br>')}<br>${indentation}}`;
+    } else {
+      return `${indentation}<span style='color: #FB8F8F;'>"${key}"</span>: <span style='color: #6CE9A6;'>${typeof value === "string" ? JSON.stringify(value)?.replace(/\"/g, '"')?.replace(/\\n/g, '\n') : value}</span>`;
+    }
+  };
+
+  const transform = (obj: any) => {
+    const style = Object.keys(obj).map(key => {
+      const value = obj[key];
+      return applyStyle(key, value, 1);
+    });
+    return `{<br>${style.join(',<br>')}${style.length > 0 ? '<br>' : ''}}`;
+  };
+
   return (
     <div className='w-full'>
       {
@@ -35,7 +61,7 @@ const DownStreamForm = ({
 
               <div className='flex bg-white overflow-x-auto rounded-[12px] border border-o-border gap-[16px] flex-col p-[24px] w-[60%]'>
                 <pre dangerouslySetInnerHTML={{
-                  __html: JSON.stringify(rawData?.downstream?.request)?.replace(/\"/g, '"')?.replace(/\\n/g, '\n')
+                  __html: transform({ request })
                 }} />
               </div>
             </div>
@@ -47,7 +73,7 @@ const DownStreamForm = ({
 
               <div className='flex bg-white overflow-x-auto rounded-[12px] border border-o-border gap-[16px] flex-col p-[24px] w-[60%]'>
                 <pre dangerouslySetInnerHTML={{
-                  __html: JSON.stringify(rawData?.downstream?.response)?.replace(/\"/g, '"')?.replace(/\\n/g, '\n')
+                  __html: transform({ response })
                 }} />
               </div>
             </div>
