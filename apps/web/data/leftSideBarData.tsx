@@ -28,7 +28,7 @@ export const LEFT_SIDE_BAR_BOTTOM_DATA = [
     id: 2,
     access: 'all',
     title: 'System Settings',
-    permit: 'list-system-settings',
+    permit: 'list-system-settings, set-api-restrictions, view-api-restrictions, update-kyb-requirement-setting, update-system-setting, update-kyb-requirements, view-api-key, reset-api-key',
     path: '/app/system-settings',
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path 
@@ -80,8 +80,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
   {
     id: 2,
     label: 'Api Management',
-    // permit: 'list-api-consumers, list-companies, list-api-calls, list-api-collections',
-    permit: '',
+    permit: 'list-api-consumers, list-companies, list-api-calls, list-api-collections',
     links: [
       {
         id: 1,
@@ -104,8 +103,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
         id: 2,
         access: 'all',
         title: 'Collections',
-        // permit: 'list-api-collections',
-        permit: '',
+        permit: 'list-api-collections',
         path: '/app/api-management/collections',
         icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path 

@@ -22,6 +22,8 @@ const LiveModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
   let updateSettings = findPermissionSlug(userPermissions, 'update-system-setting')
   let viewAPIKey = findPermissionSlug(userPermissions, 'view-api-key')
   let resetAPIKey = findPermissionSlug(userPermissions, 'reset-api-key')
+  let viewRestriction = findPermissionSlug(userPermissions, 'view-api-restrictions')
+  let setRestrictions = findPermissionSlug(userPermissions, 'set-api-restrictions')
 
   const [form, setForm] = useState({
     // secret_key: 'pspk_test_f8q9u9kg5ocosk1kqlgolgxuzu0wmk6coo6smceg',
@@ -45,15 +47,15 @@ const LiveModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     // timeout: form?.timeout
   });
 
-  const incorrect = (
-    // !form?.name ||
-    // !form?.description ||
-    !form?.api_key ||
-    // !form?.webhook_url ||
-    // !form?.callback_url ||
-    !form?.ip_whitelist
-    // !form?.timeout
-  )
+  // const incorrect = (
+  //   // !form?.name ||
+  //   // !form?.description ||
+  //   !form?.api_key ||
+  //   // !form?.webhook_url ||
+  //   // !form?.callback_url ||
+  //   !form?.ip_whitelist
+  //   // !form?.timeout
+  // )
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({
@@ -195,12 +197,12 @@ const LiveModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
             }
 
             {
-              updateSettings &&
+              (resetAPIKey || setRestrictions) && updateSettings &&
               <Button 
               title='Save changes'
               type='submit'
               containerStyle='!w-[120px]'
-              disabled={incorrect || !isChanged}
+              disabled={!isChanged}
               small
             />
             }

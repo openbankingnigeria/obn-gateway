@@ -85,9 +85,9 @@ const SignupFullForm = () => {
     // !country ||
     phone?.length !== 11 ||
     !userType ||
-    // (userType == 'individual' && (!bvn || !accountNumber)) ||
-    // (userType == 'business' && (!companyName || !companySubtype || !cac || !accountNumber)) ||
-    // (userType == 'licensed-entity' && (!companyName || !companySubtype /*|| !role */)) ||
+    (userType == 'individual' && (bvn?.length !== 11)) ||
+    (userType == 'business' && (!companySubtype)) ||
+    (userType == 'licensed-entity' && (!companySubtype)) ||
     !termsAgreed
   );
 

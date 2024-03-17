@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ImageViewerProps } from '@/types/webappTypes/componentsTypes';
 import Image from 'next/image';
@@ -20,7 +20,22 @@ function ImageViewer({
   // const url = URL.createObjectURL(blob);
   // console.log(url);
 
-  const dataUrl = `data:application/pdf;base64,${file}`;
+  // const dataUrl = `data:application/pdf;base64,${file}`;
+
+  const [pdfSrc, setPdfSrc] = useState('');
+
+  useEffect(() => {
+    const binaryString = atob(file);
+    const byteArray = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      byteArray[i] = binaryString.charCodeAt(i);
+    }
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    const blobUrl = URL.createObjectURL(blob);
+    setPdfSrc(blobUrl);
+
+    return () => URL.revokeObjectURL(blobUrl);
+  }, [file]);
 
   return (
     <AnimatePresence>
@@ -66,13 +81,18 @@ function ImageViewer({
           initial={{ scale: 0 }}
           animate={{ scale: 1, transition: { duration: 0.2, type: 'spring', stiffness: 700, damping: 30 } }}
           exit={{ scale: 0, transition: { delay: 0.2 } }}
-          className={`flex h-[90vh] relative w-full sm:w-[650px] z-[75] overflow-x-hidden  overflow-y-visible
+          className={`flex h-[90vh] relative w-full sm:w-[100%] z-[75] overflow-x-hidden  overflow-y-visible
            rounded-[12px] bg-transparent justify-center ${title && 'pt-[56px]'} ${modalStyles}`}
           onClick={(e) => e.stopPropagation()}
         >
           {
             fileType?.includes('application') ?
-              <iframe src={dataUrl} width="650px%" height="650px"></iframe>
+              <embed 
+                src={pdfSrc} 
+                type="application/pdf" 
+                width="100%" 
+                height="100%" 
+              />
               :
               <Image 
                 src={`data:${fileType};base64,${file}`} 
