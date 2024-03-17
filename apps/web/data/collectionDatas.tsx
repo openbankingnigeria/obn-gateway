@@ -92,13 +92,12 @@ export const COLLECTIONS_API_HEADERS = [
     accessor: 'endpoint_url'
   },
   // {
-  //   header: 'Tier',
-  //   accessor: 'tier'
+  //   header: 'Paths',
+  //   accessor: 'parameters'
   // },
   {
-    // header: 'Paths',
     header: 'Tiers',
-    accessor: 'parameters'
+    accessor: 'tiers'
   },
   {
     header: 'Status',

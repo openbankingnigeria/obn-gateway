@@ -3,7 +3,10 @@
 import { InputElement, SelectElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
 import React, { useEffect, useState } from 'react';
-import { greaterThan8, validateEmail, validateLowercase, validateName, validateNumber, validateSymbol, validateUppercase } from '@/utils/globalValidations';
+import { 
+  greaterThan8, validateEmail, validateLowercase, validateName, 
+  validateNumber, validateSymbol, validateUppercase 
+} from '@/utils/globalValidations';
 // import { COMPANY_TYPES } from '@/data/authData';
 import { useServerAction } from '@/hooks';
 import { postSignup } from '@/actions/authActions';
@@ -26,6 +29,7 @@ const SignupFullForm = () => {
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [lastName, setLastName] = useState(''); 
   const [phone, setPhone] = useState('');
+  const [agreements, setAgreements] = useState<any>(null);
   // const [companyName, setCompanyName] = useState(''); 
   const [companySubtype, setCompanySubtype] = useState(''); 
   // const [cac, setCac] = useState('');
@@ -33,6 +37,18 @@ const SignupFullForm = () => {
   // const [role, setRole] = useState(''); 
 
   const [companyTypes, setCompanyTypes] = useState<any>(null);
+
+
+  const fetchSettings = async () => {
+    const result = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getAgreements(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    })
+    setAgreements(result?.data);
+  }
 
   const fetchTypes = async () => {
     const result = await clientAxiosRequest({
@@ -63,6 +79,7 @@ const SignupFullForm = () => {
   }, []);
 
   useEffect(() => {
+    fetchSettings();
     userType && fetchRequiredFields();
   }, [userType]);
 
@@ -85,9 +102,9 @@ const SignupFullForm = () => {
     // !country ||
     phone?.length !== 11 ||
     !userType ||
-    // (userType == 'individual' && (!bvn || !accountNumber)) ||
-    // (userType == 'business' && (!companyName || !companySubtype || !cac || !accountNumber)) ||
-    // (userType == 'licensed-entity' && (!companyName || !companySubtype /*|| !role */)) ||
+    (userType == 'individual' && (bvn?.length !== 11)) ||
+    (userType == 'business' && (!companySubtype)) ||
+    (userType == 'licensed-entity' && (!companySubtype)) ||
     !termsAgreed
   );
 
@@ -501,14 +518,14 @@ const SignupFullForm = () => {
             I agree to the <a 
             target='_blank' 
             rel='noreferrer noopener'
-            href='https://openbanking.ng/terms-conditions/' 
+            href={agreements?.privacyPolicy?.value || 'https://openbanking.ng/terms-conditions/'}
             className='cursor-pointer font-[600] text-o-light-blue'
             >
               Terms of Use</a> and&#160; 
             <a 
               target='_blank' 
               rel='noreferrer noopener'
-              href='https://openbanking.ng/privacy-notice/' 
+              href={agreements?.termsAndConditions?.value || 'https://openbanking.ng/privacy-notice/'} 
               className='cursor-pointer font-[600] text-o-light-blue'
             >
               Privacy Policy</a>.

@@ -249,7 +249,7 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
     description: 'A list of IP addresses that are allowed to access this API. Requests from IPs not on this list will be denied.',
     name: 'ip_whitelist',
     type: 'text',
-    permit: '',
+    permit: 'view-api-restrictions',
     value: ip_whitelist,
     rightLabel: '',
     role: 'Other AC'
@@ -340,7 +340,7 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
     description: 'A list of IP addresses that are allowed to access this API. Requests from IPs not on this list will be denied.',
     name: 'ip_whitelist',
     type: 'text',
-    permit: '',
+    permit: 'view-api-restrictions',
     value: ip_whitelist,
     rightLabel: '',
     role: 'Other AC'

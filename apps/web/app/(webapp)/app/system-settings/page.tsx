@@ -8,6 +8,7 @@ import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
 import { RefreshStoredToken } from '@/components/globalComponents';
 import { getCookies } from '@/config/cookies';
+import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   const path = searchParams?.path || ''
@@ -55,6 +56,8 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   let profile = fetchedProfile?.data;
 
   const apiProvider = profile?.user?.role?.parent?.slug == 'api-provider'
+  let userPermissions = profile?.user?.role?.permissions;
+  let viewRestriction = findPermissionSlug(userPermissions, 'view-api-restrictions')
 
   const fetchedSettings : any = apiProvider ? await applyAxiosRequest({
     headers: {},
@@ -65,7 +68,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
-  const fetchedIps: any = !apiProvider ? await applyAxiosRequest({
+  const fetchedIps: any = (!apiProvider && viewRestriction) ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getIPWhitelist({
       environment

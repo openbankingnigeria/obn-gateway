@@ -7,7 +7,7 @@ const TierBox = ({
   return (
     <div className='w-fit'>
       {
-        value == 'T1' ? 
+        value == '1' ? 
           <div className='text-f14 flex gap-[6px] items-center text-o-text-medium3'>
             T1 
             <div className='w-fit flex items-center gap-[2px]'>
@@ -18,7 +18,7 @@ const TierBox = ({
             </div>
           </div>
           :
-          value == 'T2' ? 
+          value == '2' ? 
             <div className='text-f14 gap-[6px] flex items-center text-o-text-medium3'>
               T2 
               <div className='w-fit flex items-center gap-[2px]'>
@@ -29,7 +29,7 @@ const TierBox = ({
               </div>
             </div>
             :
-            value == 'T3' ? 
+            value == '3' ? 
               <div className='text-f14 gap-[6px] flex items-center text-o-text-medium3'>
                 T3 
                 <div className='w-fit flex items-center gap-[2px]'>
@@ -40,7 +40,7 @@ const TierBox = ({
                 </div>
               </div>
               :
-              value == 'T4' ? 
+              value == '4' ? 
                 <div className='text-f14 gap-[6px] flex items-center text-o-text-medium3'>
                   T4 
                   <div className='w-fit flex items-center gap-[2px]'>
@@ -50,7 +50,7 @@ const TierBox = ({
                     <span className='w-[8px] h-[8px] rounded-full bg-o-border'/>
                   </div>
                 </div>
-                : value == 'T5' ? 
+                : value == '5' ? 
                   <div className='text-f14 gap-[6px] flex items-center text-o-text-medium3'>
                     T5 
                     <div className='w-fit flex items-center gap-[2px]'>
