@@ -165,7 +165,7 @@ const TableElement = ({
                                   value={Boolean(cell.getValue())} 
                                 />
                                 :
-                                cell.id?.includes('tier') ?
+                                cell.id == 'tier' ?
                                   <TierBox 
                                     value={cell.getValue()} 
                                   />

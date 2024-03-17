@@ -1,13 +1,14 @@
-export const findPermissionSlug = (permissions: any[], slug: string) => {
-  let slugArray = slug?.split(',');
+export const findPermissionSlug = (permissions: any[], slugs: string) => {
+  if (typeof slugs !== 'string' || !slugs) {
+    return true; 
+  }
 
-  const isPermitPresent = permissions?.some(
-    (permission: any) => {
-      return (
-        Boolean(slugArray?.some(slug => permission?.slug?.includes(slug)) || !slug)
-      );
+  let slugArray = slugs?.split(',');
+    const objectSlugs = permissions?.map(permit => permit?.slug);
+    for (const slug of slugArray) {
+      if (objectSlugs?.includes(slug?.trim())) {
+        return true;
+      }
     }
-  );
-
-  return isPermitPresent;
+    return false;
 };

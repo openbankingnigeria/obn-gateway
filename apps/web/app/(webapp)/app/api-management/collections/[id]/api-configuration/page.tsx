@@ -96,19 +96,20 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
         }
       </div>
 
+      <DownStreamForm 
+        rawData={apiDetails}
+        profileData={userType}
+      />
+
       {
-        // !(userType == 'api-consumer') &&
-        <>
-          <DownStreamForm 
-            rawData={apiDetails}
-          />
-          <UpstreamForm 
+        !(userType == 'api-consumer') && 
+        <UpstreamForm 
             rawData={apiDetails}
             profileData={profile}
             preview={preview}
           />
-        </>
       }
+          
       
       {
         ((preview == 'true' && viewTransformation) || (!preview && setTransformation)) &&
