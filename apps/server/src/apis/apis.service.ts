@@ -210,6 +210,28 @@ export class APIService {
     const event = new ViewApisEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
+    // TODO optimize
+    function objectToMap(obj: any) {
+      const map = new Map();
+      Object.entries(obj).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          map.set(
+            key,
+            value.map((item) =>
+              typeof item === 'object' && item !== null
+                ? objectToMap(item)
+                : item,
+            ),
+          ); // Convert array elements to maps if they are objects
+        } else if (typeof value === 'object' && value !== null) {
+          map.set(key, objectToMap(value)); // Recursively convert nested object to Map
+        } else {
+          map.set(key, value);
+        }
+      });
+      return map;
+    }
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPI,
       new GetAPIResponseDTO(
@@ -250,8 +272,8 @@ export class APIService {
               path: gatewayRoute?.paths[0] ?? null,
               method: gatewayRoute?.methods[0] ?? null,
               url: route.url,
-              request: new Map(Object.entries(route.request)),
-              response: route.response?.map((r) => new Map(Object.entries(r))),
+              request: objectToMap(route.request),
+              response: route.response?.map((r) => objectToMap(r)),
             },
             ctx,
           ),
