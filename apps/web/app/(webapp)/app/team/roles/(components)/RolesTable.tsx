@@ -146,7 +146,7 @@ const RolesTable = ({
         }
       });
 
-      if (permissions?.length >= 3 && result?.status == 200) {
+      if (result?.status == 200) {
         // @ts-ignore
         let sanitizedPermissions = permissions?.flatMap(item => item.options.map(option => option.id));
         const result2: any = await clientAxiosRequest({
