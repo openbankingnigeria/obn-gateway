@@ -89,6 +89,10 @@ const MemberDetails = ({
     )
   };
 
+  useEffect(() => {
+    (role != member?.role?.id) && changeRole(role);
+  }, [role]);
+
   const changeRole = async (value: string) => {
     setLoadingRole(true);
     const result: any = await clientAxiosRequest({
@@ -106,7 +110,6 @@ const MemberDetails = ({
 
     if (result?.message) {
       setOpenModal('');
-      setRole(value);
       setLoadingRole(false);
       toast.success(`You have successfully change ${memberName} role`);
       // router.refresh();
@@ -208,7 +211,7 @@ const MemberDetails = ({
                   options={roleList}
                   placeholder='Select role'
                   value={role}
-                  changeValue={(value: string) => changeRole(value)}
+                  changeValue={(value: string) => setRole(value)}
                   containerStyle='!w-fit cursor-pointer'
                   small
                   optionStyle='!top-[38px]'

@@ -3,6 +3,7 @@
 import { InputElement } from '@/components/forms'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes';
 import React, { ChangeEvent, useEffect, useState } from 'react'
+import { motion } from 'framer-motion';
 
 const DownStreamForm = ({
   rawData,
@@ -13,6 +14,7 @@ const DownStreamForm = ({
   const [request_method, setRequestMethod] = useState('');
   const [tier, setTier] = useState('');
   const [path, setPath] = useState('');
+  const [currentValue, setCurrentValue] = useState('header');
 
   // console.log(rawData);
 
@@ -25,6 +27,7 @@ const DownStreamForm = ({
 
   const request = rawData?.downstream?.request;
   const response = rawData?.downstream?.response;
+  const responseBody = response?.['0']?.body;
 
   const applyStyle = (key: string, value: any, depth = 0): string => {
     const indentation = ' '.repeat(depth * 2);
@@ -34,10 +37,10 @@ const DownStreamForm = ({
         const innerValue = value[innerKey];
         return applyStyle(innerKey, innerValue, depth + 1);
       });
-      if (!styledObject.length) return `${indentation}<span style='color: #FB8F8F;'>"${key}"</span>: {}`;
-      return `${indentation}<span style='color: #FB8F8F;'>"${key}"</span>: {<br>${styledObject.join(',<br>')}<br>${indentation}}`;
+      if (!styledObject.length) return `${indentation}<span style='color: #D01B3F;'>"${key}"</span>: {}`;
+      return `${indentation}<span style='color: #D01B3F;'>"${key}"</span>: {<br>${styledObject.join(',<br>')}<br>${indentation}}`;
     } else {
-      return `${indentation}<span style='color: #FB8F8F;'>"${key}"</span>: <span style='color: #6CE9A6;'>${typeof value === "string" ? JSON.stringify(value)?.replace(/\"/g, '"')?.replace(/\\n/g, '\n') : value}</span>`;
+      return `<span style='color: #4BA07A;'>${typeof value === "string" ? value?.replace(/\"/g, '"')?.replace(/\\n/g, '\n') : value}</span>`;
     }
   };
 
@@ -46,8 +49,10 @@ const DownStreamForm = ({
       const value = obj[key];
       return applyStyle(key, value, 1);
     });
-    return `{<br>${style.join(',<br>')}${style.length > 0 ? '<br>' : ''}}`;
+    return `${style.join(',<br>')}${style.length > 0 ? '<br>' : ''}`;
   };
+
+  console.log(request);
 
   return (
     <div className='w-full'>
@@ -60,9 +65,59 @@ const DownStreamForm = ({
               </div>
 
               <div className='flex bg-white overflow-x-auto rounded-[12px] border border-o-border gap-[16px] flex-col p-[24px] w-[60%]'>
-                <pre dangerouslySetInnerHTML={{
-                  __html: transform({ request })
-                }} />
+                <div className='flex justify-between items-center'>
+                  <div className='w-fit text-f13 p-2 rounded-[6px] border border-o-border bg-o-bg2'>
+                    {request?.method}
+                  </div>
+                </div>
+
+                <div className='flex items-center gap-5 border-b border-o-border'>
+                {
+                  (request?.body ? 
+                    [{ id: 1, value: 'header' },{ id: 2, value: 'body' }] 
+                    : [{ id: 1, value: 'header' }]
+                  )
+                    ?.map((data) => (
+                    <div 
+                      key={data?.id} 
+                      className='relative whitespace-nowrap w-fit flex flex-col px-[4px] pt-[9px] pb-[11px]'
+                    >
+                      <div 
+                        className={`${currentValue == data?.value ? 'text-o-blue font-[500]' : 'text-o-text-medium3'} 
+                        capitalize text-f14 flex items-center gap-3 hover:text-o-blue`}
+                      >
+                        <div 
+                          onClick={() => setCurrentValue(data?.value)}
+                          className='w-fit cursor-pointer capitalize'
+                        >
+                          {data?.value}
+                        </div>
+                      </div>
+
+                      {
+                        currentValue == data?.value &&
+                        <motion.div
+                          className='pane-underline'
+                          layoutId='top-pane-underline'
+                        ></motion.div>
+                      }
+                    </div>
+                  ))
+                }
+                </div>
+
+                {
+                  currentValue == 'header' ?
+                    <pre dangerouslySetInnerHTML={{
+                      __html: transform({ header: request?.header })
+                    }} />
+                    :
+                    <pre dangerouslySetInnerHTML={{
+                      __html: transform(request?.body ? {
+                        ...request?.body
+                      } : { })
+                    }} />
+                }
               </div>
             </div>
 
@@ -72,8 +127,16 @@ const DownStreamForm = ({
               </div>
 
               <div className='flex bg-white overflow-x-auto rounded-[12px] border border-o-border gap-[16px] flex-col p-[24px] w-[60%]'>
+                <div className='flex justify-between items-center'>
+                  <div className='w-fit text-f13 p-2 rounded-[6px] border border-o-border bg-o-bg2'>
+                    JSON
+                  </div>
+                  <div className='w-fit text-f13 flex text-o-text-muted'>
+                    Code: {response?.['0']?.code}
+                  </div>
+                </div>
                 <pre dangerouslySetInnerHTML={{
-                  __html: transform({ response })
+                  __html: transform({ responseBody })
                 }} />
               </div>
             </div>
