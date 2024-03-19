@@ -15,8 +15,7 @@ const DownStreamForm = ({
   const [tier, setTier] = useState('');
   const [path, setPath] = useState('');
   const [currentValue, setCurrentValue] = useState('header');
-
-  // console.log(rawData);
+  const [currentResValue, setCurrentResValue] = useState('body');
 
   useEffect(() => {
     setApiName(rawData?.name || '');
@@ -52,7 +51,7 @@ const DownStreamForm = ({
     return `${style.join(',<br>')}${style.length > 0 ? '<br>' : ''}`;
   };
 
-  console.log(request);
+  console.log(request, response);
 
   return (
     <div className='w-full'>
@@ -113,9 +112,7 @@ const DownStreamForm = ({
                     }} />
                     :
                     <pre dangerouslySetInnerHTML={{
-                      __html: transform(request?.body ? {
-                        ...request?.body
-                      } : { })
+                      __html: transform(request?.body ? { body: request?.body?.raw} : { })
                     }} />
                 }
               </div>
@@ -132,13 +129,61 @@ const DownStreamForm = ({
                     JSON
                   </div>
                   <div className='w-fit text-f13 flex text-o-text-muted'>
-                    Code: {response?.['0']?.code}
+                    {
+                      response?.['0']?.code ?
+                        `Code: ${response?.['0']?.code}` :
+                        ''
+                    }
                   </div>
                 </div>
-                <pre dangerouslySetInnerHTML={{
-                  __html: transform({ responseBody })
-                }} />
+
+                <div className='flex items-center gap-5 border-b border-o-border'>
+                {
+                  ([{ id: 1, value: 'body' },{ id: 2, value: 'Request URL' }])
+                    ?.map((data) => (
+                    <div 
+                      key={data?.id} 
+                      className='relative whitespace-nowrap w-fit flex flex-col px-[4px] pt-[9px] pb-[11px]'
+                    >
+                      <div 
+                        className={`${currentResValue == data?.value ? 'text-o-blue font-[500]' : 'text-o-text-medium3'} 
+                        capitalize text-f14 flex items-center gap-3 hover:text-o-blue`}
+                      >
+                        <div 
+                          onClick={() => setCurrentResValue(data?.value)}
+                          className='w-fit cursor-pointer capitalize'
+                        >
+                          {data?.value}
+                        </div>
+                      </div>
+
+                      {
+                        currentResValue == data?.value &&
+                        <motion.div
+                          className='pane-underline'
+                          layoutId='top-pane-underline'
+                        ></motion.div>
+                      }
+                    </div>
+                  ))
+                }
+                </div>
+
+                {
+                  currentResValue == 'body' &&
+                  <pre dangerouslySetInnerHTML={{
+                    __html: transform({ responseBody })
+                  }} />
+                }
+
+                {
+                  currentResValue == 'Request URL' &&
+                  <div className='text-f14 text-o-text-dark'>
+                    {rawData?.downstream?.url}
+                  </div>
+                }
               </div>
+
             </div>
           </div>
           :
