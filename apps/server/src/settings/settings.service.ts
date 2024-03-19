@@ -349,10 +349,13 @@ export class SettingsService {
     );
 
     if (company.tier) {
-      await this.kongConsumerService.updateConsumerAcl(environment, {
-        aclAllowedGroupName: `tier-${company.tier}`,
-        consumerId: response.id,
-      });
+      // TODO optimize
+      await this.kongConsumerService
+        .updateConsumerAcl(environment, {
+          aclAllowedGroupName: `tier-${company.tier}`,
+          consumerId: response.id,
+        })
+        .catch(console.error);
     }
 
     return response.id;
