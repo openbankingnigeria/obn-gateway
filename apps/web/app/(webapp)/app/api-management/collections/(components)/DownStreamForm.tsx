@@ -73,8 +73,8 @@ const DownStreamForm = ({
                 <div className='flex items-center gap-5 border-b border-o-border'>
                 {
                   (request?.body ? 
-                    [{ id: 1, value: 'header' },{ id: 2, value: 'body' }] 
-                    : [{ id: 1, value: 'header' }]
+                    [{ id: 1, value: 'header' },{ id: 2, value: 'Request URL' },{ id: 3, value: 'body' }] 
+                    : [{ id: 1, value: 'header' }, { id: 2, value: 'Request URL' }]
                   )
                     ?.map((data) => (
                     <div 
@@ -111,9 +111,14 @@ const DownStreamForm = ({
                       __html: transform({ header: request?.header })
                     }} />
                     :
-                    <pre dangerouslySetInnerHTML={{
-                      __html: transform(request?.body ? { body: request?.body?.raw} : { })
-                    }} />
+                    currentValue == 'Request URL' ?
+                      <div className='text-f14 text-o-text-dark'>
+                        {rawData?.downstream?.url}
+                      </div>
+                      :
+                      <pre dangerouslySetInnerHTML={{
+                        __html: transform(request?.body ? { body: request?.body?.raw} : { })
+                      }} />
                 }
               </div>
             </div>
@@ -128,6 +133,7 @@ const DownStreamForm = ({
                   <div className='w-fit text-f13 p-2 rounded-[6px] border border-o-border bg-o-bg2'>
                     JSON
                   </div>
+
                   <div className='w-fit text-f13 flex text-o-text-muted'>
                     {
                       response?.['0']?.code ?
@@ -137,9 +143,9 @@ const DownStreamForm = ({
                   </div>
                 </div>
 
-                <div className='flex items-center gap-5 border-b border-o-border'>
+                {/* <div className='flex items-center gap-5 border-b border-o-border'>
                 {
-                  ([{ id: 1, value: 'body' },{ id: 2, value: 'Request URL' }])
+                  ([{ id: 1, value: 'body' },])
                     ?.map((data) => (
                     <div 
                       key={data?.id} 
@@ -167,21 +173,11 @@ const DownStreamForm = ({
                     </div>
                   ))
                 }
-                </div>
+                </div> */}
 
-                {
-                  currentResValue == 'body' &&
-                  <pre dangerouslySetInnerHTML={{
-                    __html: transform({ responseBody })
-                  }} />
-                }
-
-                {
-                  currentResValue == 'Request URL' &&
-                  <div className='text-f14 text-o-text-dark'>
-                    {rawData?.downstream?.url}
-                  </div>
-                }
+                <pre dangerouslySetInnerHTML={{
+                  __html: transform({ responseBody })
+                }} />
               </div>
 
             </div>
