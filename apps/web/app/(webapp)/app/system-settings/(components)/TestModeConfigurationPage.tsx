@@ -198,15 +198,16 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
             }
 
             {
-              (resetAPIKey || setRestrictions) && updateSettings &&
-              <Button 
-              title='Save changes'
-              type='submit'
-              containerStyle='!w-[120px]'
-              // disabled={incorrect || !isChanged}
-              disabled={!isChanged}
-              small
-            />
+              // (resetAPIKey || setRestrictions) && updateSettings &&
+              // updateSettings &&
+                <Button 
+                title='Save changes'
+                type='submit'
+                containerStyle='!w-[120px]'
+                // disabled={incorrect || !isChanged}
+                disabled={!isChanged}
+                small
+              />
             }
           </div>
         </div>
