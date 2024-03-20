@@ -197,7 +197,8 @@ const LiveModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
             }
 
             {
-              (resetAPIKey || setRestrictions) && updateSettings &&
+              // (resetAPIKey || setRestrictions) && updateSettings &&
+              // updateSettings &&
               <Button 
               title='Save changes'
               type='submit'
