@@ -41,7 +41,7 @@ services:
 
   kong-migrations:
     image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
-    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations bootstrap"] #replace x-kong- headers with x-
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type d -name 'plugins' -prune -o -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type d -name 'plugins' -prune -o -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations bootstrap"] #replace x-kong- headers with x-
     environment:
       <<: *kong-env
     secrets:
@@ -56,7 +56,7 @@ services:
 
   kong-migrations-up:
     image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
-    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations up && /docker-entrypoint.sh kong migrations finish"] #replace x-kong- headers with x-
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type d -name 'plugins' -prune -o -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type d -name 'plugins' -prune -o -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong migrations up && /docker-entrypoint.sh kong migrations finish"] #replace x-kong- headers with x-
     environment:
       <<: *kong-env
     secrets:
@@ -76,7 +76,7 @@ services:
       <<: *kong-env
     secrets:
       - kong_postgres_password
-    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong docker-start"] #replace x-kong- headers with x-
+    command: ["/bin/sh", "-c", "find /usr/local/share/lua/5.1/kong -type d -name 'plugins' -prune -o -type f -exec sed -i 's/X-Kong-/X-/g' {} + && find /usr/local/share/lua/5.1/kong -type d -name 'plugins' -prune -o -type f -exec sed -i 's/x-kong-request-id/x-request-id/g' {} + && /docker-entrypoint.sh kong docker-start"] #replace x-kong- headers with x-
     networks:
       - kong-net
       - elastic-net
