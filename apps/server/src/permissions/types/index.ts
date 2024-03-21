@@ -81,6 +81,8 @@ export const PROVIDER_PERMISSIONS = {
   ENABLE_TWOFA: 'enable-twofa',
   DISABLE_TWOFA: 'disable-twofa',
   CHANGE_PASSWORD: 'change-password',
+
+  VIEW_COMPANY_DETAILS: 'view-company-details',
 };
 
 export const CONSUMER_PERMISSIONS = {

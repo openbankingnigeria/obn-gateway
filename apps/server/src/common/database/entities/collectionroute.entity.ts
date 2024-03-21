@@ -19,6 +19,9 @@ export class CollectionRoute {
   @Column()
   name: string;
 
+  @Column()
+  slug: string;
+
   @Column({
     name: 'method',
     type: 'enum',

@@ -59,7 +59,7 @@ export class Company {
   @Column({ nullable: true })
   subtype: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false, default: '0' })
   tier?: string;
 
   @OneToMany(() => User, (user) => user.company)

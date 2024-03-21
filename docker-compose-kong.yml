@@ -13,10 +13,10 @@ x-kong-config:
   KONG_PROXY_ACCESS_LOG: /dev/stdout
   KONG_PROXY_ERROR_LOG: /dev/stderr
   KONG_PREFIX: ${KONG_PREFIX:-/var/run/kong}
-  # KONG_UNTRUSTED_LUA_SANDBOX_ENVIRONMENT: setmetatable
   KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: cjson.safe
   KONG_PROXY_LISTEN: "${KONG_PROXY_LISTEN:-0.0.0.0:8000}"
   KONG_ADMIN_LISTEN: "${KONG_ADMIN_LISTEN:-0.0.0.0:8001}"
+  KONG_PLUGINS: "bundled,obn-token-introspection"
 
 services:
   kong-db:
@@ -91,5 +91,6 @@ services:
       - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
       - kong_tmp_vol:/tmp
       - ./config:/opt/kong
+      - ./apps/kong/plugins/obn-token-introspection:/usr/local/share/lua/5.1/kong/plugins/obn-token-introspection
     security_opt:
       - no-new-privileges

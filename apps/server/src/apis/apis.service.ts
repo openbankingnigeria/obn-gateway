@@ -128,6 +128,7 @@ export class APIService {
           {
             id: route.id,
             name: route.name,
+            slug: route.slug,
             enabled: route.enabled,
             collectionId: route.collectionId,
             tiers: route.tiers || [],
@@ -212,6 +213,7 @@ export class APIService {
 
     // TODO optimize
     function objectToMap(obj: any) {
+      if (!obj) return obj;
       const map = new Map();
       Object.entries(obj).forEach(([key, value]) => {
         if (Array.isArray(value)) {
@@ -238,6 +240,7 @@ export class APIService {
         {
           id: route.id,
           name: route.name,
+          slug: route.slug,
           enabled: route.enabled,
           collectionId: route.collectionId,
           tiers: route.tiers || [],
@@ -343,7 +346,14 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     data: CreateAPIDto,
   ) {
-    const { name, enabled, downstream, upstream, tiers = [] } = data;
+    const {
+      name,
+      enabled,
+      downstream,
+      upstream,
+      tiers = [],
+      slug = slugify(name, { strict: true, lower: true }),
+    } = data;
 
     const collection = await this.collectionRepository.findOne({
       where: { id: Equal(data.collectionId) },
@@ -399,7 +409,6 @@ export class APIService {
     );
 
     // Create an ACL on the route created and assign it an ACL group name
-    // TODO move to an event listener
     if (tiers || environment !== KONG_ENVIRONMENT.DEVELOPMENT) {
       const allow = [
         environment !== KONG_ENVIRONMENT.DEVELOPMENT
@@ -438,6 +447,7 @@ export class APIService {
       this.routeRepository.create({
         id: routeId,
         name,
+        slug,
         environment,
         serviceId: gatewayService.id,
         routeId: gatewayRoute.id,
@@ -461,6 +471,29 @@ export class APIService {
         enabled: !enabled,
       },
     );
+
+    if (this.config.get('registry.introspectionEndpoint')[environment]) {
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.OBN_TOKEN_INTROSPECTION,
+          enabled: true,
+          config: {
+            introspection_endpoint: this.config.get(
+              'registry.introspectionEndpoint',
+            )[environment],
+            client_id: this.config.get('registry.introspectionClientID')[
+              environment
+            ],
+            client_secret: this.config.get(
+              'registry.introspectionClientSecret',
+            )[environment],
+            scope: [slug],
+          },
+        },
+      );
+    }
 
     if (
       upstream.headers ||
@@ -504,6 +537,7 @@ export class APIService {
         {
           id: createdRoute.id,
           name: createdRoute.name,
+          slug: createdRoute.slug,
           enabled: createdRoute.enabled,
           collectionId: createdRoute.collectionId,
           tiers: createdRoute.tiers || [],
@@ -737,6 +771,7 @@ export class APIService {
     data: UpdateAPIDto,
   ) {
     const { name, enabled, downstream, upstream, tiers } = data;
+    let { slug } = data;
 
     const route = await this.routeRepository.findOne({
       where: { id: Equal(routeId), environment },
@@ -798,10 +833,13 @@ export class APIService {
       });
     }
 
+    slug = slug || route.slug || slugify(name, { strict: true, lower: true });
+
     await this.routeRepository.update(
       { id: route.id, environment },
       {
         name,
+        slug,
         serviceId: gatewayService.id,
         routeId: gatewayRoute.id,
         enabled,
@@ -829,6 +867,29 @@ export class APIService {
         {
           name: KONG_PLUGINS.REQUEST_TERMINATION,
           enabled: true,
+        },
+      );
+    }
+
+    if (this.config.get('registry.introspectionEndpoint')[environment]) {
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.OBN_TOKEN_INTROSPECTION,
+          enabled: true,
+          config: {
+            introspection_endpoint: this.config.get(
+              'registry.introspectionEndpoint',
+            )[environment],
+            client_id: this.config.get('registry.introspectionClientID')[
+              environment
+            ],
+            client_secret: this.config.get(
+              'registry.introspectionClientSecret',
+            )[environment],
+            scope: [slug],
+          },
         },
       );
     }
@@ -898,6 +959,7 @@ export class APIService {
         {
           id: route.id,
           name: data.name || route.name,
+          slug,
           enabled: data.enabled || route.enabled,
           collectionId: route.collectionId,
           tiers: data.tiers || route.tiers || [],
@@ -1320,6 +1382,7 @@ export class APIService {
           {
             id: route.id,
             name: route.name,
+            slug: route.slug,
             enabled: route.enabled,
             collectionId: route.collectionId,
             tiers: route.tiers || [],

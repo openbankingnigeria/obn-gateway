@@ -94,6 +94,9 @@ export class CreateAPIDto {
   @IsString()
   name: string;
 
+  @IsString()
+  slug?: string;
+
   @IsBoolean()
   enabled: boolean;
 
@@ -179,6 +182,9 @@ export class UpdateAPIDto {
   @IsNotEmpty()
   @IsString()
   name: string;
+
+  @IsString()
+  slug?: string;
 
   @IsBoolean()
   enabled: boolean;
@@ -278,6 +284,9 @@ export class GetAPIResponseDTO {
 
   @Expose()
   name: string;
+
+  @Expose()
+  slug: string;
 
   @Expose()
   enabled: boolean;

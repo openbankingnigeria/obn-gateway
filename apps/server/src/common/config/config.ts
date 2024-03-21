@@ -62,6 +62,23 @@ export const globalConfig = (): {
           '',
       },
     },
+    registry: {
+      introspectionEndpoint: {
+        development:
+          process.env.REGISTRY_INTROSPECTION_ENDPOINT ??
+          process.env.REGISTRY_INTROSPECTION_ENDPOINT_DEVELOPMENT,
+      },
+      introspectionClientID: {
+        development:
+          process.env.REGISTRY_INTROSPECTION_CLIENT_ID ??
+          process.env.REGISTRY_INTROSPECTION_CLIENT_ID_DEVELOPMENT,
+      },
+      introspectionClientSecret: {
+        development:
+          process.env.REGISTRY_INTROSPECTION_CLIENT_SECRET ??
+          process.env.REGISTRY_INTROSPECTION_CLIENT_SECRET_DEVELOPMENT,
+      },
+    },
     logging: {
       endpoint: process.env.LOGSTASH_ENDPOINT,
     },
@@ -93,6 +110,36 @@ export const globalConfig = (): {
         .split('KONG_GATEWAY_API_ENDPOINT_')[1]
         .toLowerCase();
       config.kong.gatewayEndpoint[environment] = process.env[env];
+    }
+
+    if (
+      env.startsWith('REGISTRY_INTROSPECTION_ENDPOINT_') &&
+      process.env[env]
+    ) {
+      const environment = env
+        .split('REGISTRY_INTROSPECTION_ENDPOINT_')[1]
+        .toLowerCase();
+      config.registry.introspectionEndpoint[environment] = process.env[env];
+    }
+
+    if (
+      env.startsWith('REGISTRY_INTROSPECTION_CLIENT_ID_') &&
+      process.env[env]
+    ) {
+      const environment = env
+        .split('REGISTRY_INTROSPECTION_CLIENT_ID_')[1]
+        .toLowerCase();
+      config.registry.introspectionClientID[environment] = process.env[env];
+    }
+
+    if (
+      env.startsWith('REGISTRY_INTROSPECTION_CLIENT_SECRET_') &&
+      process.env[env]
+    ) {
+      const environment = env
+        .split('REGISTRY_INTROSPECTION_CLIENT_SECRET_')[1]
+        .toLowerCase();
+      config.registry.introspectionClientSecret[environment] = process.env[env];
     }
   }
   return config;
