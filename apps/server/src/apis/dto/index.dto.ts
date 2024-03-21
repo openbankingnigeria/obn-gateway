@@ -184,6 +184,7 @@ export class UpdateAPIDto {
   name: string;
 
   @IsString()
+  @IsOptional()
   slug?: string;
 
   @IsBoolean()
