@@ -8,6 +8,7 @@ export enum SettingsEvents {
   GENERATE_API_KEY = 'settings.api.key.create',
   SET_IP_RESTRICTIOIN = 'settings.api.restriction.create',
   EDIT_SETTINGS = 'settings.update',
+  SET_CLIENT_EVENT = 'settings.api.client.create',
 }
 
 export class SettingsEvent extends BaseEvent {
@@ -71,5 +72,14 @@ export class EditSettingsEvent extends SettingsEvent {
     public readonly metadata: any,
   ) {
     super(SettingsEvents.EDIT_SETTINGS, author, metadata);
+  }
+}
+
+export class SetClientEvent extends SettingsEvent {
+  constructor(
+    public readonly author: User,
+    public readonly metadata: any,
+  ) {
+    super(SettingsEvents.SET_CLIENT_EVENT, author, metadata);
   }
 }

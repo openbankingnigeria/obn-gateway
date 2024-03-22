@@ -43,7 +43,7 @@ export enum KONG_PLUGINS {
   KEY_AUTH = 'key-auth',
   IP_RESTRICTION = 'ip-restriction',
   CORRELATION_ID = 'correlation-id',
-  PRE_FUNCTION = 'pre-function',
+  POST_FUNCTION = 'post-function',
   REQUEST_TRANSFORMER = 'request-transformer',
   OBN_TOKEN_INTROSPECTION = 'obn-token-introspection',
 }

@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import {
+  ClientRequest,
   IPRestrictionRequest,
   SettingsUpdateDtos,
   UpdateCompanySubtypesRequest,
@@ -104,6 +105,31 @@ export class SettingsController {
     @Body() data: IPRestrictionRequest,
   ) {
     return this.settingsService.setIPRestriction(ctx, environment, data);
+  }
+
+  @Get('client/:environment')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_CLIENT)
+  @RequireTwoFA()
+  @UseInterceptors(APIInterceptor)
+  getClientID(
+    @Ctx() ctx: RequestContext,
+    @Param('environment') environment: KONG_ENVIRONMENT,
+  ) {
+    return this.settingsService.getClient(ctx, environment);
+  }
+
+  @Put('client/:environment')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.SET_CLIENT)
+  @RequireTwoFA()
+  @UseInterceptors(APIInterceptor)
+  setClientID(
+    @Ctx() ctx: RequestContext,
+    @Param('environment') environment: KONG_ENVIRONMENT,
+    @Body() data: ClientRequest,
+  ) {
+    return this.settingsService.setClient(ctx, environment, data);
   }
 
   @Put(':settingsType')

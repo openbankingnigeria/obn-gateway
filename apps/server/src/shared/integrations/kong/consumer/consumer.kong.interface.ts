@@ -1,5 +1,5 @@
 export interface CreateConsumerRequest {
-  username: string;
+  username?: string;
   custom_id: string;
   tags?: string[];
 }

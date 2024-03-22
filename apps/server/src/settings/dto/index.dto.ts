@@ -128,6 +128,24 @@ export class IPRestrictionResponse {
   environment: string;
 }
 
+export class ClientRequest {
+  @IsString()
+  clientId: string;
+}
+
+export class ClientResponse {
+  constructor(partial: Partial<ClientResponse>) {
+    Object.assign(this, partial);
+  }
+
+  @Expose()
+  @IsString()
+  clientId: string;
+
+  @Expose()
+  environment: string;
+}
+
 export class GeneralSettingsUpdateDto
   implements Record<keyof GeneralSettingsInterface, string>
 {

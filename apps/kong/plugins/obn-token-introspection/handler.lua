@@ -52,13 +52,11 @@ end
 local function verify_scope(scope, required_scope)
   local set = {}
     
-  -- Split string a into words and store them in a set
-  for word in ngx.re.gmatch(scope, "%S+") do
+  for word in string.gmatch(scope, "([^%s]+)") do
     set[word] = true
   end
 
-  -- Check if all words in b are present in the set
-  for word in ngx.re.gmatch(required_scope, "%S+") do
+  for _, word in ipairs(required_scope) do
       if not set[word] then
           return false
       end
@@ -115,14 +113,14 @@ function OBNTokenIntrospection:access(config)
   end
   -- If specific scopes are required, validate that the token contains the required scopes
   if config.scope then
-    if not verify_scope(config.scope, jwt.scope) then
+    if not verify_scope(jwt.scope, config.scope) then
       return kong.response.error(403, "The resource owner or authorization server denied the request.")
     end
   end
 
   local consumer = kong.client.get_consumer()
 
-  if jwt.client_id == nil or jwt.client_id == "" or consumer.id == nil or consumer.id == "" or jwt.client_id ~= consumer.id then
+  if jwt.client_id == nil or jwt.client_id == "" or consumer.username == nil or consumer.username == "" or jwt.client_id ~= consumer.username then
     return kong.response.error(403, "You are not authorized to access this resource.")
   end
   -- Authorization successful, set headers based on information from access token

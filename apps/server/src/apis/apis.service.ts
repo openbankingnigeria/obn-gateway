@@ -129,6 +129,7 @@ export class APIService {
             id: route.id,
             name: route.name,
             slug: route.slug,
+            introspectAuthorization: route.introspectAuthorization,
             enabled: route.enabled,
             collectionId: route.collectionId,
             tiers: route.tiers || [],
@@ -241,6 +242,7 @@ export class APIService {
           id: route.id,
           name: route.name,
           slug: route.slug,
+          introspectAuthorization: route.introspectAuthorization,
           enabled: route.enabled,
           collectionId: route.collectionId,
           tiers: route.tiers || [],
@@ -353,6 +355,7 @@ export class APIService {
       upstream,
       tiers = [],
       slug = slugify(name, { strict: true, lower: true }),
+      introspectAuthorization = false,
     } = data;
 
     const collection = await this.collectionRepository.findOne({
@@ -449,6 +452,7 @@ export class APIService {
         name,
         slug,
         environment,
+        introspectAuthorization,
         serviceId: gatewayService.id,
         routeId: gatewayRoute.id,
         collectionId: data.collectionId,
@@ -472,7 +476,7 @@ export class APIService {
       },
     );
 
-    if (this.config.get('registry.introspectionEndpoint')[environment]) {
+    if (introspectAuthorization) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
@@ -538,6 +542,7 @@ export class APIService {
           id: createdRoute.id,
           name: createdRoute.name,
           slug: createdRoute.slug,
+          introspectAuthorization: createdRoute.introspectAuthorization,
           enabled: createdRoute.enabled,
           collectionId: createdRoute.collectionId,
           tiers: createdRoute.tiers || [],
@@ -771,7 +776,7 @@ export class APIService {
     data: UpdateAPIDto,
   ) {
     const { name, enabled, downstream, upstream, tiers } = data;
-    let { slug } = data;
+    let { slug, introspectAuthorization } = data;
 
     const route = await this.routeRepository.findOne({
       where: { id: Equal(routeId), environment },
@@ -834,12 +839,15 @@ export class APIService {
     }
 
     slug = slug || route.slug || slugify(name, { strict: true, lower: true });
+    introspectAuthorization =
+      introspectAuthorization ?? route.introspectAuthorization;
 
     await this.routeRepository.update(
       { id: route.id, environment },
       {
         name,
         slug,
+        introspectAuthorization,
         serviceId: gatewayService.id,
         routeId: gatewayRoute.id,
         enabled,
@@ -871,7 +879,7 @@ export class APIService {
       );
     }
 
-    if (this.config.get('registry.introspectionEndpoint')[environment]) {
+    if (introspectAuthorization) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
@@ -960,6 +968,7 @@ export class APIService {
           id: route.id,
           name: data.name || route.name,
           slug,
+          introspectAuthorization,
           enabled: data.enabled || route.enabled,
           collectionId: route.collectionId,
           tiers: data.tiers || route.tiers || [],
@@ -1383,6 +1392,7 @@ export class APIService {
             id: route.id,
             name: route.name,
             slug: route.slug,
+            introspectAuthorization: route.introspectAuthorization,
             enabled: route.enabled,
             collectionId: route.collectionId,
             tiers: route.tiers || [],
@@ -1451,7 +1461,7 @@ export class APIService {
     );
 
     const plugin = plugins.data.find(
-      (plugin) => plugin.name === KONG_PLUGINS.PRE_FUNCTION,
+      (plugin) => plugin.name === KONG_PLUGINS.POST_FUNCTION,
     );
 
     if (!plugin) {
@@ -1498,7 +1508,7 @@ export class APIService {
           // this is required to ensure that we dont send an invalid content length to the downstream/client
           header_filter: ['kong.response.clear_header("Content-Length")'],
         },
-        name: KONG_PLUGINS.PRE_FUNCTION,
+        name: KONG_PLUGINS.POST_FUNCTION,
         enabled: true,
       },
     );

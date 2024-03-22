@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { isString } from 'class-validator';
 import {
   ApiKeyResponse,
+  ClientRequest,
+  ClientResponse,
   EmailTemplateDto,
   IPRestrictionRequest,
   IPRestrictionResponse,
@@ -33,6 +35,7 @@ import {
   EditSettingsEvent,
   GenerateApiKeyEvent,
   GetApiKeyEvent,
+  SetClientEvent,
   SetIPRestrictionEvent,
   UpdateCompanySubtypesEvent,
   UpdateKybRequirementsEvent,
@@ -647,5 +650,46 @@ export class SettingsService {
         settingsValue,
       );
     }
+  }
+
+  async getClient(ctx: RequestContext, environment: KONG_ENVIRONMENT) {
+    const response = await this.kongConsumerService.updateOrCreateConsumer(
+      environment,
+      {
+        custom_id: ctx.activeCompany.id,
+      },
+    );
+    return ResponseFormatter.success(
+      'Client Info retrieved successfully',
+      new ClientResponse({
+        clientId: response.username,
+        environment,
+      }),
+    );
+  }
+
+  async setClient(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    data: ClientRequest,
+  ) {
+    const response = await this.kongConsumerService.updateOrCreateConsumer(
+      environment,
+      {
+        custom_id: ctx.activeCompany.id,
+        username: data.clientId,
+      },
+    );
+
+    const event = new SetClientEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
+    return ResponseFormatter.success(
+      'Client Info set successfully',
+      new ClientResponse({
+        clientId: response.username,
+        environment,
+      }),
+    );
   }
 }

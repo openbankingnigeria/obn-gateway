@@ -114,6 +114,8 @@ export class CreateAPIDto {
   @IsString({ each: true })
   @IsEnum(CompanyTiers, { each: true })
   tiers: (number | `${number}`)[];
+
+  introspectAuthorization: boolean;
 }
 
 class UpdateAPIDownstreamDTO {
@@ -204,6 +206,8 @@ export class UpdateAPIDto {
   @IsString({ each: true })
   @IsEnum(CompanyTiers, { each: true })
   tiers: (number | `${number}`)[];
+
+  introspectAuthorization: boolean;
 }
 
 export class APIParam {
@@ -291,6 +295,9 @@ export class GetAPIResponseDTO {
 
   @Expose()
   enabled: boolean;
+
+  @Expose()
+  introspectAuthorization: boolean;
 
   @Expose()
   collectionId: string;

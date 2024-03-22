@@ -48,15 +48,18 @@ export class KongConsumerService {
 
   async updateOrCreateConsumer(
     environment: KONG_ENVIRONMENT,
-    data: Partial<CreateConsumerRequest>,
+    data: CreateConsumerRequest,
   ) {
+    const consumer = await this.getConsumer(environment, data.custom_id).catch(
+      console.error,
+    );
     const response = await firstValueFrom(
       this.httpService
         .put<CreateConsumerResponse>(
           `${this.config.get('kong.adminEndpoint')[environment]}/consumers/${
-            data.custom_id || data.username
+            data.custom_id
           }`,
-          data,
+          { ...consumer, ...data },
         )
         .pipe(
           catchError((error: AxiosError) => {

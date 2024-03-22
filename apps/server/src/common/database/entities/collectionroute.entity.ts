@@ -23,6 +23,14 @@ export class CollectionRoute {
   slug: string;
 
   @Column({
+    name: 'introspect_authorization',
+    type: 'boolean',
+    nullable: false,
+    default: false,
+  })
+  introspectAuthorization: boolean;
+
+  @Column({
     name: 'method',
     type: 'enum',
     default: HTTP_METHODS.GET,

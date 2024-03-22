@@ -669,6 +669,9 @@ export class AuthService {
       where: {
         email: Equal(email),
       },
+      relations: {
+        company: true,
+      },
     });
 
     if (!user) {
@@ -707,7 +710,7 @@ export class AuthService {
     await this.kongConsumerService.updateOrCreateConsumer(
       KONG_ENVIRONMENT.DEVELOPMENT,
       {
-        custom_id: user.companyId,
+        custom_id: user.company!.id,
       },
     );
 

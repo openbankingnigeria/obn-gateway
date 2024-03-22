@@ -53,7 +53,7 @@ export class CompanyController {
   @Get('company/me')
   @RequiredPermission(PERMISSIONS.VIEW_COMPANY_DETAILS)
   getCompanyDetails(@Ctx() ctx: RequestContext) {
-    return this.companyService.getCompanyDetails(ctx);
+    return this.companyService.getCompanyDetails(ctx, ctx.activeCompany.id);
   }
 
   @Get('company/types')

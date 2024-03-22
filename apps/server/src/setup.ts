@@ -248,6 +248,8 @@ export class SetupService {
                   collectionId: collection.data!.id,
                   name,
                   enabled: false,
+                  introspectAuthorization:
+                    collection.data!.slug !== 'authorization',
                   upstream: {
                     url:
                       environment === KONG_ENVIRONMENT.DEVELOPMENT
