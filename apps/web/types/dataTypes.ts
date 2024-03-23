@@ -107,6 +107,7 @@ export interface TestModeConfigurationProps {
   callback_url?: string;
   ip_whitelist?: string;
   timeout?: string;
+  clientId?: string
 }
 
 export interface LiveModeConfigurationProps {
@@ -118,6 +119,7 @@ export interface LiveModeConfigurationProps {
   callback_url?: string;
   ip_whitelist?: string;
   timeout?: string;
+  clientId?: string
 }
 
 export interface StatDataProps {

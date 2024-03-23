@@ -12,7 +12,6 @@ import { StatusBox } from '@/app/(webapp)/(components)'
 import { useRouter } from 'next/navigation'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
-import { getJsCookies } from '@/config/jsCookie'
 
 const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
   const [loading, setLoading] = useState(false);
@@ -132,7 +131,6 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
       data: formData
     })
 
-    // console.log(result?.status == 200)
     setLoading(false);
     if (result?.status == 200) {
       router?.refresh();

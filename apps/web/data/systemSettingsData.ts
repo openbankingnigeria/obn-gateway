@@ -97,14 +97,14 @@ export const SYSTEM_SETTINGS_PATHS = [
     type: 'api-provider',
     subType: 'api-provider'
   },
-  {
-    id: 12,
-    label: 'Client ID',
-    value: 'client_id',
-    name: 'client_id',
-    type: 'api-consumer',
-    subType: 'licensed-entity,business'
-  },
+  // {
+  //   id: 12,
+  //   label: 'Client ID',
+  //   value: 'client_id',
+  //   name: 'client_id',
+  //   type: 'api-consumer',
+  //   subType: 'licensed-entity,business'
+  // },
 ];
 
 export const EMAIL_PROVIDERS = [
@@ -192,6 +192,7 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
   // webhook_url,
   // callback_url,
   ip_whitelist,
+  clientId
   // timeout
 }: TestModeConfigurationProps) => [
   // {
@@ -272,6 +273,17 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
   //   rightLabel: 'secs',
   //   role: 'Other AC'
   // },
+  {
+    id: 9,
+    label: 'Client ID',
+    description: 'Your unique client ID',
+    name: 'clientId',
+    type: 'text',
+    permit: '',
+    value: clientId,
+    rightLabel: '',
+    role: 'Other AC'
+  },
 ];
 
 
@@ -283,6 +295,7 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
   // webhook_url,
   // callback_url,
   ip_whitelist,
+  clientId
   // timeout
 }: LiveModeConfigurationProps) => [
   // {
@@ -363,6 +376,17 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
   //   rightLabel: 'secs',
   //   role: 'Other AC'
   // },
+  {
+    id: 9,
+    label: 'Client ID',
+    description: 'Your unique client ID',
+    name: 'clientId',
+    type: 'text',
+    permit: '',
+    value: clientId,
+    rightLabel: '',
+    role: 'Other AC'
+  },
 ];
 
 export const EXTERNAL_SERVICES_DATA = ({

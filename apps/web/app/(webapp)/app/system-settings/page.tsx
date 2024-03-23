@@ -2,7 +2,7 @@ import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
 import { ToastMessage, TopPanel } from '../../(components)';
 import { SYSTEM_SETTINGS_PATHS } from '@/data/systemSettingsData';
-import { BusinessInformationPage, ClientIdPage, EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage, UserAgreementsPage } from './(components)';
+import { BusinessInformationPage, EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage, UserAgreementsPage } from './(components)';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
@@ -93,10 +93,20 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
+  const fetchedClientId: any = !apiProvider ? await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getClientId({
+      environment
+    }),
+    method: 'GET',
+    data: null
+  }) : null;
+
   let companyTypes = fetchedTypes?.data?.companySubtypes;
   let ips = fetchedIps?.data;
   let apiKey = fetchedAPI?.data;
   let settings = fetchedSettings?.data;
+  let clientId = fetchedClientId?.data
 
   const rawPanel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => 
     path?.type?.includes(profile?.user?.role?.parent?.slug) && (
@@ -114,7 +124,8 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
 
   const configData = {
     ips: ips?.ips,
-    key: apiKey?.key
+    key: apiKey?.key,
+    clientId: clientId?.clientId
   }
 
   const notIndividual = (
@@ -204,13 +215,6 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                   rawData={configData}
                   profileData={profile}
                 /> :
-                  (
-                    path == 'client_id'
-                  ) ? 
-                  <ClientIdPage 
-                    rawData={null}
-                    profileData={profile}
-                  /> :
                   (
                     path == 'live_mode_configuration' && 
                     details?.isVerified
