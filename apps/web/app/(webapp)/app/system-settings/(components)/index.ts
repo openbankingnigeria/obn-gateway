@@ -8,6 +8,7 @@ import LiveModeConfigurationPage from "./LiveModeConfigurationPage";
 import BusinessInformationPage from "./BusinessInformationPage";
 import OnboardingSettingsPage from "./OnboardingSettingsPage";
 import UserAgreementsPage from "./UserAgreementsPage";
+import ClientIdPage from './ClientIdPage';
 
 export {
   GeneralSettingsPage,
@@ -19,5 +20,6 @@ export {
   LiveModeConfigurationPage,
   BusinessInformationPage,
   OnboardingSettingsPage,
-  UserAgreementsPage
+  UserAgreementsPage,
+  ClientIdPage
 }
