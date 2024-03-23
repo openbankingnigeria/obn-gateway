@@ -1,4 +1,4 @@
-import { BusinessInformationDataProps, EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, OnboardingSettingsProps, TestModeConfigurationProps, UserAgreementsProps } from "@/types/dataTypes";
+import { BusinessInformationDataProps, ClientIdDataProps, EmailServiceProps, ExternalServicesProps, GeneralSettingsDataProps, LiveModeConfigurationProps, MockServicesProps, OnboardingSettingsProps, TestModeConfigurationProps, UserAgreementsProps } from "@/types/dataTypes";
 
 export const SYSTEM_SETTINGS_PATHS = [
   {
@@ -96,6 +96,14 @@ export const SYSTEM_SETTINGS_PATHS = [
     name: 'onboarding_custom_fields',
     type: 'api-provider',
     subType: 'api-provider'
+  },
+  {
+    id: 12,
+    label: 'Client ID',
+    value: 'client_id',
+    name: 'client_id',
+    type: 'api-consumer',
+    subType: 'licensed-entity,business'
   },
 ];
 
@@ -529,9 +537,24 @@ export const EMAIL_SERVICE_DATA = ({
   },
 ];
 
+export const CLIENT_ID_DATA = ({
+  clientId
+}: ClientIdDataProps) => [
+  {
+    id: 1,
+    label: 'Client ID',
+    description: '',
+    name: 'clientId',
+    type: 'string',
+    fileType: '',
+    placeholder: 'Client ID',
+    rightLabel: '',
+    value: clientId
+  },
+];
+
 
 export const BUSINESS_INFORMATION_DATA = ({
-  clientId,
   cac,
   tin,
   regulator_license,
@@ -544,17 +567,6 @@ export const BUSINESS_INFORMATION_DATA = ({
   company_status_report_file,
   company_status_report_file_type
 }: BusinessInformationDataProps) => [
-  {
-    id: 0,
-    label: 'Client ID',
-    description: '',
-    name: 'clientId',
-    type: 'string',
-    fileType: '',
-    placeholder: 'Client ID',
-    rightLabel: '',
-    value: clientId
-  },
   {
     id: 1,
     label: 'CAC Registration Number',

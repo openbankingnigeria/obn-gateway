@@ -2,7 +2,7 @@ import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
 import { ToastMessage, TopPanel } from '../../(components)';
 import { SYSTEM_SETTINGS_PATHS } from '@/data/systemSettingsData';
-import { BusinessInformationPage, EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage, UserAgreementsPage } from './(components)';
+import { BusinessInformationPage, ClientIdPage, EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage, UserAgreementsPage } from './(components)';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
@@ -204,6 +204,13 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                   rawData={configData}
                   profileData={profile}
                 /> :
+                  (
+                    path == 'client_id'
+                  ) ? 
+                  <ClientIdPage 
+                    rawData={null}
+                    profileData={profile}
+                  /> :
                   (
                     path == 'live_mode_configuration' && 
                     details?.isVerified

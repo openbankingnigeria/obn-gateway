@@ -40,8 +40,11 @@ export interface GeneralSettingsDataProps {
   failedLoginAttempts: SettingsInputProps;
 }
 
-export interface BusinessInformationDataProps {
+export interface ClientIdDataProps {
   clientId: string
+}
+
+export interface BusinessInformationDataProps {
   cac: string,
   tin: string,
   regulator_license: string,
