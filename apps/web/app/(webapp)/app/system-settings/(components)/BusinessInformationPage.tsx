@@ -286,7 +286,9 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
                       changeEvent={(e: ChangeEvent<HTMLInputElement>) => {
                         data?.name == 'cac' ? 
                           handleCac(e.target.value) :
-                          handleTin(e.target.value)
+                          data?.name == 'tin' ? 
+                          handleTin(e.target.value) :
+                          setClientId(e.target.value)
                       }}
                       required
                       rightIcon={
