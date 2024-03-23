@@ -10,6 +10,7 @@ import { ConfirmCancel } from '.'
 import { useRouter } from 'next/navigation'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
+import { getJsCookies } from '@/config/jsCookie'
 
 const AddBusinessInformation = ({
   close,
@@ -17,8 +18,10 @@ const AddBusinessInformation = ({
   setOpenModal,
   next
 }: AddBusinessInformationProps) => {
+  const environment = getJsCookies('environment');
   const [loading, setLoading] = useState(false);
   const [cac, setCac] = useState('');
+  const [clientId, setClientId] = useState('');
   const router = useRouter();
   const [regulator_license, setRegulatorLicense] = useState('');
   const [certificate_of_incorporation, setCertificationOfIncorporation] = useState('');
@@ -32,7 +35,8 @@ const AddBusinessInformation = ({
     !certificate_of_incorporation ||
     tin?.length < 6 ||
     tin?.length > 16 ||
-    !company_status_report
+    !company_status_report ||
+    !clientId
   );
 
   const handleCac = (value: string) => {
@@ -73,10 +77,23 @@ const AddBusinessInformation = ({
     })
 
     // console.log(result?.status == 200)
-    setLoading(false);
     if (result?.status == 200) {
-      next();
-      router?.refresh();
+      const result2: any = await clientAxiosRequest({
+        headers: {},
+        apiEndpoint: API.putClientId({
+          environment: environment || 'development'
+        }),
+        method: 'PUT',
+        data: { clientId }
+      })
+
+      setLoading(false);
+      if (result2?.status == 200) {
+        next();
+        router?.refresh();
+      }
+    } else {
+      setLoading(false);
     }
   }
 
@@ -95,6 +112,18 @@ const AddBusinessInformation = ({
         className='gap-[32px] flex flex-col h-full w-full relative'
       >
         <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>
+          <div className='w-full flex flex-col gap-[6px]'>
+            <InputElement 
+              name='clientId'
+              type='text'
+              placeholder='Client ID'
+              label='Client ID'
+              value={clientId}
+              changeValue={setClientId}
+              required
+            />
+          </div>
+
           <div className='w-full flex flex-col gap-[6px]'>
             <InputElement 
               name='cac'

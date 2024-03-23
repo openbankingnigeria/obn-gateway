@@ -131,6 +131,10 @@ export const getCompanyStat = () =>
   `${BASE_URL}/companies/stats`;
 export const getCompanyKybStat = () => 
   `${BASE_URL}/companies/stats/kyb`;
+export const getClientId = ({ environment }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/settings/client/${environment}`;
+export const putClientId = ({ environment }: GetSingleEnvironmentProps) => 
+  `${BASE_URL}/settings/client/${environment}`;
 
 
 // SETTINGS

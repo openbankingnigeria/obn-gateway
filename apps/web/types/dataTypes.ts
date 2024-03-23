@@ -41,6 +41,7 @@ export interface GeneralSettingsDataProps {
 }
 
 export interface BusinessInformationDataProps {
+  clientId: string
   cac: string,
   tin: string,
   regulator_license: string,

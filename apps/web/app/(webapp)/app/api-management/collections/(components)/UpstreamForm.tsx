@@ -169,7 +169,7 @@ const UpStreamForm = ({
 
   const handleTiers = (value: any) => {
     // console.log(value);
-    if (/^[0-3\b]+$/.test(value) || value === '') {
+    if (/^[0-3,\b]+$/.test(value) || value === '') {
       setTiers(value);
     }
   }
@@ -227,7 +227,7 @@ const UpStreamForm = ({
             <InputElement 
               name='tiers'
               type='text'
-              placeholder='Enter tiers'
+              placeholder='Enter tiers. e.g. 0,1,2,3'
               label='Tiers'
               value={tiers}
               disabled={previewPage}
