@@ -12,8 +12,12 @@ import { StatusBox } from '@/app/(webapp)/(components)'
 import { useRouter } from 'next/navigation'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes'
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
+import { getJsCookies } from '@/config/jsCookie'
 
 const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
+  const environment = getJsCookies('environment');
+  const [client, setClient] = useState<any>(null);
+  const [clientId, setClientId] = useState('');
   const [loading, setLoading] = useState(false);
   const [businessDetails, setBusinessDetails] = useState<any>(null);
   const [cac, setCac] = useState('');
@@ -31,6 +35,24 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
   let userPermissions = profileData?.user?.role?.permissions;
   let updateKybPermit = findPermissionSlug(userPermissions, 'update-company-kyb-details')
 
+  async function fetchClientId() {
+    const result: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getClientId({
+        environment: environment || 'development'
+      }),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setClient(result?.data);
+  }
+
+  useEffect(() => {
+    fetchClientId();
+  }, []);
+
   const incorrect = (
     cac?.length < 6 || 
     cac?.length > 16 ||
@@ -38,7 +60,8 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
     !certificate_of_incorporation ||
     tin?.length < 6 ||
     tin?.length > 16 ||
-    !company_status_report
+    !company_status_report ||
+    !clientId
   );
 
   const fetchDetails = async () => {
@@ -58,7 +81,8 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
     tin != businessDetails?.kybData?.taxIdentificationNumber ||
     regulator_license != businessDetails?.kybData?.registryLicense?.fileName ||
     certificate_of_incorporation != businessDetails?.kybData?.certificateOfIncorporation?.fileName ||
-    company_status_report != businessDetails?.kybData?.companyStatusReport?.fileName
+    company_status_report != businessDetails?.kybData?.companyStatusReport?.fileName ||
+    client?.clientId != clientId
   );
 
   useEffect(() => {
@@ -77,9 +101,11 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
     setRegulatorLicenseFile(businessDetails?.kybData?.registryLicense?.file || '');
     setRegulatorLicenseFileType(businessDetails?.kybData?.registryLicense?.fileMimeType || '');
     setTin(businessDetails?.kybData?.taxIdentificationNumber || '');
-  }, [businessDetails]);
+    setClientId(client?.clientId)
+  }, [businessDetails, client]);
 
   const businessInformation = BUSINESS_INFORMATION_DATA({
+    clientId: clientId,
     cac: cac,
     tin: tin,
     regulator_license: regulator_license,
@@ -134,7 +160,21 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
     // console.log(result?.status == 200)
     setLoading(false);
     if (result?.status == 200) {
-      router?.refresh();
+      const result2: any = await clientAxiosRequest({
+        headers: {},
+        apiEndpoint: API.putClientId({
+          environment: environment || 'development'
+        }),
+        method: 'PUT',
+        data: { clientId }
+      })
+
+      setLoading(false);
+      if (result2?.status == 200) {
+        router?.refresh();
+      }
+    } else {
+      setLoading(false);
     }
   }
 

@@ -238,7 +238,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
                     name={data?.name}
                     type={data?.type}
                     placeholder=''
-                    disabled={!updateSettings || data?.name?.includes('key')}
+                    disabled={data?.name?.includes('key')}
                     value={data?.value}
                     changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
                     required

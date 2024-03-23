@@ -531,6 +531,7 @@ export const EMAIL_SERVICE_DATA = ({
 
 
 export const BUSINESS_INFORMATION_DATA = ({
+  clientId,
   cac,
   tin,
   regulator_license,
@@ -543,6 +544,17 @@ export const BUSINESS_INFORMATION_DATA = ({
   company_status_report_file,
   company_status_report_file_type
 }: BusinessInformationDataProps) => [
+  {
+    id: 0,
+    label: 'Client ID',
+    description: '',
+    name: 'clientId',
+    type: 'string',
+    fileType: '',
+    placeholder: 'Client ID',
+    rightLabel: '',
+    value: clientId
+  },
   {
     id: 1,
     label: 'CAC Registration Number',
