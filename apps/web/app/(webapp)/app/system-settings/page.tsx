@@ -93,10 +93,20 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   }) : null;
 
+  const fetchedClientId: any = !apiProvider ? await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getClientId({
+      environment
+    }),
+    method: 'GET',
+    data: null
+  }) : null;
+
   let companyTypes = fetchedTypes?.data?.companySubtypes;
   let ips = fetchedIps?.data;
   let apiKey = fetchedAPI?.data;
   let settings = fetchedSettings?.data;
+  let clientId = fetchedClientId?.data
 
   const rawPanel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => 
     path?.type?.includes(profile?.user?.role?.parent?.slug) && (
@@ -114,7 +124,8 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
 
   const configData = {
     ips: ips?.ips,
-    key: apiKey?.key
+    key: apiKey?.key,
+    clientId: clientId?.clientId
   }
 
   const notIndividual = (

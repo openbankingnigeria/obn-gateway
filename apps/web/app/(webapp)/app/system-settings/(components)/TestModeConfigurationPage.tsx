@@ -33,6 +33,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     // webhook_url: 'https://webhook.com/url',
     // callback_url: 'https://callback.com/url',
     ip_whitelist: rawData?.ips?.toString() || '',
+    clientId: rawData?.clientId
     // timeout: ''
   });
 
@@ -44,6 +45,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     // webhook_url: form?.webhook_url,
     // callback_url: form?.callback_url,
     ip_whitelist: form?.ip_whitelist,
+    clientId: form?.clientId
     // timeout: form?.timeout
   });
 
@@ -151,9 +153,20 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
       }
     });
 
+    const result2: any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.putClientId({
+        environment
+      }),
+      method: 'PUT',
+      data: { 
+        clientId: form?.clientId
+      }
+    })
+
     setLoading(false);
-    if (result?.status == '200') {
-    }
+    if (result?.status == '200') { }
+    if (result2?.status == 200) { }
   }
 
   return (
@@ -238,7 +251,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
                     name={data?.name}
                     type={data?.type}
                     placeholder=''
-                    disabled={!updateSettings || data?.name?.includes('key')}
+                    disabled={data?.name?.includes('key')}
                     value={data?.value}
                     changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
                     required

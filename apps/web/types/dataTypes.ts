@@ -40,6 +40,10 @@ export interface GeneralSettingsDataProps {
   failedLoginAttempts: SettingsInputProps;
 }
 
+export interface ClientIdDataProps {
+  clientId: string
+}
+
 export interface BusinessInformationDataProps {
   cac: string,
   tin: string,
@@ -103,6 +107,7 @@ export interface TestModeConfigurationProps {
   callback_url?: string;
   ip_whitelist?: string;
   timeout?: string;
+  clientId?: string
 }
 
 export interface LiveModeConfigurationProps {
@@ -114,6 +119,7 @@ export interface LiveModeConfigurationProps {
   callback_url?: string;
   ip_whitelist?: string;
   timeout?: string;
+  clientId?: string
 }
 
 export interface StatDataProps {

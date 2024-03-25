@@ -131,7 +131,6 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
       data: formData
     })
 
-    // console.log(result?.status == 200)
     setLoading(false);
     if (result?.status == 200) {
       router?.refresh();
@@ -246,7 +245,9 @@ const BusinessInformationPage = ({ profileData }: APIConfigurationProps) => {
                       changeEvent={(e: ChangeEvent<HTMLInputElement>) => {
                         data?.name == 'cac' ? 
                           handleCac(e.target.value) :
-                          handleTin(e.target.value)
+                          data?.name == 'tin' ? 
+                          handleTin(e.target.value) :
+                          null
                       }}
                       required
                       rightIcon={
