@@ -35,9 +35,6 @@ networks:
 
 x-kong-dev-config:
   &kong_dev_config
-  depends_on:
-    kong-dev-db:
-      condition: service_healthy
   environment:
       KONG_PG_HOST: kong-dev-db
   volumes:
@@ -46,9 +43,6 @@ x-kong-dev-config:
 
 x-kong-prod-config:
   &kong_prod_config
-  depends_on:
-    kong-prod-db:
-      condition: service_healthy
   environment:
       KONG_PG_HOST: kong-prod-db
   volumes:
@@ -120,6 +114,9 @@ services:
     extends:
       file: docker-compose-kong.yml
       service: kong-migrations-up
+    depends_on:
+      kong-dev-db:
+        condition: service_healthy
     <<: *kong_dev_config
   kong-dev:
     container_name: obn-kong-dev
@@ -129,6 +126,9 @@ services:
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8000:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8443:8443/tcp"
+    depends_on:
+      kong-dev-migrations-up:
+        condition: service_completed_successfully
     <<: *kong_dev_config
 
   kong-prod-db:
@@ -149,6 +149,9 @@ services:
     extends:
       file: docker-compose-kong.yml
       service: kong-migrations-up
+    depends_on:
+      kong-prod-db:
+        condition: service_healthy
     <<: *kong_prod_config
   kong-prod:
     container_name: obn-kong-prod
@@ -158,6 +161,9 @@ services:
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8100:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8543:8443/tcp"
+    depends_on:
+      kong-prod-migrations-up:
+        condition: service_completed_successfully
     <<: *kong_prod_config
 
   elk-setup:

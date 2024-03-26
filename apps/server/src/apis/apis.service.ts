@@ -481,7 +481,7 @@ export class APIService {
         environment,
         gatewayRoute.id,
         {
-          name: KONG_PLUGINS.OBN_TOKEN_INTROSPECTION,
+          name: KONG_PLUGINS.OBN_AUTHORIZATION,
           enabled: true,
           config: {
             introspection_endpoint: this.config.get(
@@ -884,7 +884,7 @@ export class APIService {
         environment,
         gatewayRoute.id,
         {
-          name: KONG_PLUGINS.OBN_TOKEN_INTROSPECTION,
+          name: KONG_PLUGINS.OBN_AUTHORIZATION,
           enabled: true,
           config: {
             introspection_endpoint: this.config.get(

@@ -45,5 +45,5 @@ export enum KONG_PLUGINS {
   CORRELATION_ID = 'correlation-id',
   POST_FUNCTION = 'post-function',
   REQUEST_TRANSFORMER = 'request-transformer',
-  OBN_TOKEN_INTROSPECTION = 'obn-token-introspection',
+  OBN_AUTHORIZATION = 'obn-authorization',
 }
