@@ -258,7 +258,7 @@ async function performSetupTasks(): Promise<void> {
                   path: regexPath,
                   method: request.method,
                   url: `${
-                    config.get('kong.gatewayEndpoint')[environment]
+                    config.get('kong.gatewayEndpoint')[environment] || ''
                   }/${request.urlObject.path.join('/')}`,
                   // TODO revisit and update host
                   request,

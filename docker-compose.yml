@@ -83,7 +83,7 @@ x-obn-server-config:
     LOGSTASH_ENDPOINT: ${LOGSTASH_ENDPOINT:-http://obn-logstash:8080}
     ELASTICSEARCH_ENDPOINT: ${ELASTICSEARCH_ENDPOINT:-https://es:9200}
     ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
-    ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
+    ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:?ELASTICSEARCH_PASSWORD is required}
   volumes:
     - certs:/usr/src/server/certs
   secrets:
@@ -174,13 +174,9 @@ services:
     user: root
     command: >
      bash -c '
-       if [ x${ELASTIC_PASSWORD} == x ]; then
-         echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
-         exit 1;
-       fi;
        if [ ! -f config/certs/ca.zip ]; then
          echo "Creating CA";
-         bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
+         ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD} bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
          unzip config/certs/ca.zip -d config/certs;
        fi;
        if [ ! -f config/certs/certs.zip ]; then
@@ -194,7 +190,7 @@ services:
          "    ip:\n"\
          "      - 127.0.0.1\n"\
          > config/certs/instances.yml;
-         bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+         ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD} bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
          unzip config/certs/certs.zip -d config/certs;
        fi;
        echo "Setting file permissions"
@@ -212,7 +208,7 @@ services:
       timeout: 5s
       retries: 120
     environment:
-      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:?ELASTICSEARCH_PASSWORD is required}
     networks:
       - elastic-net
 
