@@ -4,7 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "GPL-3.0-only",
   "scripts": {
     "build": "dotenv -v NODE_EXTRA_CA_CERTS=./certs/ca/ca.crt nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
