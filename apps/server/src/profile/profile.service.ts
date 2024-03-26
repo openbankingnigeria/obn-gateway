@@ -94,7 +94,6 @@ export class ProfileService {
       updatedProfile,
     );
 
-    // TODO emit event
     const event = new UpdateProfileEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 

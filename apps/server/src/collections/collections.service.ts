@@ -74,7 +74,6 @@ export class CollectionsService {
     const event = new ViewCollectionEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
-    // TODO emit event
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollections,
       collections.map((collection) => {
@@ -108,7 +107,6 @@ export class CollectionsService {
       });
     }
 
-    // TODO emit event
     const event = new ViewCollectionEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -139,7 +137,6 @@ export class CollectionsService {
       }),
     );
 
-    // TODO emit event
     const event = new CreateCollectionEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -173,7 +170,6 @@ export class CollectionsService {
       }),
     );
 
-    // TODO emit event
     const event = new UpdateCollectionEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -208,7 +204,6 @@ export class CollectionsService {
       id,
     });
 
-    // TODO emit event
     const event = new DeleteCollectionEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 

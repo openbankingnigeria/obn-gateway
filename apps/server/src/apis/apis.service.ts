@@ -1496,8 +1496,6 @@ export class APIService {
       });
     }
 
-    // TODO emit event
-
     const plugin = await this.kongRouteService.updateOrCreatePlugin(
       environment,
       route.routeId!,

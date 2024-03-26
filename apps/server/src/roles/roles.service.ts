@@ -102,7 +102,6 @@ export class RolesService {
       permissions.map((permissionId) => ({ roleId: role.id, permissionId })),
     );
 
-    // TODO emit event
     const event = new CreateRoleEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -132,7 +131,6 @@ export class RolesService {
       order: { createdAt: 'DESC' },
     });
 
-    // TODO emit event
     const event = new ListRolesEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -169,7 +167,6 @@ export class RolesService {
       });
     }
 
-    // TODO emit event
     const event = new ListRolesEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -224,7 +221,6 @@ export class RolesService {
 
     await this.roleRepository.update({ id: role.id }, updatedRole);
 
-    // TODO emit event
     const event = new UpdateRolesEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -251,7 +247,6 @@ export class RolesService {
 
     await this.roleRepository.softDelete({ id: role.id });
 
-    // TODO emit event
     const event = new DeleteRolesEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -280,7 +275,6 @@ export class RolesService {
       });
     }
 
-    // TODO emit event
     const event = new GetRolePermissionsEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
@@ -345,7 +339,6 @@ export class RolesService {
       newPermissions.map((permissionId) => ({ roleId: role.id, permissionId })),
     );
 
-    // TODO emit event
     const event = new SetRolePermissionsEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
 
