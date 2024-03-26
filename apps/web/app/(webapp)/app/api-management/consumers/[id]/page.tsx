@@ -47,6 +47,7 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
       apiEndpoint: API.getCompanyAPIs({
         page: `${page}`,
         limit: `${rows}`,
+        name: search_query,
         environment: environment || 'development',
         companyId: `${consumerId}`,
       }),
