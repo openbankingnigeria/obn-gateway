@@ -22,10 +22,16 @@ cd obn-gateway
 
 2. **Environment Variables**
 
-Configure the required environment variables. In the Docker Compose file, set the following:
+Configure the required environment variables. In your environment or `.env` file in the root of the project, set the following:
 - `COMPANY_NAME`
 - `COMPANY_EMAIL`
 - `DEFAULT_PASSWORD`
+- `EMAIL_PORT`
+- `EMAIL_PASSWORD`
+- `EMAIL_USER`
+- `EMAIL_SECURE`
+- `EMAIL_FROM`
+- `EMAIL_HOST`
 
 These variables can be adjusted to fit your specific requirements.
 

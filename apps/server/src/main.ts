@@ -6,7 +6,6 @@ import {
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { SetupService } from './setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: { origin: '*' } });
@@ -24,8 +23,6 @@ async function bootstrap() {
   if (corsOrigins) {
     // app.enableCors({ origin: corsOrigins.split(',') });
   }
-
-  await new SetupService().performSetupTasks().catch((e) => logger.error(e));
 
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {

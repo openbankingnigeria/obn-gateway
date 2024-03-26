@@ -54,7 +54,52 @@ x-kong-prod-config:
   volumes:
     - kong_prod_prefix_vol:/var/run/kong
     - kong_prod_tmp_vol:/tmp
-
+    
+x-obn-server-config:
+  &obn_server_config
+  environment:
+    DATABASE_HOST: ${DATABASE_HOST:-mysql}
+    DATABASE_USERNAME: ${DATABASE_USERNAME:-obn}
+    DATABASE_PASSWORD_FILE: /run/secrets/mysql_password
+    DATABASE_NAME: ${DATABASE_NAME:-obn}
+    DATABASE_PORT: ${DATABASE_PORT:-3306}
+    DATABASE_TYPE: mysql
+    JWT_SECRET_FILE: /run/secrets/jwt_secret
+    SERVER_PORT: ${SERVER_PORT:-4000}
+    EMAIL_HOST: ${EMAIL_HOST}
+    EMAIL_PORT: ${EMAIL_PORT}
+    EMAIL_USER: ${EMAIL_USER}
+    EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+    EMAIL_SECURE: ${EMAIL_SECURE}
+    EMAIL_FROM: ${EMAIL_FROM}
+    COMPANY_EMAIL: ${COMPANY_EMAIL:?COMPANY_EMAIL is required}
+    COMPANY_NAME: ${COMPANY_NAME:?COMPANY_NAME is required}
+    DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD is required}
+    KONG_ADMIN_API_ENDPOINT: ${KONG_ADMIN_API_ENDPOINT:-http://kong-dev:8001}
+    KONG_GATEWAY_API_ENDPOINT: ${KONG_GATEWAY_API_ENDPOINT}
+    KONG_ADMIN_API_ENDPOINT_PRODUCTION: ${KONG_ADMIN_API_ENDPOINT_PRODUCTION:-http://kong-prod:8001}
+    KONG_GATEWAY_API_ENDPOINT_PRODUCTION: ${KONG_GATEWAY_API_ENDPOINT_PRODUCTION}
+    REGISTRY_INTROSPECTION_ENDPOINT: ${REGISTRY_INTROSPECTION_ENDPOINT}
+    REGISTRY_INTROSPECTION_CLIENT_ID: ${REGISTRY_INTROSPECTION_CLIENT_ID}
+    REGISTRY_INTROSPECTION_CLIENT_SECRET: ${REGISTRY_INTROSPECTION_CLIENT_SECRET}
+    REGISTRY_INTROSPECTION_ENDPOINT_PRODUCTION: ${REGISTRY_INTROSPECTION_ENDPOINT_PRODUCTION}
+    REGISTRY_INTROSPECTION_CLIENT_ID_PRODUCTION: ${REGISTRY_INTROSPECTION_CLIENT_ID_PRODUCTION}
+    REGISTRY_INTROSPECTION_CLIENT_SECRET_PRODUCTION: ${REGISTRY_INTROSPECTION_CLIENT_SECRET_PRODUCTION}
+    MANAGEMENT_URL: ${MANAGEMENT_URL:-http://localhost:3000}
+    LOGSTASH_ENDPOINT: ${LOGSTASH_ENDPOINT:-http://obn-logstash:8080}
+    ELASTICSEARCH_ENDPOINT: ${ELASTICSEARCH_ENDPOINT:-https://es:9200}
+    ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
+    ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
+  volumes:
+    - certs:/usr/src/server/certs
+  secrets:
+    - mysql_password
+    - jwt_secret
+  networks:
+    - kong-net
+    - obn-net
+    - elastic-net
+  restart: on-failure:5
 
 services:
   kong-dev-db:
@@ -281,51 +326,8 @@ services:
   server:
     build: ./apps/server
     container_name: obn-server
-    environment:
-      DATABASE_HOST: ${DATABASE_HOST:-mysql}
-      DATABASE_USERNAME: ${DATABASE_USERNAME:-obn}
-      DATABASE_PASSWORD_FILE: /run/secrets/mysql_password
-      DATABASE_NAME: ${DATABASE_NAME:-obn}
-      DATABASE_PORT: ${DATABASE_PORT:-3306}
-      DATABASE_TYPE: mysql
-      JWT_SECRET_FILE: /run/secrets/jwt_secret
-      SERVER_PORT: ${SERVER_PORT:-4000}
-      EMAIL_HOST: ${EMAIL_HOST}
-      EMAIL_PORT: ${EMAIL_PORT}
-      EMAIL_USER: ${EMAIL_USER}
-      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-      EMAIL_SECURE: ${EMAIL_SECURE}
-      EMAIL_FROM: ${EMAIL_FROM}
-      COMPANY_EMAIL: ${COMPANY_EMAIL:?COMPANY_EMAIL is required}
-      COMPANY_NAME: ${COMPANY_NAME:?COMPANY_NAME is required}
-      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD is required}
-      KONG_ADMIN_API_ENDPOINT: ${KONG_ADMIN_API_ENDPOINT:-http://kong-dev:8001}
-      KONG_GATEWAY_API_ENDPOINT: ${KONG_GATEWAY_API_ENDPOINT}
-      KONG_ADMIN_API_ENDPOINT_PRODUCTION: ${KONG_ADMIN_API_ENDPOINT_PRODUCTION:-http://kong-prod:8001}
-      KONG_GATEWAY_API_ENDPOINT_PRODUCTION: ${KONG_GATEWAY_API_ENDPOINT_PRODUCTION}
-      REGISTRY_INTROSPECTION_ENDPOINT: ${REGISTRY_INTROSPECTION_ENDPOINT}
-      REGISTRY_INTROSPECTION_CLIENT_ID: ${REGISTRY_INTROSPECTION_CLIENT_ID}
-      REGISTRY_INTROSPECTION_CLIENT_SECRET: ${REGISTRY_INTROSPECTION_CLIENT_SECRET}
-      REGISTRY_INTROSPECTION_ENDPOINT_PRODUCTION: ${REGISTRY_INTROSPECTION_ENDPOINT_PRODUCTION}
-      REGISTRY_INTROSPECTION_CLIENT_ID_PRODUCTION: ${REGISTRY_INTROSPECTION_CLIENT_ID_PRODUCTION}
-      REGISTRY_INTROSPECTION_CLIENT_SECRET_PRODUCTION: ${REGISTRY_INTROSPECTION_CLIENT_SECRET_PRODUCTION}
-      MANAGEMENT_URL: ${MANAGEMENT_URL:-http://localhost:3000}
-      LOGSTASH_ENDPOINT: ${LOGSTASH_ENDPOINT:-http://obn-logstash:8080}
-      ELASTICSEARCH_ENDPOINT: ${ELASTICSEARCH_ENDPOINT:-https://es:9200}
-      ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
-      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
-    volumes:
-      - certs:/usr/src/server/certs
-    secrets:
-      - mysql_password
-      - jwt_secret
     ports:
       - ${SERVER_PORT:-4000}:${SERVER_PORT:-4000}
-    networks:
-      - kong-net
-      - obn-net
-      - elastic-net
-    restart: on-failure:5
     depends_on:
       mysql:
         condition: service_healthy
@@ -335,6 +337,22 @@ services:
         condition: service_healthy
       es:
         condition: service_healthy
+      server-setup:
+        condition: service_completed_successfully
+    <<: *obn_server_config
+
+  server-setup:
+    build: ./apps/server
+    container_name: obn-server-setup
+    command: ["sh", "-c", "pnpm migration:run;pnpm start:setup"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kong-dev:
+        condition: service_healthy
+      kong-prod:
+        condition: service_healthy
+    <<: *obn_server_config
 
 secrets:
   kong_postgres_password:

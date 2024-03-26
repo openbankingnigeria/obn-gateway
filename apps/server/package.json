@@ -12,6 +12,7 @@
     "dev": "dotenv -v NODE_EXTRA_CA_CERTS=./certs/ca/ca.crt -- nest start --watch",
     "start:debug": "dotenv -v NODE_EXTRA_CA_CERTS=./certs/ca/ca.crt -- nest start --debug --watch",
     "start:prod": "dotenv -v NODE_EXTRA_CA_CERTS=./certs/ca/ca.crt node dist/src/main",
+    "start:setup": "dotenv -v NODE_EXTRA_CA_CERTS=./certs/ca/ca.crt node dist/src/setup",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
