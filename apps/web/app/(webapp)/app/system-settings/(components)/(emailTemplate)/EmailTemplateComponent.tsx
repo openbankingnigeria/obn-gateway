@@ -1,6 +1,6 @@
 'use client'
 
-import { CodeEditor, CodeSnippet } from '@/app/(webapp)/(components)'
+import { CodeEditor, CodeSnippet, HtmlViewer } from '@/app/(webapp)/(components)'
 import { InputElement, SelectElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
@@ -16,6 +16,7 @@ const EmailTemplateComponent = ({ rawData, profileData }: APIConfigurationProps)
 
   const [title, setTitle] = useState(rawData?.title);
   const [body, setBody] = useState(rawData?.body);
+  const [openModal, setOpenModal] = useState(false);
 
   const incorrect = (
     !title ||
@@ -48,7 +49,21 @@ const EmailTemplateComponent = ({ rawData, profileData }: APIConfigurationProps)
     }
   }
 
+  const handlePreview = () => {
+    setOpenModal(true);
+  }
+
   return (
+    <>
+      {
+        openModal && (
+          <HtmlViewer 
+            title={title}
+            html={body}
+            effect={() => setOpenModal(false)}
+          />
+        )
+      }
     <form
       onSubmit={handleSubmit}
       className='gap-[20px] flex flex-col w-full pb-[24px] border-b border-o-border'
@@ -67,6 +82,7 @@ const EmailTemplateComponent = ({ rawData, profileData }: APIConfigurationProps)
         <div className='w-fit flex items-center gap-[8px]'>
           <Button 
             title='Preview'
+            effect={handlePreview}
             type='button'
             containerStyle='!w-fit'
             outlined
@@ -108,6 +124,7 @@ const EmailTemplateComponent = ({ rawData, profileData }: APIConfigurationProps)
         </div>
       </section>
     </form>
+    </>
   )
 }
 

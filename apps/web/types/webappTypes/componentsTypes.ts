@@ -39,6 +39,14 @@ export interface ImageViewerProps {
   childrenStyle?: string;
 }
 
+export interface HtmlviewerProps {
+  title?: string 
+  html: string 
+  effect: MouseEventHandler<HTMLDivElement>
+  backgroundStyles?: string
+  modalStyles?: string
+}
+
 export interface NotificationProps {
   id: number;
   title: string;

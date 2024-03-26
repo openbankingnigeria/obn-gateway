@@ -32,6 +32,7 @@ import CodeEditor from "./CodeEditor";
 import ReportingSection from "./ReportingSection";
 import TwoFactorAuthBottomModal from "./TwoFactorAuthBottomModal";
 import ToastMessage from "./ToastMessage";
+import HtmlViewer from "./HtmlViewer";
 
 export {
   DatePicker,
@@ -67,5 +68,6 @@ export {
   CodeEditor,
   TwoFactorAuthBottomModal,
   ReportingSection,
-  ToastMessage
+  ToastMessage,
+  HtmlViewer
 }
