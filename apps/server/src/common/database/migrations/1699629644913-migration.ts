@@ -1,4 +1,4 @@
-import { hashSync } from 'bcrypt';
+import { hashSync } from 'bcryptjs';
 import { ROLES, CompanyTypes } from '../constants';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
