@@ -3,7 +3,7 @@ import { DateFilterProps, GetEnvironmentProps, GetListProps,
   PostTokenProps, 
 } from "@/types/endpointTypes";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_ENDPOINT;
+const BASE_URL = process.env.BASE_API_ENDPOINT || process.env.NEXT_PUBLIC_BASE_API_ENDPOINT;
 
 
 // AUTH

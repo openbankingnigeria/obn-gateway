@@ -281,7 +281,7 @@ services:
       - elastic-net
 
   redis:
-    image: "${REDIS_DOCKER_TAG:-redis:latest}"
+    image: "${REDIS_DOCKER_TAG:-redis:7.2-alpine}"
     container_name: obn-redis
     volumes:
       - redis_data:/var/lib/redis
@@ -294,7 +294,7 @@ services:
       retries: 3
 
   mysql:
-    image: "${MYSQL_DOCKER_TAG:-mysql:latest}"
+    image: "${MYSQL_DOCKER_TAG:-mysql:8.3.0}"
     container_name: obn-mysql
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
@@ -322,6 +322,9 @@ services:
     container_name: obn-web
     environment:
       - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
+      - BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://obn-server:4000}
+    networks:
+      - obn-net
     ports:
       - "3000:3000"
 

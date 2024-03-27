@@ -20,7 +20,7 @@ x-kong-config:
 
 services:
   kong-db:
-    image: postgres:9.5
+    image: postgres:9.5-alpine
     command: -c 'max_connections=100'
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
