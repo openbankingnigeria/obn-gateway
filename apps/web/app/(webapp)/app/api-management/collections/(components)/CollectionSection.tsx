@@ -141,11 +141,7 @@ const CollectionSection = ({
           }),
           method: 'PATCH',
           data: {
-            "name": api?.name,
             "enabled": Boolean(openModal == 'activate'),
-            "tiers": api?.tiers,
-            "upstream": api?.upstream,
-            "downstream": api?.downstream
           }
         });
 

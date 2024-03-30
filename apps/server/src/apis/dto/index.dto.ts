@@ -94,9 +94,6 @@ export class CreateAPIDto {
   @IsString()
   name: string;
 
-  @IsString()
-  slug?: string;
-
   @IsBoolean()
   enabled: boolean;
 
@@ -181,31 +178,31 @@ class UpdateAPIUpstreamDTO {
 }
 
 export class UpdateAPIDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
-  @IsString()
   @IsOptional()
-  slug?: string;
+  @IsString()
+  name?: string;
 
+  @IsOptional()
   @IsBoolean()
-  enabled: boolean;
+  enabled?: boolean;
 
+  @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => UpdateAPIUpstreamDTO)
-  upstream: UpdateAPIUpstreamDTO;
+  upstream?: UpdateAPIUpstreamDTO;
 
+  @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => UpdateAPIDownstreamDTO)
-  downstream: UpdateAPIDownstreamDTO;
+  downstream?: UpdateAPIDownstreamDTO;
 
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   @IsEnum(CompanyTiers, { each: true })
-  tiers: (number | `${number}`)[];
+  tiers?: (number | `${number}`)[];
 
   introspectAuthorization: boolean;
 }
