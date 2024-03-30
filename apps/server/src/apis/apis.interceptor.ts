@@ -36,7 +36,7 @@ export class APIInterceptor implements NestInterceptor {
       }
     }
 
-    if (!this.config.get('kong.gatewayEndpoint')[request.params.environment]) {
+    if (!this.config.get('kong.adminEndpoint')[request.params.environment]) {
       return throwError(
         () =>
           new INotFoundException({

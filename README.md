@@ -32,6 +32,7 @@ Configure the required environment variables. In your environment or `.env` file
 - `EMAIL_SECURE`
 - `EMAIL_FROM`
 - `EMAIL_HOST`
+- `ELASTICSEARCH_PASSWORD`
 
 These variables can be adjusted to fit your specific requirements.
 

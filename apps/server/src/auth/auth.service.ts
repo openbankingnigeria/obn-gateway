@@ -32,7 +32,7 @@ import {
   ResponseDTO,
   ResponseFormatter,
 } from '@common/utils/response/response.formatter';
-import { compareSync, hashSync } from 'bcrypt';
+import { compareSync, hashSync } from 'bcryptjs';
 import { authErrors } from '@auth/auth.errors';
 import { Auth } from '@common/utils/authentication/auth.helper';
 import * as moment from 'moment';

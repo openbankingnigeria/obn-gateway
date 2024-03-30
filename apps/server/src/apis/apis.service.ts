@@ -459,7 +459,7 @@ export class APIService {
         enabled,
         url:
           data.downstream.url ??
-          `${this.config.get('kong.gatewayEndpoint')[environment]}${cleanPath}`,
+          `${this.config.get('kong.gatewayEndpoint')[environment] || ''}${cleanPath}`,
         method: downstream.method,
         request: downstream.request,
         response: downstream.response,

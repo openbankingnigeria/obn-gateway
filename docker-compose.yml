@@ -79,7 +79,7 @@ x-obn-server-config: &obn_server_config
     LOGSTASH_ENDPOINT: ${LOGSTASH_ENDPOINT:-http://obn-logstash:8080}
     ELASTICSEARCH_ENDPOINT: ${ELASTICSEARCH_ENDPOINT:-https://es:9200}
     ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
-    ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
+    ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:?ELASTICSEARCH_PASSWORD is required}
   volumes:
     - ./config/certs/es:/usr/src/server/certs
   secrets:
@@ -242,7 +242,7 @@ services:
       timeout: 5s
       retries: 120
     environment:
-      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:?ELASTICSEARCH_PASSWORD is required}
     networks:
       - elastic-net
     profiles:
@@ -329,7 +329,7 @@ services:
       - logstash
 
   mysql:
-    image: "${MYSQL_DOCKER_TAG:-mysql:latest}"
+    image: "${MYSQL_DOCKER_TAG:-mysql:8.3.0}"
     container_name: obn-mysql
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
@@ -367,6 +367,9 @@ services:
     container_name: obn-web
     environment:
       - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
+      - BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://obn-server:4000}
+    networks:
+      - obn-net
     ports:
       - "3000:3000"
     profiles:
