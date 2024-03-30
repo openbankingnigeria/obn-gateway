@@ -6,22 +6,21 @@ volumes:
   kong_dev_data: {}
   kong_dev_prefix_vol:
     driver_opts:
-     type: tmpfs
-     device: tmpfs
+      type: tmpfs
+      device: tmpfs
   kong_dev_tmp_vol:
     driver_opts:
-     type: tmpfs
-     device: tmpfs
+      type: tmpfs
+      device: tmpfs
   kong_prod_data: {}
   kong_prod_prefix_vol:
     driver_opts:
-     type: tmpfs
-     device: tmpfs
+      type: tmpfs
+      device: tmpfs
   kong_prod_tmp_vol:
     driver_opts:
-     type: tmpfs
-     device: tmpfs
-  certs: {}
+      type: tmpfs
+      device: tmpfs
   esdata: {}
   logstashdata: {}
 
@@ -33,24 +32,21 @@ networks:
   elastic-net:
     external: false
 
-x-kong-dev-config:
-  &kong_dev_config
+x-kong-dev-config: &kong_dev_config
   environment:
-      KONG_PG_HOST: kong-dev-db
+    KONG_PG_HOST: kong-dev-db
   volumes:
     - kong_dev_prefix_vol:/var/run/kong
     - kong_dev_tmp_vol:/tmp
 
-x-kong-prod-config:
-  &kong_prod_config
+x-kong-prod-config: &kong_prod_config
   environment:
-      KONG_PG_HOST: kong-prod-db
+    KONG_PG_HOST: kong-prod-db
   volumes:
     - kong_prod_prefix_vol:/var/run/kong
     - kong_prod_tmp_vol:/tmp
-    
-x-obn-server-config:
-  &obn_server_config
+
+x-obn-server-config: &obn_server_config
   environment:
     DATABASE_HOST: ${DATABASE_HOST:-mysql}
     DATABASE_USERNAME: ${DATABASE_USERNAME:-obn}
@@ -85,7 +81,7 @@ x-obn-server-config:
     ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
     ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
   volumes:
-    - certs:/usr/src/server/certs
+    - ./config/certs/es:/usr/src/server/certs
   secrets:
     - mysql_password
     - jwt_secret
@@ -103,11 +99,19 @@ services:
       service: kong-db
     volumes:
       - kong_dev_data:/var/lib/postgresql/data
+    profiles:
+      - dev
+      - kong
+      - kong-dev-db
   kong-dev-migrations:
     container_name: obn-kong-dev-migrations
     extends:
       file: docker-compose-kong.yml
       service: kong-migrations
+    profiles:
+      - dev
+      - kong
+      - kong-dev
     <<: *kong_dev_config
   kong-dev-migrations-up:
     container_name: obn-kong-dev-migrations-up
@@ -117,6 +121,11 @@ services:
     depends_on:
       kong-dev-db:
         condition: service_healthy
+        required: false
+    profiles:
+      - dev
+      - kong
+      - kong-dev
     <<: *kong_dev_config
   kong-dev:
     container_name: obn-kong-dev
@@ -129,6 +138,10 @@ services:
     depends_on:
       kong-dev-migrations-up:
         condition: service_completed_successfully
+    profiles:
+      - dev
+      - kong
+      - kong-dev
     <<: *kong_dev_config
 
   kong-prod-db:
@@ -138,11 +151,19 @@ services:
       service: kong-db
     volumes:
       - kong_prod_data:/var/lib/postgresql/data
+    profiles:
+      - prod
+      - kong
+      - kong-prod-db
   kong-prod-migrations:
     container_name: obn-kong-prod-migrations
     extends:
       file: docker-compose-kong.yml
       service: kong-migrations
+    profiles:
+      - prod
+      - kong
+      - kong-prod
     <<: *kong_prod_config
   kong-prod-migrations-up:
     container_name: obn-kong-prod-migrations-up
@@ -152,6 +173,11 @@ services:
     depends_on:
       kong-prod-db:
         condition: service_healthy
+        required: false
+    profiles:
+      - prod
+      - kong
+      - kong-prod
     <<: *kong_prod_config
   kong-prod:
     container_name: obn-kong-prod
@@ -164,50 +190,54 @@ services:
     depends_on:
       kong-prod-migrations-up:
         condition: service_completed_successfully
+    profiles:
+      - prod
+      - kong
+      - kong-prod
     <<: *kong_prod_config
 
   elk-setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION:-8.11.1}
     container_name: obn-elk-setup
     volumes:
-      - certs:/usr/share/elasticsearch/config/certs
+      - ./config/certs/es:/usr/share/elasticsearch/config/certs
     user: root
     command: >
-     bash -c '
-       if [ x${ELASTIC_PASSWORD} == x ]; then
-         echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
-         exit 1;
-       fi;
-       if [ ! -f config/certs/ca.zip ]; then
-         echo "Creating CA";
-         bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
-         unzip config/certs/ca.zip -d config/certs;
-       fi;
-       if [ ! -f config/certs/certs.zip ]; then
-         echo "Creating certs";
-         echo -ne \
-         "instances:\n"\
-         "  - name: es\n"\
-         "    dns:\n"\
-         "      - es\n"\
-         "      - localhost\n"\
-         "    ip:\n"\
-         "      - 127.0.0.1\n"\
-         > config/certs/instances.yml;
-         bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-         unzip config/certs/certs.zip -d config/certs;
-       fi;
-       echo "Setting file permissions"
-       chown -R root:root config/certs;
-       find . -type d -exec chmod 750 \{\} \;;
-       find . -type f -exec chmod 640 \{\} \;;
-       echo "Waiting for Elasticsearch availability";
-       until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
-       echo "All done!";
-       sleep 6s;
-     '
+      bash -c '
+        if [ x${ELASTIC_PASSWORD} == x ]; then
+          echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
+          exit 1;
+        fi;
+        if [ ! -f config/certs/ca.zip ]; then
+          echo "Creating CA";
+          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
+          unzip config/certs/ca.zip -d config/certs;
+        fi;
+        if [ ! -f config/certs/certs.zip ]; then
+          echo "Creating certs";
+          echo -ne \
+          "instances:\n"\
+          "  - name: es\n"\
+          "    dns:\n"\
+          "      - es\n"\
+          "      - localhost\n"\
+          "    ip:\n"\
+          "      - 127.0.0.1\n"\
+          > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+        fi;
+        echo "Setting file permissions"
+        chown -R root:root config/certs;
+        find . -type d -exec chmod 750 \{\} \;;
+        find . -type f -exec chmod 640 \{\} \;;
+        echo "Waiting for Elasticsearch availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "All done!";
+        sleep 6s;
+      '
     healthcheck:
-      test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
+      test: [ "CMD-SHELL", "[ -f config/certs/es/es.crt ]" ]
       interval: 1s
       timeout: 5s
       retries: 120
@@ -215,6 +245,10 @@ services:
       - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
     networks:
       - elastic-net
+    profiles:
+      - dev
+      - prod
+      - elk
 
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION:-8.11.1}
@@ -222,11 +256,12 @@ services:
     labels:
       co.elastic.logs/module: elasticsearch
     volumes:
-      - certs:/usr/share/elasticsearch/config/certs
+      - ./config/certs/es:/usr/share/elasticsearch/config/certs
       - esdata:/usr/share/elasticsearch/data
     depends_on:
       elk-setup:
         condition: service_healthy
+        required: false
     environment:
       - node.name=es
       - cluster.name=${CLUSTER_NAME:-docker-cluster}
@@ -253,15 +288,18 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'"
         ]
       interval: 10s
       timeout: 10s
       retries: 120
     networks:
       - elastic-net
-    ports:
-      - "127.0.0.1:9200:9200/tcp" # TODO unpublish port 
+    profiles:
+      - dev
+      - prod
+      - elk
+      - es
 
   logstash:
     image: docker.elastic.co/logstash/logstash:${ELASTIC_STACK_VERSION:-8.11.1}
@@ -270,12 +308,13 @@ services:
       co.elastic.logs/module: logstash
     user: root
     volumes:
-      - certs:/usr/share/logstash/certs
+      - ./config/certs/es:/usr/share/logstash/certs
       - logstashdata:/usr/share/logstash/data
       - "./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"
     depends_on:
       es:
         condition: service_healthy
+        required: false
     environment:
       - xpack.monitoring.enabled=false
       - ELASTIC_USER=elastic
@@ -283,19 +322,11 @@ services:
       - ELASTIC_HOSTS=https://es:9200
     networks:
       - elastic-net
-
-  redis:
-    image: "${REDIS_DOCKER_TAG:-redis:latest}"
-    container_name: obn-redis
-    volumes:
-      - redis_data:/var/lib/redis
-    networks:
-      - obn-net
-    healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
-      interval: 30s
-      timeout: 30s
-      retries: 3
+    profiles:
+      - dev
+      - prod
+      - elk
+      - logstash
 
   mysql:
     image: "${MYSQL_DOCKER_TAG:-mysql:latest}"
@@ -313,21 +344,35 @@ services:
     networks:
       - obn-net
     healthcheck:
-      test: ["CMD", "sh", "-c", "mysql --user=root --password=$$(cat $$MYSQL_ROOT_PASSWORD_FILE) -e 'SELECT 1;'"]
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "mysql --user=root --password=$$(cat $$MYSQL_ROOT_PASSWORD_FILE) -e 'SELECT 1;'"
+        ]
       interval: 30s
       timeout: 30s
       retries: 3
+    profiles:
+      - dev
+      - prod
+      - mysql
 
   web:
     build:
       context: ./apps/web
       args:
-      - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
+        - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
     container_name: obn-web
     environment:
       - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
     ports:
       - "3000:3000"
+    profiles:
+      - dev
+      - prod
+      - web
 
   server:
     build: ./apps/server
@@ -337,27 +382,42 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+        required: false
       kong-dev:
         condition: service_healthy
+        required: false
       kong-prod:
         condition: service_healthy
+        required: false
       es:
         condition: service_healthy
+        required: false
       server-setup:
         condition: service_completed_successfully
+    profiles:
+      - dev
+      - prod
+      - server
     <<: *obn_server_config
 
   server-setup:
     build: ./apps/server
     container_name: obn-server-setup
-    command: ["sh", "-c", "pnpm migration:run;pnpm start:setup"]
+    command: [ "sh", "-c", "pnpm migration:run;pnpm start:setup" ]
     depends_on:
       mysql:
         condition: service_healthy
+        required: false
       kong-dev:
         condition: service_healthy
+        required: false
       kong-prod:
         condition: service_healthy
+        required: false
+    profiles:
+      - dev
+      - prod
+      - server
     <<: *obn_server_config
 
 secrets:

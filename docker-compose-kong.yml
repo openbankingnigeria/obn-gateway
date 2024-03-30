@@ -14,9 +14,9 @@ x-kong-config:
   KONG_PROXY_ERROR_LOG: /dev/stderr
   KONG_PREFIX: ${KONG_PREFIX:-/var/run/kong}
   KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: cjson.safe
-  KONG_PROXY_LISTEN: "${KONG_PROXY_LISTEN:-0.0.0.0:8000}"
-  KONG_ADMIN_LISTEN: "${KONG_ADMIN_LISTEN:-0.0.0.0:8001}"
   KONG_PLUGINS: "bundled,obn-authorization"
+  KONG_SSL_CERT: ${KONG_SSL_CERT}
+  KONG_SSL_CERT_KEY: ${KONG_SSL_CERT_KEY}
 
 services:
   kong-db:
@@ -52,7 +52,7 @@ services:
     volumes:
       - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
       - kong_tmp_vol:/tmp
-      - ./config:/opt/kong
+      - ./config/certs/kong:/opt/kong
 
   kong-migrations-up:
     image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
@@ -67,7 +67,7 @@ services:
     volumes:
       - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
       - kong_tmp_vol:/tmp
-      - ./config:/opt/kong
+      - ./config/certs/kong:/opt/kong
 
   kong:
     image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
@@ -90,7 +90,7 @@ services:
     volumes:
       - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
       - kong_tmp_vol:/tmp
-      - ./config:/opt/kong
+      - ./config/certs/kong:/opt/kong
       - ./apps/kong/plugins/obn-authorization:/usr/local/share/lua/5.1/kong/plugins/obn-authorization
     security_opt:
       - no-new-privileges
