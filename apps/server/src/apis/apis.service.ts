@@ -474,6 +474,9 @@ export class APIService {
       {
         name: KONG_PLUGINS.REQUEST_TERMINATION,
         enabled: !enabled,
+        config: {
+          message: 'This API is currently unavailable.',
+        },
       },
     );
 
@@ -883,6 +886,9 @@ export class APIService {
         {
           name: KONG_PLUGINS.REQUEST_TERMINATION,
           enabled: false,
+          config: {
+            message: 'This API is currently unavailable.',
+          },
         },
       );
     } else if (enabled === false) {
@@ -892,6 +898,9 @@ export class APIService {
         {
           name: KONG_PLUGINS.REQUEST_TERMINATION,
           enabled: true,
+          config: {
+            message: 'This API is currently unavailable.',
+          },
         },
       );
     }
@@ -1477,8 +1486,6 @@ export class APIService {
         message: apiErrorMessages.routeNotFound(routeId),
       });
     }
-
-    // TODO emit event
 
     const plugins = await this.kongRouteService.getPlugins(
       environment,

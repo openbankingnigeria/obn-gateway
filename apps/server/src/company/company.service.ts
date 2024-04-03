@@ -213,7 +213,6 @@ export class CompanyService {
     );
   }
 
-  // TODO ensure only APs can get any company details like this.
   async getCompanyDetails(ctx: RequestContext, companyId?: string) {
     const company = companyId
       ? await this.companyRepository.findOne({
@@ -441,6 +440,9 @@ export class CompanyService {
             {
               name: KONG_PLUGINS.REQUEST_TERMINATION,
               enabled: false,
+              config: {
+                message: 'You have been blocked from making requests',
+              },
             },
           );
         }
@@ -476,6 +478,9 @@ export class CompanyService {
             {
               name: KONG_PLUGINS.REQUEST_TERMINATION,
               enabled: true,
+              config: {
+                message: 'You have been blocked from making requests',
+              },
             },
           );
         }
@@ -613,6 +618,9 @@ export class CompanyService {
         {
           name: KONG_PLUGINS.REQUEST_TERMINATION,
           enabled: !isActive,
+          config: {
+            message: 'You have been blocked from making requests',
+          },
         },
       );
     }

@@ -17,6 +17,7 @@ x-kong-config: &kong-env
   KONG_PLUGINS: "bundled,obn-authorization"
   KONG_SSL_CERT: ${KONG_SSL_CERT}
   KONG_SSL_CERT_KEY: ${KONG_SSL_CERT_KEY}
+  KONG_TRUSTED_IPS: ${KONG_TRUSTED_IPS}
 
 services:
   kong-db:
