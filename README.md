@@ -5,7 +5,7 @@ Welcome to the OpenBanking Gateway project. This guide provides detailed instruc
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - MySQL (v8)
 - Docker and Docker Compose
 
