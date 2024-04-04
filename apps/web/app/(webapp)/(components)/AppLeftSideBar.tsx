@@ -9,6 +9,7 @@ import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
 import { setJsCookies } from '@/config/jsCookie'
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
+import { truncateString } from '@/utils/truncateString'
 
 const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const pathname = usePathname();
@@ -55,7 +56,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
 
           <div className='flex flex-col w-full gap-[2px]'>
             <h3 className='capitalize truncate w-full text-white text-f14 font-[500]'>
-              {firstName} {lastName}
+              {truncateString(`${firstName} ${lastName}`, 22)}
             </h3>
 
             <div className='w-full capitalize text-o-alt-white text-f12'>

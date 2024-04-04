@@ -24,6 +24,7 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const { get } = useSearchParams();
   const slug = get('slug');
   const [profile, setProfile] = useState<any>(null);
+  const [businessDetails, setBusinessDetails] = useState<any>(null);
   // const getUserProfile = getJsCookies('aperta-user-profile');
   // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
 
@@ -44,8 +45,21 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
     setProfile(result?.data);
   }
 
+  const fetchDetails = async () => {
+    const result : any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyDetails(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setBusinessDetails(result?.data);
+  }
+
   useEffect(() => {
     fetchProfile();
+    fetchDetails();
   }, []);
 
   let firstName = profile?.firstName;
@@ -177,10 +191,11 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
             <ToggleSwitch 
               toggle={isLive ? true : false}
               loading={loadingSwitch}
+              disabled={!(businessDetails?.isVerified)}
               setToggle={(value) => handleToggle(value)}
             />
 
-            <div className={`w-fit ${isLive ? 'text-o-green2' : 'text-o-red'} whitespace-nowrap text-f14 font-[500]`}>
+            <div className={`w-fit ${!(businessDetails?.isVerified) && 'opacity-50'} ${isLive ? 'text-o-green2' : 'text-o-red'} whitespace-nowrap text-f14 font-[500]`}>
               {
                 loadingSwitch ?
                   'Loading...' :

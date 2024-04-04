@@ -7,6 +7,7 @@ import { InviteMembersProps } from '@/types/webappTypes/appTypes'
 import { dataToPermissions } from '@/utils/dataToPermissions'
 import React, { useEffect, useState } from 'react'
 import * as API from '@/config/endpoints';
+import { validateEmail } from '@/utils/globalValidations'
 
 const InviteMemberPage = ({
   roles,
@@ -41,7 +42,7 @@ const InviteMemberPage = ({
 
   const incorrect = (
     !role ||
-    !email
+    !validateEmail(email)
   );
 
   const roles_list = roles.map(data => {
