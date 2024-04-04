@@ -377,6 +377,15 @@ export class APIService {
       });
     }
 
+    if (
+      introspectAuthorization &&
+      !this.config.get('registry.introspectionEndpoint')[environment]
+    ) {
+      throw new IBadRequestException({
+        message: 'Introspection endpoint is not configured',
+      });
+    }
+
     const { hostname, pathname } = new URL(upstream.url);
 
     // Create an upstream service on the API gateway
@@ -806,6 +815,15 @@ export class APIService {
       }
     }
 
+    if (
+      !!introspectAuthorization !== !!route.introspectAuthorization &&
+      !this.config.get('registry.introspectionEndpoint')[environment]
+    ) {
+      throw new IBadRequestException({
+        message: 'Introspection endpoint is not configured',
+      });
+    }
+
     let gatewayService;
     if (upstream) {
       const { hostname, pathname } = new URL(upstream.url);
@@ -859,9 +877,6 @@ export class APIService {
       );
     }
 
-    introspectAuthorization =
-      introspectAuthorization ?? route.introspectAuthorization;
-
     await this.routeRepository.update(
       { id: route.id, environment },
       {
@@ -905,13 +920,13 @@ export class APIService {
       );
     }
 
-    if (introspectAuthorization) {
+    if (!!introspectAuthorization !== !!route.introspectAuthorization) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
         {
           name: KONG_PLUGINS.OBN_AUTHORIZATION,
-          enabled: true,
+          enabled: introspectAuthorization,
           config: {
             introspection_endpoint: this.config.get(
               'registry.introspectionEndpoint',
@@ -994,7 +1009,7 @@ export class APIService {
           id: route.id,
           name: data.name || route.name,
           slug: gatewayRoute.name,
-          introspectAuthorization,
+          introspectAuthorization: route.introspectAuthorization,
           enabled: data.enabled || route.enabled,
           collectionId: route.collectionId,
           tiers: data.tiers || route.tiers || [],

@@ -80,6 +80,7 @@ x-obn-server-config: &obn_server_config
     ELASTICSEARCH_ENDPOINT: ${ELASTICSEARCH_ENDPOINT:-https://es:9200}
     ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
     ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:?ELASTICSEARCH_PASSWORD is required}
+    TRUSTED_ORIGINS: ${TRUSTED_ORIGINS}
   volumes:
     - ./config/certs/es:/usr/src/server/certs
   secrets:

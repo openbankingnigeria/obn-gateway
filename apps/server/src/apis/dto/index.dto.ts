@@ -112,6 +112,8 @@ export class CreateAPIDto {
   @IsEnum(CompanyTiers, { each: true })
   tiers: (number | `${number}`)[];
 
+  @IsBoolean()
+  @IsOptional()
   introspectAuthorization: boolean;
 }
 
@@ -204,6 +206,8 @@ export class UpdateAPIDto {
   @IsEnum(CompanyTiers, { each: true })
   tiers?: (number | `${number}`)[];
 
+  @IsBoolean()
+  @IsOptional()
   introspectAuthorization: boolean;
 }
 
