@@ -269,44 +269,47 @@ export class CompanyService {
     { limit, page }: PaginationParameters,
     filters?: any,
   ) {
-    const totalCompanies = await this.companyRepository.count({
-      where: {
-        ...filters,
-      },
-    });
-    const companies = await this.companyRepository.find({
-      where: { ...filters },
-      skip: (page - 1) * limit,
-      take: limit,
-      order: {
-        createdAt: 'DESC',
-      },
-      select: {
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-        rcNumber: true,
-        type: true,
-        subtype: true,
-        tier: true,
-        isVerified: true,
-        kybStatus: true,
-        status: true,
-        deletedAt: true,
-        id: true,
-        primaryUser: {
-          bvn: true,
-          email: true,
-          profile: {
-            firstName: true,
-            lastName: true,
+    const [totalCompanies, companies] = await Promise.all([
+      this.companyRepository.count({
+        where: {
+          ...filters,
+          type: Not(CompanyTypes.API_PROVIDER),
+        },
+      }),
+      this.companyRepository.find({
+        where: { ...filters, type: Not(CompanyTypes.API_PROVIDER) },
+        skip: (page - 1) * limit,
+        take: limit,
+        order: {
+          createdAt: 'DESC',
+        },
+        select: {
+          name: true,
+          createdAt: true,
+          updatedAt: true,
+          rcNumber: true,
+          type: true,
+          subtype: true,
+          tier: true,
+          isVerified: true,
+          kybStatus: true,
+          status: true,
+          deletedAt: true,
+          id: true,
+          primaryUser: {
+            bvn: true,
+            email: true,
+            profile: {
+              firstName: true,
+              lastName: true,
+            },
           },
         },
-      },
-      relations: {
-        primaryUser: { profile: true },
-      },
-    });
+        relations: {
+          primaryUser: { profile: true },
+        },
+      }),
+    ]);
 
     return ResponseFormatter.success(
       'Successfully fetched company',
