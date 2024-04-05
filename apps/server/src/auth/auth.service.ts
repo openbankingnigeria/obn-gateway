@@ -84,7 +84,7 @@ export class AuthService {
     // Check if user with this email already exists
     const userExists = await this.userRepository.count({
       where: {
-        email: data.email.trim().toLowerCase(),
+        email: Equal(data.email.trim().toLowerCase()),
       },
     });
 
@@ -219,6 +219,18 @@ export class AuthService {
           });
         }
       case CompanyTypes.INDIVIDUAL:
+        const userWithBVNexists = await this.userRepository.findOne({
+          where: {
+            bvn: Equal(data.bvn),
+          },
+        });
+
+        if (userWithBVNexists) {
+          throw new IBadRequestException({
+            message: 'User already exists',
+          });
+        }
+
         const { accountNumber: iAccountNumber, bvn } =
           data as IndividualSignupDto;
 
