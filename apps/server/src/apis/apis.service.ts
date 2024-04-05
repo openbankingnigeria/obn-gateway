@@ -789,7 +789,7 @@ export class APIService {
     data: UpdateAPIDto,
   ) {
     const { name, enabled, downstream, upstream, tiers } = data;
-    let { introspectAuthorization } = data;
+    const { introspectAuthorization } = data;
 
     const route = await this.routeRepository.findOne({
       where: { id: Equal(routeId), environment },
