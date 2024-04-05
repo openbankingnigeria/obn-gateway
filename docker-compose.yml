@@ -21,6 +21,7 @@ volumes:
     driver_opts:
       type: tmpfs
       device: tmpfs
+  certs: {}
   esdata: {}
   logstashdata: {}
 
@@ -82,7 +83,7 @@ x-obn-server-config: &obn_server_config
     ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:?ELASTICSEARCH_PASSWORD is required}
     TRUSTED_ORIGINS: ${TRUSTED_ORIGINS}
   volumes:
-    - ./config/certs/es:/usr/src/server/certs
+    - certs:/usr/src/server/certs
   secrets:
     - mysql_password
     - jwt_secret
@@ -201,7 +202,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION:-8.11.1}
     container_name: obn-elk-setup
     volumes:
-      - ./config/certs/es:/usr/share/elasticsearch/config/certs
+      - certs:/usr/share/elasticsearch/config/certs
     user: root
     command: >
       bash -c '
@@ -257,7 +258,7 @@ services:
     labels:
       co.elastic.logs/module: elasticsearch
     volumes:
-      - ./config/certs/es:/usr/share/elasticsearch/config/certs
+      - certs:/usr/share/elasticsearch/config/certs
       - esdata:/usr/share/elasticsearch/data
     depends_on:
       elk-setup:
@@ -309,7 +310,7 @@ services:
       co.elastic.logs/module: logstash
     user: root
     volumes:
-      - ./config/certs/es:/usr/share/logstash/certs
+      - certs:/usr/share/logstash/certs
       - logstashdata:/usr/share/logstash/data
       - "./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"
     depends_on:
