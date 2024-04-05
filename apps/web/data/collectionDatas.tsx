@@ -169,7 +169,7 @@ export const COLLECTION_ACTIONS_DATA = [
   // },
   {
     id: 4,
-    label: 'Deactivate',
+    label: 'Disable',
     name: 'deactivate',
     permit: 'update-api-endpoint',
     type: 'enabled',
@@ -179,7 +179,7 @@ export const COLLECTION_ACTIONS_DATA = [
   },
   {
     id: 5,
-    label: 'Activate',
+    label: 'Enable',
     name: 'activate',
     permit: 'update-api-endpoint',
     type: 'disabled',
