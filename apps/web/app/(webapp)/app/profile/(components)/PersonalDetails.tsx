@@ -31,7 +31,7 @@ const PersonalDetails = ({
 
     if (result?.message) {
       setLoading(false);
-      router.refresh();
+      window.location.reload();
     }
   };
 

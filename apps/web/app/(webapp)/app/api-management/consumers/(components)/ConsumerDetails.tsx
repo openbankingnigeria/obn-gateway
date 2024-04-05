@@ -305,7 +305,8 @@ const ConsumerDetails = ({
               rawData?.type == 'individual' &&
                 <ViewData 
                   label='BVN'
-                  value=''
+                  value={rawData?.primaryUser?.bvn}
+                  masked
                 />
             }
 
