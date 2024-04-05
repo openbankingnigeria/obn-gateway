@@ -3,9 +3,9 @@ import {
   IsEmail,
   IsIn,
   IsJWT,
-  IsMobilePhone,
   IsNotEmpty,
   IsOptional,
+  IsPhoneNumber,
   IsString,
   IsStrongPassword,
   Length,
@@ -176,7 +176,7 @@ export class BaseSignupDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @IsMobilePhone('en-NG', undefined, {
+  @IsPhoneNumber('NG', {
     message: authValidationErrors.dto.invalidPhone,
   })
   phone: string;

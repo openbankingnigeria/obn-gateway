@@ -247,7 +247,7 @@ export class AuthService {
             },
             accountNumber: iAccountNumber,
             status: UserStatuses.ACTIVE,
-            bvn: hashSync(bvn, 12),
+            bvn,
           });
 
           await this.companyRepository.update(
