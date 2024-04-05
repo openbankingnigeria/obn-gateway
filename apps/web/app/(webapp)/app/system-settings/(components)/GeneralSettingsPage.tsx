@@ -136,6 +136,7 @@ const GeneralSettingsPage = ({ rawData, profileData }: APIConfigurationProps) =>
                   value={data?.value}
                   changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e, data)}
                   required
+                  maxLength={10}
                   rightIcon={
                     <span className='text-f14 whitespace-nowrap text-o-text-muted2'>
                       {data?.rightLabel}

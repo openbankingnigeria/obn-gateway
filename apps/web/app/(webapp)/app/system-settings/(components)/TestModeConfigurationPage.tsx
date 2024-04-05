@@ -149,7 +149,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
       }),
       method: 'PUT',
       data: {
-        ips: form?.ip_whitelist?.split(' ')
+        ips: form?.ip_whitelist?.split(',')?.map((ip: string) => ip?.trim())
       }
     });
 
@@ -254,7 +254,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
                     disabled={data?.name?.includes('key')}
                     value={data?.value}
                     changeEvent={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
-                    required
+                    // required={!(data?.name == 'ip_whitelist')}
                     rightIcon={
                       data?.rightLabel == 'copy' ?
                         <div 

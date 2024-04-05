@@ -255,7 +255,7 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
   {
     id: 7,
     label: 'IP Whitelist',
-    description: 'A list of IP addresses that are allowed to access this API. Requests from IPs not on this list will be denied.',
+    description: 'An IP address list is allowed to access the API requests, and requests from IPs not on this list will be denied. Multiple IP addresses can be inputted, separating them with commas',
     name: 'ip_whitelist',
     type: 'text',
     permit: '',
@@ -358,7 +358,7 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
   {
     id: 7,
     label: 'IP Whitelist',
-    description: 'A list of IP addresses that are allowed to access this API. Requests from IPs not on this list will be denied.',
+    description: 'An IP address list is allowed to access the API requests, and requests from IPs not on this list will be denied. Multiple IP addresses can be inputted, separating them with commas',
     name: 'ip_whitelist',
     type: 'text',
     permit: '',
@@ -540,7 +540,7 @@ export const EMAIL_SERVICE_DATA = ({
     label: 'Email Password',
     description: '',
     name: 'emailPassword',
-    type: 'text',
+    type: 'password',
     value: emailPassword
   },
   {

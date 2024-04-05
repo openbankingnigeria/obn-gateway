@@ -50,8 +50,10 @@ const InputElement = ({
   }, [value]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    changeValue && changeValue(e.target.value);
-    changeEvent && changeEvent(e);
+    if (e.target.value?.length <= (maxLength ?? 100)) {
+      changeValue && changeValue(e.target.value);
+      changeEvent && changeEvent(e);
+    }
   }
 
   return (
