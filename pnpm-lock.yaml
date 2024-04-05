@@ -71,9 +71,6 @@ importers:
       joi:
         specifier: ^17.11.0
         version: 17.11.0
-      libphonenumber-js:
-        specifier: ^1.10.60
-        version: 1.10.60
       moment:
         specifier: ^2.29.4
         version: 2.29.4
