@@ -1,3 +1,5 @@
+import { PhoneNumberUtil } from 'google-libphonenumber';
+
 export const validateUppercase = (value: string) => 
   value?.toString()?.match(/^(?=.*[A-Z])/);
 
@@ -18,3 +20,13 @@ export const validateEmail = (value: string) =>
 
 export const validateName = (value: string) => 
   value?.toString()?.match(/^[a-zA-Z-]+$/) && value.length >= 2
+
+export const validatePhoneNumber = (phoneNumber: string, countryCode: string) => {
+  const phoneUtil = PhoneNumberUtil.getInstance();
+  try {
+    const parsedPhoneNumber = phoneUtil.parse(phoneNumber, countryCode);
+    return phoneUtil.isValidNumber(parsedPhoneNumber);
+  } catch (error) {
+    return false;
+  }
+}

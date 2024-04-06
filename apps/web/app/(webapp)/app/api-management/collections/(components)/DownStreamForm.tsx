@@ -4,6 +4,11 @@ import { InputElement } from '@/components/forms'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes';
 import React, { ChangeEvent, useEffect, useState } from 'react'
 import { motion } from 'framer-motion';
+import { Button } from '@/components/globalComponents';
+import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
+import clientAxiosRequest from '@/hooks/clientAxiosRequest';
+import * as API from '@/config/endpoints';
+import { getJsCookies } from '@/config/jsCookie';
 
 const DownStreamForm = ({
   rawData,
@@ -16,6 +21,9 @@ const DownStreamForm = ({
   const [path, setPath] = useState('');
   const [currentValue, setCurrentValue] = useState('header');
   const [currentResValue, setCurrentResValue] = useState('body');
+  const [loading, setLoading] = useState(false);
+  const [open2FA, setOpen2FA] = useState(false);
+  const environment = getJsCookies('environment');
 
   useEffect(() => {
     setApiName(rawData?.name || '');
@@ -51,10 +59,66 @@ const DownStreamForm = ({
     return `${style.join(',<br>')}${style.length > 0 ? '<br>' : ''}`;
   };
 
-  console.log(request, response);
+  const close2FAModal = () => {
+    setOpen2FA(false);
+  }
+
+  // console.log(request, response);
+
+  const handleSubmit = async (e: any, code: string,) => {
+    e && e.preventDefault();
+    if (profileData?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      const result: any = await clientAxiosRequest({
+        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        apiEndpoint: API.updateAPI({ 
+          environment: environment || 'development', 
+          id: rawData?.id
+        }),
+        method: 'PATCH',
+        data: {
+          "name": rawData?.name,
+          "enabled": rawData?.enabled,
+          "tiers": rawData?.tiers,
+          "upstream": rawData?.upstream,
+          "downstream": {
+            ...rawData?.downstream,
+            path,
+          }
+        }
+      });
+
+      if (result?.message) {
+        close2FAModal();
+        setLoading(false);
+        // router.refresh();
+      }
+    }
+  }
+
+  const handle2FA = (value: string) => {
+    handleSubmit('', value);
+  };
 
   return (
-    <div className='w-full'>
+    <>
+      {
+        open2FA &&
+          <AppCenterModal
+            title={'Two-Factor Authentication'}
+            effect={close2FAModal}
+          >
+            <TwoFactorAuthModal
+              close={close2FAModal}
+              loading={loading}
+              next={(value: string) => handle2FA(value)}
+            />
+          </AppCenterModal>
+      }
+
+    <form onSubmit={(e)=>handleSubmit(e, '')} className='w-full'>
       {
         (profileData == 'api-consumer') ?
           <div className='flex flex-col gap-[20px]'>
@@ -223,14 +287,27 @@ const DownStreamForm = ({
                 type='text'
                 placeholder=''
                 label='Path'
-                disabled
+                changeValue={(value: any) => setPath(value)}
+                disabled={false}
                 value={path}
                 required
               />
+
+              <div className='w-full flex justify-end'>
+                <Button 
+                  title='Save changes'
+                  type='submit'
+                  loading={loading}
+                  containerStyle='!w-[120px]'
+                  // disabled={incorrect}
+                  small
+                />
+              </div>
             </div>
           </div>
       }
-    </div>
+    </form>
+    </>
   )
 }
 

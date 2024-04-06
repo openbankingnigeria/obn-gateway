@@ -111,8 +111,6 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
     toast.success(`You’ve successfully switched to ${mode} Mode`);
   }
 
-  console.log(businessDetails, profile);
-
   const canToggleMode = (businessDetails?.isVerified && profile?.user?.role?.parent?.slug === 'api-consumer') || profile?.user?.role?.parent?.slug === 'api-provider'
 
   return (

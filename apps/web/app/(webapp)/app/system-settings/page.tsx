@@ -29,7 +29,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   });
 
   const environment = (
-    path == 'test_mode_configuration' ? 
+    (path == 'test_mode_configuration' || path == '') ? 
     'development' : 
       details?.isVerified ?
       'production' : 'development'
