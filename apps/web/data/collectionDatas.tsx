@@ -199,7 +199,7 @@ export const COLLECTION_ACTIONS_DATA = [
   },
   {
     id: 7,
-    label: 'Enable NIBBS check',
+    label: 'Enable NIBBS Check',
     name: 'enable_check',
     permit: '',
     type: 'all',
