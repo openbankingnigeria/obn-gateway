@@ -30,12 +30,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
-  const environment = (
-    (path == 'test_mode_configuration' || path == '') ? 
-    'development' : 
-      details?.isVerified ?
-      'production' : 'development'
-  );
+  const environment = getMode || 'development';
 
   /** REFRESH TOKEN CHECK */
   let refreshTokenRes = null; 
