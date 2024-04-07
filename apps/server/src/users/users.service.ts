@@ -6,7 +6,13 @@ import {
   UpdateUserDto,
 } from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Profile, Role, User, UserStatuses } from '@common/database/entities';
+import {
+  Profile,
+  Role,
+  RoleStatuses,
+  User,
+  UserStatuses,
+} from '@common/database/entities';
 import { Equal, IsNull, Repository } from 'typeorm';
 import {
   IBadRequestException,
@@ -234,6 +240,7 @@ export class UsersService {
         parentId: Equal(ctx.activeUser.role.parentId),
         companyId: Equal(ctx.activeUser.companyId),
         deletedAt: IsNull(),
+        status: RoleStatuses.ACTIVE,
       };
       role = await this.roleRepository.findOne({
         where: [where, { ...where, companyId: IsNull() }],
