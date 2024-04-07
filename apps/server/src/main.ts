@@ -13,15 +13,16 @@ async function bootstrap() {
   // Config
   const configService = app.get(ConfigService);
   const port = configService.get('system.port');
-  const corsOrigins = configService.get<string>('system.corsOrigins');
-
+  const trustedOrigins = configService.get<string>('system.trustedOrigins');
+  const managementUrl = configService.get<string>('system.managementUrl');
   // Logging
   app.useLogger(app.get(Logger));
   const logger = new NestLogger();
 
-  // TODO
-  if (corsOrigins) {
-    // app.enableCors({ origin: corsOrigins.split(',') });
+  if (trustedOrigins) {
+    app.enableCors({ origin: trustedOrigins.split(',') });
+  } else if (managementUrl) {
+    app.enableCors({ origin: new URL(managementUrl).origin });
   }
 
   app.useGlobalInterceptors(

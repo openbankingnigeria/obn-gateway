@@ -5,7 +5,7 @@ Welcome to the OpenBanking Gateway project. This guide provides detailed instruc
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - MySQL (v8)
 - Docker and Docker Compose
 
@@ -52,7 +52,7 @@ pnpm dev
 Launch the services using Docker Compose:
 
 ```bash
-docker-compose up -d --build
+docker-compose --profile "*" up -d --build
 ```
 
 This command will set up the web and server services along with other dependencies like Kong, Elasticsearch, Logstash, and MySQL.

@@ -217,6 +217,11 @@ export class UsersService {
     }
 
     if (user.id === ctx.activeUser.id) {
+      if (status === UserStatuses.INACTIVE && user.status !== status) {
+        throw new IBadRequestException({
+          message: userErrors.cannotDeactivateSelf,
+        });
+      }
       throw new IBadRequestException({
         message: userErrors.cannotUpdateSelf,
       });

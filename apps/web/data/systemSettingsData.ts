@@ -226,7 +226,7 @@ export const TEST_MODE_CONFIGURATION_DATA = ({
   {
     id: 4,
     label: 'Test API Key',
-    description: 'A public key used for client-side operations in a test environment.',
+    description: 'A secret key used for backend operations in a test environment.',
     name: 'test_api_key',
     type: 'text',
     permit: 'view-api-key',
@@ -329,7 +329,7 @@ export const LIVE_MODE_CONFIGURATION_DATA = ({
   {
     id: 4,
     label: 'API Key',
-    description: 'A public key used for client-side operations in a test environment.',
+    description: 'A secret key used for backend operations in a test environment.',
     name: 'api_key',
     type: 'text',
     permit: 'view-api-key',

@@ -354,7 +354,6 @@ export class APIService {
       downstream,
       upstream,
       tiers = [],
-      slug = slugify(name, { strict: true, lower: true }),
       introspectAuthorization = false,
     } = data;
 
@@ -375,6 +374,15 @@ export class APIService {
     if (routeExists) {
       throw new IBadRequestException({
         message: apiErrorMessages.routeExists(name),
+      });
+    }
+
+    if (
+      introspectAuthorization &&
+      !this.config.get('registry.introspectionEndpoint')[environment]
+    ) {
+      throw new IBadRequestException({
+        message: 'Introspection endpoint is not configured',
       });
     }
 
@@ -450,7 +458,7 @@ export class APIService {
       this.routeRepository.create({
         id: routeId,
         name,
-        slug,
+        slug: gatewayRoute.name,
         environment,
         introspectAuthorization,
         serviceId: gatewayService.id,
@@ -459,7 +467,9 @@ export class APIService {
         enabled,
         url:
           data.downstream.url ??
-          `${this.config.get('kong.gatewayEndpoint')[environment] || ''}${cleanPath}`,
+          `${
+            this.config.get('kong.gatewayEndpoint')[environment] || ''
+          }${cleanPath}`,
         method: downstream.method,
         request: downstream.request,
         response: downstream.response,
@@ -473,6 +483,9 @@ export class APIService {
       {
         name: KONG_PLUGINS.REQUEST_TERMINATION,
         enabled: !enabled,
+        config: {
+          message: 'This API is currently unavailable.',
+        },
       },
     );
 
@@ -493,7 +506,7 @@ export class APIService {
             client_secret: this.config.get(
               'registry.introspectionClientSecret',
             )[environment],
-            scope: [slug],
+            scope: [gatewayRoute.name],
           },
         },
       );
@@ -776,7 +789,7 @@ export class APIService {
     data: UpdateAPIDto,
   ) {
     const { name, enabled, downstream, upstream, tiers } = data;
-    let { slug, introspectAuthorization } = data;
+    const { introspectAuthorization } = data;
 
     const route = await this.routeRepository.findOne({
       where: { id: Equal(routeId), environment },
@@ -789,72 +802,94 @@ export class APIService {
       });
     }
 
-    const routeExists = await this.routeRepository.countBy({
-      id: Not(routeId),
-      environment,
-      name,
-    });
-    if (routeExists) {
+    if (name) {
+      const routeExists = await this.routeRepository.countBy({
+        id: Not(routeId),
+        environment,
+        name,
+      });
+      if (routeExists) {
+        throw new IBadRequestException({
+          message: apiErrorMessages.routeExists(name),
+        });
+      }
+    }
+
+    if (
+      !!introspectAuthorization !== !!route.introspectAuthorization &&
+      !this.config.get('registry.introspectionEndpoint')[environment]
+    ) {
       throw new IBadRequestException({
-        message: apiErrorMessages.routeExists(name),
+        message: 'Introspection endpoint is not configured',
       });
     }
 
-    const { hostname, pathname } = new URL(upstream.url);
-    const gatewayService = await this.kongService.updateOrCreateService(
-      environment,
-      {
-        name: slugify(hostname + '-' + pathname, { strict: true }),
-        enabled: true,
-        url: upstream.url,
-        retries: 1,
-        tags: [route.collection.slug!],
-      },
-    );
+    let gatewayService;
+    if (upstream) {
+      const { hostname, pathname } = new URL(upstream.url);
+      gatewayService = await this.kongService.updateOrCreateService(
+        environment,
+        {
+          name: slugify(hostname + '-' + pathname, { strict: true }),
+          enabled: true,
+          url: upstream.url,
+          retries: 1,
+          tags: [route.collection.slug!],
+        },
+      );
+    } else {
+      gatewayService = await this.kongService.getService(
+        environment,
+        route.serviceId!,
+      );
+    }
 
     let gatewayRoute;
-    if (route.routeId) {
-      gatewayRoute = await this.kongRouteService.updateRoute(
-        environment,
-        route.routeId,
-        {
-          name: slugify(name, { lower: true, strict: true }),
+    if (downstream) {
+      if (route.routeId) {
+        gatewayRoute = await this.kongRouteService.updateRoute(
+          environment,
+          route.routeId,
+          {
+            name: slugify(name || route.name, { lower: true, strict: true }),
+            paths: [downstream.path],
+            methods: [downstream.method],
+            service: {
+              id: gatewayService.id,
+            },
+          },
+        );
+      } else {
+        gatewayRoute = await this.kongRouteService.createRoute(environment, {
+          name: slugify(name || route.name, { lower: true, strict: true }),
+          tags: [route.collection.slug!],
           paths: [downstream.path],
           methods: [downstream.method],
           service: {
             id: gatewayService.id,
           },
-        },
-      );
+        });
+      }
     } else {
-      gatewayRoute = await this.kongRouteService.createRoute(environment, {
-        name: slugify(name, { lower: true, strict: true }),
-        tags: [route.collection.slug!],
-        paths: [downstream.path],
-        methods: [downstream.method],
-        service: {
-          id: gatewayService.id,
-        },
-      });
+      gatewayRoute = await this.kongRouteService.getRoute(
+        environment,
+        route.routeId!,
+      );
     }
-
-    slug = slug || route.slug || slugify(name, { strict: true, lower: true });
-    introspectAuthorization =
-      introspectAuthorization ?? route.introspectAuthorization;
 
     await this.routeRepository.update(
       { id: route.id, environment },
       {
         name,
-        slug,
+        slug: gatewayRoute.name,
         introspectAuthorization,
         serviceId: gatewayService.id,
         routeId: gatewayRoute.id,
         enabled,
-        url: data.downstream.url,
-        method: downstream.method,
-        request: downstream.request,
-        response: downstream.response,
+        url: downstream?.url,
+        method: downstream?.method,
+        request: downstream?.request,
+        response: downstream?.response,
         tiers,
       },
     );
@@ -866,6 +901,9 @@ export class APIService {
         {
           name: KONG_PLUGINS.REQUEST_TERMINATION,
           enabled: false,
+          config: {
+            message: 'This API is currently unavailable.',
+          },
         },
       );
     } else if (enabled === false) {
@@ -875,17 +913,20 @@ export class APIService {
         {
           name: KONG_PLUGINS.REQUEST_TERMINATION,
           enabled: true,
+          config: {
+            message: 'This API is currently unavailable.',
+          },
         },
       );
     }
 
-    if (introspectAuthorization) {
+    if (!!introspectAuthorization !== !!route.introspectAuthorization) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
         {
           name: KONG_PLUGINS.OBN_AUTHORIZATION,
-          enabled: true,
+          enabled: introspectAuthorization,
           config: {
             introspection_endpoint: this.config.get(
               'registry.introspectionEndpoint',
@@ -896,17 +937,17 @@ export class APIService {
             client_secret: this.config.get(
               'registry.introspectionClientSecret',
             )[environment],
-            scope: [slug],
+            scope: [gatewayRoute.name],
           },
         },
       );
     }
 
     if (
-      upstream.method ||
-      upstream.headers ||
-      upstream.querystring ||
-      upstream.body
+      upstream?.method ||
+      upstream?.headers ||
+      upstream?.querystring ||
+      upstream?.body
     ) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
@@ -967,8 +1008,8 @@ export class APIService {
         {
           id: route.id,
           name: data.name || route.name,
-          slug,
-          introspectAuthorization,
+          slug: gatewayRoute.name,
+          introspectAuthorization: route.introspectAuthorization,
           enabled: data.enabled || route.enabled,
           collectionId: route.collectionId,
           tiers: data.tiers || route.tiers || [],
@@ -981,7 +1022,15 @@ export class APIService {
             },
             ctx,
           ),
-          downstream: new GETAPIDownstreamResponseDTO(data.downstream, ctx),
+          downstream: new GETAPIDownstreamResponseDTO(
+            {
+              ...data.downstream!,
+              path: gatewayRoute?.paths[0] ?? null,
+              method: gatewayRoute?.methods[0] ?? null,
+              url: route.url,
+            },
+            ctx,
+          ),
         },
         ctx,
       ),
@@ -1452,8 +1501,6 @@ export class APIService {
         message: apiErrorMessages.routeNotFound(routeId),
       });
     }
-
-    // TODO emit event
 
     const plugins = await this.kongRouteService.getPlugins(
       environment,

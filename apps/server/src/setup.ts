@@ -132,7 +132,6 @@ async function performSetupTasks(): Promise<void> {
   for (const environment in config.get<Record<KONG_ENVIRONMENT, string>>(
     'kong.adminEndpoint',
   )) {
-    // TODO this should be done per route
     await kongPluginService
       .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
         name: KONG_PLUGINS.HTTP_LOG,

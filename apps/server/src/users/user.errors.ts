@@ -24,6 +24,7 @@ export const userErrors = {
     `A user with email '${email}' already exists.`,
   userNotFound: `User not found.`,
   cannotUpdateSelf: `You cannot update your user.`,
+  cannotDeactivateSelf: `You cannot deactivate yourself.`,
   cannotDeleteSelf: `You cannot deleted your user.`,
   provide2FACode: `Please provide 2FA code`,
   invalidRole: 'Please provide a valid role',
