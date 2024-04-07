@@ -15,6 +15,7 @@ import { BaseEvent } from '@shared/events/base.event';
 import { CompanyTypes } from '@common/database/constants';
 import { GetAuditLogResponseDTO } from './dto/index.dto';
 import { RequestContext } from '@common/utils/request/request-context';
+import { AllEvents } from '@shared/events/all.event';
 
 @Injectable()
 export class AuditLogsService {
@@ -105,6 +106,13 @@ export class AuditLogsService {
     return ResponseFormatter.success(
       auditLogsSuccessMessages.fetchLog,
       new GetAuditLogResponseDTO(log),
+    );
+  }
+
+  async getAuditLogTypes() {
+    return ResponseFormatter.success(
+      auditLogsSuccessMessages.fetchLogTypes,
+      Object.values(AllEvents),
     );
   }
 }

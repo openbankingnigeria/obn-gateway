@@ -38,8 +38,6 @@ import {
   CreateCollectionEvent,
   DeleteCollectionEvent,
   UpdateCollectionEvent,
-  ViewCollectionEvent,
-  ViewCompanyCollectionEvent,
 } from '@shared/events/collections.event';
 
 @Injectable()
@@ -70,9 +68,6 @@ export class CollectionsService {
         order: { createdAt: 'DESC' },
         relations: { apis: true },
       });
-
-    const event = new ViewCollectionEvent(ctx.activeUser, {});
-    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollections,
@@ -106,9 +101,6 @@ export class CollectionsService {
         message: collectionErrorMessages.collectionNotFound(idOrSlug),
       });
     }
-
-    const event = new ViewCollectionEvent(ctx.activeUser, {});
-    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollection,
@@ -298,9 +290,6 @@ export class CollectionsService {
       await query.getRawMany(),
       await query.getCount(),
     ]);
-
-    const event = new ViewCompanyCollectionEvent(ctx.activeUser, {});
-    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       collectionsSuccessMessages.fetchedCollection,

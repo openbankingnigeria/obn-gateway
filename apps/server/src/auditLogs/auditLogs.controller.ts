@@ -1,4 +1,10 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  SerializeOptions,
+} from '@nestjs/common';
 import { AuditLogsService } from './auditLogs.service';
 import {
   PaginationParameters,
@@ -26,6 +32,15 @@ export class AuditLogsController {
     filters: any,
   ) {
     return this.auditLogsService.getLogs(ctx, pagination, filters);
+  }
+
+  @Get('types')
+  @SerializeOptions({
+    strategy: 'exposeAll',
+  })
+  @RequiredPermission(PERMISSIONS.LIST_AUDIT_LOGS)
+  getAuditLogTypes() {
+    return this.auditLogsService.getAuditLogTypes();
   }
 
   @Get(':id')
