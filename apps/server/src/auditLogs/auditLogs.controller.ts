@@ -39,8 +39,8 @@ export class AuditLogsController {
     strategy: 'exposeAll',
   })
   @RequiredPermission(PERMISSIONS.LIST_AUDIT_LOGS)
-  getAuditLogTypes() {
-    return this.auditLogsService.getAuditLogTypes();
+  getAuditLogTypes(@Ctx() ctx: RequestContext) {
+    return this.auditLogsService.getAuditLogTypes(ctx);
   }
 
   @Get(':id')

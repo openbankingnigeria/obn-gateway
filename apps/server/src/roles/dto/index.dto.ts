@@ -7,6 +7,7 @@ import {
   IsArray,
   IsNotEmpty,
   IsObject,
+  IsOptional,
   IsString,
 } from 'class-validator';
 
@@ -15,7 +16,7 @@ export class CreateRoleDto {
   @IsString()
   name: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   description: string;
 
