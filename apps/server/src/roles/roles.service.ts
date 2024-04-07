@@ -188,17 +188,27 @@ export class RolesService {
   }
 
   async updateRole(ctx: RequestContext, id: string, data: UpdateRoleDto) {
-    const role = await this.roleRepository.findOne({
-      where: {
+    const where = [
+      {
         id: Equal(id),
         parentId: Equal(ctx.activeUser.role.parentId),
         companyId: Equal(ctx.activeUser.companyId),
+        deletedAt: IsNull(),
       },
+    ];
+    const role = await this.roleRepository.findOne({
+      where,
     });
 
     if (!role) {
       throw new INotFoundException({
         message: roleErrors.roleNotFound,
+      });
+    }
+
+    if (!role.companyId) {
+      throw new IBadRequestException({
+        message: roleErrors.defaultRoleNotEdictable,
       });
     }
 

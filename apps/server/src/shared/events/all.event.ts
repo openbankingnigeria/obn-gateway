@@ -1,4 +1,4 @@
-export enum AllEvents {
+export enum APEvents {
   // API events
   DELETE_APIS = 'apis.delete',
   CREATE_APIS = 'apis.create',
@@ -48,6 +48,38 @@ export enum AllEvents {
   EDIT_SETTINGS = 'settings.update',
   SET_CLIENT_EVENT = 'settings.api.client.create',
   //   User events
+  USER_CREATED = 'user.created',
+  USER_UPDATED = 'user.updated',
+  USER_DELETED = 'user.deleted',
+  USER_DEACTIVATED = 'user.deactivated',
+  USER_REACTIVATED = 'user.reactivated',
+}
+
+export enum ACEvents {
+  VIEW_COMPANY_APIS = 'apis.company.view',
+  SIGN_UP = 'auth.signup',
+  LOGIN = 'auth.login',
+  SET_PASSWORD = 'auth.set-password',
+  RESET_PASSWORD_REQUEST = 'auth.reset-password-request',
+  RESET_PASSWORD = 'auth.reset-password',
+  VIEW_COLLECTIONS = 'collections.view',
+  VIEW_COMPANY_COLLECTIONS = 'collections.company.view',
+  UPDATE_PROFILE = 'profile.update',
+  GENERATE_2FA = 'profile.2fa.generate',
+  VERIFY_2FA = 'profile.2fa.verify',
+  DISABLE_2FA = 'profile.2fa.disable',
+  CREATE_ROLE = 'role.create',
+  UPDATE_ROLE = 'role.update',
+  DELETE_ROLE = 'role.delete',
+  SET_ROLE_PERMISSIONS = 'role.permissions.update',
+  GET_ROLE_PERMISSIONS = 'role.permissions.view',
+  GET_PERMISSIONS = 'permissions.view',
+  LIST_ROLE = 'role.view',
+  GET_STATS = 'role.stats.view',
+  UPDATE_KYB_REQUIREMENTS = 'settings.kyb.update',
+  GENERATE_API_KEY = 'settings.api.key.create',
+  GET_API_KEY = 'settings.api.key.view',
+  EDIT_SETTINGS = 'settings.update',
   USER_CREATED = 'user.created',
   USER_UPDATED = 'user.updated',
   USER_DELETED = 'user.deleted',
