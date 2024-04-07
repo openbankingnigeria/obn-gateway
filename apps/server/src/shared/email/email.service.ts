@@ -36,8 +36,8 @@ import {
   CompanyDeniedEvent,
   CompanyEvents,
 } from '@shared/events/company.event';
-import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
-import { EmailSettingsInterface, SETTINGS_TYPES } from '@settings/types';
+import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
+import { EmailSettingsInterface, SETTINGS_TYPES } from 'src/settings/types';
 import * as moment from 'moment';
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { settingsErrors } from '@settings/settings.errors';
+import { settingsErrors } from 'src/settings/settings.errors';
 import {
   EmailSettingsInterface,
   SETTINGS_TYPES,
@@ -8,7 +8,7 @@ import {
   GeneralSettingsInterface,
   KybDataTypes,
   BusinessSettings,
-} from '@settings/types';
+} from 'src/settings/types';
 import { Expose, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,

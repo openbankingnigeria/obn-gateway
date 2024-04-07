@@ -56,8 +56,8 @@ export class RolesService {
   async createRole(ctx: RequestContext, data: CreateRoleDto) {
     const roleExists = await this.roleRepository.count({
       where: {
-        name: data.name,
-        companyId: ctx.activeUser.companyId,
+        name: Equal(data.name),
+        companyId: Equal(ctx.activeUser.companyId),
       },
     });
 
@@ -121,15 +121,19 @@ export class RolesService {
         ...filters,
         parentId: Equal(ctx.activeUser.role.parentId),
         companyId: Equal(ctx.activeUser.companyId),
+        deletedAt: IsNull(),
       },
       {
         ...filters,
-        id: Equal(ctx.activeUser.role.id),
+        parentId: Equal(ctx.activeUser.role.parentId),
         companyId: IsNull(),
+        deletedAt: IsNull(),
       },
     ];
 
-    const totalRoles = await this.roleRepository.count({ where });
+    const totalRoles = await this.roleRepository.count({
+      where,
+    });
 
     const roles = await this.roleRepository.find({
       where,

@@ -7,7 +7,7 @@ import {
 } from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile, Role, User, UserStatuses } from '@common/database/entities';
-import { Equal, Repository } from 'typeorm';
+import { Equal, IsNull, Repository } from 'typeorm';
 import {
   IBadRequestException,
   INotFoundException,
@@ -229,12 +229,14 @@ export class UsersService {
 
     let role;
     if (roleId) {
+      const where = {
+        id: Equal(roleId),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
+        deletedAt: IsNull(),
+      };
       role = await this.roleRepository.findOne({
-        where: {
-          id: Equal(roleId),
-          parentId: Equal(ctx.activeUser.role.parentId),
-          companyId: Equal(ctx.activeUser.companyId),
-        },
+        where: [where, { ...where, companyId: IsNull() }],
       });
 
       if (!role) {

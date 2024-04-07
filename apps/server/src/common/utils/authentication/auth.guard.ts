@@ -50,6 +50,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<IRequest>();
 
     const accessToken = request.headers.authorization?.replace(/^Bearer\s/, '');
+
     const twoFACode = request.get('x-twofa-code');
 
     if (!accessToken) {
