@@ -25,6 +25,7 @@ const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
     apiEndpoint: API.getRoles({
       page: '1',
       limit: '1000',
+      status: 'active'
     }),
     method: 'GET',
     data: null

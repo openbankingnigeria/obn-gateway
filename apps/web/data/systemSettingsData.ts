@@ -7,6 +7,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: '',
     name: 'general_settings',
     type: 'api-provider',
+    environment: 'all',
     subType: 'api-provider'
   },
   // {
@@ -23,6 +24,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'email_settings',
     name: 'email_settings',
     type: 'api-provider',
+    environment: 'all',
     subType: 'api-provider'
   },
   {
@@ -31,6 +33,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'email_templates',
     name: 'email_templates',
     type: 'api-provider',
+    environment: 'all',
     subType: 'api-provider'
   },
   // {
@@ -55,6 +58,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: '',
     name: 'business_information',
     type: 'api-consumer',
+    environment: 'all',
     subType: 'licensed-entity,business'
   },
   {
@@ -63,6 +67,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'test_mode_configuration',
     name: 'test_mode_configuration',
     type: 'api-consumer',
+    environment: 'development',
     subType: 'licensed-entity,business'
   },
   {
@@ -71,6 +76,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: '',
     name: 'test_mode_configuration',
     type: 'api-consumer',
+    environment: 'development',
     subType: 'individual'
   },
   {
@@ -79,6 +85,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'live_mode_configuration',
     name: 'live_mode_configuration',
     type: 'api-consumer',
+    environment: 'all',
     subType: 'individual,licensed-entity,business'
   },
   {
@@ -87,6 +94,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'user_agreements',
     name: 'user_agreements',
     type: 'api-provider',
+    environment: 'all',
     subType: 'api-provider'
   },
   {
@@ -95,6 +103,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'onboarding_custom_fields',
     name: 'onboarding_custom_fields',
     type: 'api-provider',
+    environment: 'all',
     subType: 'api-provider'
   },
   // {

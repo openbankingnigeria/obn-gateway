@@ -11,7 +11,9 @@ import { getCookies } from '@/config/cookies';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
-  const path = searchParams?.path || ''
+  const getMode = getCookies('environment');
+  const path = searchParams?.path || '';
+
   const fetchedDetails : any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCompanyDetails(),
@@ -113,6 +115,9 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
       profile?.user?.role?.parent?.slug == 'api-provider' ? 
         true : 
         path?.subType?.includes(details?.type)
+    ) && (
+      path?.environment == getMode ||
+      path?.environment == 'all'
     )
   );
 
@@ -207,9 +212,10 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                             null
             ) : (
               (
-                notIndividual ? 
+                (notIndividual ? 
                   path == 'test_mode_configuration' : 
-                  path == ''
+                  path == '') &&
+                  (getMode == 'development')
               ) ? 
                 <TestModeConfigurationPage 
                   rawData={configData}

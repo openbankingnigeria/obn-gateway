@@ -32,7 +32,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     test_api_key: rawData?.key || '',
     // webhook_url: 'https://webhook.com/url',
     // callback_url: 'https://callback.com/url',
-    ip_whitelist: rawData?.ips?.toString() || '',
+    ip_whitelist: rawData?.ips?.join(',') || '',
     clientId: rawData?.clientId
     // timeout: ''
   });
@@ -101,7 +101,8 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     // form?.test_api_key != rawData?.key ||
     // form?.webhook_url != 'https://webhook.com/url' ||
     // form?.callback_url != 'https://callback.com/url' ||
-    form?.ip_whitelist != rawData?.ips
+    form?.ip_whitelist != (rawData?.ips?.join(',') || '') ||
+    form?.clientId != rawData?.clientId
     // form?.timeout != ''
   );
 
@@ -142,7 +143,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    const result: any = await clientAxiosRequest({
+    const result: any = form?.ip_whitelist && await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.updateIPWhitelist({
         environment,
@@ -153,7 +154,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
       }
     });
 
-    const result2: any = await clientAxiosRequest({
+    const result2: any = form?.clientId && await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.putClientId({
         environment
@@ -200,12 +201,12 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
             {
               (resetAPIKey) &&
               <Button 
-              title='Reset keys'
+              title={ rawData?.key ? 'Reset keys' : 'Generate keys' }
               type='button'
               outlined
               loading={loadingReset}
               effect={(e) => handleReset(e, '')}
-              containerStyle='!w-[100px]'
+              containerStyle='!w-fit'
               small
             />
             }
