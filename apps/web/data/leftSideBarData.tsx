@@ -56,6 +56,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
   {
     id: 1,
     label: 'Home',
+    access: 'all',
     links: [
       {
         id: 1,
@@ -80,6 +81,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
   {
     id: 2,
     label: 'Api Management',
+    access: 'all',
     permit: 'list-api-consumers, view-api-call, list-companies, list-api-calls, list-api-collections, view-api-consumer, view-company, view-api-collection',
     links: [
       {
@@ -139,6 +141,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
   {
     id: 3,
     label: 'Reporting',
+    access: 'api-provider',
     permit: 'list-reports, view-report',
     links: [
       {
@@ -181,6 +184,7 @@ export const LEFT_SIDE_BAR_TOP_DATA = [
   {
     id: 4,
     label: 'Team',
+    access: 'all',
     permit: 'list-roles, list-team-members, view-role, view-team-member',
     links: [
       {

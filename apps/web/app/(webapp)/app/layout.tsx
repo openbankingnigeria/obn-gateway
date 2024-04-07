@@ -6,6 +6,7 @@ import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import { RefreshStoredToken } from '@/components/globalComponents'
+import LogoutTimer from '@/components/globalComponents/LogoutTimer'
 
 export const metadata: Metadata = {
   title: 'Aperta - App',
@@ -33,6 +34,15 @@ export default async function RootLayout({
       data: null
     });
 
+    const fetchSettings : any = await applyAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getSettings({
+        type: 'general'
+      }),
+      method: 'GET',
+      data: null
+    });
+
     /** REFRESH TOKEN CHECK */
     let refreshTokenRes = null; 
   
@@ -53,6 +63,7 @@ export default async function RootLayout({
   
     let details = fetchedDetails?.data;
     let profile = fetchedProfile?.data;
+    let settings = fetchSettings?.data;
     let showBanner = Boolean(
       profile?.user?.role?.parent?.slug == 'api-consumer' && 
       !details?.isVerified
@@ -75,6 +86,14 @@ export default async function RootLayout({
         }
         <AppNavBar bannerExist={showBanner} />
         <AppLeftSideBar bannerExist={showBanner} />
+
+        {/* INACTIVITY LOGOUT TIMER */}
+        {
+          settings?.inactivityTimeout?.value && 
+          <LogoutTimer 
+            timeout={1000 * 60 * Number(settings?.inactivityTimeout?.value)} 
+          />
+        }
 
         <main className={`w-full min-h-screen flex flex-col ${showBanner ? 'pt-[168px]' : 'pt-[112px]'} pb-[25px] wide:pl-[360px] pl-[330px] wide:pr-[80px] pr-[25px] overflow-auto`}>
           <section className='w-full h-full flex flex-col'>

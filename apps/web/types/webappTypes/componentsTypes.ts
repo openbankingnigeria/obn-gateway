@@ -114,6 +114,7 @@ export interface TabelElmentProps extends TableProps {
   actionColumn?: ColumnDef<any, any>;
   thStyle?: string;
   tdStyle?: string;
+  noScroll?: string;
   module?: string;
   redirect?: null | ((value: string) => string);
 }
