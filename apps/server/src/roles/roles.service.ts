@@ -192,7 +192,6 @@ export class RolesService {
       {
         id: Equal(id),
         parentId: Equal(ctx.activeUser.role.parentId),
-        companyId: Equal(ctx.activeUser.companyId),
         deletedAt: IsNull(),
       },
     ];
@@ -201,6 +200,12 @@ export class RolesService {
     });
 
     if (!role) {
+      throw new INotFoundException({
+        message: roleErrors.roleNotFound,
+      });
+    }
+
+    if (role.companyId !== ctx.activeUser.companyId) {
       throw new INotFoundException({
         message: roleErrors.roleNotFound,
       });
