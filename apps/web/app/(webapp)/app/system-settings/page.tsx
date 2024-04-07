@@ -222,8 +222,11 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                   profileData={profile}
                 /> :
                   (
-                    path == 'live_mode_configuration' && 
-                    details?.isVerified
+                    (notIndividual ? 
+                    path == 'live_mode_configuration' : 
+                    path == '') &&
+                    details?.isVerified &&
+                    (getMode == 'production')
                   ) ? 
                   <LiveModeConfigurationPage 
                     rawData={configData}
