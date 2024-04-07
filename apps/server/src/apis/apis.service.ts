@@ -52,9 +52,14 @@ import {
   AssignApiEvent,
   CreateApiEvent,
   DeleteApisEvent,
+  GetApiLogEvent,
+  GetApiLogStatsEvent,
+  GetApiTransformationEvent,
   SetApiTransformationEvent,
   UnassignApiEvent,
   UpdateApiEvent,
+  ViewApisEvent,
+  ViewCompanyApisEvent,
 } from '@shared/events/api.event';
 
 @Injectable()
@@ -106,6 +111,9 @@ export class APIService {
             .join('/') || undefined,
       }),
     ]);
+
+    const event = new ViewApisEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPIs,
@@ -200,6 +208,9 @@ export class APIService {
         (plugin) => plugin.name === KONG_PLUGINS.REQUEST_TRANSFORMER,
       );
     }
+
+    const event = new ViewApisEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     // TODO optimize
     function objectToMap(obj: any) {
@@ -1126,6 +1137,9 @@ export class APIService {
       hit._source.consumer = companiesDtoStore[hit._source.consumer?.id];
     }
 
+    const event = new GetApiLogEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogs,
       logs.hits.hits.map((i) => new APILogResponseDTO(i._source, ctx)),
@@ -1177,6 +1191,9 @@ export class APIService {
     }
 
     logs.hits.hits[0]._source.consumer = company;
+
+    const event = new GetApiLogEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILog,
@@ -1258,6 +1275,9 @@ export class APIService {
       },
     });
 
+    const event = new GetApiLogStatsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogsStats,
       new APILogStatsResponseDTO(stats.aggregations, ctx),
@@ -1307,6 +1327,9 @@ export class APIService {
         },
       },
     });
+
+    const event = new GetApiLogStatsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPILogsStats,
@@ -1446,6 +1469,11 @@ export class APIService {
       );
     }
 
+    const event = new ViewCompanyApisEvent(ctx.activeUser, {
+      companyId: company.id,
+    });
+    this.eventEmitter.emit(event.name, event);
+
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPIs,
       populatedRoutes,
@@ -1488,6 +1516,9 @@ export class APIService {
         message: apiErrorMessages.functionNotFound(routeId),
       });
     }
+
+    const event = new GetApiTransformationEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       apiSuccessMessages.fetchedAPITransformation,

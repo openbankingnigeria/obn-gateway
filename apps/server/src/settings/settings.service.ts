@@ -34,6 +34,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   EditSettingsEvent,
   GenerateApiKeyEvent,
+  GetApiKeyEvent,
   SetClientEvent,
   SetIPRestrictionEvent,
   UpdateCompanySubtypesEvent,
@@ -325,6 +326,9 @@ export class SettingsService {
       environment,
       consumer.id,
     );
+
+    const event = new GetApiKeyEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       'API Key retrieved successfully',

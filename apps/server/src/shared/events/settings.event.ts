@@ -4,6 +4,7 @@ import { BaseEvent } from './base.event';
 export enum SettingsEvents {
   UPDATE_KYB_REQUIREMENTS = 'settings.kyb.update',
   UPDATE_COMPANY_SUBTYPES = 'settings.company_types.update',
+  GET_API_KEY = 'settings.api.key.view',
   GENERATE_API_KEY = 'settings.api.key.create',
   SET_IP_RESTRICTIOIN = 'settings.api.restriction.create',
   EDIT_SETTINGS = 'settings.update',
@@ -35,6 +36,15 @@ export class UpdateCompanySubtypesEvent extends SettingsEvent {
     public readonly metadata: any,
   ) {
     super(SettingsEvents.UPDATE_COMPANY_SUBTYPES, author, metadata);
+  }
+}
+
+export class GetApiKeyEvent extends SettingsEvent {
+  constructor(
+    public readonly author: User,
+    public readonly metadata: any,
+  ) {
+    super(SettingsEvents.GET_API_KEY, author, metadata);
   }
 }
 

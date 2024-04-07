@@ -35,6 +35,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CreateRoleEvent,
   DeleteRolesEvent,
+  GetRolePermissionsEvent,
+  ListRolesEvent,
   SetRolePermissionsEvent,
   UpdateRolesEvent,
 } from '@shared/events/roles.event';
@@ -54,8 +56,8 @@ export class RolesService {
   async createRole(ctx: RequestContext, data: CreateRoleDto) {
     const roleExists = await this.roleRepository.count({
       where: {
-        name: data.name,
-        companyId: ctx.activeUser.companyId,
+        name: Equal(data.name),
+        companyId: Equal(ctx.activeUser.companyId),
       },
     });
 
@@ -118,16 +120,22 @@ export class RolesService {
       ...filters,
       parentId: Equal(ctx.activeUser.role.parentId),
       companyId: Equal(ctx.activeUser.companyId),
+      deletedAt: IsNull(),
     };
 
-    const totalRoles = await this.roleRepository.count({ where });
+    const totalRoles = await this.roleRepository.count({
+      where: [where, { ...where, companyId: IsNull() }],
+    });
 
     const roles = await this.roleRepository.find({
-      where,
+      where: [where, { ...where, companyId: IsNull() }],
       skip: (page - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },
     });
+
+    const event = new ListRolesEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRole,
@@ -161,6 +169,9 @@ export class RolesService {
         message: roleErrors.roleNotFound,
       });
     }
+
+    const event = new ListRolesEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRole,
@@ -266,6 +277,9 @@ export class RolesService {
         message: roleErrors.roleNotFound,
       });
     }
+
+    const event = new GetRolePermissionsEvent(ctx.activeUser, {});
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       roleSuccessMessages.fetchedRole,
