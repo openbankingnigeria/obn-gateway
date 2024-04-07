@@ -16,7 +16,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
 
-  const environment = getJsCookies('environment');
+  const environment = getCookies('environment');
 
   const filters = [search_query];
 
