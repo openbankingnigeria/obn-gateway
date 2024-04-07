@@ -30,7 +30,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
-  const environment = getMode || 'development';
+  const environment = getMode || '';
 
   /** REFRESH TOKEN CHECK */
   let refreshTokenRes = null; 
