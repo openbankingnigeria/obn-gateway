@@ -56,7 +56,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
 
           <div className='flex flex-col w-full gap-[2px]'>
             <h3 className='capitalize truncate w-full text-white text-f14 font-[500]'>
-              {truncateString(`${firstName} ${lastName}`, 22)}
+              {firstName ? truncateString(`${firstName}`, 22) : ''}
             </h3>
 
             <div className='w-full capitalize text-o-alt-white text-f12'>
@@ -88,6 +88,10 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
           {
             LEFT_SIDE_BAR_TOP_DATA?.map((data: any) => (
               findPermissionSlug(userPermissions, data?.permit) &&
+              (
+                data?.access == profile?.user?.role?.parent?.slug ||
+                data?.access == 'all'
+              ) &&
               <div
                 key={data?.id}
                 className='w-full flex flex-col gap-[4px]'

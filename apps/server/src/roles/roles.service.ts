@@ -116,19 +116,27 @@ export class RolesService {
     { limit, page }: PaginationParameters,
     filters?: any,
   ) {
-    const where = {
-      ...filters,
-      parentId: Equal(ctx.activeUser.role.parentId),
-      companyId: Equal(ctx.activeUser.companyId),
-      deletedAt: IsNull(),
-    };
+    const where = [
+      {
+        ...filters,
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
+        deletedAt: IsNull(),
+      },
+      {
+        ...filters,
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: IsNull(),
+        deletedAt: IsNull(),
+      },
+    ];
 
     const totalRoles = await this.roleRepository.count({
-      where: [where, { ...where, companyId: IsNull() }],
+      where,
     });
 
     const roles = await this.roleRepository.find({
-      where: [where, { ...where, companyId: IsNull() }],
+      where,
       skip: (page - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },

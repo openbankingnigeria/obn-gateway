@@ -208,9 +208,12 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
               />
             </div>
 
-            <ExportButton 
-              module='activity'
-            />
+            {
+              (activity?.length >= 1) &&
+              <ExportButton 
+                module='activity'
+              />
+            }
           </div>
 
           <section className='w-full min-h-full flex flex-col items-center'>

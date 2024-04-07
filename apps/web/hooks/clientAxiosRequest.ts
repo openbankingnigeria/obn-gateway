@@ -46,17 +46,26 @@ const clientAxiosRequest = async ({
           setJsCookies('aperta-user-accessToken', refreshTokenRes?.data?.accessToken);
           setJsCookies('aperta-user-refreshToken', refreshTokenRes?.data?.refreshToken);
         } else {
-          !noToast && toast.error(res?.message);
+          !noToast && toast.error(
+            typeof res?.message == 'string' ?
+            res?.message : JSON.stringify(res?.message)
+          );
           removeJsCookies('aperta-user-accessToken');
           window.location.href = '/';
         }
     } else {
-      !noToast && toast.error(res?.message);
+      !noToast && toast.error(
+        typeof res?.message == 'string' ?
+        res?.message : JSON.stringify(res?.message)
+      );
     }
 
     return res;
   } catch(err) {
-    !noToast && toast.error(err?.message || err);
+    !noToast && toast.error(
+      typeof res?.message == 'string' ?
+      res?.message : JSON.stringify(res?.message)
+    );
     return ({
       message: err?.message || err,
       status: null,

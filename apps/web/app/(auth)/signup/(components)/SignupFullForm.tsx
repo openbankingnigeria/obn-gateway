@@ -5,7 +5,7 @@ import { Button } from '@/components/globalComponents';
 import React, { useEffect, useState } from 'react';
 import { 
   greaterThan8, validateEmail, validateLowercase, validateName, 
-  validateNumber, validateSymbol, validateUppercase 
+  validateNumber, validatePhoneNumber, validateSymbol, validateUppercase 
 } from '@/utils/globalValidations';
 // import { COMPANY_TYPES } from '@/data/authData';
 import { useServerAction } from '@/hooks';
@@ -100,7 +100,7 @@ const SignupFullForm = () => {
     !correctFirstName ||
     !correctLastName ||
     // !country ||
-    phone?.length !== 11 ||
+    !validatePhoneNumber(phone, 'NG') ||
     !userType ||
     (userType == 'individual' && (bvn?.length !== 11)) ||
     (userType == 'business' && (!companySubtype)) ||
@@ -315,7 +315,7 @@ const SignupFullForm = () => {
                     (field?.name == 'confirmPassword') ? 
                      ( !passwordMatch && !!confirmPassword) :
                      (field?.name == 'email') ? Boolean(email && !validateEmail(email)) : 
-                      (field?.name == 'phone') ? Boolean(phone && (phone?.length !== 11)) :
+                      (field?.name == 'phone') ? Boolean(phone && !validatePhoneNumber(phone, 'NG')) :
                       (field?.name == 'bvn') ? Boolean(bvn && (bvn?.length != 11)) :
                       false
                   }

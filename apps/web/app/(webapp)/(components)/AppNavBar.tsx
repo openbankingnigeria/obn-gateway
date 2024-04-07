@@ -111,6 +111,8 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
     toast.success(`You’ve successfully switched to ${mode} Mode`);
   }
 
+  const canToggleMode = (businessDetails?.isVerified && profile?.user?.role?.parent?.slug === 'api-consumer') || profile?.user?.role?.parent?.slug === 'api-provider'
+
   return (
     <>
       {
@@ -185,17 +187,19 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
           }
         </section>
 
+        
+
         <section className='w-full items-center flex gap-[12px] justify-end'>
           {/* TOGGLE SWITCH */}
           <div className='flex items-center w-fit gap-[8px]'>
             <ToggleSwitch 
               toggle={isLive ? true : false}
               loading={loadingSwitch}
-              disabled={!(businessDetails?.isVerified)}
+              disabled={!canToggleMode}
               setToggle={(value) => handleToggle(value)}
             />
 
-            <div className={`w-fit ${!(businessDetails?.isVerified) && 'opacity-50'} ${isLive ? 'text-o-green2' : 'text-o-red'} whitespace-nowrap text-f14 font-[500]`}>
+            <div className={`w-fit ${!canToggleMode && 'opacity-50'} ${isLive ? 'text-o-green2' : 'text-o-red'} whitespace-nowrap text-f14 font-[500]`}>
               {
                 loadingSwitch ?
                   'Loading...' :
