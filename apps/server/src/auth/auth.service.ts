@@ -52,9 +52,9 @@ import { ConfigService } from '@nestjs/config';
 import { isNumberString } from 'class-validator';
 
 import { GetUserResponseDTO } from '@users/dto/index.dto';
-import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
+import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
 import { commonErrors } from '@common/constants';
-import { BusinessSettings } from '@settings/types';
+import { BusinessSettings } from 'src/settings/types';
 import { CompanyTiers } from '@company/types';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';

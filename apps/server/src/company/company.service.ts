@@ -5,7 +5,7 @@ import {
 import { Injectable } from '@nestjs/common';
 import { companyErrors } from './company.errors';
 import { FileHelpers } from '@common/utils/helpers/file.helpers';
-import { KybDataTypes, BusinessSettings } from '@settings/types';
+import { KybDataTypes, BusinessSettings } from 'src/settings/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Company,
@@ -21,8 +21,8 @@ import {
   ResponseMetaDTO,
 } from '@common/utils/response/response.formatter';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
-import { settingsErrors } from '@settings/settings.errors';
-import { SETTINGS_TYPES } from '@settings/types';
+import { settingsErrors } from 'src/settings/settings.errors';
+import { SETTINGS_TYPES } from 'src/settings/types';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CompanyApprovedEvent,
@@ -39,7 +39,7 @@ import {
   UpdateCompanyKybStatusResponseDTO,
   UpdateKybStatusDto,
 } from './dto/index.dto';
-import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
+import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
 import { CompanyTypes } from '@common/database/constants';
 import { companyCustomFields } from './company.constants';
 import { RequestContext } from '@common/utils/request/request-context';

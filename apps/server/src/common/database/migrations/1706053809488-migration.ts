@@ -7,7 +7,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { CompanyTypes } from '../constants';
 import { Company, CompanyStatuses } from '../entities';
-import { BUSINESS_SETTINGS_NAME } from '@settings/settings.constants';
+import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
 
 const defaultEmailSettings: EmailSettingsInterface = {
   emailBaseUrl: { value: '' },

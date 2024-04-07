@@ -14,7 +14,7 @@ import {
 import { companyValidationErrors } from '../company.config';
 import { CompanyTypes } from '@common/database/constants';
 import { Expose, Type } from 'class-transformer';
-import { CompanySubtypes } from '@settings/types';
+import { CompanySubtypes } from 'src/settings/types';
 import { authValidationErrors } from '@auth/auth.config';
 
 export enum KybStatusActions {

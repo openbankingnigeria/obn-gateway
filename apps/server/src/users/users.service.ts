@@ -7,7 +7,7 @@ import {
 } from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Profile, Role, User, UserStatuses } from '@common/database/entities';
-import { Equal, Repository } from 'typeorm';
+import { Equal, IsNull, Repository } from 'typeorm';
 import {
   IBadRequestException,
   INotFoundException,
@@ -234,6 +234,7 @@ export class UsersService {
           id: Equal(roleId),
           parentId: Equal(ctx.activeUser.role.parentId),
           companyId: Equal(ctx.activeUser.companyId),
+          deletedAt: IsNull(),
         },
       });
 
