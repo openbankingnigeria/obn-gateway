@@ -63,12 +63,16 @@ export class UsersService {
       });
     }
 
+    const where = {
+      id: Equal(roleId),
+      parentId: Equal(ctx.activeUser.role.parentId),
+      companyId: Equal(ctx.activeUser.companyId),
+      deletedAt: IsNull(),
+      status: RoleStatuses.ACTIVE,
+    };
+
     const role = await this.roleRepository.findOne({
-      where: {
-        id: Equal(roleId),
-        parentId: Equal(ctx.activeUser.role.parentId),
-        companyId: Equal(ctx.activeUser.companyId),
-      },
+      where: [where, { ...where, companyId: IsNull() }],
     });
 
     if (!role) {
