@@ -678,7 +678,7 @@ export class CompanyService {
     RIGHT OUTER JOIN (${Object.values(KybStatuses)
       .map((status) => `SELECT '${status}' AS \`key\`, '${status}' AS value`)
       .join(' UNION ')}) definitions ON companies.kyb_status = definitions.key
-        AND companies.deleted_at IS NULL AND (companies.created_at >= ? OR ? IS NULL) AND (companies.created_at < ? OR ? IS NULL)
+        AND companies.deleted_at IS NULL AND (companies.created_at >= ? OR ? IS NULL) AND (companies.created_at < ? OR ? IS NULL) AND companies.type != 'api-provider'
     GROUP BY
       definitions.value
         `,
