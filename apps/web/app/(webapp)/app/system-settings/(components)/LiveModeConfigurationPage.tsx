@@ -17,6 +17,7 @@ const LiveModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
   const [loadingReset, setLoadingReset] = useState(false);
   const [loading, setLoading] = useState(false);
   const [open2FA, setOpen2FA] = useState(false);
+  const [buttonName, setButtonName] = useState(rawData?.key ? 'Reset keys' : 'Generate keys');
   const environment = 'production';
   let userPermissions = profileData?.user?.role?.permissions;
   let updateSettings = findPermissionSlug(userPermissions, 'update-system-setting')
@@ -131,6 +132,7 @@ const LiveModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
           ...form,
           api_key: result?.data?.key 
         })
+        setButtonName('Reset keys');
         close2FAModal()
       }
     }
@@ -201,7 +203,7 @@ const LiveModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
             {
               (resetAPIKey) &&
               <Button 
-              title={ rawData?.key ? 'Reset keys' : 'Generate keys' }
+              title={buttonName}
               type='button'
               effect={(e) => handleReset(e, '')}
               outlined

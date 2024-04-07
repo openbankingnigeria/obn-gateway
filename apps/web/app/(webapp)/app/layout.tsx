@@ -69,6 +69,12 @@ export default async function RootLayout({
       !details?.isVerified
     );
 
+    const canToggleMode = ((
+        details?.isVerified && 
+        profile?.user?.role?.parent?.slug === 'api-consumer'
+      ) 
+      || profile?.user?.role?.parent?.slug === 'api-provider');
+
     return (
       <section className='max-w-full min-h-screen relative bg-[#FCFDFD]'>
         {/* REFRESH TOKEN SECTION */}
@@ -84,7 +90,10 @@ export default async function RootLayout({
           showBanner && 
           <KybBanner rawData={details} /> 
         }
-        <AppNavBar bannerExist={showBanner} />
+        <AppNavBar 
+          bannerExist={showBanner} 
+          canToggleMode={canToggleMode}
+        />
         <AppLeftSideBar bannerExist={showBanner} />
 
         {/* INACTIVITY LOGOUT TIMER */}
