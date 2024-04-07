@@ -16,7 +16,7 @@ export class CreateRoleDto {
   @IsString()
   name: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   description: string;
 
@@ -33,7 +33,7 @@ export class CreateRoleDto {
 }
 
 export class UpdateRoleDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   description: string;
 
