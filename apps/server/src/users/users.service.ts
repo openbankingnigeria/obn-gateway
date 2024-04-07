@@ -229,13 +229,14 @@ export class UsersService {
 
     let role;
     if (roleId) {
+      const where = {
+        id: Equal(roleId),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
+        deletedAt: IsNull(),
+      };
       role = await this.roleRepository.findOne({
-        where: {
-          id: Equal(roleId),
-          parentId: Equal(ctx.activeUser.role.parentId),
-          companyId: Equal(ctx.activeUser.companyId),
-          deletedAt: IsNull(),
-        },
+        where: [where, { ...where, companyId: IsNull() }],
       });
 
       if (!role) {
