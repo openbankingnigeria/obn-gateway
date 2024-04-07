@@ -85,7 +85,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     value: 'live_mode_configuration',
     name: 'live_mode_configuration',
     type: 'api-consumer',
-    environment: 'all',
+    environment: 'production',
     subType: 'individual,licensed-entity,business'
   },
   {
