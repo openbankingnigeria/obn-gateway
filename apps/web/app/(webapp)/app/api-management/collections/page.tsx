@@ -6,7 +6,6 @@ import { CollectionsTable } from './(components)'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
-import { getJsCookies } from '@/config/jsCookie'
 import { ToastMessage } from '@/app/(webapp)/(components)'
 import { getCookies } from '@/config/cookies'
 import { RefreshStoredToken } from '@/components/globalComponents'
@@ -16,7 +15,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
 
-  const environment = getJsCookies('environment');
+  const environment = getCookies('environment');
 
   const filters = [search_query];
 
