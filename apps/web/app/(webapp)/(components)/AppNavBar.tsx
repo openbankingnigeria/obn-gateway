@@ -13,7 +13,14 @@ import { getJsCookies, removeJsCookies, setJsCookies } from '@/config/jsCookie';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
 
-const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
+const AppNavBar = ({ 
+  bannerExist,
+  canToggleMode 
+}: { 
+  bannerExist: boolean;
+  canToggleMode: boolean;
+}) => {
+
   const [openModal, setOpenModal] = useState(false);
   const [isLive, setToggleMode] = useState(false);
   const [openNotification, setOpenNotification] = useState(false);
@@ -24,13 +31,13 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const { get } = useSearchParams();
   const slug = get('slug');
   const [profile, setProfile] = useState<any>(null);
-  const [businessDetails, setBusinessDetails] = useState<any>(null);
   // const getUserProfile = getJsCookies('aperta-user-profile');
   // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
 
   useEffect(() => {
-    const enviromentMode = getJsCookies('environment');
-    setToggleMode(enviromentMode == 'production' ? true : false)
+    const enviromentMode = canToggleMode ? getJsCookies('environment') : 'development';
+    !canToggleMode && setJsCookies('environment', 'development');
+    setToggleMode(enviromentMode == 'production' ? true : false);
   }, []);
 
   const fetchProfile = async() => {
@@ -45,29 +52,29 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
     setProfile(result?.data);
   }
 
-  const fetchDetails = async () => {
-    const result : any = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getCompanyDetails(),
-      method: 'GET',
-      data: null,
-      noToast: true
-    });
+  // const fetchDetails = async () => {
+  //   const result : any = await clientAxiosRequest({
+  //     headers: {},
+  //     apiEndpoint: API.getCompanyDetails(),
+  //     method: 'GET',
+  //     data: null,
+  //     noToast: true
+  //   });
 
-    setBusinessDetails(result?.data);
-  }
+  //   setBusinessDetails(result?.data);
+  // }
 
   useEffect(() => {
     fetchProfile();
-    fetchDetails();
+    // fetchDetails();
   }, []);
 
   let firstName = profile?.firstName;
   let lastName = profile?.lastName;
   let avatarAlt = `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`
 
-  const unReadNotifications = NOTIFICATIONS_DATA;
-  const notifications = NOTIFICATIONS_DATA?.slice(0, 5);
+  // const unReadNotifications = NOTIFICATIONS_DATA;
+  // const notifications = NOTIFICATIONS_DATA?.slice(0, 5);
 
   const pathname = usePathname();
   const paths = pathname?.split('/');
@@ -111,7 +118,7 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
     toast.success(`You’ve successfully switched to ${mode} Mode`);
   }
 
-  const canToggleMode = (businessDetails?.isVerified && profile?.user?.role?.parent?.slug === 'api-consumer') || profile?.user?.role?.parent?.slug === 'api-provider'
+  // const canToggleMode = (businessDetails?.isVerified && profile?.user?.role?.parent?.slug === 'api-consumer') || profile?.user?.role?.parent?.slug === 'api-provider'
 
   return (
     <>
@@ -216,7 +223,7 @@ const AppNavBar = ({ bannerExist }: { bannerExist: boolean }) => {
               className='w-fit h-fit hidden md:block cursor-pointer relative'
             >
               {
-                unReadNotifications?.length >= 1 &&
+                // unReadNotifications?.length >= 1 &&
                 <div className='w-[8px] h-[8px] absolute rounded-full top-[0px] left-[11px] bg-o-status-green' />
               }
 
