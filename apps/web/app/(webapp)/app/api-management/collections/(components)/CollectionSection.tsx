@@ -40,6 +40,7 @@ const CollectionSection = ({
   const [loading, setLoading] = useState(false);
   const [api, setApi] = useState<any>(null);
   const [loadingPublish, setLoadingPublish] = useState(false);
+  const [loadingCheck, setLoadingCheck] = useState(false);
   const profile = altData;
   let userPermissions = profile?.user?.role?.permissions;
   const userType = profile?.user?.role?.parent?.slug;
@@ -152,6 +153,40 @@ const CollectionSection = ({
       if (result?.message) {
         close2FAModal();
         setLoading(false);
+        router.refresh();
+      }
+    }
+  }
+
+  const handleNIBBSCheck = (name: string, api: any) => {
+    toast.info('Enabling NIBBS check')
+    setLoadingCheck(true);
+    enableNIBBSCheck('', api);
+    setOpenModal(name);
+  }
+
+  const enableNIBBSCheck = async (code: string , data: any) => {
+    if (profile?.user?.twofaEnabled && !code) {
+      setOpen2FA(true);
+    } else {
+      setLoading(true);
+      const result: any = await clientAxiosRequest({
+          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          apiEndpoint: API.updateAPI({ 
+            environment: environment || 'development', 
+            id: api?.id
+          }),
+          method: 'PATCH',
+          data: {
+            ...data,
+            introspectAuthorization: true
+          }
+        });
+
+      if (result?.message) {
+        close2FAModal();
+        setLoading(false);
+        setLoadingCheck(false);
         router.refresh();
       }
     }
@@ -275,16 +310,21 @@ const CollectionSection = ({
                     action.name == 'preview' ?
                     router.push(`/app/api-management/collections/${details?.id}/api-configuration?api_id=${row.original.id}&preview=true`) :
                       action.name == 'publish' ?
-                        handlePublish(action.name, api)
-                        :
-                        setOpenModal(action.name)
+                        handlePublish(action.name, api) :
+                        action.name == 'enable_check' ?
+                          handleNIBBSCheck(action.name, api)
+                          :
+                          setOpenModal(action.name)
                 }}
               >
                 {action.icon}
                 
                 <span className='whitespace-nowrap'>
                   {
-                    (loadingPublish && action.name == 'publish') ?
+                    (
+                      (loadingPublish && action.name == 'publish') || 
+                      (loadingCheck && action.name == 'enable_check')
+                    ) ?
                       <Loader /> :
                       action.label
                   }

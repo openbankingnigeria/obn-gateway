@@ -35,6 +35,13 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
     data: null
   });
 
+  const fetchedAuditTypes: any = await applyAxiosRequest({
+    headers: {},
+    apiEndpoint: API.getAuditTypes(),
+    method: 'GET',
+    data: null
+  });
+
   /** REFRESH TOKEN CHECK */
   let refreshTokenRes = null; 
   
@@ -54,6 +61,7 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
   }
 
   let meta_data = fetchedAuditTrails?.meta_data;
+  let auditTypes = fetchedAuditTypes?.data;
   let audit_trail = fetchedAuditTrails?.data?.map((trail: any) => {
     return({
       ...trail,
@@ -69,10 +77,10 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
   const total_elements_in_page = audit_trail?.length || meta_data?.pageSize;
   const total_elements = meta_data?.totalNumberOfRecords;
 
-  const event_type_list = AUDIT_TRAIL_EVENT_TYPE?.map(data => {
+  const event_type_list = auditTypes?.map((data: any) => {
     return({
-      label: data?.label,
-      value: data?.value
+      label: data,
+      value: data
     })
   });
 

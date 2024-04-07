@@ -139,6 +139,7 @@ const RolesTable = ({
         apiEndpoint: API.updateRole({
           id: role?.id
         }),
+        noToast: true,
         method: 'PATCH',
         data: {
           description,
