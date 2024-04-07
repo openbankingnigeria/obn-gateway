@@ -205,15 +205,15 @@ export class RolesService {
       });
     }
 
-    if (role.companyId !== ctx.activeUser.companyId) {
-      throw new INotFoundException({
-        message: roleErrors.roleNotFound,
-      });
-    }
-
     if (!role.companyId) {
       throw new IBadRequestException({
         message: roleErrors.defaultRoleNotEdictable,
+      });
+    }
+
+    if (role.companyId !== ctx.activeUser.companyId) {
+      throw new INotFoundException({
+        message: roleErrors.roleNotFound,
       });
     }
 
