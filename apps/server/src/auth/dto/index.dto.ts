@@ -3,9 +3,9 @@ import {
   IsEmail,
   IsIn,
   IsJWT,
-  IsMobilePhone,
   IsNotEmpty,
   IsOptional,
+  IsPhoneNumber,
   IsString,
   IsStrongPassword,
   Length,
@@ -139,7 +139,7 @@ export class BaseSignupDto {
         authConfig.minNameLength,
       ),
   })
-  @Matches(/^[A-Za-z\-]+$/gi, {
+  @Matches(/^[a-z-]+$/gi, {
     message: ({ property }) =>
       authValidationErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
   })
@@ -166,7 +166,7 @@ export class BaseSignupDto {
         authConfig.minNameLength,
       ),
   })
-  @Matches(/^[A-Za-z]+$/gi, {
+  @Matches(/^[a-z-]+$/gi, {
     message: ({ property }) =>
       authValidationErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
   })
@@ -176,7 +176,7 @@ export class BaseSignupDto {
     message: ({ property }) => authValidationErrors.dto.isRequired(property),
   })
   @IsString()
-  @IsMobilePhone('en-NG', undefined, {
+  @IsPhoneNumber('NG', {
     message: authValidationErrors.dto.invalidPhone,
   })
   phone: string;
@@ -281,16 +281,16 @@ export class SetupDto {
         authConfig.minNameLength,
       ),
   })
-  @Matches(/^[A-Za-z]+$/gi, {
+  @Matches(/^[a-z-]+$/gi, {
     message: ({ property }) =>
       authValidationErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
   })
   firstName: string;
 
-  @IsNotEmpty({
-    message: ({ property }) => authValidationErrors.dto.isRequired(property),
+  @Matches(/^[a-z-]+$/gi, {
+    message: ({ property }) =>
+      authValidationErrors.dto.valueMustContainOnlyType(property, 'alphabets'),
   })
-  @IsString()
   lastName: string;
 
   @IsNotEmpty({

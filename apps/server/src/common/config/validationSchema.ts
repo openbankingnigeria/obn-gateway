@@ -22,7 +22,7 @@ export const validationSchema = Joi.object({
   LOGSTASH_ENDPOINT: Joi.string().optional(),
   UPLOAD_MAXIMUM_FILE_SIZE: Joi.string().optional(),
   MANAGEMENT_URL: Joi.string().uri().required(),
-  CORS_ORIGINS: Joi.string(),
+  TRUSTED_ORIGINS: Joi.string().optional().allow(''),
 })
   .xor('DATABASE_PASSWORD', 'DATABASE_PASSWORD_FILE')
   .xor('JWT_SECRET', 'JWT_SECRET_FILE');

@@ -27,7 +27,7 @@ const UpStreamForm = ({
     rawData?.upstream?.querystring ? [...rawData?.upstream?.querystring] : []
   );
   const [endpointUrl, setEndpointUrl] = useState(rawData?.upstream?.url || '');
-  const [tiers, setTiers] = useState(rawData?.tiers?.toString() || '');
+  const [tiers, setTiers] = useState(rawData?.tiers?.join(',') || '');
   const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const environment = getJsCookies('environment');
@@ -151,7 +151,6 @@ const UpStreamForm = ({
                 })
               }),
             },
-            "downstream": rawData?.downstream
           }
         });
 
