@@ -14,9 +14,15 @@ import { RefreshStoredToken } from '@/components/globalComponents';
 
 const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParamsProps) => {
   const environment = getCookies('environment');
-  let userPermissions = profile_data?.user?.role?.permissions
+  let userPermissions = profile_data?.user?.role?.permissions;
 
-  const fetchedAPIs: any = await applyAxiosRequest({
+  const canToggleMode = ((
+    alt_data?.isVerified && 
+    profile_data?.user?.role?.parent?.slug === 'api-consumer'
+  ) 
+  || profile_data?.user?.role?.parent?.slug === 'api-provider');
+
+  const fetchedAPIs: any = canToggleMode && await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPIsForCompany({
       environment: environment || 'development'
@@ -25,7 +31,7 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
     data: null
   });
 
-  const fetchedCollections: any = await applyAxiosRequest({
+  const fetchedCollections: any = canToggleMode && await applyAxiosRequest({
     headers: {},
     apiEndpoint: API?.getCompanyCollections({
       page: '1',
@@ -36,7 +42,7 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
     data: null
   })
 
-  const fetchedTeamStat: any = await applyAxiosRequest({
+  const fetchedTeamStat: any = canToggleMode && await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getTeamStats(),
     method: 'GET',

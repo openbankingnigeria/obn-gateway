@@ -86,10 +86,19 @@ export const SYSTEM_SETTINGS_PATHS = [
     name: 'live_mode_configuration',
     type: 'api-consumer',
     environment: 'production',
-    subType: 'individual,licensed-entity,business'
+    subType: 'licensed-entity,business'
   },
   {
     id: 11,
+    label: 'Live Mode Configuration',
+    value: '',
+    name: 'live_mode_configuration',
+    type: 'api-consumer',
+    environment: 'production',
+    subType: 'individual'
+  },
+  {
+    id: 12,
     label: 'User Agreements',
     value: 'user_agreements',
     name: 'user_agreements',
@@ -98,7 +107,7 @@ export const SYSTEM_SETTINGS_PATHS = [
     subType: 'api-provider'
   },
   {
-    id: 12,
+    id: 13,
     label: 'Onboarding Settings',
     value: 'onboarding_custom_fields',
     name: 'onboarding_custom_fields',
