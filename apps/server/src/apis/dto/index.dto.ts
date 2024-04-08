@@ -35,7 +35,7 @@ class CreateAPIDownstreamDTO {
 
   @IsString()
   @IsOptional()
-  @IsUrl({ host_whitelist: ['localhost'] })
+  @IsUrl({ host_whitelist: [/.*/] })
   url: string;
 
   @IsString()
@@ -54,7 +54,7 @@ class CreateAPIDownstreamDTO {
 
 class CreateAPIUpstreamDTO {
   @IsNotEmpty()
-  @IsUrl({ host_whitelist: ['localhost'] })
+  @IsUrl({ host_whitelist: [/.*/] })
   url: string;
 
   @IsOptional()
@@ -124,7 +124,7 @@ class UpdateAPIDownstreamDTO {
 
   @IsString()
   @IsOptional()
-  @IsUrl({ host_whitelist: ['localhost'] })
+  @IsUrl({ host_whitelist: [/.*/] })
   url: string;
 
   @IsString()
@@ -152,7 +152,7 @@ class KVDTO {
 
 class UpdateAPIUpstreamDTO {
   @IsNotEmpty()
-  @IsUrl({ host_whitelist: ['localhost'] })
+  @IsUrl({ host_whitelist: [/.*/] })
   url: string;
 
   @IsOptional()

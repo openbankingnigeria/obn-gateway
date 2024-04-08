@@ -4,10 +4,19 @@ Welcome to the OpenBanking Gateway project. This guide provides detailed instruc
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+You can choose to run this on your local environment, or using docker/docker compose. Before you begin, ensure you have the following installed depending on your preference.
+
+### Local Setup
+
 - Node.js (v18 or higher)
 - MySQL (v8)
-- Docker and Docker Compose
+- Kong (v3.5.0 or higher)
+- Elastic Search (v8.11.1 or higher)
+- Logstash (v8.11.1 or higher)
+
+### Docker
+
+- Docker (v23.0 or higher)
 
 ## Installation Steps
 
@@ -32,6 +41,7 @@ Configure the required environment variables. In your environment or `.env` file
 - `EMAIL_SECURE`
 - `EMAIL_FROM`
 - `EMAIL_HOST`
+- `ELASTICSEARCH_USERNAME`
 - `ELASTICSEARCH_PASSWORD`
 
 These variables can be adjusted to fit your specific requirements.
@@ -52,15 +62,18 @@ pnpm dev
 Launch the services using Docker Compose:
 
 ```bash
-docker-compose --profile "*" up -d --build
+docker compose --profile "*" up -d --build
 ```
 
 This command will set up the web and server services along with other dependencies like Kong, Elasticsearch, Logstash, and MySQL.
 
 5. **Accessing the Services**
 
-By default, the server service is available at http://localhost:4000.
-By default, the web service is available at http://localhost:3000.
+- server: exposes the management application APIs, available on port :4000 by default
+- web: exposes the management application interface, available on port :3000 by default
+- kong: exposes the api gateway APIs, available on port :8000/:8100 by default
+- logstash: collects logs from the kong service
+- elasticsearch: provides search and analytics on logs from kong
 
 6. **Verify Installation**
 
