@@ -311,6 +311,9 @@ async function performSetupTasks(): Promise<void> {
                 if kong.service.response.get_status() == nil then
                   return
                 end
+                if kong.service.response.get_status() >= 400 then
+                  return
+                end
                 if data then
                   data = cjson.encode(${jsonToLua(response?.[0]?.body)})
                   kong.response.set_raw_body(data)

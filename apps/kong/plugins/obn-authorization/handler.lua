@@ -74,7 +74,7 @@ end
 function OBNTokenIntrospection:access(config)
   local bearer_token = kong.request.get_header(config.token_header)
   if not bearer_token then
-    return kong.response.error(401, "Unauthenticated")
+    return kong.response.error(401, "Please provide a valid access token on " .. config.token_header .. " header.")
   end
   -- remove Bearer prefix
   if type(bearer_token) == "table" then
@@ -93,7 +93,7 @@ function OBNTokenIntrospection:access(config)
   end
 
   if (values == nil or values[1] == nil or values[1] == "") then
-    return kong.response.error(401, "Unauthenticated")
+    return kong.response.error(401, "Please provide a valid access token.")
   end
 
   local access_token = values[1]

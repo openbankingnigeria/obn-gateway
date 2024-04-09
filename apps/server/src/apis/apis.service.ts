@@ -516,31 +516,60 @@ export class APIService {
       upstream.headers ||
       upstream.querystring ||
       upstream.body ||
-      upstream.method
+      upstream.method ||
+      upstream.url
     ) {
+      const config: {
+        http_method: string | undefined;
+        remove: {
+          headers: string[];
+          querystring: string[];
+          body: string[];
+        };
+        add: {
+          headers: string[];
+          querystring: string[];
+          body: string[];
+        };
+        replace: {
+          uri?: string;
+        };
+      } = {
+        http_method: upstream.method?.toUpperCase(),
+        remove: {
+          headers: upstream.headers?.map((h) => `${h.key}:${h.value}`) || [],
+          querystring:
+            upstream.querystring?.map((h) => `${h.key}:${h.value}`) || [],
+          body: upstream.body?.map((h) => `${h.key}:${h.value}`) || [],
+        },
+        add: {
+          headers: upstream.headers?.map((h) => `${h.key}:${h.value}`) || [],
+          querystring:
+            upstream.querystring?.map((h) => `${h.key}:${h.value}`) || [],
+          body: upstream.body?.map((h) => `${h.key}:${h.value}`) || [],
+        },
+        replace: {},
+      };
+
+      if (upstream.url) {
+        const { pathname, searchParams } = new URL(upstream.url);
+        config.replace.uri = pathname.replace(
+          /(?:^|[:<])(\w+)(>|)/gi,
+          '$(uri_captures["$1"])',
+        );
+        searchParams.forEach((value, key) => {
+          config.add.querystring.push(`${key}:${value}`);
+          config.remove.querystring.push(`${key}:${value}`);
+        });
+      }
+
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
         {
           name: KONG_PLUGINS.REQUEST_TRANSFORMER,
           enabled: true,
-          config: {
-            http_method: upstream.method?.toUpperCase(),
-            remove: {
-              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: upstream.querystring?.map(
-                (h) => `${h.key}:${h.value}`,
-              ),
-              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
-            },
-            add: {
-              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: upstream.querystring?.map(
-                (h) => `${h.key}:${h.value}`,
-              ),
-              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
-            },
-          },
+          config,
         },
       );
     }
@@ -947,31 +976,72 @@ export class APIService {
       upstream?.method ||
       upstream?.headers ||
       upstream?.querystring ||
-      upstream?.body
+      upstream?.body ||
+      upstream?.url
     ) {
+      const plugins = await this.kongRouteService.getPlugins(
+        environment,
+        gatewayRoute?.id,
+      );
+
+      const plugin = plugins.data.find(
+        (plugin) => plugin.name === KONG_PLUGINS.REQUEST_TRANSFORMER,
+      );
+
+      const config = {
+        http_method: upstream.method?.toUpperCase(),
+        remove: {
+          headers:
+            upstream.headers?.map((h) => `${h.key}:${h.value}`) ||
+            plugin?.config.remove?.headers ||
+            [],
+          querystring:
+            upstream.querystring?.map((q) => `${q.key}:${q.value}`) ||
+            plugin?.config.remove?.querystring ||
+            [],
+          body:
+            upstream.body?.map((b) => `${b.key}:${b.value}`) ||
+            plugin?.config.remove?.body ||
+            [],
+        },
+        add: {
+          headers:
+            upstream.headers?.map((h) => `${h.key}:${h.value}`) ||
+            plugin?.config.add?.headers ||
+            [],
+          querystring:
+            upstream.querystring?.map((q) => `${q.key}:${q.value}`) ||
+            plugin?.config.add?.querystring ||
+            [],
+          body:
+            upstream.body?.map((b) => `${b.key}:${b.value}`) ||
+            plugin?.config.add?.body ||
+            [],
+        },
+        replace: {
+          uri: plugin?.config.replace?.uri,
+        },
+      };
+
+      if (upstream.url) {
+        const { pathname, searchParams } = new URL(upstream.url);
+        config.replace.uri = pathname.replace(
+          /(?:^|[:<])(\w+)(>|)/gi,
+          '$(uri_captures["$1"])',
+        );
+        searchParams.forEach((value, key) => {
+          config.add.querystring.push(`${key}:${value}`);
+          config.remove.querystring.push(`${key}:${value}`);
+        });
+      }
+
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
         {
           name: KONG_PLUGINS.REQUEST_TRANSFORMER,
           enabled: true,
-          config: {
-            http_method: upstream.method?.toUpperCase(),
-            remove: {
-              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: upstream.querystring?.map(
-                (h) => `${h.key}:${h.value}`,
-              ),
-              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
-            },
-            add: {
-              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: upstream.querystring?.map(
-                (h) => `${h.key}:${h.value}`,
-              ),
-              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
-            },
-          },
+          config,
         },
       );
     }
