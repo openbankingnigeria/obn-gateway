@@ -19,7 +19,7 @@ const LogoutTimer: React.FC<LogoutTimerProps> = ({ timeout }) => {
         setIsActive(false);
         removeJsCookies('aperta-user-accessToken');
         window.location.href = '/';
-      }, timeout);
+      }, Math.min(timeout, 2 ** 31 - 1));
     };
 
     const handleActivity = (event: any) => {
