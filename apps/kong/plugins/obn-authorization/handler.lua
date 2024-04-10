@@ -4,7 +4,7 @@ local cjson = require "cjson.safe"
 
 local OBNTokenIntrospection = {
   VERSION  = "1.0.0",
-  PRIORITY = 1000,
+  PRIORITY = 1,
 }
 
 -- issue token introspection request

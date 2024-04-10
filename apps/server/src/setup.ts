@@ -266,66 +266,68 @@ async function performSetupTasks(): Promise<void> {
                 tiers: [CompanyTiers.TIER_3],
               }),
             );
+            const transformationData = {
+              upstream: `
+local function transform_upstream_request()
+  	local ok, err = pcall(function()
+		-- Read the request body
+		kong.service.request.enable_buffering()  -- Enable buffering to read body
+		local data, err = kong.request.get_body()
+		if err then
+			kong.log.err(err)
+			return
+		end
+			${
+        (request.method !== 'GET' &&
+          response?.[0]?.originalRequest?.body?.raw &&
+          `-- Perform the transformation
+					kong.ctx.shared.upstream_request = ${jsonToLua(
+            response?.[0]?.originalRequest?.body?.raw,
+          )}
+		`) ||
+        ''
+      }
+	end)
+	if not ok then
+		kong.log.err(err)
+		return kong.response.exit(500, { message = "An unexpected error occurred" })
+	end
+end
+return transform_upstream_request`,
+              downstream: `
+local cjson = require 'cjson.safe'
+
+local function transform_downstream_response()
+  	local ok, err = pcall(function()
+		${
+      (response?.[0]?.body &&
+        `
+		if kong.service.response.get_status() == nil then
+			return
+		end
+		local data = kong.service.response.get_body()
+		data = cjson.decode(data)
+		if kong.service.response.get_status() >= 400 then
+			return
+		end
+		if data then
+			kong.ctx.shared.downstream_response = ${jsonToLua(response?.[0]?.body)}
+		end`) ||
+      ''
+    }
+	end)
+	if not ok then
+		kong.log.err(err)
+		return kong.response.exit(500, { message = "An unexpected error occurred" })
+	end
+end
+return transform_downstream_response`,
+            };
             await apiService.setTransformation(
               ctx,
               environment as KONG_ENVIRONMENT,
               api.data!.id,
-              {
-                upstream: `
-            local function transform_upstream_request()
-            -- Read the request body
-            kong.service.request.enable_buffering()  -- Enable buffering to read body
-            local data, err = kong.request.get_body()
-            if err then
-                kong.log.err(err)
-                return
-            end
-            ${
-              (request.method !== 'GET' &&
-                response?.[0]?.originalRequest?.body?.raw &&
-                `-- Perform the transformation
-                local transformed_data = ${jsonToLua(
-                  response?.[0]?.originalRequest?.body?.raw,
-                )}
-            
-              -- Set the transformed body
-              local ok, err = kong.service.request.set_body(transformed_data)
-              if err then
-                  kong.log.err(err)
-                  return
-              end`) ||
-              ''
-            }
-          end
-          return transform_upstream_request
-          `,
-                downstream: `
-            local cjson = require 'cjson.safe'
-          
-            local function transform_downstream_response()
-              local data = kong.response.get_raw_body()
-              data = cjson.decode(data)
-              ${
-                (response?.[0]?.body &&
-                  `
-                if kong.service.response.get_status() == nil then
-                  return
-                end
-                if kong.service.response.get_status() >= 400 then
-                  return
-                end
-                if data then
-                  data = cjson.encode(${jsonToLua(response?.[0]?.body)})
-                  kong.response.set_raw_body(data)
-                end
-                `) ||
-                ''
-              }
-            end
-
-            return transform_downstream_response
-          `,
-              },
+              transformationData,
             );
           } catch (error) {
             console.error(error);

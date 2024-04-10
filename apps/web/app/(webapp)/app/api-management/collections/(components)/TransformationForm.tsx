@@ -206,6 +206,7 @@ const TransformationForm = ({
               <div className='w-full'>
                 <CodeEditor 
                   code={request_body}
+                  mode='lua'
                   setCode={
                     userType == 'api-consumer' ? 
                       ()=> null : 
@@ -220,6 +221,7 @@ const TransformationForm = ({
               <div className='w-full'>
                 <CodeEditor 
                   code={request_header}
+                  mode='lua'
                   setCode={
                     userType == 'api-consumer' ? 
                       ()=> null : 
@@ -234,6 +236,7 @@ const TransformationForm = ({
               <div className='w-full'>
                 <CodeEditor 
                   code={response_body}
+                  mode='lua'
                   setCode={
                     userType == 'api-consumer' ? 
                       ()=> null : 
@@ -248,6 +251,7 @@ const TransformationForm = ({
               <div className='w-full'>
                 <CodeEditor 
                   code={response_header}
+                  mode='lua'
                   setCode={
                     userType == 'api-consumer' ? 
                       ()=> null : 

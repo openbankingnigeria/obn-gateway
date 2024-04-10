@@ -540,5 +540,5 @@ export class GetAPITransformationResponseDTO {
   @Expose({ name: 'downstream' })
   @Transform(({ value }) => value[0])
   @IsString()
-  body_filter: string;
+  header_filter: string;
 }

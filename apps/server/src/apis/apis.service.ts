@@ -949,7 +949,10 @@ export class APIService {
       );
     }
 
-    if (!!introspectAuthorization !== !!route.introspectAuthorization) {
+    if (
+      (introspectAuthorization === false || introspectAuthorization === true) &&
+      this.config.get('registry.introspectionEndpoint')[environment]
+    ) {
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
@@ -1618,10 +1621,18 @@ export class APIService {
       route.routeId!,
       {
         config: {
-          access: [data.upstream],
-          body_filter: [data.downstream],
+          access: [
+            data.upstream,
+            `if kong.ctx.shared.upstream_request ~= nil then kong.service.request.set_body(kong.ctx.shared.upstream_request) end`,
+          ],
           // this is required to ensure that we dont send an invalid content length to the downstream/client
-          header_filter: ['kong.response.clear_header("Content-Length")'],
+          header_filter: [
+            data.downstream,
+            'kong.response.clear_header("Content-Length")',
+          ],
+          body_filter: [
+            `local cjson = require 'cjson.safe'\nif kong.ctx.shared.downstream_response ~= nil then kong.response.set_raw_body(cjson.encode(kong.ctx.shared.downstream_response)) end`,
+          ],
         },
         name: KONG_PLUGINS.POST_FUNCTION,
         enabled: true,
