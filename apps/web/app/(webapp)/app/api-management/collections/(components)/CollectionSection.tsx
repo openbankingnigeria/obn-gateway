@@ -174,7 +174,6 @@ const CollectionSection = ({
           }),
           method: 'PATCH',
           data: {
-            ...data,
             introspectAuthorization: true
           }
         });
