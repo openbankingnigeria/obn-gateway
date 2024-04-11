@@ -161,7 +161,7 @@ const CollectionSection = ({
     setOpenModal(name);
   }
 
-  const enableNIBBSCheck = async (code: string , data: any) => {
+  const enableNIBBSCheck = async (code: string , api: any) => {
     if (profile?.user?.twofaEnabled && !code) {
       setOpen2FA(true);
     } else {
