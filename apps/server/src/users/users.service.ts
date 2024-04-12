@@ -6,8 +6,14 @@ import {
   UpdateUserDto,
 } from './dto/index.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Profile, Role, User, UserStatuses } from '@common/database/entities';
-import { Equal, Repository } from 'typeorm';
+import {
+  Profile,
+  Role,
+  RoleStatuses,
+  User,
+  UserStatuses,
+} from '@common/database/entities';
+import { Equal, IsNull, Repository } from 'typeorm';
 import {
   IBadRequestException,
   INotFoundException,
@@ -57,12 +63,16 @@ export class UsersService {
       });
     }
 
+    const where = {
+      id: Equal(roleId),
+      parentId: Equal(ctx.activeUser.role.parentId),
+      companyId: Equal(ctx.activeUser.companyId),
+      deletedAt: IsNull(),
+      status: RoleStatuses.ACTIVE,
+    };
+
     const role = await this.roleRepository.findOne({
-      where: {
-        id: Equal(roleId),
-        parentId: Equal(ctx.activeUser.role.parentId),
-        companyId: Equal(ctx.activeUser.companyId),
-      },
+      where: [where, { ...where, companyId: IsNull() }],
     });
 
     if (!role) {
@@ -229,12 +239,15 @@ export class UsersService {
 
     let role;
     if (roleId) {
+      const where = {
+        id: Equal(roleId),
+        parentId: Equal(ctx.activeUser.role.parentId),
+        companyId: Equal(ctx.activeUser.companyId),
+        deletedAt: IsNull(),
+        status: RoleStatuses.ACTIVE,
+      };
       role = await this.roleRepository.findOne({
-        where: {
-          id: Equal(roleId),
-          parentId: Equal(ctx.activeUser.role.parentId),
-          companyId: Equal(ctx.activeUser.companyId),
-        },
+        where: [where, { ...where, companyId: IsNull() }],
       });
 
       if (!role) {

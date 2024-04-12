@@ -516,31 +516,60 @@ export class APIService {
       upstream.headers ||
       upstream.querystring ||
       upstream.body ||
-      upstream.method
+      upstream.method ||
+      upstream.url
     ) {
+      const config: {
+        http_method: string | undefined;
+        remove: {
+          headers: string[];
+          querystring: string[];
+          body: string[];
+        };
+        add: {
+          headers: string[];
+          querystring: string[];
+          body: string[];
+        };
+        replace: {
+          uri?: string;
+        };
+      } = {
+        http_method: upstream.method?.toUpperCase(),
+        remove: {
+          headers: upstream.headers?.map((h) => `${h.key}:${h.value}`) || [],
+          querystring:
+            upstream.querystring?.map((h) => `${h.key}:${h.value}`) || [],
+          body: upstream.body?.map((h) => `${h.key}:${h.value}`) || [],
+        },
+        add: {
+          headers: upstream.headers?.map((h) => `${h.key}:${h.value}`) || [],
+          querystring:
+            upstream.querystring?.map((h) => `${h.key}:${h.value}`) || [],
+          body: upstream.body?.map((h) => `${h.key}:${h.value}`) || [],
+        },
+        replace: {},
+      };
+
+      if (upstream.url) {
+        const { pathname, searchParams } = new URL(upstream.url);
+        config.replace.uri = pathname.replace(
+          /(?:^|[:<])(\w+)(>|)/gi,
+          '$(uri_captures["$1"])',
+        );
+        searchParams.forEach((value, key) => {
+          config.add.querystring.push(`${key}:${value}`);
+          config.remove.querystring.push(`${key}:${value}`);
+        });
+      }
+
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
         gatewayRoute.id,
         {
           name: KONG_PLUGINS.REQUEST_TRANSFORMER,
           enabled: true,
-          config: {
-            http_method: upstream.method?.toUpperCase(),
-            remove: {
-              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: upstream.querystring?.map(
-                (h) => `${h.key}:${h.value}`,
-              ),
-              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
-            },
-            add: {
-              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: upstream.querystring?.map(
-                (h) => `${h.key}:${h.value}`,
-              ),
-              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
-            },
-          },
+          config,
         },
       );
     }
@@ -837,6 +866,13 @@ export class APIService {
           tags: [route.collection.slug!],
         },
       );
+      if (route.routeId) {
+        await this.kongRouteService.updateRoute(environment, route.routeId, {
+          service: {
+            id: gatewayService.id,
+          },
+        });
+      }
     } else {
       gatewayService = await this.kongService.getService(
         environment,
@@ -870,10 +906,10 @@ export class APIService {
           },
         });
       }
-    } else {
+    } else if (route.routeId) {
       gatewayRoute = await this.kongRouteService.getRoute(
         environment,
-        route.routeId!,
+        route.routeId,
       );
     }
 
@@ -881,10 +917,10 @@ export class APIService {
       { id: route.id, environment },
       {
         name,
-        slug: gatewayRoute.name,
+        slug: gatewayRoute?.name,
         introspectAuthorization,
         serviceId: gatewayService.id,
-        routeId: gatewayRoute.id,
+        routeId: gatewayRoute?.id,
         enabled,
         url: downstream?.url,
         method: downstream?.method,
@@ -894,108 +930,155 @@ export class APIService {
       },
     );
 
-    if (enabled === true) {
-      await this.kongRouteService.updateOrCreatePlugin(
-        environment,
-        gatewayRoute.id,
-        {
-          name: KONG_PLUGINS.REQUEST_TERMINATION,
-          enabled: false,
-          config: {
-            message: 'This API is currently unavailable.',
-          },
-        },
-      );
-    } else if (enabled === false) {
-      await this.kongRouteService.updateOrCreatePlugin(
-        environment,
-        gatewayRoute.id,
-        {
-          name: KONG_PLUGINS.REQUEST_TERMINATION,
-          enabled: true,
-          config: {
-            message: 'This API is currently unavailable.',
-          },
-        },
-      );
-    }
-
-    if (!!introspectAuthorization !== !!route.introspectAuthorization) {
-      await this.kongRouteService.updateOrCreatePlugin(
-        environment,
-        gatewayRoute.id,
-        {
-          name: KONG_PLUGINS.OBN_AUTHORIZATION,
-          enabled: introspectAuthorization,
-          config: {
-            introspection_endpoint: this.config.get(
-              'registry.introspectionEndpoint',
-            )[environment],
-            client_id: this.config.get('registry.introspectionClientID')[
-              environment
-            ],
-            client_secret: this.config.get(
-              'registry.introspectionClientSecret',
-            )[environment],
-            scope: [gatewayRoute.name],
-          },
-        },
-      );
-    }
-
-    if (
-      upstream?.method ||
-      upstream?.headers ||
-      upstream?.querystring ||
-      upstream?.body
-    ) {
-      await this.kongRouteService.updateOrCreatePlugin(
-        environment,
-        gatewayRoute.id,
-        {
-          name: KONG_PLUGINS.REQUEST_TRANSFORMER,
-          enabled: true,
-          config: {
-            http_method: upstream.method?.toUpperCase(),
-            remove: {
-              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: upstream.querystring?.map(
-                (h) => `${h.key}:${h.value}`,
-              ),
-              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
-            },
-            add: {
-              headers: upstream.headers?.map((h) => `${h.key}:${h.value}`),
-              querystring: upstream.querystring?.map(
-                (h) => `${h.key}:${h.value}`,
-              ),
-              body: upstream.body?.map((h) => `${h.key}:${h.value}`),
-            },
-          },
-        },
-      );
-    }
-
-    if (tiers) {
-      const allow = [
-        environment !== KONG_ENVIRONMENT.DEVELOPMENT
-          ? `route-${routeId}`
-          : undefined,
-        ...tiers.map((tier) => `tier-${tier}`),
-      ].filter(Boolean);
-      if (allow.length) {
+    if (gatewayRoute) {
+      if (enabled === true) {
         await this.kongRouteService.updateOrCreatePlugin(
           environment,
           gatewayRoute.id,
           {
+            name: KONG_PLUGINS.REQUEST_TERMINATION,
+            enabled: false,
             config: {
-              allow,
-              hide_groups_header: true,
+              message: 'This API is currently unavailable.',
             },
-            name: KONG_PLUGINS.ACL,
-            enabled: true,
           },
         );
+      } else if (enabled === false) {
+        await this.kongRouteService.updateOrCreatePlugin(
+          environment,
+          gatewayRoute.id,
+          {
+            name: KONG_PLUGINS.REQUEST_TERMINATION,
+            enabled: true,
+            config: {
+              message: 'This API is currently unavailable.',
+            },
+          },
+        );
+      }
+
+      if (
+        (introspectAuthorization === false ||
+          introspectAuthorization === true) &&
+        this.config.get('registry.introspectionEndpoint')[environment]
+      ) {
+        await this.kongRouteService.updateOrCreatePlugin(
+          environment,
+          gatewayRoute.id,
+          {
+            name: KONG_PLUGINS.OBN_AUTHORIZATION,
+            enabled: introspectAuthorization,
+            config: {
+              introspection_endpoint: this.config.get(
+                'registry.introspectionEndpoint',
+              )[environment],
+              client_id: this.config.get('registry.introspectionClientID')[
+                environment
+              ],
+              client_secret: this.config.get(
+                'registry.introspectionClientSecret',
+              )[environment],
+              scope: [gatewayRoute.name],
+            },
+          },
+        );
+      }
+
+      if (
+        upstream?.method ||
+        upstream?.headers ||
+        upstream?.querystring ||
+        upstream?.body ||
+        upstream?.url
+      ) {
+        const plugins = await this.kongRouteService.getPlugins(
+          environment,
+          gatewayRoute?.id,
+        );
+
+        const plugin = plugins.data.find(
+          (plugin) => plugin.name === KONG_PLUGINS.REQUEST_TRANSFORMER,
+        );
+
+        const config = {
+          http_method: upstream.method?.toUpperCase(),
+          remove: {
+            headers:
+              upstream.headers?.map((h) => `${h.key}:${h.value}`) ||
+              plugin?.config.remove?.headers ||
+              [],
+            querystring:
+              upstream.querystring?.map((q) => `${q.key}:${q.value}`) ||
+              plugin?.config.remove?.querystring ||
+              [],
+            body:
+              upstream.body?.map((b) => `${b.key}:${b.value}`) ||
+              plugin?.config.remove?.body ||
+              [],
+          },
+          add: {
+            headers:
+              upstream.headers?.map((h) => `${h.key}:${h.value}`) ||
+              plugin?.config.add?.headers ||
+              [],
+            querystring:
+              upstream.querystring?.map((q) => `${q.key}:${q.value}`) ||
+              plugin?.config.add?.querystring ||
+              [],
+            body:
+              upstream.body?.map((b) => `${b.key}:${b.value}`) ||
+              plugin?.config.add?.body ||
+              [],
+          },
+          replace: {
+            uri: plugin?.config.replace?.uri,
+          },
+        };
+
+        if (upstream.url) {
+          const { pathname, searchParams } = new URL(upstream.url);
+          config.replace.uri = pathname.replace(
+            /(?:^|[:<])(\w+)(>|)/gi,
+            '$(uri_captures["$1"])',
+          );
+          searchParams.forEach((value, key) => {
+            config.add.querystring.push(`${key}:${value}`);
+            config.remove.querystring.push(`${key}:${value}`);
+          });
+        }
+
+        await this.kongRouteService.updateOrCreatePlugin(
+          environment,
+          gatewayRoute.id,
+          {
+            name: KONG_PLUGINS.REQUEST_TRANSFORMER,
+            enabled: true,
+            config,
+          },
+        );
+      }
+
+      if (tiers) {
+        const allow = [
+          environment !== KONG_ENVIRONMENT.DEVELOPMENT
+            ? `route-${routeId}`
+            : undefined,
+          ...tiers.map((tier) => `tier-${tier}`),
+        ].filter(Boolean);
+        if (allow.length) {
+          await this.kongRouteService.updateOrCreatePlugin(
+            environment,
+            gatewayRoute.id,
+            {
+              config: {
+                allow,
+                hide_groups_header: true,
+              },
+              name: KONG_PLUGINS.ACL,
+              enabled: true,
+            },
+          );
+        }
       }
     }
 
@@ -1008,7 +1091,7 @@ export class APIService {
         {
           id: route.id,
           name: data.name || route.name,
-          slug: gatewayRoute.name,
+          slug: gatewayRoute?.name || route.slug,
           introspectAuthorization: route.introspectAuthorization,
           enabled: data.enabled || route.enabled,
           collectionId: route.collectionId,
@@ -1548,10 +1631,18 @@ export class APIService {
       route.routeId!,
       {
         config: {
-          access: [data.upstream],
-          body_filter: [data.downstream],
+          access: [
+            data.upstream,
+            `if kong.ctx.shared.upstream_request ~= nil then kong.service.request.set_body(kong.ctx.shared.upstream_request) end`,
+          ],
           // this is required to ensure that we dont send an invalid content length to the downstream/client
-          header_filter: ['kong.response.clear_header("Content-Length")'],
+          header_filter: [
+            data.downstream,
+            'kong.response.clear_header("Content-Length")',
+          ],
+          body_filter: [
+            `local cjson = require 'cjson.safe'\nif kong.ctx.shared.downstream_response ~= nil then kong.response.set_raw_body(cjson.encode(kong.ctx.shared.downstream_response)) end`,
+          ],
         },
         name: KONG_PLUGINS.POST_FUNCTION,
         enabled: true,

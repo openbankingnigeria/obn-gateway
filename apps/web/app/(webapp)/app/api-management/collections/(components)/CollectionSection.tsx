@@ -136,7 +136,6 @@ const CollectionSection = ({
           }),
           method: 'PATCH',
           data: {
-            ...api,
             introspectAuthorization: true
           }
         });

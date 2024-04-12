@@ -46,8 +46,6 @@ const ConsumerSections = ({
 
   const enabledConsumer = altData?.status == 'active' && altData?.kybStatus == 'approved';
 
-  // console.log(altData);
-
   const [endpoint_url, setEndpointUrl] = useState('');
   const [parameters, setParameters] = useState('');
   const [snis, setSnis] = useState<SnisProps[]>([]);
