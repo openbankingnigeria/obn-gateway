@@ -52,7 +52,8 @@ const CreateRolePage = ({
 
   return (
     <form
-      onSubmit={(e) => next('', e)}
+      // onSubmit={(e) => next('', e)}
+      onSubmit={(e) => next(e)}
       className='gap-[32px] flex flex-col h-full w-full relative'
     >
       <div className='flex flex-col h-[calc(100%-50px)] overflow-auto gap-[16px] w-full px-[20px]'>

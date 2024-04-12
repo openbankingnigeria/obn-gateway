@@ -25,7 +25,7 @@ const ChangePasswordForm = ({
   const number = validateNumber(password);
   const symbol = validateSymbol(password);
   const passwordLength = greaterThan8(password);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const correctPassword = (upperAndLowerCase && number && symbol && passwordLength);
@@ -37,22 +37,23 @@ const ChangePasswordForm = ({
     !passwordMatch
   );
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  // }
 
-  const handle2FA = (value: string) => {
-    handleSubmit('', value); 
-  };
+  // const handle2FA = (value: string) => {
+  //   handleSubmit('', value); 
+  // };
 
-  const handleSubmit = async (e: any, code: string,) => {
+  const handleSubmit = async (e: any /*, code: string*/) => {
     e && e.preventDefault();
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          headers: {},
           apiEndpoint: API.updatePassword(),
           method: 'PATCH',
           data: {
@@ -64,16 +65,16 @@ const ChangePasswordForm = ({
 
       setLoading(false);
       if (result?.status == 200) {
-        close2FAModal();
+        // close2FAModal();
         close(e);
         // router.refresh();
       }
-    }
+    /* } */
   }
   
   return (
     <>
-      {
+      {/* {
         open2FA &&
           <TwoFactorAuthBottomModal
             title={'Two-Factor Authentication'}
@@ -81,10 +82,11 @@ const ChangePasswordForm = ({
             loading={loading}
             next={(value: string) => handle2FA(value)}
           />
-      }
+      } */}
 
       <form
-        onSubmit={(e) => handleSubmit(e, '')}
+        // onSubmit={(e) => handleSubmit(e, '')}
+        onSubmit={(e) => handleSubmit(e)}
         className='gap-[32px] flex flex-col h-full w-full relative'
       >
         <div className='px-[20px] w-full h-[calc(100%-50px)] overflow-auto flex flex-col gap-[16px]'>

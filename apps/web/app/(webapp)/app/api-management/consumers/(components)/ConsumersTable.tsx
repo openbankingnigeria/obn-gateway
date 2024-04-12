@@ -30,7 +30,7 @@ const ConsumersTable = ({
   const [openModal, setOpenModal] = useState('');
   const [reason, setReason] = useState('');
   const [id, setId] = useState('');
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const [consumer, setConsumer] = useState<any>(null);
   const actions = CONSUMER_ACTIONS_DATA;
@@ -78,19 +78,20 @@ const ConsumersTable = ({
     setOpenModal('');
   }
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal('');
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal('');
+  // }
 
-  const handleActivateDeactivateConsumer = async (action: string, id: string, code: string) => {
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+  const handleActivateDeactivateConsumer = async (action: string, id: string /*, code: string */) => {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
 
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: action == 'activate' ? 
           API.activateCompany({ id: id || consumer?.id }) :
           API.deactivateCompany({ id: id || consumer?.id }),
@@ -100,25 +101,26 @@ const ConsumersTable = ({
 
       if (result?.status == 200) {
         setLoading(false);
-        close2FAModal();
+        // close2FAModal();
         router.refresh();
       } else {
         setLoading(false);
       }
-    }
+    /* } */
   }
 
-  const handleApproveDeclineConsumer = async (action: string, id: string, code: string) => {
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+  const handleApproveDeclineConsumer = async (action: string, id: string /*, code: string */) => {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const data = action == 'approve' ? 
         { action } :
         { action, reason }
 
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.updateCompanyStatus({ id: id || consumer?.id }),
         method: 'PATCH',
         data
@@ -126,28 +128,28 @@ const ConsumersTable = ({
 
       if (result?.status == 200) {
         setLoading(false);
-        close2FAModal();
+        // close2FAModal();
         router.refresh();
       } else {
         setLoading(false);
       }
-    }
+    /* } */
   };
 
-  const handle2FA = () => {
-    close2FAModal();
-    toast.success(
-      openModal == 'deactivate' ?
-        'You have successfully deactivated [api_consumer_name]’s access.' :
-        openModal == 'activate' ?
-          'You have successfully activated [api_consumer_name]’s access.' :
-          openModal == 'approve' ?
-            'You have successfully approved [api_consumer_name] access request.' :
-            openModal == 'deny' ?
-            'You have successfully declined [api_consumer_name] access request.' :
-            null
-    )
-  };
+  // const handle2FA = () => {
+  //   close2FAModal();
+  //   toast.success(
+  //     openModal == 'deactivate' ?
+  //       'You have successfully deactivated [api_consumer_name]’s access.' :
+  //       openModal == 'activate' ?
+  //         'You have successfully activated [api_consumer_name]’s access.' :
+  //         openModal == 'approve' ?
+  //           'You have successfully approved [api_consumer_name] access request.' :
+  //           openModal == 'deny' ?
+  //           'You have successfully declined [api_consumer_name] access request.' :
+  //           null
+  //   )
+  // };
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => 'Actions',
@@ -202,8 +204,7 @@ const ConsumersTable = ({
               loading={loading}
               next={() => handleActivateDeactivateConsumer(
                 openModal,
-                consumer?.id,
-                ''
+                consumer?.id
               )}
             />
           </AppCenterModal>
@@ -222,8 +223,7 @@ const ConsumersTable = ({
                   loading={loading}
                   next={() => handleApproveDeclineConsumer(
                     'approve',
-                    consumer?.id, 
-                    ''
+                    consumer?.id
                   )}
                 />
                 :
@@ -234,15 +234,14 @@ const ConsumersTable = ({
                   loading={loading}
                   next={() => handleApproveDeclineConsumer(
                     'deny',
-                    consumer?.id, 
-                    ''
+                    consumer?.id
                   )}
                 />
             }
           </AppCenterModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -258,7 +257,7 @@ const ConsumersTable = ({
               }
             />
           </AppCenterModal>
-      }
+      } */}
 
       {
         (rawData && rawData?.length >= 1) ?

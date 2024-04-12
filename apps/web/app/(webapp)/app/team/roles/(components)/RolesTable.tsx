@@ -28,7 +28,7 @@ const RolesTable = ({
   const [openModal, setOpenModal] = useState('');
   const [id, setId] = useState('');
   const [role, setRole] = useState<any>(null);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const [role_name, setRoleName] = useState('');
   const [description, setDescription] = useState('');
@@ -99,18 +99,19 @@ const RolesTable = ({
     refreshData();
   }
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal('');
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal('');
+  // }
 
-  const handleActivateDeactivateRole = async (code: string,) => {
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+  const handleActivateDeactivateRole = async (/*code: string,*/) => {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.updateRole({ id: role?.id }),
         method: 'PATCH',
         data: {
@@ -120,22 +121,23 @@ const RolesTable = ({
       });
 
       if (result?.message) {
-        close2FAModal();
+        // close2FAModal();
         setLoading(false);
         router.refresh();
       }
-    }
+    /* } */
   }
 
-  const handleEdit = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+  const handleEdit = async (/* code: string, */e?: FormEvent<HTMLFormElement>) => {
     e && e.preventDefault();
 
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.updateRole({
           id: role?.id
         }),
@@ -151,7 +153,8 @@ const RolesTable = ({
         // @ts-ignore
         let sanitizedPermissions = permissions?.flatMap(item => item.options.map(option => option.id));
         const result2: any = await clientAxiosRequest({
-          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          headers: {},
           apiEndpoint: API.putRolePermission({
             id: role?.id
           }),
@@ -163,26 +166,26 @@ const RolesTable = ({
 
         setLoading(false);
         if (result2?.status == 200) {
-          close2FAModal();
+          // close2FAModal();
           refreshData();
           router.refresh();
         }
       } else {
         setLoading(false);
         if (result?.status == 200) {
-          close2FAModal();
+          // close2FAModal();
           refreshData();
           router.refresh();
         }
       }
-    }
+    /* } */
   }
 
-  const handle2FA = (value: string) => {
-    openModal == 'edit' ?
-      handleEdit(value, undefined) :
-      handleActivateDeactivateRole(value)
-  };
+  // const handle2FA = (value: string) => {
+  //   openModal == 'edit' ?
+  //     handleEdit(value, undefined) :
+  //     handleActivateDeactivateRole(value)
+  // };
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',
@@ -270,12 +273,12 @@ const RolesTable = ({
               close={closeModal}
               type={openModal}
               loading={loading}
-              next={() => handleActivateDeactivateRole('')}
+              next={() => handleActivateDeactivateRole()}
             />
           </AppCenterModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -287,7 +290,7 @@ const RolesTable = ({
               next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       {
         (rawData && rawData?.length >= 1) ?

@@ -30,7 +30,7 @@ const MembersTable = ({
   const [openModal, setOpenModal] = useState('');
   const [id, setId] = useState('');
   const [member, setMember] = useState<any>(null);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingReinvitation, setLoadingReinvitation] = useState(false);
   const actions = MEMBERS_ACTIONS_DATA;
@@ -53,19 +53,20 @@ const MembersTable = ({
     fetchProfile();
   }, []);
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal('');
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal('');
+  // }
 
-  const handleReInvite: any = async (id: string, code: string) => {
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+  const handleReInvite = async (id: string /*, code: string */) => {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoadingReinvitation(true);
       setLoading(true);
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.postReinviteMember({ id: id || member?.id }),
         method: 'POST',
         data: null
@@ -74,13 +75,13 @@ const MembersTable = ({
       if (result?.status == 201) {
         setLoadingReinvitation(false);
         setLoading(false);
-        close2FAModal();
+        // close2FAModal();
         router.refresh();
       } else {
         setLoadingReinvitation(false);
         setLoading(false);
       }
-    } 
+    /* } */ 
   };
 
   const getAction = (status: string) => {
@@ -126,16 +127,16 @@ const MembersTable = ({
     }
   }
 
-  const handle2FA = () => {
-    close2FAModal();
-    toast.success(
-      openModal == 'deactivate' ?
-        '[member_name] has been deactivated and access revoked.' :
-        openModal == 'activate' ?
-          '[member_name] has been activated and access restored.' :
-          null
-    )
-  };
+  // const handle2FA = () => {
+  //   close2FAModal();
+  //   toast.success(
+  //     openModal == 'deactivate' ?
+  //       '[member_name] has been deactivated and access revoked.' :
+  //       openModal == 'activate' ?
+  //         '[member_name] has been activated and access restored.' :
+  //         null
+  //   )
+  // };
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',
@@ -144,7 +145,7 @@ const MembersTable = ({
         <button 
           id={row.original.id} 
           onClick={() => {
-            handleReInvite(row.original.id, '');
+            handleReInvite(row.original.id);
             setMember(rawData?.find(data => data?.id == row.original.id));
           }}
           className='text-f14 whitespace-nowrap !text-[#5277C7] cursor-pointer capitalize'
@@ -169,7 +170,7 @@ const MembersTable = ({
                   className='whitespace-nowrap cursor-pointer hover:bg-o-bg-disabled w-full flex gap-[12px] items-center py-[10px] px-[16px] text-o-text-dark text-f14'
                   onClick={() => {
                     if (action?.name == 'reinvite' ) {
-                      handleReInvite(row.original.id, '');
+                      handleReInvite(row.original.id);
                       setMember(rawData?.find(data => data?.id == row.original.id));
                     } else {
                       setId(row.original.id);
@@ -210,7 +211,7 @@ const MembersTable = ({
           </AppCenterModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -222,7 +223,7 @@ const MembersTable = ({
               next={(value: string) => handleReInvite('', value)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       {
         (rawData && rawData?.length >= 1) ?

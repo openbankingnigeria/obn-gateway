@@ -33,7 +33,7 @@ const ConsumerSections = ({
   const columnHelper = createColumnHelper<any>();
   const router = useRouter();
   const [openModal, setOpenModal] = useState('');
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const actions = COLLECTION_ACTIONS_DATA;
   const [api, setApi] = useState<any>(null);
@@ -98,20 +98,21 @@ const ConsumerSections = ({
     setOpenModal('');
   }
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal('');
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal('');
+  // }
 
-  const handleApiModification = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+  const handleApiModification = async (/* code: string, */ e?: FormEvent<HTMLFormElement>) => {
     e && e.preventDefault();
 
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.updateAPI({ 
           environment: environment || 'development', 
           id: api?.id
@@ -135,16 +136,16 @@ const ConsumerSections = ({
 
       setLoading(false);
         if (result?.status == 200) {
-          close2FAModal();
+          // close2FAModal();
           refreshData();
           router.refresh();
         }
-    }
+    /* } */
   }
 
-  const handle2FA = (value: string) => {
-    handleApiModification(value, undefined)
-  };
+  // const handle2FA = (value: string) => {
+  //   handleApiModification(value, undefined)
+  // };
 
   const actionColumn = columnHelper.accessor('actions', {
     header: () => '',
@@ -215,7 +216,7 @@ const ConsumerSections = ({
           </AppRightModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -227,7 +228,7 @@ const ConsumerSections = ({
               next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       <section className='w-full h-full flex flex-col gap-[20px]'>
         <TransparentPanel

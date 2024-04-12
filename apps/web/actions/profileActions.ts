@@ -2,7 +2,7 @@
 
 import { axiosRequest } from '@/config/axiosRequest';
 import * as API from '../config/endpoints';
-import { redirect } from 'next/navigation';
+// import { redirect } from 'next/navigation';
 
 /* CHANGE PASSWORD ACTION */
 export async function postChangePassword(prevState: any, formData: FormData) {

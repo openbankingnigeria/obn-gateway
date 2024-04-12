@@ -17,7 +17,7 @@ const AddPermissionButton = ({
   companyId: string
 }) => {
   const [openModal, setOpenModal] = useState(false);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
@@ -76,27 +76,28 @@ const AddPermissionButton = ({
     fetchConsumerAPIs();
   }, [refresh])
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal(false);
-  };
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal(false);
+  // };
 
   const refreshData = () => {
     setApiIds([]);
   }
 
-  const handleAddPermission = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+  const handleAddPermission = async (/*code: string, */ e?: FormEvent<HTMLFormElement>) => {
     e && e.preventDefault();
 
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       
       // let sanitizedApiIds = apiIds?.map((item: any) => item.id);
 
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.updateConsumerAPIAccess({
           environment: environment || 'development',
           id: companyId
@@ -107,11 +108,11 @@ const AddPermissionButton = ({
 
       setLoading(false);
       if (result?.status == 200) {
-        close2FAModal();
+        // close2FAModal();
         refreshData();
         router.refresh();
       } 
-    }
+    /* } */
   }
 
   return (
@@ -136,7 +137,7 @@ const AddPermissionButton = ({
           </AppRightModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -148,7 +149,7 @@ const AddPermissionButton = ({
               next={(value: string) => handleAddPermission(value, undefined)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       <div className='w-full flex justify-center mb-14 items-center'>
         <Button 

@@ -28,13 +28,11 @@ const UpStreamForm = ({
   );
   const [endpointUrl, setEndpointUrl] = useState(rawData?.upstream?.url || '');
   const [tiers, setTiers] = useState(rawData?.tiers?.join(',') || '');
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const environment = getJsCookies('environment');
   const router = useRouter();
   const previewPage = preview == 'true';
-
-  // console.log(headers, body, querystring, rawData);
 
   const handleRemove = (type: string, value: string | number) => {
     type == 'body' ?
@@ -108,18 +106,19 @@ const UpStreamForm = ({
   //   !endpointUrl
   // );
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  // }
 
-  const handleSubmit = async (e: any, code: string,) => {
+  const handleSubmit = async (e: any /*, code: string */) => {
     e && e.preventDefault();
-    if (profileData?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profileData?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          headers: {},
           apiEndpoint: API.updateAPI({ 
             environment: environment || 'development', 
             id: rawData?.id
@@ -155,19 +154,18 @@ const UpStreamForm = ({
         });
 
       if (result?.message) {
-        close2FAModal();
+        // close2FAModal();
         setLoading(false);
         // router.refresh();
       }
-    }
+    /* } */
   }
 
-  const handle2FA = (value: string) => {
-    handleSubmit('', value);
-  };
+  // const handle2FA = (value: string) => {
+  //   handleSubmit('', value);
+  // };
 
   const handleTiers = (value: any) => {
-    // console.log(value);
     if (/^[0-3,\b]+$/.test(value) || value === '') {
       setTiers(value);
     }
@@ -175,7 +173,7 @@ const UpStreamForm = ({
 
   return (
     <>
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -187,9 +185,9 @@ const UpStreamForm = ({
               next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
-      }
+      } */}
 
-      <form onSubmit={(e)=>handleSubmit(e, '')} className='w-full'>
+      <form onSubmit={(e)=>handleSubmit(e)} className='w-full'>
         <div 
           className='flex items-start w-full justify-between gap-[40px] pb-[20px] border-b border-o-border'
         >

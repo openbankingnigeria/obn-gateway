@@ -20,9 +20,9 @@ const DownStreamForm = ({
   const [tier, setTier] = useState('');
   const [path, setPath] = useState('');
   const [currentValue, setCurrentValue] = useState('header');
-  const [currentResValue, setCurrentResValue] = useState('body');
+  // const [currentResValue, setCurrentResValue] = useState('body');
   const [loading, setLoading] = useState(false);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const environment = getJsCookies('environment');
 
   useEffect(() => {
@@ -59,20 +59,19 @@ const DownStreamForm = ({
     return `${style.join(',<br>')}${style.length > 0 ? '<br>' : ''}`;
   };
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  // }
 
-  // console.log(request, response);
-
-  const handleSubmit = async (e: any, code: string,) => {
+  const handleSubmit = async (e: any /*, code: string*/) => {
     e && e.preventDefault();
-    if (profileData?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profileData?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.updateAPI({ 
           environment: environment || 'development', 
           id: rawData?.id
@@ -91,20 +90,20 @@ const DownStreamForm = ({
       });
 
       if (result?.message) {
-        close2FAModal();
+        // close2FAModal();
         setLoading(false);
         // router.refresh();
       }
-    }
+    /* } */
   }
 
-  const handle2FA = (value: string) => {
-    handleSubmit('', value);
-  };
+  // const handle2FA = (value: string) => {
+  //   handleSubmit('', value);
+  // };
 
   return (
     <>
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -116,9 +115,13 @@ const DownStreamForm = ({
               next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
-      }
+      } */}
 
-    <form onSubmit={(e)=>handleSubmit(e, '')} className='w-full'>
+    <form 
+      // onSubmit={(e)=>handleSubmit(e, '')} 
+      onSubmit={(e)=>handleSubmit(e)} 
+      className='w-full'
+    >
       {
         (profileData == 'api-consumer') ?
           <div className='flex flex-col gap-[20px]'>
@@ -220,7 +223,7 @@ const DownStreamForm = ({
                         capitalize text-f14 flex items-center gap-3 hover:text-o-blue`}
                       >
                         <div 
-                          onClick={() => setCurrentResValue(data?.value)}
+                          // onClick={() => setCurrentResValue(data?.value)}
                           className='w-fit cursor-pointer capitalize'
                         >
                           {data?.value}

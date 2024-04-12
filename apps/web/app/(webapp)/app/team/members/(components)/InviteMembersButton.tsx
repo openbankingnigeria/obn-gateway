@@ -15,7 +15,7 @@ const InviteMembersButton = ({
   const [openModal, setOpenModal] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -41,21 +41,22 @@ const InviteMembersButton = ({
     setEmail('');
   }
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal(false);
-  };
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal(false);
+  // };
 
-  const handleInvite = async(code: string, e?: FormEvent<HTMLFormElement>) => {
+  const handleInvite = async(/* code: string, */e?: FormEvent<HTMLFormElement>) => {
     e && e.preventDefault();
 
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.postTeam(),
         method: 'POST',
         data: {
@@ -66,11 +67,11 @@ const InviteMembersButton = ({
 
       setLoading(false);
       if (result?.status == 201) {
-        close2FAModal();
+        // close2FAModal();
         refreshData();
         router.refresh();
       } 
-    }
+    /* } */
   };
 
   return (
@@ -95,7 +96,7 @@ const InviteMembersButton = ({
           </AppRightModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -107,7 +108,7 @@ const InviteMembersButton = ({
               next={(value: string) => handleInvite(value, undefined)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       <div className='w-fit'>
         <Button 

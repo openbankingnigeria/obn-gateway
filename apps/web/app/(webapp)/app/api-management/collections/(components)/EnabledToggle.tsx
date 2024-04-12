@@ -16,25 +16,24 @@ const EnabledToggle = ({
   profileData: any;
 }) => {
   const [enable, setEnable] = useState(rawData?.enabled || false);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const environment = getJsCookies('environment');
 
-  // console.log(rawData)
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  // }
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-  }
-
-  const handleSubmit = async (e: any, code: string,) => {
+  const handleSubmit = async (e: any /*, code: string*/) => {
     e && e.preventDefault();
-    if (profileData?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profileData?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          headers: {},
           apiEndpoint: API.updateAPI({ 
             environment: environment || 'development', 
             id: rawData?.id
@@ -54,19 +53,19 @@ const EnabledToggle = ({
       setLoading(false);
       if (result?.message) {
         setEnable((prev: boolean) => !prev)
-        close2FAModal();
+        // close2FAModal();
         router.refresh();
       }
-    }
+    /* } */
   }
 
-  const handle2FA = (value: string) => {
-    handleSubmit('', value);
-  };
+  // const handle2FA = (value: string) => {
+  //   handleSubmit('', value);
+  // };
 
   return (
     <>
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -78,7 +77,7 @@ const EnabledToggle = ({
               next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       <div className='w-full flex items-center gap-4 justify-end'>
         <div className='w-fit text-f14 font-[500] text-[#2B2E36]'>
@@ -87,7 +86,8 @@ const EnabledToggle = ({
 
         <ToggleSwitch 
           toggle={enable}
-          setToggle={() => handleSubmit('', '')}
+          // setToggle={() => handleSubmit('', '')}
+          setToggle={() => handleSubmit('')}
         />
       </div>
     </>

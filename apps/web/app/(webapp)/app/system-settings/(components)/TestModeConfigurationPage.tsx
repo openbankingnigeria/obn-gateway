@@ -16,7 +16,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
   /* API CONSUMERS */
   const [loadingReset, setLoadingReset] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [buttonName, setButtonName] = useState(rawData?.key ? 'Reset keys' : 'Generate keys');
   const environment = 'development';
   let userPermissions = profileData?.user?.role?.permissions;
@@ -67,18 +67,6 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     })
   };
 
-  // const handleCopy = (value: string) => {
-  //   copyTextToClipboard(value)
-  //     .then(() => {
-  //       console.log('Copied.');
-  //       toast.success('Test key copied');
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //       toast.error('Error copying Test key');
-  //     });
-  // };
-
   const handleCopy = (value: string) => {
     copyTextToClipboard(value)
       .then((success) => {
@@ -107,18 +95,19 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
     // form?.timeout != ''
   );
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  // }
 
-  const handleReset = async (e: any, code: string) => {
+  const handleReset = async (e: any /*, code: string */) => {
     e && e.preventDefault();
-    if (profileData?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profileData?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoadingReset(true);
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.updateAPIKey({
           environment,
         }),
@@ -133,14 +122,14 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
           test_api_key: result?.data?.key 
         })
         setButtonName('Reset keys');
-        close2FAModal();
+        // close2FAModal();
       }
-    }
+    /* } */
   }
 
-  const handle2FA = (value: string) => {
-    handleReset('', value);
-  };
+  // const handle2FA = (value: string) => {
+  //   handleReset('', value);
+  // };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -174,7 +163,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
 
   return (
     <>
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -186,7 +175,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
               next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       <form
         onSubmit={handleSubmit}
@@ -207,7 +196,7 @@ const TestModeConfigurationPage = ({ rawData, profileData }: APIConfigurationPro
               type='button'
               outlined
               loading={loadingReset}
-              effect={(e) => handleReset(e, '')}
+              effect={(e) => handleReset(e)}
               containerStyle='!w-fit'
               small
             />
