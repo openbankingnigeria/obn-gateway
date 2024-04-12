@@ -50,48 +50,6 @@ const CollectionSection = ({
     COLLECTION_ACTIONS_CONSUMER_DATA : 
     COLLECTION_ACTIONS_DATA;
 
-  // console.log(rawData);
-
-  // const [endpoint_url, setEndpointUrl] = useState('');
-  // const [parameters, setParameters] = useState('');
-  // const [snis, setSnis] = useState<SnisProps[]>([]);
-  // const [hosts, setHost] = useState<HostsProps[]>([]);
-  // const [headers, setHeaders] = useState<HeadersProps[]>([]);
-
-  // const getUserProfile = getJsCookies('aperta-user-profile');
-  // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
-  // const userType = userProfile?.userType;
-  // const refreshData = () => {
-  //   setEndpointUrl('');
-  //   setParameters('');
-  //   setSnis([]);
-  //   setHost([]);
-  //   setHeaders([]);
-  // }
-
-  // const updateFields = (value: any) => {
-  //   setEndpointUrl(value?.endpoint_url);
-  //   setParameters(value?.parameters);
-  // }
-
-  // async function FetchData() {
-  //   const result = await clientAxiosRequest({
-  //     headers: {},
-  //     apiEndpoint: API.getAPI({ 
-  //       environment: environment || 'development', 
-  //       id: api?.id
-  //     }),
-  //     method: 'GET',
-  //     data: null,
-  //     noToast: true,
-  //   });
-  //   setApiEndpoint(result?.data);
-  // }
-
-  // useEffect(() => {
-  //   api?.id && FetchData();
-  // }, [api?.id]);
-
   useEffect(() => {
     const slug = updateSearchParams('slug', details?.name);
     router.push(slug);
@@ -215,54 +173,6 @@ const CollectionSection = ({
     /* } */
   }
 
-  // const handleApiConfiguration = (code: string, e?: FormEvent<HTMLFormElement>) => {
-  //   e && e.preventDefault();
-
-  //   if (profile?.user?.twofaEnabled && !code) {
-  //     setOpen2FA(true);
-  //   } else {
-  //     setLoading(true);
-  //     // TODO: GET CONFIGURATION ENDPOINT
-  //   }
-  // }
-
-  // const handleApiModification = async (code: string, e?: FormEvent<HTMLFormElement>) => {
-  //   e && e.preventDefault();
-
-  //   if (profile?.user?.twofaEnabled && !code) {
-  //     setOpen2FA(true);
-  //   } else {
-  //     setLoading(true);
-  //     const result: any = await clientAxiosRequest({
-  //       headers: code ? { 'X-TwoFA-Code' : code, } : {},
-  //       apiEndpoint: API.updateAPI({ 
-  //         environment: environment || 'development', 
-  //         id: api?.id
-  //       }),
-  //       method: 'PATCH',
-  //       data: {
-  //         "name": api?.name,
-  //         "enabled": true,
-            // "tiers": api?.tiers,
-  //         "url": endpoint_url,
-  //         "route": {
-  //             "paths": [
-  //                 parameters
-  //             ],
-  //             "methods": api?.route?.methods
-  //         }
-  //       }
-  //     });
-
-  //     setLoading(false);
-  //       if (result?.status == 200) {
-  //         close2FAModal();
-  //         refreshData();
-  //         router.refresh();
-  //       }
-  //   }
-  // }
-
   // const handle2FA = (value: string) => {
   //   // openModal == 'configure' ?
   //   //   handleApiConfiguration(value, undefined) :
@@ -340,56 +250,6 @@ const CollectionSection = ({
 
   return (
     <>
-      {/* {
-        (openModal == 'configure' || openModal == 'modify') &&
-          <AppRightModal
-            title={
-              openModal == 'configure' ? 
-                'API Configuration' : 
-                'Modify API Configuration'
-            }
-            effect={closeModal}
-            childrenStyle='!px-0'
-          >
-            {
-              openModal == 'configure' ?
-                <ApiConfiguration 
-                  close={closeModal}
-                  loading={loading}
-                  data={api_endpoint}
-                  next={handleApiConfiguration}
-                  endpoint_url={endpoint_url}
-                  parameters={parameters}
-                  snis={snis}
-                  hosts={hosts}
-                  headers={headers}
-                  setEndpointUrl={setEndpointUrl}
-                  setParameters={setParameters}
-                  setSnis={setSnis}
-                  setHost={setHost}
-                  setHeaders={setHeaders}
-                />
-                :
-                <ModifyApiConfiguration 
-                  close={closeModal}
-                  loading={loading}
-                  next={handleApiModification}
-                  data={api_endpoint}
-                  endpoint_url={endpoint_url}
-                  parameters={parameters}
-                  snis={snis}
-                  hosts={hosts}
-                  headers={headers}
-                  setEndpointUrl={setEndpointUrl}
-                  setParameters={setParameters}
-                  setSnis={setSnis}
-                  setHost={setHost}
-                  setHeaders={setHeaders}
-                />
-            }
-          </AppRightModal>
-      } */}
-
       {
         (
           openModal == 'delete' || 
