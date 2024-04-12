@@ -36,7 +36,7 @@ const CollectionSection = ({
   const columnHelper = createColumnHelper<any>();
   const router = useRouter();
   const [openModal, setOpenModal] = useState('');
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const [api, setApi] = useState<any>(null);
   const [loadingPublish, setLoadingPublish] = useState(false);
@@ -113,19 +113,20 @@ const CollectionSection = ({
     setOpenModal('');
   }
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal('');
-  }
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal('');
+  // }
 
-  const handleActivateDeactivateDeleteApi = async (code: string,) => {
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+  const handleActivateDeactivateDeleteApi = async (/*code: string,*/) => {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = openModal == 'delete' ?
         await clientAxiosRequest({
-          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          headers: {},
           apiEndpoint: API.deleteAPI({ 
             environment: environment || 'development', 
             id: api?.id
@@ -135,7 +136,8 @@ const CollectionSection = ({
         })
         :
         await clientAxiosRequest({
-          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          headers: {},
           apiEndpoint: API.updateAPI({ 
             environment: environment || 'development', 
             id: api?.id
@@ -147,27 +149,29 @@ const CollectionSection = ({
         });
 
       if (result?.message) {
-        close2FAModal();
+        // close2FAModal();
         setLoading(false);
         router.refresh();
       }
-    }
+    /* } */
   }
 
   const handleNIBBSCheck = (name: string, api: any) => {
     toast.info('Enabling NIBBS check')
     setLoadingCheck(true);
-    enableNIBBSCheck('', api);
+    // enableNIBBSCheck('', api);
+    enableNIBBSCheck(api);
     setOpenModal(name);
   }
 
-  const enableNIBBSCheck = async (code: string , api: any) => {
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+  const enableNIBBSCheck = async (/*code: string , */api: any) => {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          headers: {},
           apiEndpoint: API.updateAPI({ 
             environment: environment || 'development', 
             id: api?.id
@@ -179,21 +183,22 @@ const CollectionSection = ({
         });
 
       if (result?.message) {
-        close2FAModal();
+        // close2FAModal();
         setLoading(false);
         setLoadingCheck(false);
         router.refresh();
       }
-    }
+    /* } */
   }
 
-  const handleCreateAPI = async (code: string, data: any) => {
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+  const handleCreateAPI = async (/*code: string, */ data: any) => {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       const result: any = await clientAxiosRequest({
-          headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+          headers: {},
           apiEndpoint: API.postAPIs({ 
             environment: 'production'
           }),
@@ -202,12 +207,12 @@ const CollectionSection = ({
         });
 
       if (result?.message) {
-        close2FAModal();
+        // close2FAModal();
         setLoading(false);
         setLoadingPublish(false);
         router.refresh();
       }
-    }
+    /* } */
   }
 
   // const handleApiConfiguration = (code: string, e?: FormEvent<HTMLFormElement>) => {
@@ -258,20 +263,21 @@ const CollectionSection = ({
   //   }
   // }
 
-  const handle2FA = (value: string) => {
-    // openModal == 'configure' ?
-    //   handleApiConfiguration(value, undefined) :
-    //   openModal == 'modify' ?
-    //     handleApiModification(value, undefined) :
-    openModal == 'publish' ?
-      handleCreateAPI('', api) :
-      handleActivateDeactivateDeleteApi(value);
-  };
+  // const handle2FA = (value: string) => {
+  //   // openModal == 'configure' ?
+  //   //   handleApiConfiguration(value, undefined) :
+  //   //   openModal == 'modify' ?
+  //   //     handleApiModification(value, undefined) :
+  //   openModal == 'publish' ?
+  //     handleCreateAPI('', api) :
+  //     handleActivateDeactivateDeleteApi(value);
+  // };
 
   const handlePublish = (name: string, api: any) => {
     toast.info('Publishing in progress')
     setLoadingPublish(true);
-    handleCreateAPI('', api);
+    // handleCreateAPI('', api);
+    handleCreateAPI(api);
     setOpenModal(name);
   }
 
@@ -398,12 +404,12 @@ const CollectionSection = ({
               close={closeModal}
               type={openModal}
               loading={loading}
-              next={() => handleActivateDeactivateDeleteApi('')}
+              next={() => handleActivateDeactivateDeleteApi()}
             />
           </AppCenterModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -415,7 +421,7 @@ const CollectionSection = ({
               next={(value: string) => handle2FA(value)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       <section className='w-full flex flex-col h-full'>
         <div className='w-full bg-white border border-o-border rounded-[10px] h-fit'>

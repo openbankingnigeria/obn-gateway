@@ -15,7 +15,7 @@ const EditPermissionButton = ({
   searchQuery
 }: EditAPIPermissionProps) => {
   const [openModal, setOpenModal] = useState(false);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const router = useRouter();
@@ -74,27 +74,28 @@ const EditPermissionButton = ({
     fetchConsumerAPIs();
   }, [refresh])
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal(false);
-  };
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal(false);
+  // };
 
   const refreshData = () => {
     setApiIds([]);
   }
 
-  const handleEdit = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+  const handleEdit = async (/*code: string, */ e?: FormEvent<HTMLFormElement>) => {
     e && e.preventDefault();
 
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       
       // let sanitizedApiIds = apiIds?.map((item: any) => item.id);
 
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.updateConsumerAPIAccess({
           environment: environment || 'development',
           id: rawData?.id
@@ -105,11 +106,11 @@ const EditPermissionButton = ({
 
       setLoading(false);
       if (result?.status == 200) {
-        close2FAModal();
+        // close2FAModal();
         refreshData();
         router.refresh();
       } 
-    }
+    /* } */
   }
 
   return (
@@ -134,7 +135,7 @@ const EditPermissionButton = ({
           </AppRightModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -146,7 +147,7 @@ const EditPermissionButton = ({
               next={(value: string) => handleEdit(value, undefined)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       <div className='w-fit'>
         <Button 

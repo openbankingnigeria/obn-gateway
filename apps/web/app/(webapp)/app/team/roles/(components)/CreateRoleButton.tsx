@@ -13,7 +13,7 @@ const CreateRoleButton = ({
   permissions_list
 }: CreateRoleButtonProps) => {
   const [openModal, setOpenModal] = useState(false);
-  const [open2FA, setOpen2FA] = useState(false);
+  // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [role_name, setRoleName] = useState('');
@@ -45,23 +45,24 @@ const CreateRoleButton = ({
     setRoleName('');
   }
 
-  const close2FAModal = () => {
-    setOpen2FA(false);
-    setOpenModal(false);
-  };
+  // const close2FAModal = () => {
+  //   setOpen2FA(false);
+  //   setOpenModal(false);
+  // };
 
-  const handleCreate = async (code: string, e?: FormEvent<HTMLFormElement>) => {
+  const handleCreate = async (/* code: string, */e?: FormEvent<HTMLFormElement>) => {
     e && e.preventDefault();
 
-    if (profile?.user?.twofaEnabled && !code) {
-      setOpen2FA(true);
-    } else {
+    // if (profile?.user?.twofaEnabled && !code) {
+    //   setOpen2FA(true);
+    // } else {
       setLoading(true);
       // @ts-ignore
       let sanitizedPermissions = permissions?.flatMap(item => item.options.map(option => option.id));
 
       const result: any = await clientAxiosRequest({
-        headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        // headers: code ? { 'X-TwoFA-Code' : code, } : {},
+        headers: {},
         apiEndpoint: API.postRole(),
         method: 'POST',
         data: {
@@ -74,11 +75,11 @@ const CreateRoleButton = ({
 
       setLoading(false);
       if (result?.status == 201) {
-        close2FAModal();
+        // close2FAModal();
         refreshData();
         router.refresh();
       } 
-    }
+    /* } */
   }
 
   return (
@@ -105,7 +106,7 @@ const CreateRoleButton = ({
           </AppRightModal>
       }
 
-      {
+      {/* {
         open2FA &&
           <AppCenterModal
             title={'Two-Factor Authentication'}
@@ -117,7 +118,7 @@ const CreateRoleButton = ({
               next={(value: string) => handleCreate(value, undefined)}
             />
           </AppCenterModal>
-      }
+      } */}
 
       <div className='w-fit'>
         <Button 

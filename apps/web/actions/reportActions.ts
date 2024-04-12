@@ -6,7 +6,7 @@ export async function postGenerateReport(prevState: any, formData: FormData) {
     report_type: formData.get('report_type'),
     from: formData.get('from'),
     to: formData.get('to'),
-    // consumers: formData.get('consumers'),
+    consumers: formData.get('consumers'),
   }
 
   return { message: 'success' };
