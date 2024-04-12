@@ -172,6 +172,7 @@ export interface CodeSnippetProps {
 export interface CodeEditorProps {
   code: any;
   setCode: Dispatch<SetStateAction<any>>;
+  mode?: string
 }
 
 export interface RequestMethodTextProps {

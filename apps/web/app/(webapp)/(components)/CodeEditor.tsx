@@ -8,10 +8,12 @@ import { CodeEditorProps } from '@/types/webappTypes/componentsTypes';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/theme-twilight';
+import 'ace-builds/src-noconflict/mode-lua';
 
 const CodeEditor = ({
   code, 
-  setCode
+  setCode,
+  mode = 'javascript'
 }: CodeEditorProps) => {
 
   const handleEditorChange = (newCode: string) => {
@@ -21,7 +23,7 @@ const CodeEditor = ({
   return (
     <div className='w-full rounded-[6px] overflow-hidden'>
       <AceEditor
-        mode="javascript"
+        mode={mode}
         theme="twilight"
         onChange={handleEditorChange}
         name="code-editor"
