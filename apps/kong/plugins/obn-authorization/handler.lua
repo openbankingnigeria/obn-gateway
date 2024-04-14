@@ -2,9 +2,9 @@ local http = require "resty.http"
 local x509 = require "resty.openssl.x509"
 local cjson = require "cjson.safe"
 
-local OBNTokenIntrospection = {
+local OBNAuthorization = {
   VERSION  = "1.0.0",
-  PRIORITY = 1,
+  PRIORITY = -2,
 }
 
 -- issue token introspection request
@@ -71,7 +71,7 @@ local function set_header(header_name, header_value)
 end
 
 -- TODO confirm consumer from introspection is same from the request
-function OBNTokenIntrospection:access(config)
+function OBNAuthorization:access(config)
   local bearer_token = kong.request.get_header(config.token_header)
   if not bearer_token then
     return kong.response.error(401, "Please provide a valid access token on " .. config.token_header .. " header.")
@@ -140,4 +140,4 @@ function OBNTokenIntrospection:access(config)
   end
 end
 
-return OBNTokenIntrospection
+return OBNAuthorization

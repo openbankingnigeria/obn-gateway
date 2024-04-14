@@ -61,7 +61,6 @@ export class APIController {
   @Post('')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.ADD_API_ENDPOINT)
-  @RequireTwoFA()
   createAPI(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -73,7 +72,6 @@ export class APIController {
   @Put('company/:companyId')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.ASSIGN_API_ENDPOINTS)
-  @RequireTwoFA()
   assignAPIs(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -193,7 +191,6 @@ export class APIController {
   @Delete(':id')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.DELETE_API_ENDPOINT)
-  @RequireTwoFA()
   deletAPI(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -205,7 +202,6 @@ export class APIController {
   @Patch(':id')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.UPDATE_API_ENDPOINT)
-  @RequireTwoFA()
   updateAPI(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,

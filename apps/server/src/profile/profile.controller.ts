@@ -8,7 +8,6 @@ import {
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {
   Ctx,
-  RequireTwoFA,
   RequiredPermission,
 } from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
@@ -55,7 +54,6 @@ export class ProfileController {
 
   @Patch('password')
   @RequiredPermission(PERMISSIONS.CHANGE_PASSWORD)
-  @RequireTwoFA()
   @UsePipes(IValidationPipe)
   updatePassword(@Ctx() ctx: RequestContext, @Body() data: UpdatePasswordDto) {
     return this.profileService.updatePassword(ctx, data);

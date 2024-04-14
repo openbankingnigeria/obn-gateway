@@ -21,7 +21,6 @@ import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { CollectionFilters } from './collections.filter';
 import {
   Ctx,
-  RequireTwoFA,
   RequiredPermission,
 } from '@common/utils/authentication/auth.decorator';
 import { RequestContext } from '@common/utils/request/request-context';
@@ -48,7 +47,6 @@ export class CollectionsController {
   @Post()
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.CREATE_API_COLLECTION)
-  @RequireTwoFA()
   createCollection(
     @Ctx() ctx: RequestContext,
     @Body() data: CreateCollectionDto,
@@ -59,7 +57,6 @@ export class CollectionsController {
   @Patch(':id')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.UPDATE_API_COLLECTION)
-  @RequireTwoFA()
   updateCollection(
     @Ctx() ctx: RequestContext,
     @Param('id') id: string,
@@ -78,7 +75,6 @@ export class CollectionsController {
   @Delete(':id')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.DELETE_API_COLLECTION)
-  @RequireTwoFA()
   deleteCollection(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.collectionsService.deleteCollection(ctx, id);
   }

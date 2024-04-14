@@ -20,7 +20,6 @@ import {
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {
   Ctx,
-  RequireTwoFA,
   RequiredPermission,
 } from '@common/utils/authentication/auth.decorator';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
@@ -61,7 +60,6 @@ export class SettingsController {
 
   @Get('api-key/:environment')
   @RequiredPermission(PERMISSIONS.VIEW_API_KEY)
-  @RequireTwoFA()
   @UseInterceptors(APIInterceptor)
   getApiKey(
     @Ctx() ctx: RequestContext,
@@ -73,7 +71,6 @@ export class SettingsController {
   @Put('api-key/:environment')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.RESET_API_KEY)
-  @RequireTwoFA()
   @UseInterceptors(APIInterceptor)
   generateApiKey(
     @Ctx() ctx: RequestContext,
@@ -85,7 +82,6 @@ export class SettingsController {
   @Get('ip-restriction/:environment')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.VIEW_API_RESTRICTIONS)
-  @RequireTwoFA()
   @UseInterceptors(APIInterceptor)
   getIPRestriction(
     @Ctx() ctx: RequestContext,
@@ -97,7 +93,6 @@ export class SettingsController {
   @Put('ip-restriction/:environment')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.SET_API_RESTRICTIONS)
-  @RequireTwoFA()
   @UseInterceptors(APIInterceptor)
   setIPRestriction(
     @Ctx() ctx: RequestContext,
@@ -110,7 +105,6 @@ export class SettingsController {
   @Get('client/:environment')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.VIEW_CLIENT)
-  @RequireTwoFA()
   @UseInterceptors(APIInterceptor)
   getClientID(
     @Ctx() ctx: RequestContext,
@@ -122,7 +116,6 @@ export class SettingsController {
   @Put('client/:environment')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.SET_CLIENT)
-  @RequireTwoFA()
   @UseInterceptors(APIInterceptor)
   setClientID(
     @Ctx() ctx: RequestContext,

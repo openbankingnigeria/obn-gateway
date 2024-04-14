@@ -290,7 +290,7 @@ local function transform_upstream_request()
 	end)
 	if not ok then
 		kong.log.err(err)
-		return kong.response.exit(500, { message = "An unexpected error occurred" })
+		return kong.response.error(500, "An unexpected error occurred")
 	end
 end
 return transform_upstream_request`,
@@ -318,7 +318,7 @@ local function transform_downstream_response()
 	end)
 	if not ok then
 		kong.log.err(err)
-		return kong.response.exit(500, { message = "An unexpected error occurred" })
+		return kong.response.error(500, "An unexpected error occurred")
 	end
 end
 return transform_downstream_response`,

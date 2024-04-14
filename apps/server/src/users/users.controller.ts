@@ -19,7 +19,6 @@ import {
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import {
   Ctx,
-  RequireTwoFA,
   RequiredPermission,
 } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
@@ -33,7 +32,6 @@ export class UsersController {
   @Post()
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.ADD_TEAM_MEMBERS)
-  @RequireTwoFA()
   createUser(@Ctx() ctx: RequestContext, @Body() data: CreateUserDto) {
     return this.usersService.createUser(ctx, data);
   }
@@ -41,7 +39,6 @@ export class UsersController {
   @Post(':id/resend')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.ADD_TEAM_MEMBERS)
-  @RequireTwoFA()
   resendInvite(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.usersService.resendInvite(ctx, id);
   }
@@ -75,7 +72,6 @@ export class UsersController {
   @Patch(':id')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.UPDATE_TEAM_MEMBER)
-  @RequireTwoFA()
   updateUser(
     @Ctx() ctx: RequestContext,
     @Param('id') id: string,
@@ -87,7 +83,6 @@ export class UsersController {
   @Delete(':id')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.DELETE_TEAM_MEMBER)
-  @RequireTwoFA()
   deleteUser(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.usersService.deleteUser(ctx, id);
   }

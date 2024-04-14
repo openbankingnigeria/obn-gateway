@@ -24,7 +24,6 @@ import {
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import {
   Ctx,
-  RequireTwoFA,
   RequiredPermission,
 } from '@common/utils/authentication/auth.decorator';
 import { PERMISSIONS } from '@permissions/types';
@@ -38,7 +37,6 @@ export class RolesController {
   @Post()
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.CREATE_ROLE)
-  @RequireTwoFA()
   createRole(@Ctx() ctx: RequestContext, @Body() data: CreateRoleDto) {
     return this.rolesService.createRole(ctx, data);
   }
@@ -79,7 +77,6 @@ export class RolesController {
   @Patch(':id')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.UPDATE_ROLE)
-  @RequireTwoFA()
   updateRole(
     @Ctx() ctx: RequestContext,
     @Param('id') id: string,
@@ -91,7 +88,6 @@ export class RolesController {
   @Delete(':id')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.DELETE_ROLE)
-  @RequireTwoFA()
   deleteRole(@Ctx() ctx: RequestContext, @Param('id') id: string) {
     return this.rolesService.deleteRole(ctx, id);
   }
@@ -106,7 +102,6 @@ export class RolesController {
   @Put(':id/permissions')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.UPDATE_ROLE)
-  @RequireTwoFA()
   setRolePermissions(
     @Ctx() ctx: RequestContext,
     @Param('id') id: string,
