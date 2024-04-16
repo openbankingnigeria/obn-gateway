@@ -46,4 +46,5 @@ export enum KONG_PLUGINS {
   POST_FUNCTION = 'post-function',
   REQUEST_TRANSFORMER = 'request-transformer',
   OBN_AUTHORIZATION = 'obn-authorization',
+  OBN_REQUEST_VALIDATOR = 'obn-request-validator',
 }

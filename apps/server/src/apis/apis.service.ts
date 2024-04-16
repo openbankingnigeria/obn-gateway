@@ -61,6 +61,7 @@ import {
   ViewApisEvent,
   ViewCompanyApisEvent,
 } from '@shared/events/api.event';
+import * as cheerio from 'cheerio';
 
 @Injectable()
 export class APIService {
@@ -343,6 +344,97 @@ export class APIService {
     return response.id;
   }
 
+  private generateJSONSchema(data: CreateAPIDto['downstream']['request']) {
+    const $ = cheerio.load(data.description, null, false);
+
+    const tablesData: any[] = [];
+    $('table').each((index, element) => {
+      const rowHeaders: any[] = [];
+
+      $(element)
+        .find('thead tr th')
+        .each((_, cellElement) => {
+          rowHeaders.push($(cellElement).text().trim());
+        });
+
+      $(element)
+        .find('tbody tr')
+        .each((rowIndex, rowElement) => {
+          const data: any = {};
+          $(rowElement)
+            .find('td')
+            .each((cellIndex, cellElement) => {
+              const header = rowHeaders[cellIndex].toLowerCase();
+              data[header] = $(cellElement).text().trim();
+              if (
+                header === 'description' &&
+                data.description.toLowerCase().startsWith('required')
+              ) {
+                data.required = true;
+                data[header] = data[header].replace(/required/i, '').trim();
+              }
+            });
+          tablesData.push(data);
+        });
+    });
+    if (!data?.body?.raw) return;
+    const body = JSON.parse(data.body.raw);
+    const obj = Array.isArray(body) ? body[0] : body;
+    const required: string[] = [];
+    const properties = tablesData.reduce((acc, curr) => {
+      let type = curr.types || curr.type;
+      const key = curr.parameter || curr.field;
+      if (!obj[key]) return acc;
+      if (type === 'date') {
+        type = 'string';
+      }
+      if (type === 'double') {
+        type = 'number';
+      }
+      if (curr.required) {
+        required.push(key);
+      }
+      acc[key] = { type, description: curr.description };
+      return acc;
+    }, {});
+    if (Array.isArray(body)) {
+      const type = typeof body[0];
+      if (type === 'undefined') {
+        return {
+          type: 'array',
+          // title: o.name,
+          items: {
+            type: ['number', 'string', 'boolean', 'object', 'array', 'null'],
+          },
+        };
+      }
+      if (type === 'object') {
+        return {
+          type: 'array',
+          // title: o.name,
+          items: {
+            type: 'object',
+            properties,
+            required,
+          },
+        };
+      }
+      return {
+        type: 'array',
+        // title: o.name,
+        items: {
+          type,
+        },
+      };
+    }
+    return {
+      type: 'object',
+      // title: data.name,
+      properties,
+      required,
+    };
+  }
+
   async createAPI(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -507,6 +599,21 @@ export class APIService {
               'registry.introspectionClientSecret',
             )[environment],
             scope: [gatewayRoute.name],
+          },
+        },
+      );
+    }
+
+    if (downstream.request) {
+      const schema = this.generateJSONSchema(downstream.request);
+      await this.kongRouteService.updateOrCreatePlugin(
+        environment,
+        gatewayRoute.id,
+        {
+          name: KONG_PLUGINS.OBN_REQUEST_VALIDATOR,
+          enabled: !!schema,
+          config: {
+            body: schema,
           },
         },
       );
@@ -979,6 +1086,21 @@ export class APIService {
                 'registry.introspectionClientSecret',
               )[environment],
               scope: [gatewayRoute.name],
+            },
+          },
+        );
+      }
+
+      if (downstream?.request) {
+        const schema = this.generateJSONSchema(downstream.request);
+        await this.kongRouteService.updateOrCreatePlugin(
+          environment,
+          gatewayRoute.id,
+          {
+            name: KONG_PLUGINS.OBN_REQUEST_VALIDATOR,
+            enabled: !!schema,
+            config: {
+              body: schema,
             },
           },
         );
