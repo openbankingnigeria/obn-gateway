@@ -4,9 +4,10 @@ import {
 } from '@common/utils/response/response.formatter';
 import {
   IBadRequestException,
+  IInternalServerErrorException,
   INotFoundException,
 } from '@common/utils/exceptions/exceptions';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
 import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
@@ -65,6 +66,7 @@ import * as cheerio from 'cheerio';
 
 @Injectable()
 export class APIService {
+  private readonly logger = new Logger(APIService.name);
   constructor(
     @InjectRepository(Collection)
     private readonly collectionRepository: Repository<Collection>,
@@ -1296,29 +1298,36 @@ export class APIService {
     { limit, page }: PaginationParameters,
     filters?: GetAPILogsDto,
   ) {
-    const logs = await this.elasticsearchService.search<any>({
-      from: page - 1,
-      size: limit,
-      query: {
-        bool: {
-          must: [
-            { term: { 'environment.keyword': environment } },
-            {
-              wildcard: {
-                'consumer.id.keyword':
-                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
-                    ? '*'
-                    : ctx.activeUser.companyId,
+    const logs = await this.elasticsearchService
+      .search<any>({
+        from: page - 1,
+        size: limit,
+        query: {
+          bool: {
+            must: [
+              { term: { 'environment.keyword': environment } },
+              {
+                wildcard: {
+                  'consumer.id.keyword':
+                    ctx.activeCompany.type === CompanyTypes.API_PROVIDER
+                      ? '*'
+                      : ctx.activeUser.companyId,
+                },
               },
-            },
-            ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
-              filters?.filter,
-            )),
-          ],
+              ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+                filters?.filter,
+              )),
+            ],
+          },
         },
-      },
-      sort: [{ '@timestamp': { order: 'desc' } }],
-    });
+        sort: [{ '@timestamp': { order: 'desc' } }],
+      })
+      .catch((error) => {
+        this.logger.error(error.response?.data || error);
+        throw new IInternalServerErrorException({
+          message: 'Unable to fetch API logs',
+        });
+      });
 
     const companies = await this.companyRepository.find({
       where: {
@@ -1356,29 +1365,36 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     requestId: string,
   ) {
-    const logs = await this.elasticsearchService.search<any>({
-      size: 1,
-      query: {
-        bool: {
-          must: [
-            {
-              term: { 'response.headers.x-request-id.keyword': requestId },
-            },
-            {
-              term: { 'environment.keyword': environment },
-            },
-            {
-              wildcard: {
-                'consumer.id.keyword':
-                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
-                    ? '*'
-                    : ctx.activeUser.companyId,
+    const logs = await this.elasticsearchService
+      .search<any>({
+        size: 1,
+        query: {
+          bool: {
+            must: [
+              {
+                term: { 'response.headers.x-request-id.keyword': requestId },
               },
-            },
-          ],
+              {
+                term: { 'environment.keyword': environment },
+              },
+              {
+                wildcard: {
+                  'consumer.id.keyword':
+                    ctx.activeCompany.type === CompanyTypes.API_PROVIDER
+                      ? '*'
+                      : ctx.activeUser.companyId,
+                },
+              },
+            ],
+          },
         },
-      },
-    });
+      })
+      .catch((error) => {
+        this.logger.error(error.response?.data || error);
+        throw new IInternalServerErrorException({
+          message: 'Unable to fetch API log',
+        });
+      });
 
     if (!logs.hits.hits.length) {
       throw new INotFoundException({
@@ -1411,74 +1427,81 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     filters?: GetAPILogsDto,
   ) {
-    const stats = await this.elasticsearchService.search({
-      size: 0,
-      query: {
-        bool: {
-          must: [
-            { term: { 'environment.keyword': environment } },
-            {
-              wildcard: {
-                'consumer.id.keyword':
-                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
-                    ? '*'
-                    : ctx.activeUser.companyId,
+    const stats = await this.elasticsearchService
+      .search({
+        size: 0,
+        query: {
+          bool: {
+            must: [
+              { term: { 'environment.keyword': environment } },
+              {
+                wildcard: {
+                  'consumer.id.keyword':
+                    ctx.activeCompany.type === CompanyTypes.API_PROVIDER
+                      ? '*'
+                      : ctx.activeUser.companyId,
+                },
+              },
+              ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+                filters?.filter,
+              )),
+            ],
+          },
+        },
+        aggs: {
+          avgRequestLatency: {
+            avg: {
+              field: 'latencies.request',
+            },
+          },
+          avgGatewayLatency: {
+            avg: {
+              field: 'latencies.kong',
+            },
+          },
+          avgProxyLatency: {
+            avg: {
+              field: 'latencies.proxy',
+            },
+          },
+          successCount: {
+            filter: {
+              range: {
+                'response.status': { lt: 400 },
               },
             },
-            ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
-              filters?.filter,
-            )),
-          ],
-        },
-      },
-      aggs: {
-        avgRequestLatency: {
-          avg: {
-            field: 'latencies.request',
           },
-        },
-        avgGatewayLatency: {
-          avg: {
-            field: 'latencies.kong',
+          failedCount: {
+            filter: {
+              range: {
+                'response.status': { gte: 400 },
+              },
+            },
           },
-        },
-        avgProxyLatency: {
-          avg: {
-            field: 'latencies.proxy',
+          totalCount: { value_count: { field: 'environment.keyword' } },
+          countPerSecond: {
+            date_histogram: {
+              field: '@timestamp',
+              fixed_interval: '1s',
+              min_doc_count: 1,
+            },
+            aggs: {
+              totalCount: { value_count: { field: 'environment.keyword' } },
+            },
           },
-        },
-        successCount: {
-          filter: {
-            range: {
-              'response.status': { lt: 400 },
+          avgCountPerSecond: {
+            avg_bucket: {
+              buckets_path: 'countPerSecond>totalCount',
             },
           },
         },
-        failedCount: {
-          filter: {
-            range: {
-              'response.status': { gte: 400 },
-            },
-          },
-        },
-        totalCount: { value_count: { field: 'environment.keyword' } },
-        countPerSecond: {
-          date_histogram: {
-            field: '@timestamp',
-            fixed_interval: '1s',
-            min_doc_count: 1,
-          },
-          aggs: {
-            totalCount: { value_count: { field: 'environment.keyword' } },
-          },
-        },
-        avgCountPerSecond: {
-          avg_bucket: {
-            buckets_path: 'countPerSecond>totalCount',
-          },
-        },
-      },
-    });
+      })
+      .catch((error) => {
+        this.logger.error(error.response?.data || error);
+        throw new IInternalServerErrorException({
+          message: 'Unable to fetch API logs stats',
+        });
+      });
 
     const event = new GetApiLogStatsEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);
@@ -1494,44 +1517,53 @@ export class APIService {
     environment: KONG_ENVIRONMENT,
     query: GetAPILogsDto,
   ) {
-    const stats = await this.elasticsearchService.search<any, any>({
-      size: 0,
-      query: {
-        bool: {
-          must: [
-            { term: { 'environment.keyword': environment } },
-            {
-              wildcard: {
-                'consumer.id.keyword':
-                  ctx.activeCompany.type === CompanyTypes.API_PROVIDER
-                    ? '*'
-                    : ctx.activeUser.companyId,
+    const stats = await this.elasticsearchService
+      .search<any, any>({
+        size: 0,
+        query: {
+          bool: {
+            must: [
+              { term: { 'environment.keyword': environment } },
+              {
+                wildcard: {
+                  'consumer.id.keyword':
+                    ctx.activeCompany.type === CompanyTypes.API_PROVIDER
+                      ? '*'
+                      : ctx.activeUser.companyId,
+                },
               },
-            },
-            ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
-              query?.filter,
-            )),
-          ],
+              ...(await this.convertFilterToSearchDSLQuery<GetAPILogsFilterDto>(
+                query?.filter,
+              )),
+            ],
+          },
         },
-      },
-      aggs: {
-        aggregated: {
-          date_histogram: {
-            field: '@timestamp',
-            calendar_interval: 'day',
-            min_doc_count: 0,
-            extended_bounds: {
-              min: query.filter?.['@timestamp'].gt
-                ? moment(query.filter['@timestamp'].gt).format('YYYY-MM-DD')
-                : moment(query.filter?.['@timestamp'].lt)
-                    .subtract(30, 'days')
-                    .format('YYYY-MM-DD'),
-              max: moment(query.filter?.['@timestamp'].lt).format('YYYY-MM-DD'),
+        aggs: {
+          aggregated: {
+            date_histogram: {
+              field: '@timestamp',
+              calendar_interval: 'day',
+              min_doc_count: 0,
+              extended_bounds: {
+                min: query.filter?.['@timestamp'].gt
+                  ? moment(query.filter['@timestamp'].gt).format('YYYY-MM-DD')
+                  : moment(query.filter?.['@timestamp'].lt)
+                      .subtract(30, 'days')
+                      .format('YYYY-MM-DD'),
+                max: moment(query.filter?.['@timestamp'].lt).format(
+                  'YYYY-MM-DD',
+                ),
+              },
             },
           },
         },
-      },
-    });
+      })
+      .catch((error) => {
+        this.logger.error(error.response?.data || error);
+        throw new IInternalServerErrorException({
+          message: 'Unable to fetch aggregate API logs stats',
+        });
+      });
 
     const event = new GetApiLogStatsEvent(ctx.activeUser, {});
     this.eventEmitter.emit(event.name, event);

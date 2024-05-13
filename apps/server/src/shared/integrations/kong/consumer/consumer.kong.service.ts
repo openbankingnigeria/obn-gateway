@@ -39,7 +39,9 @@ export class KongConsumerService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to fetch consumer details',
+            });
           }),
         ),
     );
@@ -64,7 +66,9 @@ export class KongConsumerService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to update consumer details',
+            });
           }),
         ),
     );
@@ -88,7 +92,9 @@ export class KongConsumerService {
           catchError((error: AxiosError) => {
             console.log({ error: error.response?.data });
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to fetch consumer permissions',
+            });
           }),
         ),
     );
@@ -116,7 +122,9 @@ export class KongConsumerService {
           catchError((error: AxiosError) => {
             console.log({ error: error.response?.data });
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to update consumer permissions',
+            });
           }),
         ),
     );
@@ -138,7 +146,9 @@ export class KongConsumerService {
           catchError((error: AxiosError) => {
             console.log({ error: error.response?.data });
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to delete consumer permissions',
+            });
           }),
         ),
     );
@@ -156,7 +166,9 @@ export class KongConsumerService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to fetch consumer keys',
+            });
           }),
         ),
     );
@@ -174,7 +186,9 @@ export class KongConsumerService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to create consumer keys',
+            });
           }),
         ),
     );
@@ -196,7 +210,9 @@ export class KongConsumerService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to delete consumer keys',
+            });
           }),
         ),
     );
@@ -219,7 +235,9 @@ export class KongConsumerService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to fetch consumer settings',
+            });
           }),
         ),
     );
@@ -247,7 +265,9 @@ export class KongConsumerService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to fetch consumer API settings',
+            });
           }),
         ),
     );
@@ -281,7 +301,9 @@ export class KongConsumerService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to update consumer API settings',
+            });
           }),
         ),
     );

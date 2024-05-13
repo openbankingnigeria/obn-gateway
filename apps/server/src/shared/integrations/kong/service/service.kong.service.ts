@@ -36,7 +36,9 @@ export class KongServiceService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to fetch API details',
+            });
           }),
         ),
     );
@@ -54,7 +56,9 @@ export class KongServiceService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to fetch API details',
+            });
           }),
         ),
     );
@@ -72,7 +76,9 @@ export class KongServiceService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to fetch API details',
+            });
           }),
         ),
     );
@@ -94,7 +100,9 @@ export class KongServiceService {
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response?.data || error);
-            throw new IInternalServerErrorException({});
+            throw new IInternalServerErrorException({
+              message: 'Unable to update API details',
+            });
           }),
         ),
     );
