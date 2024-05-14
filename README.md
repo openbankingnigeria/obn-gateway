@@ -35,6 +35,7 @@ Configure the required environment variables. In your environment or `.env` file
 - `COMPANY_NAME`
 - `COMPANY_EMAIL`
 - `DEFAULT_PASSWORD`
+- `MANAGEMENT_URL`
 - `EMAIL_PORT`
 - `EMAIL_PASSWORD`
 - `EMAIL_USER`
