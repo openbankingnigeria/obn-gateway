@@ -85,7 +85,7 @@ pnpm dev
 - **kong:** Exposes the API gateway APIs, available on ports 8000 (development) and 8100 (production) by default.
 - **logstash:** Collects logs from the Kong service.
 - **elasticsearch:** Provides search and analytics on logs from Kong.
-- **maildev (`dev` only):** A simple web-based interface for testing emails, available in-browser on port 1080 by default.
+- **maildev (`dev` only):** A developer interface for testing emails. The web app runs on [http://localhost:1080]().
 
 ### 6. Verify Installation
 
