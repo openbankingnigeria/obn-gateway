@@ -123,7 +123,6 @@ services:
     depends_on:
       kong-dev-db:
         condition: service_healthy
-        required: false
     profiles:
       - dev
       - kong
@@ -175,7 +174,6 @@ services:
     depends_on:
       kong-prod-db:
         condition: service_healthy
-        required: false
     profiles:
       - prod
       - kong
@@ -259,7 +257,6 @@ services:
     depends_on:
       elk-setup:
         condition: service_healthy
-        required: false
     environment:
       - node.name=es
       - cluster.name=${CLUSTER_NAME:-docker-cluster}
@@ -312,7 +309,6 @@ services:
     depends_on:
       es:
         condition: service_healthy
-        required: false
     environment:
       - xpack.monitoring.enabled=false
       - ELASTIC_USER=elastic
@@ -393,16 +389,12 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-        required: false
       kong-dev:
         condition: service_healthy
-        required: false
       kong-prod:
         condition: service_healthy
-        required: false
       es:
         condition: service_healthy
-        required: false
       server-setup:
         condition: service_completed_successfully
     healthcheck:
@@ -423,13 +415,10 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-        required: false
       kong-dev:
         condition: service_healthy
-        required: false
       kong-prod:
         condition: service_healthy
-        required: false
     profiles:
       - dev
       - prod
