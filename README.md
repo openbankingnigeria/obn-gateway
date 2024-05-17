@@ -38,6 +38,8 @@ Set up the required environment variables. For a quick start, you can use the pr
 cp .env.example .env
 ```
 
+**Do not use default credentials for production.**
+
 To configure the app for your specific environment, edit the .env file to update the following variables:
 
 - `COMPANY_NAME`
@@ -83,6 +85,7 @@ pnpm dev
 - **kong:** Exposes the API gateway APIs, available on ports 8000 (development) and 8100 (production) by default.
 - **logstash:** Collects logs from the Kong service.
 - **elasticsearch:** Provides search and analytics on logs from Kong.
+- **maildev (`dev` only):** A simple web-based interface for testing emails, available in-browser on port 1080 by default.
 
 ### 6. Verify Installation
 
