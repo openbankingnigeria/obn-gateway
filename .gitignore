@@ -1,7 +1,12 @@
+# build
 node_modules
 dist
 build
-.env
 
+# IDE
+.idea
 .vscode
+
+# local
+.env
 .DS_Store
