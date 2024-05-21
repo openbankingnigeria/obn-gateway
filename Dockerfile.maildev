@@ -1,0 +1,6 @@
+FROM alpine:latest as build
+FROM maildev/maildev
+
+USER root
+RUN apk add --no-cache curl
+USER node

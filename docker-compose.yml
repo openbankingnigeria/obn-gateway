@@ -126,7 +126,6 @@ services:
     depends_on:
       kong-dev-db:
         condition: service_healthy
-        required: false
     profiles:
       - dev
       - kong
@@ -178,7 +177,6 @@ services:
     depends_on:
       kong-prod-db:
         condition: service_healthy
-        required: false
     profiles:
       - prod
       - kong
@@ -262,7 +260,6 @@ services:
     depends_on:
       elk-setup:
         condition: service_healthy
-        required: false
     environment:
       - node.name=es
       - cluster.name=${CLUSTER_NAME:-docker-cluster}
@@ -315,12 +312,16 @@ services:
     depends_on:
       es:
         condition: service_healthy
-        required: false
     environment:
       - xpack.monitoring.enabled=false
       - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - ELASTIC_HOSTS=https://es:9200
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - elastic-net
     profiles:
@@ -368,7 +369,12 @@ services:
     container_name: obn-web
     environment:
       - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
-      - BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://obn-server:4000}
+      - BASE_API_ENDPOINT=${BASE_API_SERVER_API_ENDPOINT:-http://localhost:4000}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:3000 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - obn-net
     ports:
@@ -386,18 +392,19 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-        required: false
       kong-dev:
         condition: service_healthy
-        required: false
       kong-prod:
         condition: service_healthy
-        required: false
       es:
         condition: service_healthy
-        required: false
       server-setup:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "./healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     profiles:
       - dev
       - prod
@@ -411,13 +418,10 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-        required: false
       kong-dev:
         condition: service_healthy
-        required: false
       kong-prod:
         condition: service_healthy
-        required: false
     profiles:
       - dev
       - prod
