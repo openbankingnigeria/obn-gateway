@@ -4,9 +4,9 @@ Welcome to the OpenBanking Gateway project. This guide provides detailed instruc
 
 ## Prerequisites
 
-You can choose to run this on your local environment or using Docker/Docker Compose. Before you begin, ensure you have the following installed depending on your preference.
+You can choose to run this on your local environment or using Docker/Docker Compose. Docker is the preferred method for ease of setup and consistency.
 
-### Docker
+### Docker (preferred)
 
 - Docker (v23.0 or higher)
 
@@ -17,7 +17,6 @@ You can choose to run this on your local environment or using Docker/Docker Comp
 - Kong (v3.5.0 or higher)
 - Elasticsearch (v8.11.1 or higher)
 - Logstash (v8.11.1 or higher)
-
 
 ## Installation Steps
 
@@ -38,26 +37,46 @@ Set up the required environment variables. For a quick start, you can use the pr
 cp .env.example .env
 ```
 
-**Do not use default credentials for production.**
-
-To configure the app for your specific environment, edit the .env file to update the following variables:
+Update these variables to configure the app for your specific environment. At a minimum, you'll need to provide values for the following variables:
 
 - `COMPANY_NAME`
 - `COMPANY_EMAIL`
 - `DEFAULT_PASSWORD`
-- `MANAGEMENT_URL`
-- `EMAIL_PORT`
-- `EMAIL_PASSWORD`
-- `EMAIL_USER`
-- `EMAIL_SECURE`
-- `EMAIL_FROM`
-- `EMAIL_HOST`
-- `ELASTICSEARCH_USERNAME`
 - `ELASTICSEARCH_PASSWORD`
 
-For optimal functionality, review the additional environment variables defined in the .env.example file and customize them as necessary for your setup.
+**Important**: Don't use default credentials for production.
 
-### 3. Docker setup (preferred)
+Additional environment variables are defined in the .env.example file and can be customized as necessary for your setup.
+
+### 3. Email service
+
+You will need to connect to an email service. For development, you can use `maildev`.
+
+1. Create the Docker network for server and email to connect:
+    
+    ```shell
+    docker network create obn-net
+    ```
+   
+    Note: This should be done before running the `docker compose` command in step 4.
+
+2. Run the email service container:
+
+    ```shell
+    docker run -d \
+      --name maildev.net \
+      -p 3007:3007 \
+      -p 1080:80 \
+      -e MAILDEV_SMTP_PORT=${EMAIL_PORT} \
+      -e MAILDEV_USER=${EMAIL_USER} \
+      -e MAILDEV_PASS=${EMAIL_PASSWORD} \
+      --network obn-net \
+      maildev/maildev bin/maildev --web 80 --smtp 3007
+    ```
+    
+    Visit [http://localhost:1080]() to view all messages sent from the application.
+
+### 4. Docker Setup (Preferred)
 
 To launch the services using Docker Compose, run the following command:
 
@@ -67,7 +86,7 @@ docker compose --profile "*" up -d --build
 
 This command will set up the web and server services along with other dependencies like Kong, Elasticsearch, Logstash, and MySQL.
 
-### 4. Local Setup (optional)
+### 5. Local Setup (Optional)
 
 If you prefer to set up the project locally, follow these steps.
 
@@ -78,16 +97,15 @@ pnpm install
 pnpm dev
 ```
 
-### 5. Accessing the Services
+### 6. Accessing the Services
 
 - **server:** Exposes the management application APIs, available on port 4000 by default.
 - **web:** Exposes the management application interface, available on port 3000 by default.
 - **kong:** Exposes the API gateway APIs, available on ports 8000 (development) and 8100 (production) by default.
 - **logstash:** Collects logs from the Kong service.
 - **elasticsearch:** Provides search and analytics on logs from Kong.
-- **maildev (`dev` only):** A developer interface for testing emails. The web app runs on [http://localhost:1080]().
 
-### 6. Verify Installation
+### 7. Verify Installation
 
 To verify that the installation was successful, check that all Docker containers are in a 'healthy' status:
 

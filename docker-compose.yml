@@ -29,7 +29,7 @@ networks:
   kong-net:
     external: false
   obn-net:
-    external: false
+    external: true
   elastic-net:
     external: false
 
@@ -424,29 +424,6 @@ services:
       - prod
       - server
     <<: *obn_server_config
-
-  maildev.net:
-    build:
-      context: .
-      dockerfile: Dockerfile.maildev
-    container_name: maildev
-    ports:
-      - "3007:3007"
-      - "1080:80"
-    environment:
-      - MAILDEV_SMTP_PORT=${EMAIL_PORT}
-      - MAILDEV_USER=${EMAIL_USER}
-      - MAILDEV_PASS=${EMAIL_PASSWORD}
-    command: bin/maildev --web 80 --smtp 3007
-    profiles:
-      - dev
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:80 || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - obn-net
 
 secrets:
   kong_postgres_password:
