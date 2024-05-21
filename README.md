@@ -48,35 +48,7 @@ Update these variables to configure the app for your specific environment. At a 
 
 Additional environment variables are defined in the .env.example file and can be customized as necessary for your setup.
 
-### 3. Email service
-
-You will need to connect to an email service. For development, you can use `maildev`.
-
-1. Create the Docker network for server and email to connect:
-    
-    ```shell
-    docker network create obn-net
-    ```
-   
-    Note: This should be done before running the `docker compose` command in step 4.
-
-2. Run the email service container:
-
-    ```shell
-    docker run -d \
-      --name maildev.net \
-      -p 3007:3007 \
-      -p 1080:80 \
-      -e MAILDEV_SMTP_PORT=${EMAIL_PORT} \
-      -e MAILDEV_USER=${EMAIL_USER} \
-      -e MAILDEV_PASS=${EMAIL_PASSWORD} \
-      --network obn-net \
-      maildev/maildev bin/maildev --web 80 --smtp 3007
-    ```
-    
-    Visit [http://localhost:1080]() to view all messages sent from the application.
-
-### 4. Docker Setup (Preferred)
+### 3. Docker Setup (preferred)
 
 To launch the services using Docker Compose, run the following command:
 
@@ -86,7 +58,31 @@ docker compose --profile "*" up -d --build
 
 This command will set up the web and server services along with other dependencies like Kong, Elasticsearch, Logstash, and MySQL.
 
-### 5. Local Setup (Optional)
+### 4. Email service
+
+You will need to configure `EMAIL_` to connect your external email service.
+
+#### maildev (optional for development)
+
+During local development, in cases where you don't have a running email server, you can use `maildev`.
+
+To run `maildev` using Docker:
+
+ ```shell
+ docker run -d \
+   --name maildev.net \
+   -p 3007:3007 \
+   -p 1080:80 \
+   -e MAILDEV_SMTP_PORT=${EMAIL_PORT} \
+   -e MAILDEV_USER=${EMAIL_USER} \
+   -e MAILDEV_PASS=${EMAIL_PASSWORD} \
+   --network obn-net \
+   maildev/maildev bin/maildev --web 80 --smtp 3007
+ ```
+ 
+Visit [http://localhost:1080]() to view all messages sent from the application.
+
+### 5. Local Setup (optional)
 
 If you prefer to set up the project locally, follow these steps.
 

@@ -27,10 +27,13 @@ volumes:
 
 networks:
   kong-net:
+    name: kong-net
     external: false
   obn-net:
-    external: true
+    name: obn-net
+    external: false
   elastic-net:
+    name: elastic-net
     external: false
 
 x-kong-dev-config: &kong_dev_config
