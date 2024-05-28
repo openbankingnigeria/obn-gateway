@@ -1,5 +1,4 @@
 import {
-  EmailSettingsInterface,
   GeneralSettingsInterface,
   SETTINGS_TYPES,
 } from '../../../settings/types';
@@ -8,16 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { CompanyTypes } from '../constants';
 import { Company, CompanyStatuses } from '../entities';
 import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
-
-const defaultEmailSettings: EmailSettingsInterface = {
-  emailBaseUrl: { value: '' },
-  emailFrom: { value: (process.env.EMAIL_FROM as string) || '' },
-  emailHost: { value: (process.env.EMAIL_HOST as string) || '' },
-  emailPassword: { value: (process.env.EMAIL_PASSWORD as string) || '' },
-  emailPort: { value: (process.env.EMAIL_PORT as string) || '' },
-  emailSecure: { value: (process.env.EMAIL_SECURE as string) === 'true' ?? '' },
-  emailUser: { value: (process.env.EMAIL_USER as string) || '' },
-};
 
 const defaultGeneralSettings: GeneralSettingsInterface = {
   authTokenExpirationDuration: {
@@ -63,12 +52,6 @@ export class Migration1706053809488 implements MigrationInterface {
     );
 
     const parameters = [
-      [
-        uuidv4(),
-        SETTINGS_TYPES.EMAIL_SETTINGS,
-        apiProvider.id,
-        JSON.stringify(defaultEmailSettings),
-      ],
       [
         uuidv4(),
         SETTINGS_TYPES.GENERAL_SETTINGS,

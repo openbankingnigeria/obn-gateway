@@ -40,9 +40,9 @@ cp .env.example .env
 Update these variables to configure the app for your specific environment. At a minimum, you'll need to provide values for the following variables:
 
 - `COMPANY_NAME`
-- `COMPANY_EMAIL`
+- `DEFAULT_EMAIL`
 - `DEFAULT_PASSWORD`
-- `ELASTICSEARCH_PASSWORD`
+- `JWT_SECRET`
 
 **Important**: Don't use default credentials for production.
 
@@ -53,7 +53,7 @@ Additional environment variables are defined in the .env.example file and can be
 To launch the services using Docker Compose, run the following command:
 
 ```shell
-docker compose --profile "*" up -d --build
+docker compose --profile "*" up -d --build --force-recreate
 ```
 
 This command will set up the web and server services along with other dependencies like Kong, Elasticsearch, Logstash, and MySQL.

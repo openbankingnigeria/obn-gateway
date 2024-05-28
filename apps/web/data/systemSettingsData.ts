@@ -19,15 +19,6 @@ export const SYSTEM_SETTINGS_PATHS = [
   //   subType: 'api-provider'
   // },
   {
-    id: 3,
-    label: 'Email Service',
-    value: 'email_settings',
-    name: 'email_settings',
-    type: 'api-provider',
-    environment: 'all',
-    subType: 'api-provider'
-  },
-  {
     id: 4,
     label: 'Email Template',
     value: 'email_templates',
@@ -431,46 +422,6 @@ export const EXTERNAL_SERVICES_DATA = ({
   },
 ];
 
-export const _EMAIL_SERVICE_DATA = ({
-  email_provider,
-  email_key,
-  email_sender_id,
-  email_base_url,
-}: any) => [
-  {
-    id: 1,
-    label: 'Email Provider',
-    description: 'Specify the third-party service responsible for sending out emails.',
-    name: 'email_provider',
-    type: 'select',
-    value: email_provider
-  },
-  {
-    id: 2,
-    label: 'Email Key',
-    description: 'The secure authentication token or API key required to access the email service.',
-    name: 'email_key',
-    type: 'text',
-    value: email_key
-  },
-  {
-    id: 3,
-    label: 'Email Sender ID',
-    description: 'The designated email address that recipients will see as the sender when they receive emails.',
-    name: 'email_sender_id',
-    type: 'text',
-    value: email_sender_id
-  },
-  {
-    id: 4,
-    label: 'Email Base URL',
-    description: 'The foundational URL used for generating links within the emails.',
-    name: 'email_base_url',
-    type: 'text',
-    value: email_base_url
-  },
-];
-
 export const USER_AGREEMENTS_DATA = ({
   privacyPolicy,
   termsAndConditions
@@ -520,64 +471,6 @@ export const ONBOARDING_SETTINGS_DATA = ({
     values: individual
   },
 ]
-
-export const EMAIL_SERVICE_DATA = ({
-  emailBaseUrl,
-  emailFrom,
-  emailHost,
-  emailPassword,
-  emailPort,
-  emailUser
-}: EmailServiceProps) => [
-  {
-    id: 1,
-    label: 'Email Base URL',
-    description: '',
-    name: 'emailBaseUrl',
-    type: 'text',
-    value: emailBaseUrl
-  },
-  {
-    id: 2,
-    label: 'Email From',
-    description: '',
-    name: 'emailFrom',
-    type: 'text',
-    value: emailFrom
-  },
-  {
-    id: 3,
-    label: 'Email Host',
-    description: '',
-    name: 'emailHost',
-    type: 'text',
-    value: emailHost
-  },
-  {
-    id: 4,
-    label: 'Email Password',
-    description: '',
-    name: 'emailPassword',
-    type: 'password',
-    value: emailPassword
-  },
-  {
-    id: 5,
-    label: 'Email Port',
-    description: '',
-    name: 'emailPort',
-    type: 'text',
-    value: emailPort
-  },
-  {
-    id: 6,
-    label: 'Email User',
-    description: '',
-    name: 'emailUser',
-    type: 'text',
-    value: emailUser
-  },
-];
 
 export const CLIENT_ID_DATA = ({
   clientId

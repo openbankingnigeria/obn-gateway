@@ -63,22 +63,22 @@ x-obn-server-config: &obn_server_config
     EMAIL_HOST: ${EMAIL_HOST}
     EMAIL_PORT: ${EMAIL_PORT}
     EMAIL_USER: ${EMAIL_USER}
-    EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+    EMAIL_PASSWORD_FILE: /run/secrets/email_password
     EMAIL_SECURE: ${EMAIL_SECURE}
     EMAIL_FROM: ${EMAIL_FROM}
-    COMPANY_EMAIL: ${COMPANY_EMAIL:?COMPANY_EMAIL is required}
+    DEFAULT_EMAIL: ${DEFAULT_EMAIL:?DEFAULT_EMAIL is required}
     COMPANY_NAME: ${COMPANY_NAME:?COMPANY_NAME is required}
-    DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?DEFAULT_PASSWORD is required}
+    DEFAULT_PASSWORD_FILE: /run/secrets/default_password
     KONG_ADMIN_API_ENDPOINT: ${KONG_ADMIN_API_ENDPOINT:-http://kong-dev:8001}
     KONG_GATEWAY_API_ENDPOINT: ${KONG_GATEWAY_API_ENDPOINT:-http://localhost:8000}
     KONG_ADMIN_API_ENDPOINT_PRODUCTION: ${KONG_ADMIN_API_ENDPOINT_PRODUCTION:-http://kong-prod:8001}
     KONG_GATEWAY_API_ENDPOINT_PRODUCTION: ${KONG_GATEWAY_API_ENDPOINT_PRODUCTION:-http://localhost:8100}
     REGISTRY_INTROSPECTION_ENDPOINT: ${REGISTRY_INTROSPECTION_ENDPOINT}
     REGISTRY_INTROSPECTION_CLIENT_ID: ${REGISTRY_INTROSPECTION_CLIENT_ID}
-    REGISTRY_INTROSPECTION_CLIENT_SECRET: ${REGISTRY_INTROSPECTION_CLIENT_SECRET}
+    REGISTRY_INTROSPECTION_CLIENT_SECRET_FILE: /run/secrets/registry_introspection_client_secret
     REGISTRY_INTROSPECTION_ENDPOINT_PRODUCTION: ${REGISTRY_INTROSPECTION_ENDPOINT_PRODUCTION}
     REGISTRY_INTROSPECTION_CLIENT_ID_PRODUCTION: ${REGISTRY_INTROSPECTION_CLIENT_ID_PRODUCTION}
-    REGISTRY_INTROSPECTION_CLIENT_SECRET_PRODUCTION: ${REGISTRY_INTROSPECTION_CLIENT_SECRET_PRODUCTION}
+    REGISTRY_INTROSPECTION_CLIENT_SECRET_PRODUCTION_FILE: /run/secrets/registry_introspection_client_secret_production
     MANAGEMENT_URL: ${MANAGEMENT_URL:?MANAGEMENT_URL is required}
     LOGSTASH_ENDPOINT: ${LOGSTASH_ENDPOINT:-http://obn-logstash:8080}
     ELASTICSEARCH_ENDPOINT: ${ELASTICSEARCH_ENDPOINT:-https://es:9200}
@@ -90,6 +90,10 @@ x-obn-server-config: &obn_server_config
   secrets:
     - mysql_password
     - jwt_secret
+    - default_password
+    - email_password
+    - registry_introspection_client_secret
+    - registry_introspection_client_secret_production
   networks:
     - kong-net
     - obn-net
@@ -430,10 +434,18 @@ services:
 
 secrets:
   kong_postgres_password:
-    file: ./config/KONG_POSTGRES_PASSWORD
+    environment: KONG_POSTGRES_PASSWORD
   mysql_root_password:
-    file: ./config/MYSQL_ROOT_PASSWORD
+    environment: MYSQL_ROOT_PASSWORD
   mysql_password:
-    file: ./config/MYSQL_PASSWORD
+    environment: MYSQL_PASSWORD
   jwt_secret:
-    file: ./config/JWT_SECRET
+    environment: JWT_SECRET
+  default_password:
+    environment: DEFAULT_PASSWORD
+  email_password:
+    environment: EMAIL_PASSWORD
+  registry_introspection_client_secret:
+    environment: REGISTRY_INTROSPECTION_CLIENT_SECRET
+  registry_introspection_client_secret_production:
+    environment: REGISTRY_INTROSPECTION_CLIENT_SECRET_PRODUCTION

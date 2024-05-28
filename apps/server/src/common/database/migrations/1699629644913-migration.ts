@@ -3,6 +3,7 @@ import { ROLES, CompanyTypes } from '../constants';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { UserStatuses } from '../entities';
+import * as fs from 'fs';
 
 export class Migration1699629644913 implements MigrationInterface {
   companyId = uuidv4();
@@ -29,9 +30,14 @@ export class Migration1699629644913 implements MigrationInterface {
       `INSERT INTO users (id, email, role, password, company, status, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         this.userId,
-        process.env.COMPANY_EMAIL,
+        process.env.DEFAULT_EMAIL,
         roles[0].id,
-        hashSync(process.env.DEFAULT_PASSWORD!, 12),
+        hashSync(
+          (process.env.DEFAULT_PASSWORD_FILE
+            ? fs.readFileSync(process.env.DEFAULT_PASSWORD_FILE).toString()
+            : undefined) ?? process.env.DEFAULT_PASSWORD!,
+          12,
+        ),
         this.companyId,
         UserStatuses.ACTIVE,
         1,

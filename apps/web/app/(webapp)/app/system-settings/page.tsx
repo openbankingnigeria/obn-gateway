@@ -2,7 +2,7 @@ import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import React from 'react'
 import { ToastMessage, TopPanel } from '../../(components)';
 import { SYSTEM_SETTINGS_PATHS } from '@/data/systemSettingsData';
-import { BusinessInformationPage, EmailServicePage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage, UserAgreementsPage } from './(components)';
+import { BusinessInformationPage, EmailTemplatePage, ExternalServicesPage, GeneralSettingsPage, LiveModeConfigurationPage, MockServicesPage, OnboardingSettingsPage, TestModeConfigurationPage, UserAgreementsPage } from './(components)';
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
@@ -190,11 +190,6 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
                       rawData={settings}
                       profileData={profile}/
                     > :
-                    path == 'email_settings' ?
-                      <EmailServicePage 
-                        rawData={settings}
-                        profileData={profile} 
-                      /> :
                       path == 'email_templates' ? 
                         <EmailTemplatePage 
                           rawData={settings}

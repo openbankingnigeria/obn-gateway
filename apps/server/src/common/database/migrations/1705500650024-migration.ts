@@ -12,7 +12,7 @@ export class Migration1705500650024 implements MigrationInterface {
             WHERE users.email = ? AND users.deleted_at IS NULL AND companies.deleted_at IS NULL AND companies.type = ?
             ORDER BY users.created_at ASC LIMIT 1
         `,
-      [process.env.COMPANY_EMAIL, CompanyTypes.API_PROVIDER],
+      [process.env.DEFAULT_EMAIL, CompanyTypes.API_PROVIDER],
     );
     await queryRunner.query(
       'UPDATE companies SET is_active = true, primary_user_id = ? WHERE id = ?',
@@ -28,7 +28,7 @@ export class Migration1705500650024 implements MigrationInterface {
             WHERE users.email = ? AND users.deleted_at IS NULL AND companies.deleted_at IS NULL 
             ORDER BY users.created_at ASC LIMIT 1
         `,
-      [process.env.COMPANY_EMAIL],
+      [process.env.DEFAULT_EMAIL],
     );
     await queryRunner.query(
       'UPDATE companies SET is_active = false, primary_user_id = null WHERE id = ?',

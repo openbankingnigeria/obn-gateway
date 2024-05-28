@@ -22,7 +22,7 @@ export class Migration1702353120168 implements MigrationInterface {
                   WHERE users.email = ? AND users.deleted_at IS NULL AND companies.deleted_at IS NULL AND companies.type = ?
                   ORDER BY users.created_at ASC LIMIT 1
               `,
-      [process.env.COMPANY_EMAIL, CompanyTypes.API_PROVIDER],
+      [process.env.DEFAULT_EMAIL, CompanyTypes.API_PROVIDER],
     );
 
     await queryRunner.query(`

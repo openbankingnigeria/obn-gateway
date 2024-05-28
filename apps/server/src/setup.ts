@@ -185,7 +185,7 @@ async function performSetupTasks(): Promise<void> {
     // TODO get back to this, use central getUserByEmail implementation
     const user = await apiService.userRepository.findOne({
       where: {
-        email: Equal(process.env.COMPANY_EMAIL!),
+        email: Equal(process.env.DEFAULT_EMAIL!),
         role: { parentId: Not(IsNull()) },
       },
       relations: {

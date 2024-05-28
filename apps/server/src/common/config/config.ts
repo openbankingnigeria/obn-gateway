@@ -36,7 +36,9 @@ export const globalConfig = (): {
       jwtSecret:
         (process.env.JWT_SECRET_FILE
           ? fs.readFileSync(process.env.JWT_SECRET_FILE)
-          : undefined) ?? process.env.JWT_SECRET,
+          : undefined) ||
+        process.env.JWT_SECRET ||
+        undefined,
       defaultOtpExpiresMinutes: process.env.DEFAULT_OTP_EXPIRES_MINUTES ?? '15',
     },
     email: {
@@ -46,7 +48,10 @@ export const globalConfig = (): {
       from: process.env.EMAIL_FROM,
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
+        pass:
+          (process.env.EMAIL_PASSWORD_FILE
+            ? fs.readFileSync(process.env.EMAIL_PASSWORD_FILE).toString()
+            : undefined) ?? process.env.EMAIL_PASSWORD,
       },
     },
     kong: {
