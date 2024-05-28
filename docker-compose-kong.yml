@@ -22,6 +22,7 @@ x-kong-config: &kong-env
 services:
   kong-db:
     image: postgres:9.5-alpine
+    # increase max connections
     command: -c 'max_connections=100'
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
@@ -31,9 +32,9 @@ services:
       - kong_postgres_password
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${KONG_PG_USER:-kong}" ]
-      interval: 30s
-      timeout: 30s
-      retries: 3
+      interval: 1s
+      timeout: 5s
+      retries: 30
     restart: on-failure
     stdin_open: true
     tty: true
@@ -99,9 +100,9 @@ services:
 
     healthcheck:
       test: [ "CMD", "kong", "health" ]
-      interval: 10s
-      timeout: 10s
-      retries: 10
+      interval: 1s
+      timeout: 5s
+      retries: 30
     restart: on-failure:5
     volumes:
       - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}

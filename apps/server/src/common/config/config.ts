@@ -35,7 +35,7 @@ export const globalConfig = (): {
       jwtExpires: process.env.JWT_EXPIRES ?? '15m',
       jwtSecret:
         (process.env.JWT_SECRET_FILE
-          ? fs.readFileSync(process.env.JWT_SECRET_FILE)
+          ? fs.readFileSync(process.env.JWT_SECRET_FILE).toString()
           : undefined) ||
         process.env.JWT_SECRET ||
         undefined,
@@ -80,7 +80,22 @@ export const globalConfig = (): {
       },
       introspectionClientSecret: {
         development:
+          (process.env.REGISTRY_INTROSPECTION_CLIENT_SECRET_FILE
+            ? fs
+                .readFileSync(
+                  process.env.REGISTRY_INTROSPECTION_CLIENT_SECRET_FILE,
+                )
+                .toString()
+            : undefined) ??
           process.env.REGISTRY_INTROSPECTION_CLIENT_SECRET ??
+          (process.env.REGISTRY_INTROSPECTION_CLIENT_SECRET_DEVELOPMENT_FILE
+            ? fs
+                .readFileSync(
+                  process.env
+                    .REGISTRY_INTROSPECTION_CLIENT_SECRET_DEVELOPMENT_FILE,
+                )
+                .toString()
+            : undefined) ??
           process.env.REGISTRY_INTROSPECTION_CLIENT_SECRET_DEVELOPMENT,
       },
     },
@@ -141,10 +156,18 @@ export const globalConfig = (): {
       env.startsWith('REGISTRY_INTROSPECTION_CLIENT_SECRET_') &&
       process.env[env]
     ) {
-      const environment = env
+      let environment: string = env
         .split('REGISTRY_INTROSPECTION_CLIENT_SECRET_')[1]
         .toLowerCase();
-      config.registry.introspectionClientSecret[environment] = process.env[env];
+      if (environment.endsWith('_file')) {
+        environment = environment.split('_file')[0];
+        config.registry.introspectionClientSecret[environment] = fs
+          .readFileSync(process.env[env]!)
+          .toString();
+      } else if (environment !== 'file') {
+        config.registry.introspectionClientSecret[environment] =
+          process.env[env];
+      }
     }
   }
   return config;

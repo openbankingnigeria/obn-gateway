@@ -15,6 +15,7 @@ import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.inter
 import { KongPluginService } from '@shared/integrations/kong/plugin/plugin.kong.service';
 import { ConfigService } from '@nestjs/config';
 import { CompanyTiers } from '@company/types';
+import { INotFoundException } from '@common/utils/exceptions/exceptions';
 
 function processItem(
   item: any,
@@ -116,6 +117,7 @@ async function performSetupTasks(): Promise<void> {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
+    timeout: 15_000,
   });
   const data = await axios.get(
     `https://apis.openbanking.ng/api/collections/${schema.data.collection.info.collectionId}/${schema.data.collection.info.publishedId}`,
@@ -124,6 +126,7 @@ async function performSetupTasks(): Promise<void> {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      timeout: 15_000,
     },
   );
 
@@ -132,8 +135,21 @@ async function performSetupTasks(): Promise<void> {
   for (const environment in config.get<Record<KONG_ENVIRONMENT, string>>(
     'kong.adminEndpoint',
   )) {
-    await kongPluginService
-      .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
+    const [user] = await Promise.all([
+      apiService.userRepository.findOne({
+        where: {
+          email: Equal(process.env.DEFAULT_EMAIL!),
+          role: { parentId: Not(IsNull()) },
+        },
+        relations: {
+          role: {
+            permissions: true,
+            parent: { permissions: true },
+          },
+          company: true,
+        },
+      }),
+      kongPluginService.updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
         name: KONG_PLUGINS.HTTP_LOG,
         enabled: true,
         config: {
@@ -142,11 +158,8 @@ async function performSetupTasks(): Promise<void> {
             environment: `return '${environment}'`,
           },
         },
-      })
-      .catch(console.error);
-
-    await kongPluginService
-      .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
+      }),
+      kongPluginService.updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
         name: KONG_PLUGINS.KEY_AUTH,
         enabled: true,
         config: {
@@ -156,22 +169,16 @@ async function performSetupTasks(): Promise<void> {
           key_in_body: false,
           hide_credentials: true,
         },
-      })
-      .catch(console.error);
-
-    await kongPluginService
-      .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
+      }),
+      kongPluginService.updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
         name: KONG_PLUGINS.IP_RESTRICTION,
         enabled: true,
         config: {
           // disables API accesses globally, each consumer must set their IP whitelists
           deny: ['0.0.0.0/0'],
         },
-      })
-      .catch(console.error);
-
-    await kongPluginService
-      .updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
+      }),
+      kongPluginService.updateOrCreatePlugin(environment as KONG_ENVIRONMENT, {
         name: KONG_PLUGINS.CORRELATION_ID,
         enabled: false,
         config: {
@@ -179,23 +186,8 @@ async function performSetupTasks(): Promise<void> {
           echo_downstream: true,
           generator: 'uuid',
         },
-      })
-      .catch(console.error);
-
-    // TODO get back to this, use central getUserByEmail implementation
-    const user = await apiService.userRepository.findOne({
-      where: {
-        email: Equal(process.env.DEFAULT_EMAIL!),
-        role: { parentId: Not(IsNull()) },
-      },
-      relations: {
-        role: {
-          permissions: true,
-          parent: { permissions: true },
-        },
-        company: true,
-      },
-    });
+      }),
+    ]);
 
     const ctx = new RequestContext({ user: user! });
 
@@ -203,15 +195,20 @@ async function performSetupTasks(): Promise<void> {
       try {
         let collection = await collectionService
           .viewCollection(ctx, slugify(folder))
-          .catch(console.error);
+          .catch((e) => {
+            if (e instanceof INotFoundException) {
+              return null;
+            }
+            throw e;
+          });
+
+        // get collection description, and remove html tags.
+        const description = folders[folder].description
+          ?.split('\n')?.[0]
+          ?.replace(/(<([^>]+)>)/gi, '');
+        if (!description) continue;
 
         if (!collection) {
-          // get collection description, and remove html tags.
-          const description = folders[folder].description
-            ?.split('\n')?.[0]
-            ?.replace(/(<([^>]+)>)/gi, '');
-          if (!description) continue;
-
           collection = await collectionService.createCollection(
             ctx,
             new CreateCollectionDto({
@@ -225,7 +222,12 @@ async function performSetupTasks(): Promise<void> {
           try {
             let api = await apiService
               .viewAPI(ctx, environment as KONG_ENVIRONMENT, name)
-              .catch(console.error);
+              .catch((e) => {
+                if (e instanceof INotFoundException) {
+                  return null;
+                }
+                throw e;
+              });
             if (api) continue;
 
             const regexPath =

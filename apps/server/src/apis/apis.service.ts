@@ -96,7 +96,7 @@ export class APIService {
         where: { ...filters, environment },
         skip: (page - 1) * limit,
         take: limit,
-        order: { createdAt: 'DESC' },
+        order: { name: 'ASC' },
         relations: { collection: true },
       });
 
@@ -1634,7 +1634,7 @@ export class APIService {
               tiers: Like(`%${company.tier}%`),
             },
           ],
-          order: { createdAt: 'DESC' },
+          order: { name: 'ASC' },
           skip: (page - 1) * limit,
           take: limit,
         });
@@ -1647,7 +1647,7 @@ export class APIService {
           where: { ...filters, environment },
           skip: (page - 1) * limit,
           take: limit,
-          order: { createdAt: 'DESC' },
+          order: { name: 'ASC' },
         });
 
       totalNumberOfRecords = iTotalNumberOfRecords;

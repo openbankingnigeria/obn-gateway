@@ -67,7 +67,7 @@ export class CollectionsService {
         where: { ...filters },
         skip: (page - 1) * limit,
         take: limit,
-        order: { createdAt: 'DESC' },
+        order: { name: 'ASC' },
         relations: { apis: true },
       });
 
