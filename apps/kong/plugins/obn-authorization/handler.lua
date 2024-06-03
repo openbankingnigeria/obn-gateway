@@ -125,7 +125,7 @@ function OBNAuthorization:access(config)
   end
   -- Authorization successful, set headers based on information from access token
   set_header("X-Credential-Scope", jwt.scope)
-  set_header("X-Credential-Client-ID", jwt.clientId)
+  set_header("X-Credential-Client-ID", jwt.client_id)
   set_header("X-Credential-Token-Type", jwt.typ)
   set_header("X-Credential-Exp", jwt.exp)
   set_header("X-Credential-Iat", jwt.iat)

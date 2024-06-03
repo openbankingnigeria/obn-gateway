@@ -1,7 +1,5 @@
 version: "3.9"
 
-# TODO pin every image to specific versions
-
 x-kong-config: &kong-env
   KONG_DATABASE: ${KONG_DATABASE:-postgres}
   KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}

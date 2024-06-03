@@ -668,6 +668,7 @@ export class SettingsService {
     );
   }
 
+  // TODO check if another client has this clientId
   async setClient(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,

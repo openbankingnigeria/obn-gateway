@@ -143,6 +143,9 @@ services:
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8000:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8443:8443/tcp"
+      # https://docs.docker.com/network/#published-ports
+      - "${KONG_ADMIN_INBOUND_PROXY_LISTEN:-127.0.0.1}:8001:8001/tcp"
+      - "${KONG_ADMIN_INBOUND_SSL_PROXY_LISTEN:-127.0.0.1}:8444:8444/tcp"
     depends_on:
       kong-dev-migrations-up:
         condition: service_completed_successfully
@@ -194,6 +197,8 @@ services:
     ports:
       - "${KONG_INBOUND_PROXY_LISTEN:-0.0.0.0}:8100:8000/tcp"
       - "${KONG_INBOUND_SSL_PROXY_LISTEN:-0.0.0.0}:8543:8443/tcp"
+      - "${KONG_ADMIN_INBOUND_PROXY_LISTEN:-127.0.0.1}:8101:8001/tcp"
+      - "${KONG_ADMIN_INBOUND_SSL_PROXY_LISTEN:-127.0.0.1}:8544:8444/tcp"
     depends_on:
       kong-prod-migrations-up:
         condition: service_completed_successfully
@@ -339,8 +344,8 @@ services:
     container_name: obn-mysql
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-obn}
-      MYSQL_USER: ${MYSQL_USER:-obn}
+      MYSQL_DATABASE: ${DATABASE_NAME:-obn}
+      MYSQL_USER: ${DATABASE_USERNAME:-obn}
       MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
     secrets:
       - mysql_password
@@ -366,14 +371,15 @@ services:
       - mysql
 
   web:
+    image: obn-web
     build:
       context: ./apps/web
       args:
-        - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
+        - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:${SERVER_PORT:-4000}}
     container_name: obn-web
     environment:
-      - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:4000}
-      - BASE_API_ENDPOINT=${BASE_API_SERVER_API_ENDPOINT:-http://localhost:4000}
+      - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:${SERVER_PORT:-4000}}
+      - BASE_API_ENDPOINT=${BASE_API_SERVER_API_ENDPOINT:-http://obn-server:${SERVER_PORT:-4000}}
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:3000 || exit 1" ]
       interval: 1s
@@ -382,13 +388,14 @@ services:
     networks:
       - obn-net
     ports:
-      - "3000:3000"
+      - "${WEB_PORT:-3000}:3000"
     profiles:
       - dev
       - prod
       - web
 
   server:
+    image: obn-server
     build: ./apps/server
     container_name: obn-server
     ports:
@@ -416,9 +423,10 @@ services:
     <<: *obn_server_config
 
   server-setup:
+    image: obn-server
     build: ./apps/server
     container_name: obn-server-setup
-    command: [ "sh", "-c", "pnpm migration:run;pnpm start:setup" ]
+    command: [ "sh", "-c", "pnpm migration:run:prod;pnpm start:setup" ]
     depends_on:
       mysql:
         condition: service_healthy
@@ -438,7 +446,7 @@ secrets:
   mysql_root_password:
     environment: MYSQL_ROOT_PASSWORD
   mysql_password:
-    environment: MYSQL_PASSWORD
+    environment: DATABASE_PASSWORD
   jwt_secret:
     environment: JWT_SECRET
   default_password:
