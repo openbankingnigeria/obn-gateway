@@ -102,6 +102,7 @@ const ConsumersTable = ({
       if (result?.status == 200) {
         setLoading(false);
         // close2FAModal();
+        closeModal();
         router.refresh();
       } else {
         setLoading(false);
@@ -129,6 +130,7 @@ const ConsumersTable = ({
       if (result?.status == 200) {
         setLoading(false);
         // close2FAModal();
+        closeModal();
         router.refresh();
       } else {
         setLoading(false);
