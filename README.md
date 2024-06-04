@@ -57,15 +57,15 @@ Alternatively, in cases where you don't have a running email server, you can use
 To run `maildev` using Docker:  
  
 ```shell  
-docker run -d \  
---name maildev.net  \  
--p 3007:3007 \  
--p 1080:80 \  
--e MAILDEV_SMTP_PORT=${EMAIL_PORT} \  
--e MAILDEV_USER=${EMAIL_USER} \  
--e MAILDEV_PASS=${EMAIL_PASSWORD} \  
---network obn-net \  
-maildev/maildev bin/maildev --web 80 --smtp 3007  
+ docker run -d \
+   --name maildev.net \
+   -p 3007:3007 \
+   -p 1080:80 \
+   -e MAILDEV_SMTP_PORT=${EMAIL_PORT} \
+   -e MAILDEV_USER=${EMAIL_USER} \
+   -e MAILDEV_PASS=${EMAIL_PASSWORD} \
+   --network obn-net \
+   maildev/maildev bin/maildev --web 80 --smtp 3007
 ```  
 Visit [http://localhost:1080] to view all messages sent from the application.  
  
