@@ -16,7 +16,7 @@ You can choose to run this on your local environment or using Docker/Docker Comp
 Start by cloning the OpenBanking Gateway repository:  
  
 ```shell  
-git clone  [https://github.com/openbankingnigeria/obn-gateway](https://github.com/openbankingnigeria/obn-gateway)  
+git clone https://github.com/openbankingnigeria/obn-gateway
 cd obn-gateway  
 ```  
  
@@ -99,7 +99,7 @@ Ensure the below dependencies are available on the applicable environment:
 Start by cloning the OpenBanking Gateway repository:  
  
 ```shell  
-git clone  [https://github.com/openbankingnigeria/obn-gateway](https://github.com/openbankingnigeria/obn-gateway)  
+git clone https://github.com/openbankingnigeria/obn-gateway
 cd obn-gateway  
 ```
 ### 3. Configure Environment Variables  
