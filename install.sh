@@ -20,10 +20,16 @@ update_env_variable() {
 read_and_update_env_variable() {
     local key="$1"
     local prompt_message="$2"
+    local value
 
     if ! grep -q "^$key=" .env || [ -z "$(grep "^$key=" .env | cut -d'=' -f2-)" ]; then
         read -p "$prompt_message" value
-        update_env_variable "$key" "$value"
+        if [ -z "$value" ]; then
+            echo "Value cannot be empty. Please provide a value."
+            read_and_update_env_variable "$key" "$prompt_message"
+        else
+            update_env_variable "$key" "$value"
+        fi
     fi
 }
 
