@@ -5,7 +5,12 @@ update_env_variable() {
     local key="$1"
     local value="$2"
     if grep -q "^$key=" .env; then
-        sed -i '' "s/^$key=.*/$key=$value/" .env
+        if sed -i '' "s/^$key=.*/$key=$value/" .env >/dev/null 2>&1; then
+            return 0
+        else
+            # Try sed -i without empty string argument
+            sed -i "s/^$key=.*/$key=$value/" .env
+        fi
     else
         echo "$key=$value" >> .env
     fi
@@ -34,6 +39,27 @@ elif [[ "$(docker --version | awk '{print $3}' | cut -d',' -f1 | cut -d'.' -f1)"
     exit 1
 fi
 
+# Check if Git is installed, if not, install it
+if ! [ -x "$(command -v git)" ]; then
+    echo "Git is not installed. Installing Git..."
+    if [ -x "$(command -v apt-get)" ]; then
+        sudo apt-get update
+        sudo apt-get install -y git
+    elif [ -x "$(command -v yum)" ]; then
+        sudo yum install -y git
+    else
+        echo "Unable to install Git. Please install Git manually."
+        exit 1
+    fi
+fi
+
+# Check if script is in repository directory, if not, clone the repository
+if [ ! -d ".git" ]; then
+    echo "Not in a repository directory. Cloning repository..."
+    git clone https://github.com/openbankingnigeria/obn-gateway.git
+    cd obn-gateway
+fi
+
 # Check if .env file exists, if not, copy content from .env.example
 if [ ! -f ".env" ]; then
     echo ".env file not found. Copying content from .env.example..."
@@ -47,4 +73,4 @@ read_and_update_env_variable "DEFAULT_PASSWORD" "Enter DEFAULT_PASSWORD (root pa
 read_and_update_env_variable "JWT_SECRET" "Enter JWT_SECRET (random secure value): "
 
 # Run Docker Compose command
-docker-compose --profile "*" up -d --build --force-recreate
+docker compose --profile "*" up -d --build --force-recreate
