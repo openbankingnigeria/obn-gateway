@@ -265,7 +265,7 @@ async function performSetupTasks(): Promise<void> {
                   request,
                   response,
                 },
-                tiers: [CompanyTiers.TIER_3],
+                tiers: environment === 'development' ? [CompanyTiers.TIER_0, CompanyTiers.TIER_1, CompanyTiers.TIER_2, CompanyTiers.TIER_3] : [CompanyTiers.TIER_3],
               }),
             );
             const transformationData = {
