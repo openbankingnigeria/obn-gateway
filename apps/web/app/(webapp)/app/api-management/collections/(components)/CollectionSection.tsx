@@ -108,6 +108,7 @@ const CollectionSection = ({
 
       if (result?.message) {
         // close2FAModal();
+        closeModal();
         setLoading(false);
         router.refresh();
       }
@@ -142,6 +143,7 @@ const CollectionSection = ({
 
       if (result?.message) {
         // close2FAModal();
+        closeModal();
         setLoading(false);
         setLoadingCheck(false);
         router.refresh();
@@ -166,6 +168,7 @@ const CollectionSection = ({
 
       if (result?.message) {
         // close2FAModal();
+        closeModal();
         setLoading(false);
         setLoadingPublish(false);
         router.refresh();

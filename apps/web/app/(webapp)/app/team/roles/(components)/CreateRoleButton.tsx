@@ -76,6 +76,7 @@ const CreateRoleButton = ({
       setLoading(false);
       if (result?.status == 201) {
         // close2FAModal();
+        setOpenModal(false);
         refreshData();
         router.refresh();
       } 

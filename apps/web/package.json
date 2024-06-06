@@ -5,7 +5,7 @@
   "license": "GPL-3.0-only",
   "packageManager": "pnpm@9.1.4",
   "scripts": {
-    "dev": "next dev --port 2323",
+    "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
