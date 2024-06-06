@@ -40,12 +40,6 @@ const EnabledToggle = ({
           }),
           method: 'PATCH',
           data: {
-            "name": rawData?.name,
-            "upstream": rawData?.upstream,
-            "tiers": rawData?.tiers,
-            "downstream": {
-              ...rawData?.downstream,
-            },
             "enabled": !enable,
           }
         });

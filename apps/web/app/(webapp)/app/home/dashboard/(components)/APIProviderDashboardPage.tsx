@@ -12,7 +12,7 @@ import { getCookies } from '@/config/cookies'
 import moment from 'moment'
 import { RefreshStoredToken } from '@/components/globalComponents'
 
-const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsProps) => {
+const APIProviderDashboardPage = async ({ date_filter, alt_data, details_data }: searchParamsProps) => {
   const dateFilter = date_filter ? JSON.parse(date_filter) : {};
   const environment = getCookies('environment');
 
@@ -131,7 +131,11 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data }: searchParamsP
         />
       }
       <h2 className='text-o-text-dark capitalize text-f24 font-[500]'>
-        {`${greetByTime()}, ${((alt_data?.firstName || '') + ' ' + (alt_data?.lastName || '')).trim()}!`}
+        {`${greetByTime()}, ${
+        (
+          (alt_data?.firstName || '') + ' ' + (alt_data?.lastName || '')).trim() ||
+          details_data?.name
+        }!`}
       </h2>
 
       <DatePicker 

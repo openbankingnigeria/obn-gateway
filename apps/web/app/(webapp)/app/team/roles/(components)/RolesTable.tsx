@@ -122,6 +122,7 @@ const RolesTable = ({
 
       if (result?.message) {
         // close2FAModal();
+        closeModal();
         setLoading(false);
         router.refresh();
       }
@@ -167,6 +168,7 @@ const RolesTable = ({
         setLoading(false);
         if (result2?.status == 200) {
           // close2FAModal();
+          setOpenModal('');
           refreshData();
           router.refresh();
         }
@@ -174,6 +176,7 @@ const RolesTable = ({
         setLoading(false);
         if (result?.status == 200) {
           // close2FAModal();
+          setOpenModal('');
           refreshData();
           router.refresh();
         }

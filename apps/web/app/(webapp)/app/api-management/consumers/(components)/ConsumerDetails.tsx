@@ -73,6 +73,7 @@ const ConsumerDetails = ({
       if (result?.status == 200) {
         setLoading(false);
         // close2FAModal();
+        closeModal();
         router.refresh();
       } else {
         setLoading(false);
@@ -100,6 +101,7 @@ const ConsumerDetails = ({
       if (result?.status == 200) {
         setLoading(false);
         // close2FAModal();
+        closeModal();
         router.refresh();
       } else {
         setLoading(false);
