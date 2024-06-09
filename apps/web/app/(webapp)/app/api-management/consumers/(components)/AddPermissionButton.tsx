@@ -109,6 +109,7 @@ const AddPermissionButton = ({
       setLoading(false);
       if (result?.status == 200) {
         // close2FAModal();
+        setOpenModal(false);
         refreshData();
         router.refresh();
       } 

@@ -33,6 +33,7 @@ export interface searchParamsProps {
   profile_data?: any;
   api_id?: string;
   preview?: string;
+  details_data?: any;
 }
 
 export interface ParamsProps {

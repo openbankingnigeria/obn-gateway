@@ -135,6 +135,7 @@ const ConsumerSections = ({
       setLoading(false);
         if (result?.status == 200) {
           // close2FAModal();
+          closeModal();
           refreshData();
           router.refresh();
         }

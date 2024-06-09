@@ -33,7 +33,7 @@ const KeyValueContainer = ({
                   label={index == 0 ? label : ''}
                   autoFocus
                   disabled={preview}
-                  value={keyvalue?.name}
+                  value={keyvalue?.key}
                   changeValue={(value: string) => handleInputChange(value, keyvalue, 'key', containerType)}
                   required
                 />

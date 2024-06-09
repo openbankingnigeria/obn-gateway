@@ -30,6 +30,7 @@ const AppNavBar = ({
   const router = useRouter();
   const { get } = useSearchParams();
   const slug = get('slug');
+  const [businessDetails, setBusinessDetails] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   // const getUserProfile = getJsCookies('aperta-user-profile');
   // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
@@ -52,26 +53,28 @@ const AppNavBar = ({
     setProfile(result?.data);
   }
 
-  // const fetchDetails = async () => {
-  //   const result : any = await clientAxiosRequest({
-  //     headers: {},
-  //     apiEndpoint: API.getCompanyDetails(),
-  //     method: 'GET',
-  //     data: null,
-  //     noToast: true
-  //   });
+  const fetchDetails = async () => {
+    const result : any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyDetails(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
 
-  //   setBusinessDetails(result?.data);
-  // }
+    setBusinessDetails(result?.data);
+  }
 
   useEffect(() => {
     fetchProfile();
-    // fetchDetails();
+    fetchDetails();
   }, []);
 
   let firstName = profile?.firstName;
   let lastName = profile?.lastName;
-  let avatarAlt = `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`
+  let avatarAlt = (firstName || lastName) ? 
+    `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}` :
+    businessDetails?.name ? businessDetails?.name[0] : '';
 
   // const unReadNotifications = NOTIFICATIONS_DATA;
   // const notifications = NOTIFICATIONS_DATA?.slice(0, 5);

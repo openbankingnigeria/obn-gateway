@@ -7,13 +7,13 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import * as API from '@/config/endpoints';
-import { setJsCookies } from '@/config/jsCookie'
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
 import { truncateString } from '@/utils/truncateString'
 
 const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const pathname = usePathname();
   const [profile, setProfile] = useState<any>();
+  const [businessDetails, setBusinessDetails] = useState<any>(null);
   let userPermissions = profile?.user?.role?.permissions
 
   async function fetchProfile() {
@@ -33,8 +33,21 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
     // }))
   }
 
+  const fetchDetails = async () => {
+    const result : any = await clientAxiosRequest({
+      headers: {},
+      apiEndpoint: API.getCompanyDetails(),
+      method: 'GET',
+      data: null,
+      noToast: true
+    });
+
+    setBusinessDetails(result?.data);
+  }
+
   useEffect(() => {
     fetchProfile();
+    fetchDetails();
   }, []);
 
   const isActive = (path: string): boolean => {
@@ -43,7 +56,9 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
 
   let firstName = profile?.firstName;
   let lastName = profile?.lastName;
-  let avatarAlt = `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`
+  let avatarAlt = (firstName || lastName) ? 
+    `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}` :
+    businessDetails?.name ? businessDetails?.name[0] : '';
 
   return (
     <aside className={`fixed w-[280px] z-[100] left-0 bottom-0 ${bannerExist ? 'h-[calc(100vh-56px)]' : 'h-screen'} border-r border-o-border bg-white flex flex-col gap-[24px] py-[24px]`}>
@@ -56,7 +71,13 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
 
           <div className='flex flex-col w-full gap-[2px]'>
             <h3 className='capitalize truncate w-full text-white text-f14 font-[500]'>
-              {firstName ? truncateString(`${firstName}`, 22) : ''}
+              {
+                firstName ? 
+                  truncateString(`${firstName}`, 22) : 
+                  businessDetails?.name ? 
+                    truncateString(businessDetails?.name, 22) :
+                    ''
+              }
             </h3>
 
             <div className='w-full capitalize text-o-alt-white text-f12'>

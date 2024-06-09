@@ -76,6 +76,7 @@ const MembersTable = ({
         setLoadingReinvitation(false);
         setLoading(false);
         // close2FAModal();
+        setOpenModal('');
         router.refresh();
       } else {
         setLoadingReinvitation(false);

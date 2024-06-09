@@ -69,6 +69,7 @@ const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
       (profile?.user?.role?.parent?.slug == 'api-provider') ?
         <APIProviderDashboardPage
           date_filter={date_filter}
+          details_data={companyDetails}
           alt_data={profile}
         />
         :
