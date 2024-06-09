@@ -38,7 +38,7 @@ if ! [ -x "$(command -v docker)" ]; then
     # Docker not installed, download and install the latest version
     echo "Docker is not installed. Downloading and installing the latest version..."
     curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
+    sudo sh get-docker.sh || exit 1
 elif [[ "$(docker --version | awk '{print $3}' | cut -d',' -f1 | cut -d'.' -f1)" -lt 23 ]]; then
     # Docker version is below 23, prompt user to update
     echo "Docker version is below 23. Please update to a newer version."
@@ -50,9 +50,9 @@ if ! [ -x "$(command -v git)" ]; then
     echo "Git is not installed. Installing Git..."
     if [ -x "$(command -v apt-get)" ]; then
         sudo apt-get update
-        sudo apt-get install -y git
+        sudo apt-get install -y git || exit 1
     elif [ -x "$(command -v yum)" ]; then
-        sudo yum install -y git
+        sudo yum install -y git || exit 1
     else
         echo "Unable to install Git. Please install Git manually."
         exit 1

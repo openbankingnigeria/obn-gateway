@@ -1,8 +1,7 @@
 # Stage 1: Build
 FROM node:18-alpine AS build
 
-# Install build dependencies
-RUN apk update && apk add --no-cache curl && corepack enable
+RUN corepack enable
 
 # Set working directory
 WORKDIR /usr/src/server
@@ -18,8 +17,7 @@ RUN pnpm build
 # Stage 2: Production
 FROM node:18-alpine
 
-# Install runtime dependencies
-RUN apk update && apk add --no-cache curl && corepack enable
+RUN corepack enable
 
 # Set working directory
 WORKDIR /usr/src/server

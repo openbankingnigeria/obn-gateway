@@ -327,7 +327,11 @@ services:
       - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - ELASTIC_HOSTS=https://es:9200
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:9600/_node/stats || exit 1"
+        ]
       interval: 1s
       timeout: 5s
       retries: 30
@@ -381,7 +385,13 @@ services:
       - NEXT_PUBLIC_BASE_API_ENDPOINT=${SERVER_API_ENDPOINT:-http://localhost:${SERVER_PORT:-4000}}
       - BASE_API_ENDPOINT=${BASE_API_SERVER_API_ENDPOINT:-http://obn-server:${SERVER_PORT:-4000}}
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:3000 || exit 1" ]
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          '(echo -e "GET / HTTP/1.1\r\nhost: 127.0.0.1\r\n\r\n"; sleep 0.5) | nc 127.0.0.1 3000 | head -n 1 | grep -q "200" -s -m 1'
+        ]
       interval: 1s
       timeout: 5s
       retries: 30
@@ -399,7 +409,7 @@ services:
     build: ./apps/server
     container_name: obn-server
     ports:
-      - ${SERVER_PORT:-4000}:${SERVER_PORT:-4000}
+      - ${SERVER_PORT:-4000}:4000
     depends_on:
       mysql:
         condition: service_healthy
@@ -412,7 +422,13 @@ services:
       server-setup:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "./healthcheck.sh"]
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          '(echo -e "GET /app/health HTTP/1.1\r\nhost: 127.0.0.1\r\n\r\n"; sleep 0.5) | nc 127.0.0.1 4000 | head -n 1 | grep -q "200" -s -m 1'
+        ]
       interval: 1s
       timeout: 5s
       retries: 30
