@@ -26,6 +26,7 @@ export enum EMAIL_TEMPLATES {
   RESET_PASSWORD_REQUEST = 'reset-password-request',
   RESET_PASSWORD = 'reset-password',
   COMPANY_KYB_APPROVED = 'company-kyb-approved',
+  COMPANY_KYB_SUBMITTED = 'company-kyb-submitted',
   COMPANY_KYB_DENIED = 'company-kyb-denied',
   VERIFY_EMAIL = 'verify-email',
 }
