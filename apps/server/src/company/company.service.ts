@@ -27,6 +27,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CompanyApprovedEvent,
   CompanyDeniedEvent,
+  CompanyKybSubmittedEvent,
 } from '@shared/events/company.event';
 import {
   GetCompanyCustomFieldsResponseDTO,
@@ -207,6 +208,14 @@ export class CompanyService {
         accountNumber: data.accountNumber,
       },
     );
+
+    // SEND EMAIL
+    const event = new CompanyKybSubmittedEvent(
+      ctx.activeUser,
+      ctx.activeCompany,
+    );
+
+    this.eventEmitter.emit(event.name, event);
 
     return ResponseFormatter.success(
       'Successfully updated company KYB details.',

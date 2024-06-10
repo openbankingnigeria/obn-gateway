@@ -35,6 +35,7 @@ import {
   CompanyApprovedEvent,
   CompanyDeniedEvent,
   CompanyEvents,
+  CompanyKybSubmittedEvent,
 } from '@shared/events/company.event';
 import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
 import { EmailSettingsInterface, SETTINGS_TYPES } from 'src/settings/types';
@@ -228,6 +229,34 @@ export class EmailService {
         this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_APPROVED, admin.email, {
           name: admin.profile!.firstName,
           apiProvider: apiProvider.name!,
+        });
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  @OnEvent(CompanyEvents.COMPANY_KYB_SUBMITTED)
+  protected async handleCompanyKybSubmitted(event: CompanyKybSubmittedEvent) {
+    try {
+      const apiProvider = await this.companyRepository.findOneOrFail({
+        where: { type: CompanyTypes.API_PROVIDER },
+        order: { id: 'ASC' },
+      });
+
+      const admins = await this.userRepository.find({
+        where: {
+          companyId: Equal(apiProvider.id),
+          role: {
+            slug: Equal(ROLES.ADMIN),
+          },
+        },
+      });
+
+      admins.forEach((admin) => {
+        this.sendEmail(EMAIL_TEMPLATES.COMPANY_KYB_SUBMITTED, admin.email, {
+          apiConsumerName: event.company.name!,
+          apiConsumerEmail: event.author.email,
         });
       });
     } catch (error) {
