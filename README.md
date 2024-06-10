@@ -6,7 +6,17 @@ Welcome to the OpenBanking Gateway project. This guide provides detailed instruc
  
 You can choose to run this on your local environment or using Docker/Docker Compose. Docker is the preferred method for ease of setup and consistency as all dependencies are defined within the docker-compose configuration file.  
  
-## Docker Installation Steps  
+## Docker Installation Steps
+
+### 0. Quick Setup
+
+For a rapid deployment, bypass manual configuration steps 1 through 4 by executing the setup script below. This script automates the cloning of the OpenBanking Gateway repository, the setup of necessary environment variables, and the initiation of the Docker containers.
+
+Execute the following command in your terminal:
+
+```shell  
+curl -fsSL raw.githubusercontent.com/openbankingnigeria/obn-gateway/main/install.sh -o install.sh && sh install.sh
+```
 
 ### 1. Docker Version
   Confirm your Docker version is v23.0 or higher
