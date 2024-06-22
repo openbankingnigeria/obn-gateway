@@ -17,6 +17,7 @@ const LogoutTimer: React.FC<LogoutTimerProps> = ({ timeout }) => {
       clearTimeout(timer);
       timer = setTimeout(() => {
         setIsActive(false);
+        console.log('<<< inactivity logout >>>')
         removeJsCookies('aperta-user-accessToken');
         window.location.href = '/';
       }, Math.min(timeout, 2 ** 31 - 1));
