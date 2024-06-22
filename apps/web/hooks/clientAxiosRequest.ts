@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 
 import { getJsCookies, setJsCookies, removeJsCookies } from "@/config/jsCookie";
@@ -14,11 +13,11 @@ const clientAxiosRequest = async ({
   data,
   noToast,
 }: HttpRequestProps) => {
-  const token = getJsCookies('aperta-user-accessToken');
+  let token = getJsCookies('aperta-user-accessToken');
   const refreshToken = getJsCookies('aperta-user-refreshToken');
 
   try {
-    const res = await applyAxiosRequest({
+    let res: any = await applyAxiosRequest({
       headers: {
         Authorization: `Bearer ${token}`,
         ...headers
@@ -31,7 +30,7 @@ const clientAxiosRequest = async ({
     if (res.status == 200 || res.status == 201) {
       !noToast && toast.success(res.message);
     } else if (res.status == 401) {
-        const refreshTokenRes = await applyAxiosRequest({
+        let refreshTokenRes: any = await applyAxiosRequest({
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -43,12 +42,27 @@ const clientAxiosRequest = async ({
         });
 
         if (refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201) {
-          setJsCookies('aperta-user-accessToken', refreshTokenRes?.data?.accessToken);
+          token = refreshTokenRes?.data?.accessToken;
+          setJsCookies('aperta-user-accessToken', token);
           setJsCookies('aperta-user-refreshToken', refreshTokenRes?.data?.refreshToken);
+
+          res = await applyAxiosRequest({
+            headers: {
+              Authorization: `Bearer ${token}`,
+              ...headers
+            },
+            apiEndpoint,
+            method,
+            data
+          });
+
+          if (!noToast && (res.status === 200 || res.status === 201)) {
+            toast.success(res.message);
+          }
         } else {
           !noToast && toast.error(
-            typeof res?.message == 'string' ?
-            res?.message : JSON.stringify(res?.message)
+            typeof refreshTokenRes?.message == 'string' ?
+            refreshTokenRes?.message : JSON.stringify(refreshTokenRes?.message)
           );
           removeJsCookies('aperta-user-accessToken');
           window.location.href = '/';
@@ -61,10 +75,10 @@ const clientAxiosRequest = async ({
     }
 
     return res;
-  } catch(err) {
+  } catch(err: any) {
     !noToast && toast.error(
-      typeof res?.message == 'string' ?
-      res?.message : JSON.stringify(res?.message)
+      typeof err?.message == 'string' ?
+      err?.message : JSON.stringify(err?.message)
     );
     return ({
       message: err?.message || err,

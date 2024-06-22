@@ -5,7 +5,9 @@ import { toast } from 'react-toastify';
 
 const ToastMessage = ({ message }: { message: string }) => {
   useEffect(() => {
-    toast.error(message)
+    (message?.toLowerCase()?.includes('invalid credentials')) ?
+      null :
+      toast.error(message);
   }, []);
 
   return null
