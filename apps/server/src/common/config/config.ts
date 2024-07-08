@@ -18,6 +18,7 @@ export const globalConfig = (): {
       port: parseInt(process.env.SERVER_PORT as string, 10) || 8089,
       managementUrl: process.env.MANAGEMENT_URL,
       trustedOrigins: process.env.TRUSTED_ORIGINS,
+      defaultDownstreamUrl: process.env.DEFAULT_DOWNSTREAM_URL,
     },
     database: {
       type: 'mysql',
