@@ -239,6 +239,21 @@ async function performSetupTasks(): Promise<void> {
                 return acc + '/' + curr;
               }, '') +
               '$';
+            if (
+              config.get('system.defaultDownstreamUrl') &&
+              environment === KONG_ENVIRONMENT.DEVELOPMENT
+            ) {
+              const defaultDownstreamUrl = new URL(
+                config.get('system.defaultDownstreamUrl')!,
+              );
+              const requestUrl = new URL(request.url);
+              defaultDownstreamUrl.pathname += defaultDownstreamUrl.pathname =
+                '/' && requestUrl.pathname.startsWith('/')
+                  ? requestUrl.pathname.slice(1)
+                  : requestUrl.pathname;
+              defaultDownstreamUrl.search = requestUrl.search;
+              request.url = defaultDownstreamUrl.toString();
+            }
             api = await apiService.createAPI(
               ctx,
               environment as KONG_ENVIRONMENT,
@@ -265,7 +280,15 @@ async function performSetupTasks(): Promise<void> {
                   request,
                   response,
                 },
-                tiers: environment === 'development' ? [CompanyTiers.TIER_0, CompanyTiers.TIER_1, CompanyTiers.TIER_2, CompanyTiers.TIER_3] : [CompanyTiers.TIER_3],
+                tiers:
+                  environment === 'development'
+                    ? [
+                        CompanyTiers.TIER_0,
+                        CompanyTiers.TIER_1,
+                        CompanyTiers.TIER_2,
+                        CompanyTiers.TIER_3,
+                      ]
+                    : [CompanyTiers.TIER_3],
               }),
             );
             const transformationData = {
