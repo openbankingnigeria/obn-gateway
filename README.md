@@ -83,7 +83,7 @@ To run `maildev` using Docker:
    maildev/maildev bin/maildev --web 80 --smtp 3007
 ```
 
-Visit [http://localhost:1080] to view all messages sent from the application.  
+Visit <http://localhost:1080> to view all messages sent from the application.  
 
 ### 6. Verify Installation
 

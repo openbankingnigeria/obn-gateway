@@ -451,7 +451,6 @@ export class AuthService {
       count: 0,
     });
 
-    // TODO verify if this is optimal
     const refreshToken = await this.auth.sign(
       {
         id: user.id,
@@ -464,7 +463,7 @@ export class AuthService {
     );
 
     user.lastLogin = moment(verifyToken.iat * 1000).toDate();
-    user.refreshToken = refreshToken;
+    user.refreshToken = await this.auth.hashToken(refreshToken);
     await this.userRepository.save(user);
 
     const event = new AuthLoginEvent(user);
@@ -485,7 +484,9 @@ export class AuthService {
     let decoded: { id: string; count: number; iat: number }, user;
     const refreshTokenLimit = 96;
     try {
-      user = await this.userRepository.findOneByOrFail({ refreshToken: token });
+      user = await this.userRepository.findOneByOrFail({
+        refreshToken: await this.auth.hashToken(token),
+      });
       decoded = await this.auth.verify(token, user.password);
       if (decoded.id !== user.id) {
         throw new IBadRequestException({
@@ -510,7 +511,6 @@ export class AuthService {
       count: decoded.count + 1,
     });
 
-    // TODO verify if this is optimal
     const refreshToken = await this.auth.sign(
       {
         id: user.id,
@@ -523,7 +523,7 @@ export class AuthService {
     );
 
     user.lastLogin = moment(verifyToken.iat * 1000).toDate();
-    user.refreshToken = refreshToken;
+    user.refreshToken = await this.auth.hashToken(refreshToken);
     await this.userRepository.save(user);
 
     return ResponseFormatter.success(
