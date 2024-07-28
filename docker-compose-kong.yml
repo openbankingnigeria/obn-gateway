@@ -9,7 +9,7 @@ x-kong-config: &kong-env
   KONG_ADMIN_ERROR_LOG: /dev/stderr
   KONG_PROXY_ACCESS_LOG: /dev/stdout
   KONG_PROXY_ERROR_LOG: /dev/stderr
-  KONG_PREFIX: ${KONG_PREFIX:-/var/run/kong}
+  KONG_PREFIX: /var/run/kong
   KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: cjson.safe
   KONG_ADMIN_LISTEN: "0.0.0.0:8001 reuseport backlog=16384, 0.0.0.0:8444 http2 ssl reuseport backlog=16384"
   KONG_PLUGINS: "bundled,obn-authorization,obn-request-validator"
@@ -55,7 +55,7 @@ services:
       - kong-net
     restart: on-failure
     volumes:
-      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
+      - kong_prefix_vol:/var/run/kong
       - kong_tmp_vol:/tmp
       - ./config/certs/kong:/opt/kong
 
@@ -75,7 +75,7 @@ services:
       - kong-net
     restart: on-failure
     volumes:
-      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
+      - kong_prefix_vol:/var/run/kong
       - kong_tmp_vol:/tmp
       - ./config/certs/kong:/opt/kong
 
@@ -103,7 +103,7 @@ services:
       retries: 30
     restart: on-failure:5
     volumes:
-      - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
+      - kong_prefix_vol:/var/run/kong
       - kong_tmp_vol:/tmp
       - ./config/certs/kong:/opt/kong
       - ./apps/kong/plugins/obn-authorization:/usr/local/share/lua/5.1/kong/plugins/obn-authorization
