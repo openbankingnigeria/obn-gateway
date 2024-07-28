@@ -85,6 +85,7 @@ x-obn-server-config: &obn_server_config
     ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
     ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:?ELASTICSEARCH_PASSWORD is required}
     TRUSTED_ORIGINS: ${TRUSTED_ORIGINS}
+    DEFAULT_DOWNSTREAM_URL: ${DEFAULT_DOWNSTREAM_URL}
   volumes:
     - certs:/usr/src/server/certs
   secrets:
