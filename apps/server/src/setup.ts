@@ -248,7 +248,7 @@ async function performSetupTasks(): Promise<void> {
               );
               const requestUrl = new URL(request.url);
               defaultDownstreamUrl.pathname += defaultDownstreamUrl.pathname =
-                '/' && requestUrl.pathname.startsWith('/')
+                requestUrl.pathname.startsWith('/')
                   ? requestUrl.pathname.slice(1)
                   : requestUrl.pathname;
               defaultDownstreamUrl.search = requestUrl.search;

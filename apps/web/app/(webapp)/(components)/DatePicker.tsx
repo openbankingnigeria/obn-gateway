@@ -28,8 +28,8 @@ const DatePicker = ({
   const date_filter = dateFilter ? JSON.parse(dateFilter) : null;
 
   const router = useRouter();
-  const [start_date, setStartDate] = useState<DateType | undefined>('');
-  const [end_date, setEndDate] = useState<DateType | undefined>('');
+  const [start_date, setStartDate] = useState<DateType | undefined>(undefined);
+  const [end_date, setEndDate] = useState<DateType | undefined>(undefined);
   const [isOpen, setOpen] = useState(false);
 
   useEffect(() => {
@@ -39,8 +39,8 @@ const DatePicker = ({
           date_filter?.start_date
     );
     setEndDate( 
-      clearField ? '' :
-        asSingle ? '' : 
+      clearField ? undefined :
+        asSingle ? undefined : 
           date_filter?.end_date
     );
   }, [date_filter, asSingle, clearField]);
@@ -56,7 +56,7 @@ const DatePicker = ({
       });
 
     setStartDate(value?.startDate);
-    setEndDate(asSingle ? '' : value?.endDate);
+    setEndDate(asSingle ? undefined : value?.endDate);
 
     const newPathName = updateSearchParams((name || 'date_filter'), stringifiedValue);
     router.push(newPathName);
