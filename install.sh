@@ -72,6 +72,12 @@ if [ ! -f ".env" ]; then
     cp .env.example .env
 fi
 
+# Check if .env.test file exists, if not, copy content from .env.test.example
+if [ ! -f ".env.test" ]; then
+    echo ".env.test file not found. Copying content from .env.test.example..."
+    cp .env.test.example .env.test
+fi
+
 # Prompt user to provide values for environment variables
 read_and_update_env_variable "COMPANY_NAME" "Enter COMPANY_NAME (institution name): "
 read_and_update_env_variable "DEFAULT_EMAIL" "Enter DEFAULT_EMAIL (root email): "
