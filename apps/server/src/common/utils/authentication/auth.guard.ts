@@ -19,7 +19,7 @@ import { User } from '@common/database/entities';
 import { Equal, IsNull, Not, Repository } from 'typeorm';
 import { PERMISSIONS } from 'src/permissions/types';
 import * as speakeasy from 'speakeasy';
-import * as moment from 'moment';
+import moment from 'moment';
 import { RequestContext } from '../request/request-context';
 
 @Injectable()

@@ -32,7 +32,7 @@ import {
   UserReactivatedEvent,
 } from 'src/shared/events/user.event';
 import { Auth } from '@common/utils/authentication/auth.helper';
-import * as moment from 'moment';
+import moment from 'moment';
 import { userSuccessMessages } from '@users/user.constants';
 import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { RequestContext } from '@common/utils/request/request-context';
