@@ -2,11 +2,38 @@
 node_modules
 dist
 build
+coverage
+.jest-cache
+test-results
+junit.xml
 
 # IDE
 .idea
 .vscode
 
-# local
-.env
+# Environment specific files
+*.env
+.env.local
+.env.development
+.env.test
+.env.production
 .DS_Store
+
+# Test related files (already in your structure)
+sqlite3-installing
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local development files
+*.local
+
+# SQLite installation artifacts
+sqlite3-installing
+sqlite3-install.log
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-journal
