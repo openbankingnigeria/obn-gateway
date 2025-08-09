@@ -1,9 +1,9 @@
 import 'jest-extended/all';
 import { DataSource } from 'typeorm';
 import ormConfig from './ormconfig.testing';
+import { getTestDbConfig } from '../server/src/test-utils/config/test-db-config';
 import 'jest-chain';
 
-// Type extensions for custom matchers
 declare global {
   namespace jest {
     interface Matchers<R extends void | Promise<void>, T = {}> {
@@ -17,7 +17,46 @@ declare global {
   }
 }
 
-// Custom matchers
+let testDataSource: DataSource;
+
+beforeAll(async () => {
+  try {
+    if (process.env.USE_REAL_DB === 'true') {
+      testDataSource = new DataSource(getTestDbConfig());
+      await testDataSource.initialize();
+      await testDataSource.runMigrations();
+    }
+  } catch (error) {
+    console.error('Test DB initialization failed:', error);
+    throw error;
+  }
+});
+
+afterAll(async () => {
+  if (testDataSource?.isInitialized) {
+    await testDataSource.destroy();
+  }
+});
+
+beforeEach(async () => {
+  jest.clearAllMocks();
+  
+  if (testDataSource) {
+    const queryRunner = testDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    (global as any).__TEST_QUERY_RUNNER__ = queryRunner;
+  }
+});
+
+afterEach(async () => {
+  const queryRunner = (global as any).__TEST_QUERY_RUNNER__;
+  if (queryRunner) {
+    await queryRunner.rollbackTransaction();
+    await queryRunner.release();
+  }
+});
+
 expect.extend({
   toBeWithinRange(received: number, floor: number, ceiling: number) {
     const pass = received >= floor && received <= ceiling;
@@ -56,7 +95,6 @@ expect.extend({
   },
 });
 
-let testDataSource: DataSource;
 
 const initializeDatabase = async () => {
   try {
@@ -78,49 +116,3 @@ const destroyDatabase = async () => {
     console.log('✅ Test database destroyed');
   }
 };
-
-// Test lifecycle hooks
-beforeAll(async () => {
-  try {
-    testDataSource = new DataSource(ormConfig);
-    await testDataSource.initialize();
-  } catch (error) {
-    console.error('Test DB initialization failed - using mock');
-    jest.mock('typeorm', () => ({
-      DataSource: jest.fn(() => ({
-        initialize: jest.fn().mockResolvedValue(true),
-        destroy: jest.fn()
-      }))
-    }));
-  }
-});
-
-afterAll(async () => {
-  if (testDataSource?.isInitialized) {
-    await testDataSource.destroy();
-  }
-});
-
-beforeEach(async () => {
-  jest.clearAllMocks();
-  
-  // Start transaction for each test
-  if (testDataSource) {
-    const queryRunner = testDataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    
-    // Attach queryRunner to test context
-    (global as any).__TEST_QUERY_RUNNER__ = queryRunner;
-  }
-});
-
-afterEach(async () => {
-  // Rollback transaction after each test
-  const queryRunner = (global as any).__TEST_QUERY_RUNNER__;
-  if (queryRunner) {
-    await queryRunner.rollbackTransaction();
-    await queryRunner.release();
-    (global as any).__TEST_QUERY_RUNNER__ = undefined;
-  }
-});

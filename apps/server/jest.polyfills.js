@@ -1,4 +1,3 @@
-// Polyfills for Node.js 18+ (required for Jest)
 const { TextEncoder, TextDecoder } = require('node:util');
 const { ReadableStream, WritableStream, TransformStream } = require('node:stream/web');
 const { Blob, File } = require('node:buffer');
@@ -22,8 +21,7 @@ Object.assign(global, {
 
 // Environment variables
 process.env.NODE_ENV = 'test';
-process.env.API_BASE_URL = 'http://test-api.example.com';
-process.env.TZ = 'Africa/Lagos'; // Ensure consistent timezone for tests
+process.env.TZ = 'Africa/Lagos';
 
 // Mock Date to a fixed value in CI for deterministic tests
 if (process.env.CI) {
