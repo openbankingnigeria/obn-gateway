@@ -1,4 +1,4 @@
-import { getTestDbConfig } from './src/test-utils/config/test-db-config';
+import { getTestDbConfig } from './utils/config/test-db-config';
 const ormConfig = getTestDbConfig();
 export default ormConfig;
 

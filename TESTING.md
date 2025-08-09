@@ -3,13 +3,13 @@
 ## Running Tests
 
 ### Before run test Commands
-cd apps/server
-pnpm store prune
-pnpm jest --clearCache
-rm -rf dist node_modules/.cache
-pnpm install
-pnpm build
-rm -rf tsconfig.tsbuildinfo
+pnpm store prune                # Cleans unused packages from PNPM store
+pnpm jest --clearCache          # Clears Jest test cache
+rm -rf dist node_modules/.cache # Removes build artifacts and cached modules
+rm -rf tsconfig.tsbuildinfo     # Clears TypeScript build info (prevents stale builds)
+pnpm install                    # Fresh install of all dependencies
+pnpm build                      # Rebuild the project
+pnpm approve-builds sqlite3
 
 ### Basic Commands
 ```bash

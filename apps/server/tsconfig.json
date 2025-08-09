@@ -38,7 +38,7 @@
       "@users/*": ["src/users/*"],
       "@company/*": ["src/company/*"],
       "@settings/*": ["src/settings/*"],
-      "@test-utils/*": ["src/test-utils/*"],
+      "@utils/*": ["/test/utils/*"],
       "src/apis/*": ["src/apis/*"],
       "src/*": ["src/*"]
     },
@@ -50,6 +50,6 @@
     "incremental": true
   },
   "references": [
-    { "path": "./src/test-utils/tsconfig.json" }
+    { "path": "./test/utils/tsconfig.json" }
   ]
 }

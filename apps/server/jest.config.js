@@ -1,17 +1,17 @@
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: '<rootDir>/src/test-utils/config/jest-environment.ts',
+  testEnvironment: '<rootDir>/test/utils/config/jest-environment.ts',
 
   setupFiles: [
     'tsconfig-paths/register',
-    '<rootDir>/jest.polyfills.js',
-    '<rootDir>/jest.mocks.js',
+    '<rootDir>/test/jest.polyfills.js',
+    '<rootDir>/test/jest.mocks.js',
   ],
 
   setupFilesAfterEnv: [
-    '<rootDir>/src/test-utils/config/test-db-config.ts',
-    '<rootDir>/jest.setup.ts',
-    '<rootDir>/src/test-utils/config/test-setup.ts',
+    '<rootDir>/test/utils/config/test-db-config.ts',
+    '<rootDir>/test/jest.setup.ts',
+    '<rootDir>/test/utils/config/test-setup.ts',
     'jest-extended/all'
   ],
 
@@ -26,7 +26,7 @@ module.exports = {
     '^@users/(.*)$': '<rootDir>/src/users/$1',
     '^@company/(.*)$': '<rootDir>/src/company/$1',
     '^@settings/(.*)$': '<rootDir>/src/settings/$1',
-    '^@test-utils/(.*)$': '<rootDir>/src/test-utils/$1',
+    '^@utils/(.*)$': '<rootDir>/test/utils/$1',
     '^src/apis/(.*)$': '<rootDir>/src/apis/$1',
     '^src/(.*)$': '<rootDir>/src/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -56,8 +56,8 @@ module.exports = {
   },
 
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  globalSetup: '<rootDir>/src/test-utils/config/global-setup.ts',
-  globalTeardown: '<rootDir>/src/test-utils/config/global-teardown.ts',
+  globalSetup: '<rootDir>/test/utils/config/global-setup.ts',
+  globalTeardown: '<rootDir>/test/utils/config/global-teardown.ts',
   testMatch: ['**/*.test.ts', '**/*.spec.ts'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/.next/', '/e2e/', '/coverage/'],
   collectCoverage: true,
@@ -81,19 +81,19 @@ module.exports = {
     '/src/shared/integrations/',
     '/src/shared/protocols/',
   ],
-  coverageDirectory: 'coverage',
+  coverageDirectory: 'test/coverage',
   coverageReporters: ['text', 'html', 'lcov', 'text-summary', 'clover'],
   coverageThreshold: {
     global: { branches: 80, functions: 80, lines: 80, statements: 80 },
   },
   reporters: [
     'default',
-    ['jest-junit', { outputDirectory: 'test-results', outputName: 'junit.xml', includeConsoleOutput: true }],
-    ['jest-html-reporter', { outputPath: 'test-results/test-report.html', pageTitle: 'Test Report', includeFailureMsg: true, includeConsoleLog: true }],
+    ['jest-junit', { outputDirectory: 'test/test-results', outputName: 'junit.xml', includeConsoleOutput: true }],
+    ['jest-html-reporter', { outputPath: 'test/test-results/test-report.html', pageTitle: 'Test Report', includeFailureMsg: true, includeConsoleLog: true }],
   ],
   maxWorkers: process.env.CI ? '50%' : '80%',
   workerIdleMemoryLimit: '512MB',
-  cacheDirectory: '<rootDir>/.jest-cache',
+  cacheDirectory: '<rootDir>/test/.jest-cache',
   silent: true,
   verbose: true,
   bail: false,

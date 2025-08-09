@@ -1,7 +1,7 @@
 import 'jest-extended/all';
 import { DataSource } from 'typeorm';
 import ormConfig from './ormconfig.testing';
-import { getTestDbConfig } from '../server/src/test-utils/config/test-db-config';
+import { getTestDbConfig } from './utils/config/test-db-config';
 import 'jest-chain';
 
 declare global {
