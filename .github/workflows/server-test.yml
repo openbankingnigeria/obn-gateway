@@ -35,8 +35,8 @@ jobs:
         with:
           version: "10.14.0"
 
-      - name: Install SQLite3
-        run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev
+      # - name: Install SQLite3
+      #   run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev
 
       # - name: Get pnpm store directory
       #   shell: bash
@@ -52,6 +52,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Install Sqlite3
+        run: npm install sqlite3 --save
 
       - name: Build server
         run: pnpm --filter server build
