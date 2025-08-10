@@ -2,8 +2,16 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "outDir": "./dist",
-    "noImplicitAny": false,
-    "strictNullChecks": false
-  }
+    "outDir": "../../dist/test/utils",
+    "rootDir": "../../",
+    "types": ["node", "jest"],
+    "baseUrl": "../../" 
+  },
+  "include": [
+    "**/*.ts",
+    "../../src/**/*.ts",
+    "../../src/**/*.entity{.ts,.js}",
+    "../../src/common/database/entities/*.entity.ts"
+  ],
+  "exclude": ["node_modules"]
 }

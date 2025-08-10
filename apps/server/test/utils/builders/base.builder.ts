@@ -1,11 +1,14 @@
 import { faker } from '@faker-js/faker';
 
-export abstract class EntityBuilder<T> {
+export abstract class EntityBuilder<T extends { id?: string }> {
   protected instance: Partial<T>;
   protected faker = faker;
 
   constructor(defaults: Partial<T> = {}) {
-    this.instance = defaults;
+    this.instance = {
+      id: this.faker.string.uuid(), // Auto-generate ID for all entities
+      ...defaults
+    };
   }
 
   /**
@@ -30,7 +33,8 @@ export abstract class EntityBuilder<T> {
    * Override to add validation logic
    */
   protected validate(): boolean {
-    return true;
+    // Default validation ensures ID exists
+    return !!this.instance.id; 
   }
 
   /**
