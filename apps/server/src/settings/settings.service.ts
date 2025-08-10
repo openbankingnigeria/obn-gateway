@@ -498,19 +498,29 @@ export class SettingsService {
       const errors: any = {};
       // Validate the data
       type FieldType = 'email' | 'password' | 'text' | 'dropdown';
-      const validFieldTypes: FieldType[] = ['email', 'password', 'text', 'dropdown'];
+      const validFieldTypes: FieldType[] = [
+        'email',
+        'password',
+        'text',
+        'dropdown',
+      ];
 
       for (const [fieldName, fieldConfig] of Object.entries(data)) {
-        if (!fieldConfig || typeof fieldConfig !== 'object' || Array.isArray(fieldConfig)) {
+        if (
+          !fieldConfig ||
+          typeof fieldConfig !== 'object' ||
+          Array.isArray(fieldConfig)
+        ) {
           errors[fieldName] = 'Invalid field configuration';
           continue;
         }
 
         for (const [innerKey, innerValue] of Object.entries(fieldConfig)) {
           if (!validFieldTypes.includes(innerValue.type)) {
-            errors[innerKey] = `Type must be one of: ${validFieldTypes.join(', ')}`;
+            errors[innerKey] =
+              `Type must be one of: ${validFieldTypes.join(', ')}`;
           }
-          
+
           if (typeof innerValue.label !== 'string') {
             errors[innerKey] = 'Label must be a string';
           }
