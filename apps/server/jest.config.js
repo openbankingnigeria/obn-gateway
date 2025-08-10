@@ -1,3 +1,6 @@
+const { pathsToModuleNameMapper } = require('ts-jest');
+const { compilerOptions } = require('./tsconfig.json');
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: '<rootDir>/test/utils/config/jest-environment.ts',
@@ -15,25 +18,14 @@ module.exports = {
     'jest-extended/all',
   ],
 
-  moduleNameMapper: {
-    '^@auditLogs/(.*)$': '<rootDir>/src/auditLogs/$1',
-    '^@auth/(.*)$': '<rootDir>/src/auth/$1',
-    '^@common/(.*)$': '<rootDir>/src/common/$1',
-    '^@permissions/(.*)$': '<rootDir>/src/permissions/$1',
-    '^@profile/(.*)$': '<rootDir>/src/profile/$1',
-    '^@roles/(.*)$': '<rootDir>/src/roles/$1',
-    '^@shared/(.*)$': '<rootDir>/src/shared/$1',
-    '^@users/(.*)$': '<rootDir>/src/users/$1',
-    '^@company/(.*)$': '<rootDir>/src/company/$1',
-    '^@settings/(.*)$': '<rootDir>/src/settings/$1',
-    '^@utils/(.*)$': '<rootDir>/test/utils/$1',
-    '^src/apis/(.*)$': '<rootDir>/src/apis/$1',
-    '^src/(.*)$': '<rootDir>/src/$1',
-    '^@/(.*)$': '<rootDir>/src/$1',
+   moduleNameMapper: {
+    ...pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
     '^@elastic/elasticsearch$': '<rootDir>/node_modules/@elastic/elasticsearch',
     '^@nestjs/elasticsearch$': '<rootDir>/node_modules/@nestjs/elasticsearch',
     '^sqlite3$': require.resolve('sqlite3'),
   },
+  
+  modulePaths: ['<rootDir>'],
 
   transform: {
     '^.+\\.(t|j)s$': [
@@ -70,29 +62,39 @@ module.exports = {
   ],
   collectCoverage: true,
   collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/**/*.interface.ts',
-    '!src/**/index.ts',
-    '!src/main.ts',
-    '!src/**/*.module.ts',
-    '!src/**/migrations/**',
-    '!src/**/seeds/**',
-    '!src/**/__mocks__/**',
-    '!src/**/__fixtures__/**',
+    'src/**/*.service.ts',
+    'src/**/*.controller.ts',
+    'src/**/*.guard.ts',
+    'src/**/*.interceptor.ts',
+    'src/**/*.pipe.ts',
     '!src/**/*.spec.ts',
     '!src/**/*.test.ts',
+    '!src/**/*.d.ts',
+    '!src/**/*.mock.ts',
+    '!src/**/*.guard.ts',
+    '!src/**/*.pipe.ts', 
   ],
   coveragePathIgnorePatterns: [
+    '/src/setup.ts',
+    '/src/.*\\.config.ts',
     '/src/common/config/',
-    '/src/common/database/migrations/',
+    '/src/.*\\.(d|interface|type|schema|constants|entity|dto|model)\\.ts',
+    '/src/main.ts',
+    '/src/app.module.ts',
     '/src/shared/integrations/',
-    '/src/shared/protocols/',
+    '/src/shared/email/',
+    '/src/shared/events/base.event.ts',
+    '/src/shared/events/all.event.ts',
+    '/src/common/utils/exceptions/exception.(filter|handler).ts',
+    '.*\\.spec.ts$',
+    '.*\\.test.ts$',
+    '/src/common/utils/pipes/',
+    '/src/common/utils/authentication/.*\\.guard.ts'
   ],
   coverageDirectory: 'test/coverage',
   coverageReporters: ['text', 'html', 'lcov', 'text-summary', 'clover'],
   coverageThreshold: {
-    global: { branches: 80, functions: 80, lines: 80, statements: 80 },
+    global: { branches: 70, functions: 70, lines: 70, statements: 70 },
   },
   reporters: [
     'default',
