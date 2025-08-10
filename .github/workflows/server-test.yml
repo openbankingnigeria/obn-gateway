@@ -48,7 +48,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install && npm install sqlite3 --save
+        run: pnpm install
 
       - name: Build server
         run: pnpm --filter server build
