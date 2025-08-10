@@ -22,7 +22,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "noUnusedLocals": false, 
+    "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -38,17 +38,23 @@
       "@users/*": ["src/users/*"],
       "@company/*": ["src/company/*"],
       "@settings/*": ["src/settings/*"],
-      "@utils/*": ["/test/utils/*"],
-      "src/apis/*": ["src/apis/*"],
-      "src/*": ["src/*"]
+      "@src/*": ["src/*"],
+      "@test/*": ["test/*"],
+      "@utils/*": ["test/utils/*"],
+      "@/*": ["src/*"]
     },
     "removeComments": true,
     "declaration": true,
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "incremental": true
+    "incremental": true,
+    "rootDirs": [
+      "./src",
+      "./test/utils"
+    ]
   },
+  "exclude": ["node_modules", "test"],
   "references": [
     { "path": "./test/utils/tsconfig.json" }
   ]

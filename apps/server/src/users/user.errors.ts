@@ -23,6 +23,7 @@ export const userErrors = {
   userWithEmailAlreadyExists: (email: string) =>
     `A user with email '${email}' already exists.`,
   userNotFound: `User not found.`,
+  userNotAccessible: `User not accessible.`,
   cannotUpdateSelf: `You cannot update your user.`,
   cannotDeactivateSelf: `You cannot deactivate yourself.`,
   cannotDeleteSelf: `You cannot deleted your user.`,
