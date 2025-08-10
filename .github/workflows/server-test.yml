@@ -53,8 +53,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Rebuild native modules
-        run: pnpm --filter server rebuild sqlite3
+      - name: Install sqlite3 explicitly in server workspace
+        run: cd apps/server && npm install sqlite3 --save
+        
+      - name: Verify sqlite3 installation
+        run: cd apps/server && node -e "console.log('sqlite3 version:', require('sqlite3').VERSION)"
 
       - name: Build server
         run: pnpm --filter server build
