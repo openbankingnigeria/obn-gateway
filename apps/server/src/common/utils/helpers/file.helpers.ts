@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Express } from 'express';
+import { Multer } from 'multer';
 
 @Injectable()
 export class FileHelpers {

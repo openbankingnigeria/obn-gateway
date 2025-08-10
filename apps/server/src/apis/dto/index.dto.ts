@@ -18,7 +18,7 @@ import { HTTP_METHODS } from '../types';
 import { Expose, Transform, Type } from 'class-transformer';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { GetCompanyResponseDTO } from '@company/dto/index.dto';
-import * as moment from 'moment';
+import moment from 'moment';
 import { RequestContext } from '@common/utils/request/request-context';
 import { PERMISSIONS } from '@permissions/types';
 import { CompanyTypes } from '@common/database/constants';
