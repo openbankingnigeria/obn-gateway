@@ -35,26 +35,26 @@ jobs:
         with:
           version: "10.14.0"
 
-      # - name: Install SQLite3
-      #   run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev
+      - name: Install build essentials for native modules
+        run: sudo apt-get update && sudo apt-get install -y build-essential python3
 
-      # - name: Get pnpm store directory
-      #   shell: bash
-      #   run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      # - name: Setup pnpm cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ${{ env.STORE_PATH }}
-      #     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-pnpm-store-
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install
 
-      - name: Install Sqlite3
-        run: npm install sqlite3 --save
+      - name: Rebuild native modules
+        run: pnpm --filter server rebuild sqlite3
 
       - name: Build server
         run: pnpm --filter server build
