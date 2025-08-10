@@ -136,8 +136,14 @@ describe('APIService', () => {
         ],
         relations: { collection: true },
       });
-      expect(kongService.getService).toHaveBeenCalledWith(environment, routeData.serviceId);
-      expect(kongRouteService.getRoute).toHaveBeenCalledWith(environment, routeData.routeId);
+      expect(kongService.getService).toHaveBeenCalledWith(
+        environment,
+        routeData.serviceId,
+      );
+      expect(kongRouteService.getRoute).toHaveBeenCalledWith(
+        environment,
+        routeData.routeId,
+      );
     });
   });
 });

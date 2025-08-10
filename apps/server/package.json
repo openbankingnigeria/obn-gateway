@@ -16,7 +16,7 @@
     "start:setup": "NODE_EXTRA_CA_CERTS=./certs/ca/ca.crt node dist/src/setup",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --passWithNoTests --coverage=false",
-    "test:ci": "jest --ci --reporters=default --reporters=jest-junit --maxWorkers=4",
+    "test:ci": "jest --ci --coverage --maxWorkers=4",
     "test:watch": "jest --watch --coverage=false",
     "test:cov": "jest --coverage --ci --coverageReporters=text-summary --coverageReporters=lcov --coverageReporters=clover",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --detectOpenHandles",

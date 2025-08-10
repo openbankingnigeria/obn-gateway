@@ -1,7 +1,7 @@
-'use server'
+"use server";
 
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers";
 
-export const getCookies = (key: string) => {
-  return cookies().get(key)?.value;
-}
+export const getCookies = async (key: string) => {
+  return (await cookies()).get(key)?.value;
+};

@@ -12,7 +12,7 @@ module.exports = {
     '<rootDir>/test/utils/config/test-db-config.ts',
     '<rootDir>/test/jest.setup.ts',
     '<rootDir>/test/utils/config/test-setup.ts',
-    'jest-extended/all'
+    'jest-extended/all',
   ],
 
   moduleNameMapper: {
@@ -32,7 +32,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@elastic/elasticsearch$': '<rootDir>/node_modules/@elastic/elasticsearch',
     '^@nestjs/elasticsearch$': '<rootDir>/node_modules/@nestjs/elasticsearch',
-    '^sqlite3$': require.resolve('sqlite3')
+    '^sqlite3$': require.resolve('sqlite3'),
   },
 
   transform: {
@@ -47,7 +47,9 @@ module.exports = {
           before: [
             {
               path: require.resolve('ts-jest-mock-import-meta'),
-              options: { metaObjectReplacement: { url: 'https://www.url.com' } },
+              options: {
+                metaObjectReplacement: { url: 'https://www.url.com' },
+              },
             },
           ],
         },
@@ -59,7 +61,13 @@ module.exports = {
   globalSetup: '<rootDir>/test/utils/config/global-setup.ts',
   globalTeardown: '<rootDir>/test/utils/config/global-teardown.ts',
   testMatch: ['**/*.test.ts', '**/*.spec.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/.next/', '/e2e/', '/coverage/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/.next/',
+    '/e2e/',
+    '/coverage/',
+  ],
   collectCoverage: true,
   collectCoverageFrom: [
     'src/**/*.ts',
@@ -73,7 +81,7 @@ module.exports = {
     '!src/**/__mocks__/**',
     '!src/**/__fixtures__/**',
     '!src/**/*.spec.ts',
-    '!src/**/*.test.ts'
+    '!src/**/*.test.ts',
   ],
   coveragePathIgnorePatterns: [
     '/src/common/config/',
@@ -88,8 +96,23 @@ module.exports = {
   },
   reporters: [
     'default',
-    ['jest-junit', { outputDirectory: 'test/test-results', outputName: 'junit.xml', includeConsoleOutput: true }],
-    ['jest-html-reporter', { outputPath: 'test/test-results/test-report.html', pageTitle: 'Test Report', includeFailureMsg: true, includeConsoleLog: true }],
+    [
+      'jest-junit',
+      {
+        outputDirectory: 'test/test-results',
+        outputName: 'junit.xml',
+        includeConsoleOutput: true,
+      },
+    ],
+    [
+      'jest-html-reporter',
+      {
+        outputPath: 'test/test-results/test-report.html',
+        pageTitle: 'Test Report',
+        includeFailureMsg: true,
+        includeConsoleLog: true,
+      },
+    ],
   ],
   maxWorkers: process.env.CI ? '50%' : '80%',
   workerIdleMemoryLimit: '512MB',
@@ -99,6 +122,9 @@ module.exports = {
   bail: false,
   testTimeout: 30000,
   slowTestThreshold: 5000,
-  watchPlugins: ['jest-watch-typeahead/filename', 'jest-watch-typeahead/testname'],
+  watchPlugins: [
+    'jest-watch-typeahead/filename',
+    'jest-watch-typeahead/testname',
+  ],
   resolver: 'jest-ts-webcompat-resolver',
 };

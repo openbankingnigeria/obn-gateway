@@ -40,7 +40,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   jest.clearAllMocks();
-  
+
   if (testDataSource) {
     const queryRunner = testDataSource.createQueryRunner();
     await queryRunner.connect();
@@ -68,10 +68,12 @@ expect.extend({
   },
 
   toBeValidUUID(received: string) {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     const pass = uuidRegex.test(received);
     return {
-      message: () => `expected ${received} ${pass ? 'not ' : ''}to be a valid UUID`,
+      message: () =>
+        `expected ${received} ${pass ? 'not ' : ''}to be a valid UUID`,
       pass,
     };
   },
@@ -80,7 +82,8 @@ expect.extend({
     const date = new Date(received);
     const pass = !isNaN(date.getTime());
     return {
-      message: () => `expected ${received} ${pass ? 'not ' : ''}to be a valid date`,
+      message: () =>
+        `expected ${received} ${pass ? 'not ' : ''}to be a valid date`,
       pass,
     };
   },
@@ -89,18 +92,18 @@ expect.extend({
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const pass = emailRegex.test(received);
     return {
-      message: () => `expected ${received} ${pass ? 'not ' : ''}to be a valid email`,
+      message: () =>
+        `expected ${received} ${pass ? 'not ' : ''}to be a valid email`,
       pass,
     };
   },
 });
 
-
 const initializeDatabase = async () => {
   try {
     testDataSource = new DataSource(ormConfig);
     await testDataSource.initialize();
-    
+
     // Run migrations if needed
     await testDataSource.runMigrations();
     console.log('✅ Test database initialized');
