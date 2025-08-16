@@ -4,6 +4,7 @@
 
 ### Pre-Test Commands
 ```bash
+cd apps/server
 pnpm store prune                                # Cleans unused packages from PNPM store
 pnpm jest --clearCache                          # Clears Jest test cache
 rm -rf dist node_modules/.cache .tscache        # Removes build artifacts and cached modules

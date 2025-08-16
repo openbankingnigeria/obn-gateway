@@ -3,4 +3,9 @@ packages:
 
 onlyBuiltDependencies:
   - '@nestjs/core'
+  - '@tailwindcss/oxide'
+  - bcrypt
   - nestjs-pino
+  - sharp
+  - sqlite3
+  - unrs-resolver

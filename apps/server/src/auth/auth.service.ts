@@ -154,12 +154,15 @@ export class AuthService {
             businessSettings.value,
           );
 
-          const allowedSubTypesForType = (parsedBusinessSettings.companySubtypes as any)[companyType] as 
-            { value: string; default: boolean }[];
+          const allowedSubTypesForType = (
+            parsedBusinessSettings.companySubtypes as any
+          )[companyType] as { value: string; default: boolean }[];
 
           if (
             allowedSubTypesForType.length > 0 &&
-            !allowedSubTypesForType.some(subtype => subtype.value.includes(companySubtype))
+            !allowedSubTypesForType.some((subtype) =>
+              subtype.value.includes(companySubtype),
+            )
           ) {
             throw new IBadRequestException({
               message: commonErrors.invalidValue(companyType, companySubtype),
@@ -285,12 +288,15 @@ export class AuthService {
             businessSettings.value,
           );
 
-          const allowedSubTypesForType = (parsedBusinessSettings.companySubtypes as any)[companyType] as 
-            { value: string; default: boolean }[];
+          const allowedSubTypesForType = (
+            parsedBusinessSettings.companySubtypes as any
+          )[companyType] as { value: string; default: boolean }[];
 
           if (
             allowedSubTypesForType.length > 0 &&
-            !allowedSubTypesForType.some(subtype => subtype.value.includes(licensedEntityCompanySubtype))
+            !allowedSubTypesForType.some((subtype) =>
+              subtype.value.includes(licensedEntityCompanySubtype),
+            )
           ) {
             throw new IBadRequestException({
               message: commonErrors.invalidValue(

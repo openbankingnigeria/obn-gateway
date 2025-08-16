@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:18 AS build
+FROM node:24 AS build
 
 RUN corepack enable
 
@@ -15,7 +15,7 @@ COPY . .
 RUN pnpm build
 
 # Stage 2: Production
-FROM node:18-alpine
+FROM node:24-alpine
 
 RUN corepack enable
 

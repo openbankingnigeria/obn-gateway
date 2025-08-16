@@ -209,25 +209,25 @@ export class FilterPipe implements PipeTransform<any, any> {
       Object.entries(filter).filter(([key, filterValue]) => {
         if (isObject(filterValue)) {
           const allowedField = this.allowedFields.find(
-            (field) => field.key === key
+            (field) => field.key === key,
           );
-          
+
           if (!allowedField) return false;
 
           return (
             // Check all filter keys are valid FilterRules
-            Object.keys(filterValue).every((filterKey) => 
-              Object.values(FilterRules).includes(filterKey as FilterRules)
+            Object.keys(filterValue).every((filterKey) =>
+              Object.values(FilterRules).includes(filterKey as FilterRules),
             ) &&
             // Check all filter values match the expected type
             Object.values(filterValue).every((value) =>
-              this.validateValueType(value, allowedField.valueType)
+              this.validateValueType(value, allowedField.valueType),
             )
           );
         } else {
           return this.allowedFields.some((field) => field.key === key);
         }
-      })
+      }),
     );
 
     // 4. Convert the parsed query to a typeorm compatible query
