@@ -16,8 +16,8 @@ const SignupForm = () => {
   const getData = getStorage('sd', true, 'session');
 
   useEffect(() => {
-    setEmail(getData?.email);
-  }, []);
+    setEmail(getData?.email); 
+  }, [getData?.email]);
 
   const upperAndLowerCase = validateUppercase(password) && validateLowercase(password);
   const number = validateNumber(password);

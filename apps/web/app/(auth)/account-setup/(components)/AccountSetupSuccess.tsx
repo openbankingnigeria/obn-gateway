@@ -16,7 +16,7 @@ const AccountSetupSuccess = () => {
     return () => {
       clearInterval(interval);
     }
-  }, []);
+  }, [router]);
 
   return (
     <div className='w-full flex flex-col gap-[24px]'>

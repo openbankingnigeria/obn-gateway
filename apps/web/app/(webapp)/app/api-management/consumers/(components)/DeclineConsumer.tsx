@@ -17,7 +17,7 @@ const DeclineConsumer = ({
   
   useEffect(() => {
     setReason && setReason('');
-  }, []);
+  }, [setReason]);
 
   return (
     <div className='flex flex-col gap-[24px] w-full'>
