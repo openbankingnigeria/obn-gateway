@@ -38,7 +38,7 @@ const InviteMemberPage = ({
   useEffect(() => {
     let role_details = roles?.find(data => data?.id == role);
     FetchData(role_details?.id);
-  }, [role])
+  }, [role, FetchData, roles])
 
   const incorrect = (
     !role ||

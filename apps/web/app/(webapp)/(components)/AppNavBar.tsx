@@ -5,9 +5,8 @@ import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { getElementAndBelow } from '@/utils/getElementAndBelow';
 import Link from 'next/link';
 import { ToggleSwitch } from '../../../components/forms';
-import { NOTIFICATIONS_DATA } from '@/data/notificationData';
-import { Button, OutsideClicker } from '../../../components/globalComponents';
-import { AppCenterModal, AvatarMenu, NotificationBox } from '.';
+import { Button } from '../../../components/globalComponents';
+import { AppCenterModal, AvatarMenu } from '.';
 import { toast } from 'react-toastify';
 import { getJsCookies, removeJsCookies, setJsCookies } from '@/config/jsCookie';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
@@ -39,7 +38,7 @@ const AppNavBar = ({
     const enviromentMode = canToggleMode ? getJsCookies('environment') : 'development';
     !canToggleMode && setJsCookies('environment', 'development');
     setToggleMode(enviromentMode == 'production' ? true : false);
-  }, []);
+  }, [canToggleMode]);
 
   const fetchProfile = async() => {
     const result: any = await clientAxiosRequest({

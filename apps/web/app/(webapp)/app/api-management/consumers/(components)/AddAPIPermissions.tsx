@@ -24,7 +24,7 @@ const AddAPIPermissions = ({
   const incorrect = api_ids?.length <= 0;
   const [api_list, setApiList] = useState<ApiPermissionArrayItem[]>([]);
 
-  const dataToApiPermissions = (array: any[]) => {
+  const dataToApiPermissions = React.useCallback((array: any[]) => {
     array?.forEach(async(item: any) => {
       const result: any = await clientAxiosRequest({
         headers: {},
@@ -39,13 +39,11 @@ const AddAPIPermissions = ({
         noToast: true
       });
   
-      let apis = result?.data?.map((api: any) => {
-        return({
-          method: api?.downstream?.method?.toString(),
-          id: api?.id,
-          label: api?.name
-        });
-      });
+      let apis = result?.data?.map((api: any) => ({
+        method: api?.downstream?.method?.toString(),
+        id: api?.id,
+        label: api?.name
+      }));
   
       setApiList(prev => {
         const isDuplicate = prev.some((existingItem) => existingItem.value === item?.id);
@@ -61,11 +59,11 @@ const AddAPIPermissions = ({
         return prev;
       });
     });
-  }
-
+  }, [environment]);
+  
   useEffect(() => {
     dataToApiPermissions(data)
-  }, [])
+  }, [data, dataToApiPermissions])
 
   return (
     <form

@@ -47,7 +47,7 @@ const InputElement = ({
     number ? setHasNumber(true) : setHasNumber(false);
     passwordLength ? setHas8Characters(true) : setHas8Characters(false);
     symbol ? setHasSpecialCharacters(true) : setHasSpecialCharacters(false);
-  }, [value]);
+  }, [value, upperAndLowerCase, number, passwordLength, symbol]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.value?.length <= (maxLength ?? 100)) {

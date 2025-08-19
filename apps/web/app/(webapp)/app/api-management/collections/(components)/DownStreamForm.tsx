@@ -30,8 +30,8 @@ const DownStreamForm = ({
     setRequestMethod(rawData?.downstream?.method?.toString());
     setTier('');
     setPath(rawData?.downstream?.path?.toString());
-  }, []);
-
+  }, [rawData?.name, rawData?.downstream?.method, rawData?.downstream?.path]);
+  
   const request = rawData?.downstream?.request;
   const response = rawData?.downstream?.response;
   const responseBody = response?.['0']?.body;

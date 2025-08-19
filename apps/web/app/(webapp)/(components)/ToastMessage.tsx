@@ -8,7 +8,7 @@ const ToastMessage = ({ message }: { message: string }) => {
     (message?.toLowerCase()?.includes('invalid credentials')) ?
       null :
       toast.error(message);
-  }, []);
+  }, [message]);
 
   return null
 }

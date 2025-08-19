@@ -18,7 +18,7 @@ const ListPanel = ({
 
   useEffect(() => {
     setPanelOut([panel[0]]);
-  }, []);
+  }, [panel]);
 
   const handlePanelList = (data: any) => {
     if (panelOut?.find((item: any) => item?.id == data?.id)) {

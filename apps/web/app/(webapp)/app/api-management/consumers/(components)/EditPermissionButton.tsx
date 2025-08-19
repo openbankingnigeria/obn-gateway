@@ -68,11 +68,11 @@ const EditPermissionButton = ({
   useEffect(() => {
     fetchProfile();
     fetchAPICollections();
-  }, []);
+  }, [fetchProfile, fetchAPICollections]);
 
   useEffect(() => {
     fetchConsumerAPIs();
-  }, [refresh])
+  }, [refresh, fetchConsumerAPIs])
 
   // const close2FAModal = () => {
   //   setOpen2FA(false);
