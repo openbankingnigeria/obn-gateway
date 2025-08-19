@@ -44,7 +44,7 @@ import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
 import { CompanyTypes } from '@common/database/constants';
 import { companyCustomFields } from './company.constants';
 import { RequestContext } from '@common/utils/request/request-context';
-import * as moment from 'moment';
+import moment from 'moment';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
 import { KONG_PLUGINS } from '@shared/integrations/kong/plugin/plugin.kong.interface';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';

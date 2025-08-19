@@ -122,19 +122,12 @@ describe('APIService', () => {
       const kongRouteService = module.get<KongRouteService>(KongRouteService);
 
       const routeData = new CollectionRoute();
-      // const gatewayServiceData = new Service();
-      // const gatewayRouteData = new Route();
-      // const pluginsData = { data: [new Plugin()] };
+      routeData.serviceId = 'test-service-id';
+      routeData.routeId = 'test-route-id';
 
       jest.spyOn(routeRepository, 'findOne').mockResolvedValue(routeData);
-      jest.spyOn(kongService, 'getService');
-      // .mockResolvedValue(gatewayServiceData);
-      jest.spyOn(kongRouteService, 'getRoute');
-      // .mockResolvedValue(gatewayRouteData);
-      jest.spyOn(kongRouteService, 'getPlugins');
-      // .mockResolvedValue(pluginsData);
 
-      const result = await apiService.viewAPI(ctx, environment, idOrSlug);
+      await apiService.viewAPI(ctx, environment, idOrSlug);
 
       expect(routeRepository.findOne).toHaveBeenCalledWith({
         where: [
@@ -151,11 +144,6 @@ describe('APIService', () => {
         environment,
         routeData.routeId,
       );
-      // expect(kongRouteService.getPlugins).toHaveBeenCalledWith(
-      //   environment,
-      //   gatewayRouteData.id,
-      // );
-      // expect(result).toBeInstanceOf(GetAPIResponseDTO);
     });
   });
 });

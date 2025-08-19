@@ -497,34 +497,35 @@ export class SettingsService {
     } else if (settingType === SETTINGS_TYPES.ONBOARDING_CUSTOM_FIELDS) {
       const errors: any = {};
       // Validate the data
-      Object.values(data).forEach(
-        (
-          value: Record<
-            string,
-            { label: string; type: 'email' | 'password' | 'text' | 'dropdown' }
-          >,
-        ) => {
-          const innerKeys = Object.keys(value);
+      type FieldType = 'email' | 'password' | 'text' | 'dropdown';
+      const validFieldTypes: FieldType[] = [
+        'email',
+        'password',
+        'text',
+        'dropdown',
+      ];
 
-          innerKeys.forEach((innerKey) => {
-            if (
-              !['email', 'password', 'text', 'dropdown'].includes(
-                value[innerKey].type,
-              ) ||
-              !isString(value[innerKey].label)
-            ) {
-              errors[innerKey] = ![
-                'email',
-                'password',
-                'text',
-                'dropdown',
-              ].includes(value[innerKey].type)
-                ? `${innerKey} must have a value of 'email', 'password', 'text' or 'dropdown'`
-                : `${innerKey} must be a string`;
-            }
-          });
-        },
-      );
+      for (const [fieldName, fieldConfig] of Object.entries(data)) {
+        if (
+          !fieldConfig ||
+          typeof fieldConfig !== 'object' ||
+          Array.isArray(fieldConfig)
+        ) {
+          errors[fieldName] = 'Invalid field configuration';
+          continue;
+        }
+
+        for (const [innerKey, innerValue] of Object.entries(fieldConfig)) {
+          if (!validFieldTypes.includes(innerValue.type)) {
+            errors[innerKey] =
+              `Type must be one of: ${validFieldTypes.join(', ')}`;
+          }
+
+          if (typeof innerValue.label !== 'string') {
+            errors[innerKey] = 'Label must be a string';
+          }
+        }
+      }
 
       if (Object.keys(errors).length > 0) {
         throw new IBadRequestException({

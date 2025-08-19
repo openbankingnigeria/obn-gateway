@@ -1,23 +1,32 @@
 {
   "compilerOptions": {
+    "types": ["node", "jest"],
+    "typeRoots": [
+      "node_modules/@types",
+      "./types"
+    ],
     "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
     "target": "ES2021",
-    "sourceMap": true,
+    "lib": ["ES2021"],
     "outDir": "./dist",
     "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": true,
+    "strict": true,
     "noImplicitAny": true,
+    "strictNullChecks": true,
     "strictBindCallApply": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": false,
+    "noUncheckedIndexedAccess": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
     "paths": {
       "@auditLogs/*": ["src/auditLogs/*"],
       "@auth/*": ["src/auth/*"],
@@ -28,7 +37,25 @@
       "@shared/*": ["src/shared/*"],
       "@users/*": ["src/users/*"],
       "@company/*": ["src/company/*"],
-      "@settings/*": ["src/settings/*"]
-    }
-  }
+      "@settings/*": ["src/settings/*"],
+      "@src/*": ["src/*"],
+      "@test/*": ["test/*"],
+      "@utils/*": ["test/utils/*"],
+      "@/*": ["src/*"]
+    },
+    "removeComments": true,
+    "declaration": true,
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "incremental": true,
+    "rootDirs": [
+      "./src",
+      "./test/utils"
+    ]
+  },
+  "exclude": ["node_modules", "test"],
+  "references": [
+    { "path": "./test/utils/tsconfig.json" }
+  ]
 }

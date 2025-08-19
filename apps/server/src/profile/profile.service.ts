@@ -13,7 +13,7 @@ import {
 } from './dto/index.dto';
 import { userErrors } from '@users/user.errors';
 import { compareSync, hashSync } from 'bcryptjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import {
   profileErrorMessages,
   profileSuccessMessages,

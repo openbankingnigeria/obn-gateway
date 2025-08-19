@@ -208,15 +208,20 @@ export class FilterPipe implements PipeTransform<any, any> {
     const parsedFilter = Object.fromEntries(
       Object.entries(filter).filter(([key, filterValue]) => {
         if (isObject(filterValue)) {
-          const allowedFieldType = this.allowedFields.find(
-            (allowedField) => allowedField.key === key,
-          )!.valueType;
+          const allowedField = this.allowedFields.find(
+            (field) => field.key === key,
+          );
+
+          if (!allowedField) return false;
+
           return (
-            Object.keys(filterValue).every((key: FilterRules) =>
-              Object.values(FilterRules).includes(key),
+            // Check all filter keys are valid FilterRules
+            Object.keys(filterValue).every((filterKey) =>
+              Object.values(FilterRules).includes(filterKey as FilterRules),
             ) &&
-            Object.values(filterValue).every((filterValue: any) =>
-              this.validateValueType(filterValue, allowedFieldType),
+            // Check all filter values match the expected type
+            Object.values(filterValue).every((value) =>
+              this.validateValueType(value, allowedField.valueType),
             )
           );
         } else {

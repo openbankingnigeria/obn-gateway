@@ -1,0 +1,72 @@
+name: Test
+
+on:
+  push:
+    branches: [main, develop, review]
+    paths:
+      - "apps/server/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+  pull_request:
+    branches: [main, develop, review]
+    paths:
+      - "apps/server/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+
+jobs:
+  test-server:
+    name: Server Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10.14.0"
+
+      - name: Install build essentials for native modules
+        run: sudo apt-get update && sudo apt-get install -y build-essential python3
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install sqlite3 explicitly in server workspace
+        run: cd apps/server && npm install sqlite3 --save
+        
+      - name: Build server
+        run: pnpm --filter server build
+
+      # - name: Run linting
+      #   run: pnpm --filter server lint
+
+      - name: Run tests
+        run: pnpm --filter server test:ci
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: apps/server/test/test-results/junit.xml

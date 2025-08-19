@@ -45,7 +45,7 @@ import { companyErrors } from '@company/company.errors';
 import { CompanyTypes } from '@common/database/constants';
 import { QueryDslQueryContainer } from '@elastic/elasticsearch/lib/api/types';
 import { RequestContext } from '@common/utils/request/request-context';
-import * as moment from 'moment';
+import moment from 'moment';
 import { ConfigService } from '@nestjs/config';
 import { Acl } from '@shared/integrations/kong/consumer/consumer.kong.interface';
 import { EventEmitter2 } from '@nestjs/event-emitter';
