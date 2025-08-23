@@ -14,7 +14,7 @@ import { RefreshStoredToken } from '@/components/globalComponents'
 
 const APIProviderDashboardPage = async ({ date_filter, alt_data, details_data }: searchParamsProps) => {
   const dateFilter = date_filter ? JSON.parse(date_filter) : {};
-  const environment = getCookies('environment');
+  const environment = await getCookies('environment');
 
   const fetchedConsumerStat : any = await applyAxiosRequest({
     headers: {},
@@ -69,7 +69,7 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data, details_data }:
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 

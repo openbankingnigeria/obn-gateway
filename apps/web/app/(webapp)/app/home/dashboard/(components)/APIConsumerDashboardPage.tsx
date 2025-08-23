@@ -13,7 +13,7 @@ import { findPermissionSlug } from '@/utils/findPermissionSlug';
 import { RefreshStoredToken } from '@/components/globalComponents';
 
 const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParamsProps) => {
-  const environment = getCookies('environment');
+  const environment = await getCookies('environment');
   let userPermissions = profile_data?.user?.role?.permissions;
 
   const canToggleMode = ((
@@ -58,7 +58,7 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 

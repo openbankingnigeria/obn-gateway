@@ -13,7 +13,7 @@ import { RefreshStoredToken } from '@/components/globalComponents';
 const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => {
   const api_id = searchParams?.api_id || '';
   const preview = searchParams?.preview || '';
-  const environment = getCookies('environment');
+  const environment = await getCookies('environment');
 
   const fetchedAPI: any = await applyAxiosRequest({
     headers: {},
@@ -41,7 +41,7 @@ const APIConfigurationPage = async({ params, searchParams }: UrlParamsProps) => 
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 

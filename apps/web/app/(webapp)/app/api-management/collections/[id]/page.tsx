@@ -16,7 +16,7 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
   const search_query = searchParams?.search_query || ''
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
-  const environment = getCookies('environment');
+  const environment = await getCookies('environment');
 
   const fetchedCollection: any = await applyAxiosRequest({
     headers: {},
@@ -43,7 +43,7 @@ const CollectionPage = async ({ params, searchParams }: UrlParamsProps) => {
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await ('aperta-user-refreshToken')}`
       }
     });
 
