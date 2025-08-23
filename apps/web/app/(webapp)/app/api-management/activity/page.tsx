@@ -19,7 +19,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const search_apis = searchParams?.search_apis || '';
   const date_filter = searchParams?.date_filter || ''
-  const environment = getCookies('environment');
+  const environment = await getCookies('environment');
 
   const dateFilter = date_filter ? JSON.parse(date_filter) : {};
   const filters = [status, search_query, search_apis, dateFilter];
@@ -57,7 +57,7 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 

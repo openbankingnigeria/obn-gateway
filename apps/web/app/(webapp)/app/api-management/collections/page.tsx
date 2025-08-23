@@ -15,7 +15,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
   const rows = Number(searchParams?.rows) || 10
   const page = Number(searchParams?.page) || 1
 
-  const environment = getCookies('environment');
+  const environment = await getCookies('environment');
 
   const filters = [search_query];
 
@@ -71,7 +71,7 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 

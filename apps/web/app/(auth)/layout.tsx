@@ -7,12 +7,12 @@ export const metadata: Metadata = {
   title: 'Aperta - Auth',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  if (getCookies('aperta-user-accessToken')) {
+  if (await getCookies('aperta-user-accessToken')) {
     redirect('/app/home/dashboard')
   } else {
     return (
