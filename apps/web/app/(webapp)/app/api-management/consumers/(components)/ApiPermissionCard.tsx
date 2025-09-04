@@ -16,7 +16,7 @@ const ApiPermissionCard = ({
 
   useEffect(() => {
     setCount(options?.filter((obj: any) => apiIds?.includes(obj?.id))?.length)
-  }, [apiIds]);
+  }, [apiIds, options]);
 
   // console.log(options?.length, apiIds?.length, count);
 

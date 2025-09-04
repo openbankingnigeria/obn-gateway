@@ -5,7 +5,7 @@ import { getCookies } from './cookies';
 // INTERCEPT ALL REQUEST
 axios.interceptors.request.use(
   async (request) => {
-    const token = getCookies('aperta-user-accessToken');
+    const token = await getCookies('aperta-user-accessToken');
   
     if (!request.headers.Authorization) {
       request.headers.Authorization = `Bearer ${token}`;

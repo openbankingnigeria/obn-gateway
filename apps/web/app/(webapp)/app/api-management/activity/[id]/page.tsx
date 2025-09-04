@@ -12,7 +12,7 @@ import { RefreshStoredToken } from '@/components/globalComponents';
 const ActivityPage = async ({ params, searchParams }: UrlParamsProps) => {
   const activityId = params?.id;
   const path = searchParams?.path || '';
-  const environment = getCookies('environment');
+  const environment = await getCookies('environment');
 
   const fetchedActivity: any = await applyAxiosRequest({
     headers: {},
@@ -33,7 +33,7 @@ const ActivityPage = async ({ params, searchParams }: UrlParamsProps) => {
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 

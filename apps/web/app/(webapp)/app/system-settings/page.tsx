@@ -11,7 +11,7 @@ import { getCookies } from '@/config/cookies';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
 const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
-  const getMode = getCookies('environment');
+  const getMode = await getCookies('environment');
   const path = searchParams?.path || '';
 
   const fetchedDetails : any = await applyAxiosRequest({
@@ -41,7 +41,7 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 

@@ -1,7 +1,7 @@
-'use server'
+"use server";
 
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers";
 
-export const deleteCookies = (key: string) => {
-  cookies().delete(key)
-}
+export const deleteCookies = async (key: string) => {
+  (await cookies()).delete(key);
+};

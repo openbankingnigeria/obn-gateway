@@ -17,7 +17,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  if (!getCookies('aperta-user-accessToken')) {
+  if (!await getCookies('aperta-user-accessToken')) {
     redirect('/signin')
   } else {
     const fetchedDetails : any = await applyAxiosRequest({
@@ -52,7 +52,7 @@ export default async function RootLayout({
         apiEndpoint: API?.refreshToken(),
         method: 'POST',
         data: {
-          refreshToken: `${getCookies('aperta-user-refreshToken')}`
+          refreshToken: `${await getCookies('aperta-user-refreshToken')}`
         }
       });
 

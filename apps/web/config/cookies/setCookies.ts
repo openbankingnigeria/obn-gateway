@@ -2,10 +2,10 @@
 
 import { cookies } from 'next/headers'
 
-export const setCookies = (
+export const setCookies = async (
   key: string, 
   value: any,
   options: any = {}
 ) => {
-  cookies().set(key, value)
+  (await cookies()).set(key, value)
 }

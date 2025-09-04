@@ -38,7 +38,7 @@ const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 
@@ -50,7 +50,7 @@ const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
   let profile = fetchedProfile?.data;
   let companyDetails = fetchedDetails?.data;
 
-  // const getUserProfile = getCookies('aperta-user-profile');
+  // const getUserProfile = await getCookies('aperta-user-profile');
   // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
   // const userType = userProfile?.userType;
   

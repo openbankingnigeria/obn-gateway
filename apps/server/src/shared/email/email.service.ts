@@ -39,7 +39,7 @@ import {
 } from '@shared/events/company.event';
 import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
 import { EmailSettingsInterface, SETTINGS_TYPES } from 'src/settings/types';
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Injectable()
 export class EmailService {

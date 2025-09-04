@@ -53,7 +53,7 @@ const CollectionSection = ({
   useEffect(() => {
     const slug = updateSearchParams('slug', details?.name);
     router.push(slug);
-  }, [details?.name]);
+  }, [details?.name, router]);
 
   const getAction = (enabled: boolean) => {
     return actions.filter(action => {

@@ -22,7 +22,7 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const search_apis = searchParams?.search_apis || ''
 
-  const environment = getCookies('environment');
+  const environment = await getCookies('environment');
 
   const fetchedProfile: any = await applyAxiosRequest({
     headers: {},
@@ -78,7 +78,7 @@ const ConsumerPage = async ({ params, searchParams }: UrlParamsProps) => {
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
       data: {
-        refreshToken: `${getCookies('aperta-user-refreshToken')}`
+        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
       }
     });
 
