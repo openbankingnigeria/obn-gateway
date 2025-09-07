@@ -22,6 +22,7 @@ volumes:
   certs: {}
   esdata: {}
   logstashdata: {}
+  test_mysql_data: {}
 
 networks:
   kong-net:
@@ -372,6 +373,39 @@ services:
       - prod
       - mysql
 
+  test-mysql:
+    image: "${MYSQL_DOCKER_TAG:-mysql:8.3.0}"
+    container_name: obn-test-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      MYSQL_DATABASE: ${TEST_DATABASE_NAME:-test_db}
+      MYSQL_USER: ${TEST_DATABASE_USERNAME:-test_user}
+      MYSQL_PASSWORD_FILE: /run/secrets/test_mysql_password
+    secrets:
+      - mysql_root_password
+      - test_mysql_password
+    volumes:
+      - test_mysql_data:/var/lib/mysql
+    networks:
+      - obn-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "mysql --user=root --password=$$(cat $$MYSQL_ROOT_PASSWORD_FILE) -e 'SELECT 1;'"
+        ]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+    profiles:
+      - dev
+      - test
+      - mysql
+    ports:
+      - "3307:3306"
+
   web:
     image: obn-web
     build:
@@ -461,6 +495,8 @@ secrets:
     environment: MYSQL_ROOT_PASSWORD
   mysql_password:
     environment: DATABASE_PASSWORD
+  test_mysql_password:
+    environment: TEST_DATABASE_PASSWORD
   jwt_secret:
     environment: JWT_SECRET
   default_password:

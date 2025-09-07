@@ -1,7 +1,7 @@
 import { TestEnvironment } from 'jest-environment-node';
 import { TextEncoder, TextDecoder } from 'util';
 import { matchers } from '../matchers';
-import expect from 'expect'; 
+import expect from 'expect';
 
 class CustomTestEnvironment extends TestEnvironment {
   async setup() {

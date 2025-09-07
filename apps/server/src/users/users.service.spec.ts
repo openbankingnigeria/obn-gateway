@@ -1,7 +1,13 @@
-import { matchers } from '@test/utils/matchers';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '@users/users.service';
-import { UserBuilder, RoleBuilder, ProfileBuilder, CompanyBuilder, RolePermissionBuilder, PermissionBuilder } from '@test/utils/builders';
+import {
+  UserBuilder,
+  RoleBuilder,
+  ProfileBuilder,
+  CompanyBuilder,
+  RolePermissionBuilder,
+  PermissionBuilder,
+} from '@test/utils/builders';
 import { createMockRepository, MockRepository } from '@test/utils/mocks';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { userSuccessMessages } from '@users/user.constants';
@@ -9,17 +15,31 @@ import { userErrors } from '@users/user.errors';
 import { UserStatuses, CompanyStatuses } from '@common/database/entities';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Auth } from '@common/utils/authentication/auth.helper';
-import { User, Role, Profile, Company, RolePermission, Permission } from '@common/database/entities';
+import {
+  User,
+  Role,
+  Profile,
+  Company,
+  RolePermission,
+  Permission,
+} from '@common/database/entities';
 import { RequestContext } from '@common/utils/request/request-context';
-import { CreateUserDto, UpdateUserDto, GetStatsResponseDTO } from '@users/dto/index.dto';
-import { createMockContext, createMockResponse, mockEventEmitter } from '@test/utils/mocks/http.mock';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  GetStatsResponseDTO,
+} from '@users/dto/index.dto';
+import {
+  createMockContext,
+  createMockResponse,
+  mockEventEmitter,
+} from '@test/utils/mocks/http.mock';
 import { PERMISSIONS } from '@permissions/types';
-import { IBadRequestException, INotFoundException } from '@common/utils/exceptions/exceptions';
+import {
+  IBadRequestException,
+  INotFoundException,
+} from '@common/utils/exceptions/exceptions';
 import { Equal } from 'typeorm';
-
-beforeAll(() => {
-  expect.extend(matchers);
-});
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -48,9 +68,7 @@ describe('UsersService', () => {
       .with('roles', rolePermissions)
       .build();
 
-    const role = new RoleBuilder()
-      .with('permissions', [permission])
-      .build();
+    const role = new RoleBuilder().with('permissions', [permission]).build();
     const company = new CompanyBuilder()
       .with('status', CompanyStatuses.ACTIVE)
       .build();
@@ -62,7 +80,7 @@ describe('UsersService', () => {
 
     ctx = createMockContext({
       user,
-      permissions: [PERMISSIONS.ADD_TEAM_MEMBERS]
+      permissions: [PERMISSIONS.ADD_TEAM_MEMBERS],
     }).ctx;
 
     userRepository = {
@@ -78,7 +96,7 @@ describe('UsersService', () => {
         getMany: jest.fn(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis()
+        orderBy: jest.fn().mockReturnThis(),
       })),
     } as any;
 
@@ -112,7 +130,7 @@ describe('UsersService', () => {
     eventEmitter = mockEventEmitter();
     auth = {
       getToken: jest.fn().mockResolvedValue('test-token'),
-      hashToken: jest.fn().mockResolvedValue('hashed-token')
+      hashToken: jest.fn().mockResolvedValue('hashed-token'),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -122,7 +140,10 @@ describe('UsersService', () => {
         { provide: 'RoleRepository', useValue: roleRepository },
         { provide: 'ProfileRepository', useValue: profileRepository },
         { provide: 'CompanyRepository', useValue: companyRepository },
-        { provide: 'RolePermissionRepository', useValue: rolePermissionRepository },
+        {
+          provide: 'RolePermissionRepository',
+          useValue: rolePermissionRepository,
+        },
         { provide: 'PermissionRepository', useValue: permissionRepository },
         { provide: EventEmitter2, useValue: eventEmitter },
         { provide: Auth, useValue: auth },
@@ -139,14 +160,14 @@ describe('UsersService', () => {
   describe('createUser', () => {
     it('should successfully create a user with valid DTO', async () => {
       const role = new RoleBuilder().build();
-      const createDto: CreateUserDto = { 
-        email: 'test@example.com', 
-        roleId: role.id!
+      const createDto: CreateUserDto = {
+        email: 'test@example.com',
+        roleId: role.id!,
       };
-      
+
       userRepository.count.mockResolvedValue(0);
       roleRepository.findOne.mockResolvedValue(role);
-      
+
       const mockUser = new UserBuilder()
         .with('email', createDto.email)
         .with('roleId', role.id!)
@@ -167,69 +188,71 @@ describe('UsersService', () => {
           expect.objectContaining({
             email: createDto.email,
             roleId: role.id,
-            profile: expect.any(Object)
-          })
-        )
+            profile: expect.any(Object),
+          }),
+        ),
       );
       expect(eventEmitter.emit).toHaveBeenCalled();
     });
 
     it('should throw if email already exists', async () => {
       const email = 'exists@example.com';
-      const createDto: CreateUserDto = { 
-        email, 
-        roleId: 'valid-role-id'
+      const createDto: CreateUserDto = {
+        email,
+        roleId: 'valid-role-id',
       };
-      
+
       userRepository.count.mockResolvedValue(1);
 
-      await expect(service.createUser(ctx, createDto))
-        .rejects.toThrow(IBadRequestException);
+      await expect(service.createUser(ctx, createDto)).rejects.toThrow(
+        IBadRequestException,
+      );
 
       const mockRes = createMockResponse();
-      mockRes.status(400).json(ResponseFormatter.error(
-        userErrors.userWithEmailAlreadyExists(email)
-      ));
+      mockRes
+        .status(400)
+        .json(
+          ResponseFormatter.error(userErrors.userWithEmailAlreadyExists(email)),
+        );
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.userWithEmailAlreadyExists(email))
+        ResponseFormatter.error(userErrors.userWithEmailAlreadyExists(email)),
       );
     });
 
     it('should throw if role is invalid', async () => {
-      const createDto: CreateUserDto = { 
-        email: 'test@example.com', 
-        roleId: 'invalid-role-id'
+      const createDto: CreateUserDto = {
+        email: 'test@example.com',
+        roleId: 'invalid-role-id',
       };
-      
+
       userRepository.count.mockResolvedValue(0);
       roleRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.createUser(ctx, createDto))
-        .rejects.toThrow(IBadRequestException);
+      await expect(service.createUser(ctx, createDto)).rejects.toThrow(
+        IBadRequestException,
+      );
 
       const mockRes = createMockResponse();
-      mockRes.status(400).json(ResponseFormatter.error(
-        userErrors.invalidRole
-      ));
+      mockRes.status(400).json(ResponseFormatter.error(userErrors.invalidRole));
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.invalidRole)
+        ResponseFormatter.error(userErrors.invalidRole),
       );
     });
 
     it('should include company in the created user', async () => {
       const role = new RoleBuilder().build();
       const company = new CompanyBuilder().build();
-      const createDto: CreateUserDto = { 
-        email: 'test@example.com', 
-        roleId: role.id!
+      const createDto: CreateUserDto = {
+        email: 'test@example.com',
+        roleId: role.id!,
       };
-      
+
       userRepository.count.mockResolvedValue(0);
       roleRepository.findOne.mockResolvedValue(role);
       companyRepository.findOne.mockResolvedValue(company);
-      
+
       const mockUser = new UserBuilder()
         .with('email', createDto.email)
         .with('roleId', role.id!)
@@ -245,7 +268,7 @@ describe('UsersService', () => {
       mockRes.json(result);
 
       expect(mockRes.body.data).toMatchObject({
-        company: { id: company.id }
+        company: { id: company.id },
       });
     });
   });
@@ -254,9 +277,9 @@ describe('UsersService', () => {
     it('should return paginated user response', async () => {
       const users = [
         new UserBuilder().with('profile', new ProfileBuilder().build()).build(),
-        new UserBuilder().with('profile', new ProfileBuilder().build()).build()
+        new UserBuilder().with('profile', new ProfileBuilder().build()).build(),
       ];
-      
+
       userRepository.count.mockResolvedValue(2);
       userRepository.find.mockResolvedValue(users);
 
@@ -266,7 +289,7 @@ describe('UsersService', () => {
 
       expect(mockRes.body.status).toBe('success');
       expect(mockRes.body.data).toHaveLength(2);
-      mockRes.body.data!.forEach(user => {
+      mockRes.body.data!.forEach((user) => {
         expect(user).toHaveProperty('profile');
       });
     });
@@ -287,9 +310,9 @@ describe('UsersService', () => {
         new UserBuilder()
           .with('companyId', ctx.activeUser.companyId!)
           .with('profile', new ProfileBuilder().build())
-          .build()
+          .build(),
       ];
-      
+
       userRepository.count.mockResolvedValue(1);
       userRepository.find.mockResolvedValue(users);
 
@@ -299,53 +322,54 @@ describe('UsersService', () => {
 
       expect(mockRes.body.data).toHaveLength(1);
       expect(mockRes.body.data![0]).toMatchObject({
-        companyId: ctx.activeUser.companyId
+        companyId: ctx.activeUser.companyId,
       });
     });
   });
 
   describe('getUser', () => {
     it('should return valid user response', async () => {
-    const user = new UserBuilder()
-      .with('companyId', ctx.activeUser.companyId!)
-      .with('profile', new ProfileBuilder().build())
-      .with('role', new RoleBuilder().build())
-      .build();
-    
-    userRepository.findOne.mockResolvedValue(user);
+      const user = new UserBuilder()
+        .with('companyId', ctx.activeUser.companyId!)
+        .with('profile', new ProfileBuilder().build())
+        .with('role', new RoleBuilder().build())
+        .build();
 
-    const result = await service.getUser(ctx, user.id!);
-    const mockRes = createMockResponse<User>();
-    mockRes.json(result);
+      userRepository.findOne.mockResolvedValue(user);
 
-    expect(mockRes.body).toEqual(
-      ResponseFormatter.success(
-        userSuccessMessages.fetchedUser,
-        expect.objectContaining({
-          id: user.id,
-          email: user.email,
-          profile: expect.objectContaining({
-            firstName: user.profile?.firstName
-          })
-        })
-      )
-    );
+      const result = await service.getUser(ctx, user.id!);
+      const mockRes = createMockResponse<User>();
+      mockRes.json(result);
+
+      expect(mockRes.body).toEqual(
+        ResponseFormatter.success(
+          userSuccessMessages.fetchedUser,
+          expect.objectContaining({
+            id: user.id,
+            email: user.email,
+            profile: expect.objectContaining({
+              firstName: user.profile?.firstName,
+            }),
+          }),
+        ),
+      );
     });
 
     it('should throw 404 for non-existent user', async () => {
       const invalidId = 'invalid-id';
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getUser(ctx, invalidId))
-        .rejects.toThrow(INotFoundException);
+      await expect(service.getUser(ctx, invalidId)).rejects.toThrow(
+        INotFoundException,
+      );
 
       const mockRes = createMockResponse();
-      mockRes.status(404).json(ResponseFormatter.error(
-        userErrors.userNotFound
-      ));
+      mockRes
+        .status(404)
+        .json(ResponseFormatter.error(userErrors.userNotFound));
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.userNotFound)
+        ResponseFormatter.error(userErrors.userNotFound),
       );
     });
   });
@@ -359,9 +383,9 @@ describe('UsersService', () => {
         .build();
       const updateDto: UpdateUserDto = {
         firstName: 'Updated',
-        lastName: 'User', 
-        roleId: user.roleId!, 
-        status: UserStatuses.ACTIVE 
+        lastName: 'User',
+        roleId: user.roleId!,
+        status: UserStatuses.ACTIVE,
       };
       const role = new RoleBuilder().build();
 
@@ -380,11 +404,11 @@ describe('UsersService', () => {
           expect.objectContaining({
             profile: {
               firstName: updateDto.firstName,
-              lastName: updateDto.lastName
+              lastName: updateDto.lastName,
             },
-            status: updateDto.status
-          })
-        )
+            status: updateDto.status,
+          }),
+        ),
       );
       expect(userRepository.update).toHaveBeenCalled();
       expect(profileRepository.update).toHaveBeenCalled();
@@ -395,22 +419,23 @@ describe('UsersService', () => {
       const invalidId = 'invalid-id';
       const updateDto: UpdateUserDto = {
         firstName: 'Updated',
-        lastName: 'User', 
-        roleId: 'valid-role-id', 
-        status: UserStatuses.ACTIVE 
+        lastName: 'User',
+        roleId: 'valid-role-id',
+        status: UserStatuses.ACTIVE,
       };
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.updateUser(ctx, invalidId, updateDto))
-        .rejects.toThrow(INotFoundException);
+      await expect(
+        service.updateUser(ctx, invalidId, updateDto),
+      ).rejects.toThrow(INotFoundException);
 
       const mockRes = createMockResponse();
-      mockRes.status(404).json(ResponseFormatter.error(
-        userErrors.userNotFound
-      ));
+      mockRes
+        .status(404)
+        .json(ResponseFormatter.error(userErrors.userNotFound));
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.userNotFound)
+        ResponseFormatter.error(userErrors.userNotFound),
       );
     });
 
@@ -418,22 +443,23 @@ describe('UsersService', () => {
       const currentUser = ctx.activeUser;
       const updateDto: UpdateUserDto = {
         firstName: 'Updated',
-        lastName: 'User', 
-        roleId: currentUser.roleId!, 
-        status: UserStatuses.ACTIVE 
+        lastName: 'User',
+        roleId: currentUser.roleId!,
+        status: UserStatuses.ACTIVE,
       };
       userRepository.findOne.mockResolvedValue(currentUser);
 
-      await expect(service.updateUser(ctx, currentUser.id!, updateDto))
-        .rejects.toThrow(IBadRequestException);
+      await expect(
+        service.updateUser(ctx, currentUser.id!, updateDto),
+      ).rejects.toThrow(IBadRequestException);
 
       const mockRes = createMockResponse();
-      mockRes.status(400).json(ResponseFormatter.error(
-        userErrors.cannotUpdateSelf
-      ));
+      mockRes
+        .status(400)
+        .json(ResponseFormatter.error(userErrors.cannotUpdateSelf));
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.cannotUpdateSelf)
+        ResponseFormatter.error(userErrors.cannotUpdateSelf),
       );
     });
 
@@ -441,22 +467,23 @@ describe('UsersService', () => {
       const currentUser = ctx.activeUser;
       const updateDto: UpdateUserDto = {
         firstName: 'Updated',
-        lastName: 'User', 
-        roleId: currentUser.roleId!, 
-        status: UserStatuses.INACTIVE 
+        lastName: 'User',
+        roleId: currentUser.roleId!,
+        status: UserStatuses.INACTIVE,
       };
       userRepository.findOne.mockResolvedValue(currentUser);
 
-      await expect(service.updateUser(ctx, currentUser.id!, updateDto))
-        .rejects.toThrow(IBadRequestException);
+      await expect(
+        service.updateUser(ctx, currentUser.id!, updateDto),
+      ).rejects.toThrow(IBadRequestException);
 
       const mockRes = createMockResponse();
-      mockRes.status(400).json(ResponseFormatter.error(
-        userErrors.cannotDeactivateSelf
-      ));
+      mockRes
+        .status(400)
+        .json(ResponseFormatter.error(userErrors.cannotDeactivateSelf));
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.cannotDeactivateSelf)
+        ResponseFormatter.error(userErrors.cannotDeactivateSelf),
       );
     });
 
@@ -468,9 +495,9 @@ describe('UsersService', () => {
       const newRole = new RoleBuilder().build();
       const updateDto: UpdateUserDto = {
         firstName: 'Updated',
-        lastName: 'User', 
+        lastName: 'User',
         roleId: newRole.id!,
-        status: UserStatuses.ACTIVE
+        status: UserStatuses.ACTIVE,
       };
 
       userRepository.findOne.mockResolvedValue(user);
@@ -484,12 +511,12 @@ describe('UsersService', () => {
 
       expect(roleRepository.findOne).toHaveBeenCalledWith({
         where: expect.arrayContaining([
-          expect.objectContaining({ id: Equal(newRole.id!) })
-        ])
+          expect.objectContaining({ id: Equal(newRole.id!) }),
+        ]),
       });
       expect(userRepository.update).toHaveBeenCalledWith(
         { id: user.id },
-        expect.objectContaining({ roleId: newRole.id })
+        expect.objectContaining({ roleId: newRole.id }),
       );
     });
   });
@@ -509,11 +536,12 @@ describe('UsersService', () => {
       expect(mockRes.body).toEqual(
         ResponseFormatter.success(
           userSuccessMessages.fetchedUsersStats,
-          mockStats.map(stat => new GetStatsResponseDTO(stat))
-      ));
+          mockStats.map((stat) => new GetStatsResponseDTO(stat)),
+        ),
+      );
       expect(userRepository.query).toHaveBeenCalledWith(
         expect.stringContaining('AND users.company_id = ?'),
-        [ctx.activeUser.companyId]
+        [ctx.activeUser.companyId],
       );
     });
 
@@ -533,7 +561,7 @@ describe('UsersService', () => {
       const user = new UserBuilder()
         .with('companyId', ctx.activeUser.companyId!)
         .build();
-      
+
       userRepository.findOne.mockResolvedValue(user);
       userRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
 
@@ -542,9 +570,9 @@ describe('UsersService', () => {
       mockRes.json(result);
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.success(userSuccessMessages.deletedUser, null)
+        ResponseFormatter.success(userSuccessMessages.deletedUser, null),
       );
-      expect(userRepository.softDelete).toHaveBeenCalledWith({ 'id': user.id });
+      expect(userRepository.softDelete).toHaveBeenCalledWith({ id: user.id });
       expect(eventEmitter.emit).toHaveBeenCalled();
     });
 
@@ -552,16 +580,17 @@ describe('UsersService', () => {
       const invalidId = 'invalid-id';
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.deleteUser(ctx, invalidId))
-        .rejects.toThrow(INotFoundException);
+      await expect(service.deleteUser(ctx, invalidId)).rejects.toThrow(
+        INotFoundException,
+      );
 
       const mockRes = createMockResponse();
-      mockRes.status(404).json(ResponseFormatter.error(
-        userErrors.userNotFound
-      ));
+      mockRes
+        .status(404)
+        .json(ResponseFormatter.error(userErrors.userNotFound));
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.userNotFound)
+        ResponseFormatter.error(userErrors.userNotFound),
       );
     });
 
@@ -569,16 +598,96 @@ describe('UsersService', () => {
       const currentUser = ctx.activeUser;
       userRepository.findOne.mockResolvedValue(currentUser);
 
-      await expect(service.deleteUser(ctx, currentUser.id!))
-        .rejects.toThrow(IBadRequestException);
+      await expect(service.deleteUser(ctx, currentUser.id!)).rejects.toThrow(
+        IBadRequestException,
+      );
 
       const mockRes = createMockResponse();
-      mockRes.status(400).json(ResponseFormatter.error(
-        userErrors.cannotDeleteSelf
-      ));
+      mockRes
+        .status(400)
+        .json(ResponseFormatter.error(userErrors.cannotDeleteSelf));
 
       expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.cannotDeleteSelf)
+        ResponseFormatter.error(userErrors.cannotDeleteSelf),
+      );
+    });
+  });
+
+  describe('Resend Invite', () => {
+    it('should throw NotFoundException if user does not exist or belong to the same company', async () => {
+      const userId = 'non-existent-user-id';
+      userRepository.findOne.mockResolvedValue(null);
+
+      const mockRes = createMockResponse();
+      mockRes
+        .status(404)
+        .json(ResponseFormatter.error(userErrors.userNotFound));
+
+      await expect(service.resendInvite(ctx, userId)).rejects.toThrow(
+        INotFoundException,
+      );
+      expect(mockRes.body).toEqual(
+        ResponseFormatter.error(userErrors.userNotFound),
+      );
+    });
+
+    it('should resend invite for a pending user and update reset token + emit event', async () => {
+      const user = new UserBuilder()
+        .with('status', UserStatuses.PENDING)
+        .with('companyId', ctx.activeUser.companyId!)
+        .build();
+
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.update = jest.fn().mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.resendInvite(ctx, user.id!);
+      const mockRes = createMockResponse();
+      mockRes.json(result);
+
+      // auth was called to get and hash token
+      expect(auth.getToken).toHaveBeenCalled();
+      expect(auth.hashToken).toHaveBeenCalledWith('test-token');
+
+      // repository updated with hashed token and expiry
+      expect(userRepository.update).toHaveBeenCalledWith(
+        { id: user.id },
+        expect.objectContaining({
+          resetPasswordToken: 'hashed-token',
+          resetPasswordExpires: expect.any(Date),
+        }),
+      );
+
+      // event emitted
+      expect(eventEmitter.emit).toHaveBeenCalled();
+
+      // response should be a success with sentInvite message
+      expect(mockRes.body).toEqual(
+        ResponseFormatter.success(
+          userSuccessMessages.sentInvite,
+          expect.objectContaining({ id: user.id }),
+        ),
+      );
+    });
+
+    it('should throw BadRequestException when user status is not PENDING', async () => {
+      const user = new UserBuilder()
+        .with('status', UserStatuses.ACTIVE)
+        .with('companyId', ctx.activeUser.companyId!)
+        .build();
+
+      userRepository.findOne.mockResolvedValue(user);
+
+      await expect(service.resendInvite(ctx, user.id!)).rejects.toThrow(
+        IBadRequestException,
+      );
+
+      const mockRes = createMockResponse();
+      mockRes
+        .status(400)
+        .json(ResponseFormatter.error(userErrors.cannotResendInvite(user.status!)));
+
+      expect(mockRes.body).toEqual(
+        ResponseFormatter.error(userErrors.cannotResendInvite(user.status!)),
       );
     });
   });
