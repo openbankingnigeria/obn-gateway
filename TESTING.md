@@ -10,7 +10,7 @@ rm -rf dist node_modules/.cache .tscache        # Removes build artifacts and ca
 rm -rf tsconfig.tsbuildinfo                     # Clears TypeScript build info (prevents stale builds)
 pnpm install                                    # Fresh install of all dependencies
 pnpm build                                      # Rebuild the project
-pnpm approve-builds sqlite3
+docker compose --profile test up -d test-mysql  # For running end to end test
 ```
 
 ### Basic Commands

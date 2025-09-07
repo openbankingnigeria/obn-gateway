@@ -638,7 +638,9 @@ describe('UsersService', () => {
         .build();
 
       userRepository.findOne.mockResolvedValue(user);
-      userRepository.update = jest.fn().mockResolvedValue({ affected: 1 } as any);
+      userRepository.update = jest
+        .fn()
+        .mockResolvedValue({ affected: 1 } as any);
 
       const result = await service.resendInvite(ctx, user.id!);
       const mockRes = createMockResponse();
@@ -648,17 +650,26 @@ describe('UsersService', () => {
       expect(auth.getToken).toHaveBeenCalled();
       expect(auth.hashToken).toHaveBeenCalledWith('test-token');
 
-      // repository updated with hashed token and expiry
-      expect(userRepository.update).toHaveBeenCalledWith(
-        { id: user.id },
-        expect.objectContaining({
-          resetPasswordToken: 'hashed-token',
-          resetPasswordExpires: expect.any(Date),
-        }),
+      // repository updated with hashed token and expiry (about 24 hours)
+      expect(userRepository.update).toHaveBeenCalled();
+      const updateArgs = (userRepository.update as jest.Mock).mock.calls[0][1];
+      expect(updateArgs.resetPasswordToken).toBe('hashed-token');
+      expect(updateArgs.resetPasswordExpires).toBeInstanceOf(Date);
+      const diff = Math.abs(
+        updateArgs.resetPasswordExpires.getTime() -
+          Date.now() -
+          24 * 60 * 60 * 1000,
       );
+      // expiry should be within 1 minute of 24 hours from now
+      expect(diff).toBeLessThan(60 * 1000);
 
-      // event emitted
+      // event emitted and should include the raw token in metadata
       expect(eventEmitter.emit).toHaveBeenCalled();
+      const emitCall = (eventEmitter.emit as jest.Mock).mock.calls[0];
+      // emit(name, event)
+      expect(emitCall[1]).toBeDefined();
+      expect(emitCall[1].metadata).toBeDefined();
+      expect(emitCall[1].metadata.token).toBe('test-token');
 
       // response should be a success with sentInvite message
       expect(mockRes.body).toEqual(
@@ -684,7 +695,9 @@ describe('UsersService', () => {
       const mockRes = createMockResponse();
       mockRes
         .status(400)
-        .json(ResponseFormatter.error(userErrors.cannotResendInvite(user.status!)));
+        .json(
+          ResponseFormatter.error(userErrors.cannotResendInvite(user.status!)),
+        );
 
       expect(mockRes.body).toEqual(
         ResponseFormatter.error(userErrors.cannotResendInvite(user.status!)),
