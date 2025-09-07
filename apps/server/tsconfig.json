@@ -54,7 +54,8 @@
       "./test/utils"
     ]
   },
-  "exclude": ["node_modules", "test"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules"],
   "references": [
     { "path": "./test/utils/tsconfig.json" }
   ]

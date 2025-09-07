@@ -1,9 +1,37 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "../",
   "testEnvironment": "node",
-  "testRegex": ".e2e-spec.ts$",
+  "testMatch": ["**/?(*.)+(e2e.spec|e2e-spec|spec).ts"],
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "setupFilesAfterEnv": [
+    "<rootDir>/test/jest.setup.ts",
+    "<rootDir>/test/utils/config/test-setup.ts",
+    "jest-extended/all"
+  ],
+  "moduleNameMapper": {
+    "^@auditLogs/(.*)$": "<rootDir>/src/auditLogs/$1",
+    "^@auth/(.*)$": "<rootDir>/src/auth/$1",
+    "^@common/(.*)$": "<rootDir>/src/common/$1",
+    "^@permissions/(.*)$": "<rootDir>/src/permissions/$1",
+    "^@profile/(.*)$": "<rootDir>/src/profile/$1",
+    "^@roles/(.*)$": "<rootDir>/src/roles/$1",
+    "^@shared/(.*)$": "<rootDir>/src/shared/$1",
+    "^@users/(.*)$": "<rootDir>/src/users/$1",
+    "^@company/(.*)$": "<rootDir>/src/company/$1",
+    "^@settings/(.*)$": "<rootDir>/src/settings/$1",
+    "^@src/(.*)$": "<rootDir>/src/$1",
+    "^@test/(.*)$": "<rootDir>/test/$1",
+    "^@utils/(.*)$": "<rootDir>/test/utils/$1",
+    "^@common/constants/(.*)$": "<rootDir>/src/common/constants/$1",
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^src/apis/(.*)$": "<rootDir>/src/apis/$1",
+    "^@elastic/elasticsearch$": "<rootDir>/node_modules/@elastic/elasticsearch",
+    "^@nestjs/elasticsearch$": "<rootDir>/node_modules/@nestjs/elasticsearch",
+    "^sqlite3$": "<rootDir>/node_modules/sqlite3"
+  },
+  "testTimeout": 60000
 }

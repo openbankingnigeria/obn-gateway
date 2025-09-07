@@ -7,16 +7,22 @@ const getEnv = (key: string, defaultValue: string): string => {
 
 export const getTestDbConfig = (): DataSourceOptions => {
   return {
-    type: 'sqlite',
-    database: ':memory:',
-    synchronize: true,
+    type: 'mysql',
+    host: getEnv('MYSQL_TEST_HOST', 'localhost'),
+    port: parseInt(getEnv('TEST_DATABASE_PORT', '3307'), 10),
+    username: getEnv('TEST_DATABASE_USERNAME', 'test_user'),
+    password: getEnv('TEST_DATABASE_PASSWORD', 'password'),
+    database: getEnv('TEST_DATABASE_NAME', 'test_db'),
+    synchronize: false,
     dropSchema: true,
-    logging: true,
-    entities: [
-      path.join(__dirname, '../../../../src/**/*.entity{.ts,.js}'),
-      path.join(__dirname, '../../../../src/**/*.view-entity{.ts,.js}'),
+    logging: false,
+    entities: [path.join(__dirname, '../../../src/**/*.entity{.ts,.js}')],
+    migrations: [
+      path.join(
+        __dirname,
+        '../../../src/common/database/migrations/*{.ts,.js}',
+      ),
     ],
-    migrations: [path.join(__dirname, '../../../../src/migrations/*{.ts,.js}')],
-    migrationsRun: false,
+    migrationsRun: true,
   };
 };

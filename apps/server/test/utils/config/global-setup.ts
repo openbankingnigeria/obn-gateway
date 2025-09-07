@@ -2,22 +2,15 @@ import 'tsconfig-paths/register';
 import { DataSource } from 'typeorm';
 import { getTestDbConfig } from './test-db-config';
 
-export default async () => {
-  console.log('Global Test Setup Started');
-  
-  const dbConfig = getTestDbConfig();
-  console.log('Connecting with config:', {
-    ...dbConfig,
-    password: 'password' in dbConfig ? '*****' : undefined,
-  });
+const setUpEnv = () => {
+  process.env.COMPANY_NAME = 'My Fintech App';
+  process.env.COMPANY_EMAIL = 'test@test.com';
+  process.env.DEFAULT_EMAIL = 'test-compamy@test.com';
+  process.env.DEFAULT_PASSWORD = 'password123@';
+  process.env.JWT_SECRET = 'password123@';
+};
 
-  try {
-    const dataSource = new DataSource(dbConfig);
-    await dataSource.initialize();
-    (global as any).__TEST_DB_CONNECTION__ = dataSource;
-    console.log('Test Database Connected');
-  } catch (error) {
-    console.error('Database Connection Failed:', error);
-    throw error;
-  }
+export default async () => {
+  console.log('Global Test Setup Env');
+  setUpEnv();
 };

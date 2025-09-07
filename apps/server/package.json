@@ -20,7 +20,7 @@
     "test:watch": "jest --watch --coverage=false",
     "test:cov": "jest --coverage --ci --coverageReporters=text-summary --coverageReporters=lcov --coverageReporters=clover",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --detectOpenHandles",
-    "test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json ./jest.config.js --runInBand --detectOpenHandles --forceExit",
+  "test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand --detectOpenHandles --forceExit",
     "test:verbose": "jest --verbose --detectOpenHandles",
     "test:update": "jest -u --coverage=false",
     "test:unit": "jest --findRelatedTests --coverage=false",
