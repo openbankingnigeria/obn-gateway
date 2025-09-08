@@ -840,43 +840,60 @@ describe('CollectionsService', () => {
 
       expect(collectionRepository.softDelete).not.toHaveBeenCalled();
     });
+
+    it('should emit DeleteCollectionEvent on successful deletion', async () => {
+      const collectionId = 'test-collection-id';
+      const existingCollection = new CollectionBuilder()
+        .with('id', collectionId)
+        .build();
+
+      collectionRepository.findOne.mockResolvedValue(existingCollection);
+      routeRepository.find.mockResolvedValue([]);
+      collectionRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
+
+      await service.deleteCollection(ctx, collectionId);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.delete',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collection: existingCollection,
+          }),
+        }),
+      );
+    });
   });
 
   describe('getCollectionsAssignedToCompany', () => {
-    it('should return collections for development environment', async () => {
+    const createMockQueryBuilder = (collections: any[] = [], count = 0) => ({
+      createQueryBuilder: jest.fn().mockReturnThis(),
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      addGroupBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue(collections),
+      getCount: jest.fn().mockResolvedValue(count),
+    });
+
+    it('should return collections with proper pagination and response format', async () => {
       const companyId = 'test-company-id';
       const environment = KONG_ENVIRONMENT.DEVELOPMENT;
       const pagination = { page: 1, limit: 10 };
       const mockCompany = new CompanyBuilder().with('id', companyId).build();
       const mockCollections = [
-        { id: 'col1', name: 'Collection 1', description: 'Desc 1', routeCount: '5' },
+        { id: 'col1', name: 'Payment APIs', description: 'Payment collection', slug: 'payment-apis', routeCount: '5' },
       ];
 
       companyRepository.findOne.mockResolvedValue(mockCompany);
-      
-      const mockQueryBuilder = {
-        createQueryBuilder: jest.fn().mockReturnThis(),
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        addGroupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue(mockCollections),
-        getCount: jest.fn().mockResolvedValue(1),
-      };
+      collectionRepository.createQueryBuilder.mockReturnValue(createMockQueryBuilder(mockCollections, 1) as any);
 
-      collectionRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
-
-      const result = await service.getCollectionsAssignedToCompany(
-        ctx,
-        environment,
-        companyId,
-        pagination,
-      );
+      const result = await service.getCollectionsAssignedToCompany(ctx, environment, companyId, pagination);
 
       expect(companyRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(companyId) },
@@ -886,7 +903,13 @@ describe('CollectionsService', () => {
         ResponseFormatter.success(
           collectionsSuccessMessages.fetchedCollection,
           expect.arrayContaining([
-            expect.objectContaining({ id: 'col1' }),
+            expect.objectContaining({
+              id: 'col1',
+              name: 'Payment APIs',
+              description: 'Payment collection',
+              slug: 'payment-apis',
+              routeCount: '5',
+            }),
           ]),
           expect.objectContaining({
             totalNumberOfRecords: 1,
@@ -908,12 +931,7 @@ describe('CollectionsService', () => {
       companyRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.getCollectionsAssignedToCompany(
-          ctx,
-          environment,
-          companyId,
-          pagination,
-        ),
+        service.getCollectionsAssignedToCompany(ctx, environment, companyId, pagination),
       ).rejects.toThrow(IBadRequestException);
 
       expect(companyRepository.findOne).toHaveBeenCalledWith({
@@ -927,30 +945,9 @@ describe('CollectionsService', () => {
       const mockCompany = new CompanyBuilder().with('id', ctx.activeCompany.id).build();
 
       companyRepository.findOne.mockResolvedValue(mockCompany);
-      
-      const mockQueryBuilder = {
-        createQueryBuilder: jest.fn().mockReturnThis(),
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        addGroupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-        getCount: jest.fn().mockResolvedValue(0),
-      };
+      collectionRepository.createQueryBuilder.mockReturnValue(createMockQueryBuilder() as any);
 
-      collectionRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
-
-      await service.getCollectionsAssignedToCompany(
-        ctx,
-        environment,
-        undefined,
-        pagination,
-      );
+      await service.getCollectionsAssignedToCompany(ctx, environment, undefined, pagination);
 
       expect(companyRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(ctx.activeCompany.id) },
@@ -973,35 +970,12 @@ describe('CollectionsService', () => {
         offset: '',
       });
 
-      const mockQueryBuilder = {
-        createQueryBuilder: jest.fn().mockReturnThis(),
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        addGroupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-        getCount: jest.fn().mockResolvedValue(0),
-      };
-
+      const mockQueryBuilder = createMockQueryBuilder();
       collectionRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
 
-      await service.getCollectionsAssignedToCompany(
-        ctx,
-        environment,
-        companyId,
-        pagination,
-      );
+      await service.getCollectionsAssignedToCompany(ctx, environment, companyId, pagination);
 
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        environment,
-        companyId,
-        undefined,
-      );
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(environment, companyId, undefined);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'route.id IN (:routes) OR route.tiers IN (:tiers)',
@@ -1009,6 +983,25 @@ describe('CollectionsService', () => {
           routes: ['test-route'],
           tiers: ['premium'],
         },
+      );
+    });
+
+    it('should support filtering by name and slug', async () => {
+      const companyId = 'test-company-id';
+      const environment = KONG_ENVIRONMENT.DEVELOPMENT;
+      const pagination = { page: 1, limit: 10 };
+      const filters = { name: 'Payment', slug: 'payment-apis' };
+      const mockCompany = new CompanyBuilder().with('id', companyId).build();
+
+      companyRepository.findOne.mockResolvedValue(mockCompany);
+      
+      const mockQueryBuilder = createMockQueryBuilder();
+      collectionRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+
+      await service.getCollectionsAssignedToCompany(ctx, environment, companyId, pagination, filters);
+
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        "collection.name LIKE '%Payment%' AND collection.slug LIKE '%payment-apis%'",
       );
     });
   });
