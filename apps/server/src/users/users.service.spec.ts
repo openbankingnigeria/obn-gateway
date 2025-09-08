@@ -75,6 +75,7 @@ describe('UsersService', () => {
     const user = new UserBuilder()
       .with('role', role)
       .with('company', company)
+      .with('companyId', company.id!) // Ensure companyId is set
       .with('profile', new ProfileBuilder().build())
       .build();
 
@@ -158,13 +159,64 @@ describe('UsersService', () => {
   });
 
   describe('createUser', () => {
-    it('should successfully create a user with valid DTO', async () => {
+    it('should throw BadRequest error if email already exists', async () => {
+      const email = 'exists@example.com';
+      const createDto: CreateUserDto = {
+        email,
+        roleId: 'valid-role-id',
+      };
+
+      userRepository.count.mockResolvedValue(1); // Email exists
+
+      await expect(service.createUser(ctx, createDto)).rejects.toThrow(
+        IBadRequestException,
+      );
+
+      // Verify email check is system-wide (no company filter)
+      expect(userRepository.count).toHaveBeenCalledWith({
+        where: { email: createDto.email },
+      });
+    });
+
+    it('should throw BadRequest error for invalid role', async () => {
+      const createDto: CreateUserDto = {
+        email: 'test@example.com',
+        roleId: 'invalid-role-id',
+      };
+
+      userRepository.count.mockResolvedValue(0); // Email is unique
+      roleRepository.findOne.mockResolvedValue(null); // Role not found
+
+      await expect(service.createUser(ctx, createDto)).rejects.toThrow(
+        IBadRequestException,
+      );
+
+      // Verify role validation checks company, parentId, status, and global roles
+      expect(roleRepository.findOne).toHaveBeenCalledWith({
+        where: [
+          expect.objectContaining({
+            id: Equal(createDto.roleId),
+            parentId: Equal(ctx.activeUser.role.parentId),
+            companyId: Equal(ctx.activeUser.companyId),
+            status: RoleStatuses.ACTIVE,
+          }),
+          expect.objectContaining({
+            id: Equal(createDto.roleId),
+            parentId: Equal(ctx.activeUser.role.parentId),
+            companyId: IsNull(), // Global role condition
+            status: RoleStatuses.ACTIVE,
+          }),
+        ],
+      });
+    });
+
+    it('should create user with blank password and hashed reset token', async () => {
       const role = new RoleBuilder()
         .with('status', RoleStatuses.ACTIVE)
         .with('companyId', ctx.activeUser.companyId!)
         .with('parentId', ctx.activeUser.role.parentId)
         .build();
-      
+
       const createDto: CreateUserDto = {
         email: 'test@example.com',
         roleId: role.id!,
@@ -172,6 +224,97 @@ describe('UsersService', () => {
 
       userRepository.count.mockResolvedValue(0);
       roleRepository.findOne.mockResolvedValue(role);
+      userRepository.save.mockResolvedValue(new UserBuilder().build());
+
+      await service.createUser(ctx, createDto);
+
+      // Verify auth services called for token generation
+      expect(auth.getToken).toHaveBeenCalled();
+      expect(auth.hashToken).toHaveBeenCalledWith('test-token');
+
+      // Verify user creation with correct password and token details
+      expect(userRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: createDto.email,
+          roleId: role.id,
+          password: '', // Blank password
+          companyId: ctx.activeUser.companyId,
+          resetPasswordToken: 'hashed-token',
+          resetPasswordExpires: expect.any(Date), // 24 hours from now
+        }),
+      );
+
+      // Verify token expires in approximately 24 hours
+      const saveCall = userRepository.save.mock.calls[0][0];
+      const expiryDate = saveCall.resetPasswordExpires;
+      const expectedExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const timeDiff = Math.abs((expiryDate as Date).getTime() - expectedExpiry.getTime());
+      expect(timeDiff).toBeLessThan(60 * 1000); // Within 1 minute tolerance
+    });
+
+    it('should initialize profile with empty values', async () => {
+      const role = new RoleBuilder().build();
+      const createDto: CreateUserDto = {
+        email: 'test@example.com',
+        roleId: role.id!,
+      };
+
+      userRepository.count.mockResolvedValue(0);
+      roleRepository.findOne.mockResolvedValue(role);
+      userRepository.save.mockResolvedValue(new UserBuilder().build());
+
+      await service.createUser(ctx, createDto);
+
+      expect(userRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          profile: {
+            firstName: '',
+            lastName: '',
+            companyRole: '',
+          },
+        }),
+      );
+    });
+
+    it('should emit UserCreatedEvent with invite token', async () => {
+      const role = new RoleBuilder().build();
+      const createDto: CreateUserDto = {
+        email: 'test@example.com',
+        roleId: role.id!,
+      };
+
+      const mockUser = new UserBuilder()
+        .with('email', createDto.email)
+        .with('roleId', role.id!)
+        .build();
+
+      userRepository.count.mockResolvedValue(0);
+      roleRepository.findOne.mockResolvedValue(role);
+      userRepository.save.mockResolvedValue(mockUser);
+
+      await service.createUser(ctx, createDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'user.created',
+        expect.objectContaining({
+          name: 'user.created',
+          author: ctx.activeUser,
+          user: mockUser,
+          metadata: expect.objectContaining({
+            token: 'test-token', // Raw token for email
+            pre: null,
+            post: mockUser,
+          }),
+        }),
+      );
+    });
+
+    it('should return created user in standardized DTO format', async () => {
+      const role = new RoleBuilder().build();
+      const createDto: CreateUserDto = {
+        email: 'test@example.com',
+        roleId: role.id!,
+      };
 
       const mockUser = new UserBuilder()
         .with('email', createDto.email)
@@ -179,500 +322,47 @@ describe('UsersService', () => {
         .with('companyId', ctx.activeUser.companyId!)
         .with('role', role)
         .with('profile', new ProfileBuilder().build())
-        .with('password', '')
         .with('status', UserStatuses.PENDING)
-        .with('resetPasswordToken', 'hashed-token')
         .build();
 
+      userRepository.count.mockResolvedValue(0);
+      roleRepository.findOne.mockResolvedValue(role);
       userRepository.save.mockResolvedValue(mockUser);
 
       const result = await service.createUser(ctx, createDto);
-      const mockRes = createMockResponse<User>();
-      mockRes.json(result);
 
-      expect(mockRes.body).toEqual(
+      expect(result).toEqual(
         ResponseFormatter.success(
           userSuccessMessages.createdUser,
           expect.objectContaining({
-            email: createDto.email,
-            roleId: role.id,
-            profile: expect.any(Object),
+            id: mockUser.id,
+            email: mockUser.email,
+            roleId: mockUser.roleId,
+            companyId: mockUser.companyId,
+            status: mockUser.status,
+            profile: expect.objectContaining({
+              firstName: mockUser.profile?.firstName,
+              lastName: mockUser.profile?.lastName,
+              companyRole: mockUser.profile?.companyRole,
+            }),
           }),
         ),
       );
-      expect(eventEmitter.emit).toHaveBeenCalled();
-    });
-
-    describe('Email Validation', () => {
-      it('should throw BadRequestException if email already exists', async () => {
-        const email = 'exists@example.com';
-        const createDto: CreateUserDto = {
-          email,
-          roleId: 'valid-role-id',
-        };
-
-        userRepository.count.mockResolvedValue(1);
-
-        await expect(service.createUser(ctx, createDto)).rejects.toThrow(
-          IBadRequestException,
-        );
-
-        const mockRes = createMockResponse();
-        mockRes
-          .status(400)
-          .json(
-            ResponseFormatter.error(userErrors.userWithEmailAlreadyExists(email)),
-          );
-
-        expect(mockRes.body).toEqual(
-          ResponseFormatter.error(userErrors.userWithEmailAlreadyExists(email)),
-        );
-      });
-
-      it('should check email uniqueness across the entire system', async () => {
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: 'valid-role-id',
-        };
-
-        userRepository.count.mockResolvedValue(1);
-
-        await expect(service.createUser(ctx, createDto)).rejects.toThrow(
-          IBadRequestException,
-        );
-
-        // Verify email check doesn't filter by company (system-wide uniqueness)
-        expect(userRepository.count).toHaveBeenCalledWith({
-          where: { email: createDto.email },
-        });
-      });
-    });
-
-    describe('Role Validation', () => {
-      it('should throw BadRequestException if role does not exist', async () => {
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: 'invalid-role-id',
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(null);
-
-        await expect(service.createUser(ctx, createDto)).rejects.toThrow(
-          IBadRequestException,
-        );
-
-        const mockRes = createMockResponse();
-        mockRes.status(400).json(ResponseFormatter.error(userErrors.invalidRole));
-
-        expect(mockRes.body).toEqual(
-          ResponseFormatter.error(userErrors.invalidRole),
-        );
-      });
-
-      it('should throw BadRequestException if role is inactive', async () => {
-        const inactiveRole = new RoleBuilder()
-          .with('status', RoleStatuses.INACTIVE)
-          .with('companyId', ctx.activeUser.companyId!)
-          .with('parentId', ctx.activeUser.role.parentId)
-          .build();
-
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: inactiveRole.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(null); // Role won't be found due to status filter
-
-        await expect(service.createUser(ctx, createDto)).rejects.toThrow(
-          IBadRequestException,
-        );
-      });
-
-      it('should throw BadRequestException if role belongs to different company', async () => {
-        const differentCompanyRole = new RoleBuilder()
-          .with('status', RoleStatuses.ACTIVE)
-          .with('companyId', 'different-company-id')
-          .with('parentId', ctx.activeUser.role.parentId)
-          .build();
-
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: differentCompanyRole.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(null); // Role won't be found due to company filter
-
-        await expect(service.createUser(ctx, createDto)).rejects.toThrow(
-          IBadRequestException,
-        );
-      });
-
-      it('should throw BadRequestException if role has different parentId', async () => {
-        const differentParentRole = new RoleBuilder()
-          .with('status', RoleStatuses.ACTIVE)
-          .with('companyId', ctx.activeUser.companyId!)
-          .with('parentId', 'different-parent-id')
-          .build();
-
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: differentParentRole.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(null); // Role won't be found due to parent filter
-
-        await expect(service.createUser(ctx, createDto)).rejects.toThrow(
-          IBadRequestException,
-        );
-      });
-
-      it('should accept global roles (companyId: null)', async () => {
-        const globalRole = new RoleBuilder()
-          .with('status', RoleStatuses.ACTIVE)
-          .with('parentId', ctx.activeUser.role.parentId)
-          .build();
-        
-        // Manually set companyId to null for global role
-        (globalRole as any).companyId = null;
-
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: globalRole.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(globalRole);
-
-        const mockUser = new UserBuilder()
-          .with('email', createDto.email)
-          .with('roleId', globalRole.id!)
-          .with('companyId', ctx.activeUser.companyId!)
-          .with('role', globalRole)
-          .with('profile', new ProfileBuilder().build())
-          .build();
-
-        userRepository.save.mockResolvedValue(mockUser);
-
-        const result = await service.createUser(ctx, createDto);
-        
-        expect(result.status).toBe('success');
-        expect(roleRepository.findOne).toHaveBeenCalledWith({
-          where: [
-            expect.objectContaining({
-              id: Equal(globalRole.id),
-              parentId: Equal(ctx.activeUser.role.parentId),
-              companyId: Equal(ctx.activeUser.companyId),
-              status: RoleStatuses.ACTIVE,
-            }),
-            expect.objectContaining({
-              id: Equal(globalRole.id),
-              parentId: Equal(ctx.activeUser.role.parentId),
-              companyId: IsNull(), // Global role condition
-              status: RoleStatuses.ACTIVE,
-            }),
-          ],
-        });
-      });
-
-      it('should verify role query conditions are correctly applied', async () => {
-        const role = new RoleBuilder()
-          .with('status', RoleStatuses.ACTIVE)
-          .with('companyId', ctx.activeUser.companyId!)
-          .with('parentId', ctx.activeUser.role.parentId)
-          .build();
-
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: role.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(role);
-        userRepository.save.mockResolvedValue(new UserBuilder().build());
-
-        await service.createUser(ctx, createDto);
-
-        expect(roleRepository.findOne).toHaveBeenCalledWith({
-          where: [
-            expect.objectContaining({
-              id: Equal(role.id),
-              parentId: Equal(ctx.activeUser.role.parentId),
-              companyId: Equal(ctx.activeUser.companyId),
-              deletedAt: IsNull(),
-              status: RoleStatuses.ACTIVE,
-            }),
-            expect.objectContaining({
-              id: Equal(role.id),
-              parentId: Equal(ctx.activeUser.role.parentId),
-              companyId: IsNull(),
-              deletedAt: IsNull(),
-              status: RoleStatuses.ACTIVE,
-            }),
-          ],
-        });
-      });
-    });
-
-    describe('User Creation Details', () => {
-      it('should create user with blank password and reset token', async () => {
-        const role = new RoleBuilder()
-          .with('status', RoleStatuses.ACTIVE)
-          .with('companyId', ctx.activeUser.companyId!)
-          .with('parentId', ctx.activeUser.role.parentId)
-          .build();
-
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: role.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(role);
-        userRepository.save.mockResolvedValue(new UserBuilder().build());
-
-        await service.createUser(ctx, createDto);
-
-        // Verify Auth service was called
-        expect(auth.getToken).toHaveBeenCalled();
-        expect(auth.hashToken).toHaveBeenCalledWith('test-token');
-
-        // Verify user creation with correct fields
-        expect(userRepository.save).toHaveBeenCalledWith(
-          expect.objectContaining({
-            email: createDto.email,
-            roleId: role.id,
-            password: '', // Blank password
-            companyId: ctx.activeUser.companyId,
-            resetPasswordToken: 'hashed-token',
-            resetPasswordExpires: expect.any(Date), // Will verify timing separately
-          }),
-        );
-      });
-
-      it('should set reset password token to expire in 24 hours', async () => {
-        const role = new RoleBuilder().build();
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: role.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(role);
-        userRepository.save.mockResolvedValue(new UserBuilder().build());
-
-        const beforeCall = new Date();
-        await service.createUser(ctx, createDto);
-        const afterCall = new Date();
-
-        const saveCall = userRepository.save.mock.calls[0][0];
-        const expiryDate = saveCall.resetPasswordExpires;
-
-        // Verify expiry date exists and is valid
-        expect(expiryDate).toBeInstanceOf(Date);
-        
-        // Should expire approximately 24 hours from now
-        const expectedExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        const timeDiff = Math.abs((expiryDate as Date).getTime() - expectedExpiry.getTime());
-        
-        // Allow 1 minute tolerance for test execution time
-        expect(timeDiff).toBeLessThan(60 * 1000);
-      });
-
-      it('should initialize profile with empty values', async () => {
-        const role = new RoleBuilder().build();
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: role.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(role);
-        userRepository.save.mockResolvedValue(new UserBuilder().build());
-
-        await service.createUser(ctx, createDto);
-
-        expect(userRepository.save).toHaveBeenCalledWith(
-          expect.objectContaining({
-            profile: {
-              firstName: '',
-              lastName: '',
-              companyRole: '',
-            },
-          }),
-        );
-      });
-
-      it('should assign user to acting user company', async () => {
-        const role = new RoleBuilder().build();
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: role.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(role);
-        userRepository.save.mockResolvedValue(new UserBuilder().build());
-
-        await service.createUser(ctx, createDto);
-
-        expect(userRepository.save).toHaveBeenCalledWith(
-          expect.objectContaining({
-            companyId: ctx.activeUser.companyId,
-          }),
-        );
-      });
-    });
-
-    describe('Event Emission', () => {
-      it('should emit UserCreatedEvent with invite token', async () => {
-        const role = new RoleBuilder().build();
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: role.id!,
-        };
-
-        const mockUser = new UserBuilder()
-          .with('email', createDto.email)
-          .with('roleId', role.id!)
-          .build();
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(role);
-        userRepository.save.mockResolvedValue(mockUser);
-
-        await service.createUser(ctx, createDto);
-
-        expect(eventEmitter.emit).toHaveBeenCalledWith(
-          'user.created',
-          expect.objectContaining({
-            name: 'user.created',
-            author: ctx.activeUser,
-            user: mockUser,
-            metadata: expect.objectContaining({
-              token: 'test-token', // Raw token for email
-              pre: null,
-              post: mockUser,
-            }),
-          }),
-        );
-      });
-
-      it('should emit event with correct structure', async () => {
-        const role = new RoleBuilder().build();
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: role.id!,
-        };
-
-        const mockUser = new UserBuilder().build();
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(role);
-        userRepository.save.mockResolvedValue(mockUser);
-
-        await service.createUser(ctx, createDto);
-
-        const emitCall = eventEmitter.emit.mock.calls[0];
-        expect(emitCall[0]).toBe('user.created');
-        expect(emitCall[1]).toMatchObject({
-          name: 'user.created',
-          author: ctx.activeUser,
-          user: mockUser,
-          metadata: {
-            pre: null,
-            post: mockUser,
-            token: 'test-token',
-          },
-        });
-      });
-    });
-
-    describe('Response Format', () => {
-      it('should return success response with user DTO', async () => {
-        const role = new RoleBuilder().build();
-        const company = new CompanyBuilder().build();
-        const createDto: CreateUserDto = {
-          email: 'test@example.com',
-          roleId: role.id!,
-        };
-
-        userRepository.count.mockResolvedValue(0);
-        roleRepository.findOne.mockResolvedValue(role);
-        companyRepository.findOne.mockResolvedValue(company);
-
-        const mockUser = new UserBuilder()
-          .with('email', createDto.email)
-          .with('roleId', role.id!)
-          .with('companyId', company.id!)
-          .with('company', company)
-          .with('profile', new ProfileBuilder().build())
-          .build();
-
-        userRepository.save.mockResolvedValue(mockUser);
-
-        const result = await service.createUser(ctx, createDto);
-        const mockRes = createMockResponse<User>();
-        mockRes.json(result);
-
-        expect(mockRes.body).toEqual(
-          ResponseFormatter.success(
-            userSuccessMessages.createdUser,
-            expect.objectContaining({
-              id: mockUser.id,
-              email: mockUser.email,
-              roleId: mockUser.roleId,
-              profile: expect.objectContaining({
-                firstName: mockUser.profile?.firstName,
-                lastName: mockUser.profile?.lastName,
-                companyRole: mockUser.profile?.companyRole,
-              }),
-            }),
-          ),
-        );
-      });
     });
   });
 
   describe('listUsers', () => {
-    it('should return paginated user response', async () => {
-      const users = [
-        new UserBuilder().with('profile', new ProfileBuilder().build()).build(),
-        new UserBuilder().with('profile', new ProfileBuilder().build()).build(),
-      ];
-
-      userRepository.count.mockResolvedValue(2);
-      userRepository.find.mockResolvedValue(users);
-
-      const result = await service.listUsers(ctx, { page: 1, limit: 10 });
-      const mockRes = createMockResponse<User[]>();
-      mockRes.json(result);
-
-      expect(mockRes.body.status).toBe('success');
-      expect(mockRes.body.data).toHaveLength(2);
-      mockRes.body.data!.forEach((user) => {
-        expect(user).toHaveProperty('profile');
-      });
-    });
-
-    it('should return empty array when no users exist', async () => {
-      userRepository.count.mockResolvedValue(0);
-      userRepository.find.mockResolvedValue([]);
-
-      const result = await service.listUsers(ctx, { page: 1, limit: 10 });
-      const mockRes = createMockResponse<User[]>();
-      mockRes.json(result);
-
-      expect(mockRes.body.data).toHaveLength(0);
-    });
-
-    it('should filter users by company when user is not super admin', async () => {
+    it('should return users from same company with profile and role details', async () => {
+      const role = new RoleBuilder().with('name', 'Admin').build();
+      const profile = new ProfileBuilder()
+        .with('firstName', 'John')
+        .with('lastName', 'Doe')
+        .build();
       const users = [
         new UserBuilder()
+          .with('profile', profile)
+          .with('role', role)
           .with('companyId', ctx.activeUser.companyId!)
-          .with('profile', new ProfileBuilder().build())
           .build(),
       ];
 
@@ -680,45 +370,187 @@ describe('UsersService', () => {
       userRepository.find.mockResolvedValue(users);
 
       const result = await service.listUsers(ctx, { page: 1, limit: 10 });
-      const mockRes = createMockResponse<User[]>();
-      mockRes.json(result);
 
-      expect(mockRes.body.data).toHaveLength(1);
-      expect(mockRes.body.data![0]).toMatchObject({
+      // Verify company filter is applied
+      expect(userRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            companyId: expect.objectContaining({
+              _type: 'equal',
+              _value: ctx.activeUser.companyId,
+            }),
+          }),
+          relations: expect.objectContaining({
+            profile: true,
+            role: true,
+          }),
+        }),
+      );
+
+      // Verify response includes profile and role details
+      expect(result.status).toBe('success');
+      expect(result.data).toHaveLength(1);
+      expect(result.data![0]).toMatchObject({
         companyId: ctx.activeUser.companyId,
+        profile: expect.objectContaining({
+          firstName: 'John',
+          lastName: 'Doe',
+        }),
+        role: expect.objectContaining({
+          name: 'Admin',
+        }),
       });
+    });
+
+    it('should support pagination with correct metadata', async () => {
+      const users = [new UserBuilder().build()];
+      userRepository.count.mockResolvedValue(25);
+      userRepository.find.mockResolvedValue(users);
+
+      const result = await service.listUsers(ctx, { page: 2, limit: 5 });
+
+      // Verify pagination parameters
+      expect(userRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 5, 
+          take: 5,
+        }),
+      );
+
+      // Verify pagination metadata
+      expect(result.meta).toMatchObject({
+        totalNumberOfRecords: 25,
+        totalNumberOfPages: 5, 
+        pageNumber: 2,
+        pageSize: 5,
+      });
+    });
+
+    it('should support filtering by email, status, roleId, createdAt, name, and phone', async () => {
+      const role = new RoleBuilder().build();
+      const users = [new UserBuilder().build()];
+      userRepository.count.mockResolvedValue(1);
+      userRepository.find.mockResolvedValue(users);
+
+      await service.listUsers(
+        ctx,
+        { page: 1, limit: 10 },
+        {
+          email: 'test@example.com',
+          status: UserStatuses.ACTIVE,
+          roleId: role.id!,
+          createdAt: new Date('2024-01-01'),
+          name: 'John',
+          phone: '+1234567890',
+        }
+      );
+
+      expect(userRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            email: 'test@example.com',
+            status: UserStatuses.ACTIVE,
+            roleId: role.id,
+            createdAt: new Date('2024-01-01'),
+            name: 'John',
+            phone: '+1234567890',
+            companyId: expect.objectContaining({
+              _type: 'equal',
+              _value: ctx.activeUser.companyId,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('should return standardized DTO format on success', async () => {
+      const users = [
+        new UserBuilder()
+          .with('profile', new ProfileBuilder().build())
+          .with('role', new RoleBuilder().build())
+          .build(),
+      ];
+
+      userRepository.count.mockResolvedValue(1);
+      userRepository.find.mockResolvedValue(users);
+
+      const result = await service.listUsers(ctx, { page: 1, limit: 10 });
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          status: 'success',
+          message: expect.any(String),
+          data: expect.any(Array),
+          meta: expect.objectContaining({
+            totalNumberOfRecords: expect.any(Number),
+            totalNumberOfPages: expect.any(Number),
+            pageNumber: expect.any(Number),
+            pageSize: expect.any(Number),
+          }),
+        }),
+      );
     });
   });
 
   describe('getUser', () => {
-    it('should return valid user response', async () => {
+    it('should return user with profile and role details from same company', async () => {
+      const role = new RoleBuilder()
+        .with('name', 'Admin')
+        .build();
+      const profile = new ProfileBuilder()
+        .with('firstName', 'John')
+        .with('lastName', 'Doe')
+        .build();
       const user = new UserBuilder()
         .with('companyId', ctx.activeUser.companyId!)
-        .with('profile', new ProfileBuilder().build())
-        .with('role', new RoleBuilder().build())
+        .with('profile', profile)
+        .with('role', role)
         .build();
 
       userRepository.findOne.mockResolvedValue(user);
 
       const result = await service.getUser(ctx, user.id!);
-      const mockRes = createMockResponse<User>();
-      mockRes.json(result);
+      
+      // Verify company filter is applied
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          id: expect.objectContaining({
+            _type: 'equal',
+            _value: user.id,
+          }),
+          companyId: expect.objectContaining({
+            _type: 'equal',
+            _value: ctx.activeUser.companyId,
+          }),
+        }),
+        relations: expect.objectContaining({
+          profile: true,
+          role: true,
+        }),
+      });
 
-      expect(mockRes.body).toEqual(
+      // Verify standardized response format with complete details
+      expect(result).toEqual(
         ResponseFormatter.success(
           userSuccessMessages.fetchedUser,
           expect.objectContaining({
             id: user.id,
             email: user.email,
+            companyId: user.companyId,
             profile: expect.objectContaining({
-              firstName: user.profile?.firstName,
+              firstName: profile.firstName,
+              lastName: profile.lastName,
+            }),
+            role: expect.objectContaining({
+              id: role.id,
+              name: role.name,
             }),
           }),
         ),
       );
     });
 
-    it('should throw 404 for non-existent user', async () => {
+    it('should throw NotFound error if user does not exist', async () => {
       const invalidId = 'invalid-id';
       userRepository.findOne.mockResolvedValue(null);
 
@@ -735,125 +567,141 @@ describe('UsersService', () => {
         ResponseFormatter.error(userErrors.userNotFound),
       );
     });
+
+    it('should throw NotFound error for users from different companies', async () => {
+      const differentCompanyUserId = 'different-company-user-id';
+      
+      // Repository returns null when user belongs to different company due to company filter
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.getUser(ctx, differentCompanyUserId)).rejects.toThrow(
+        INotFoundException,
+      );
+
+      // Verify repository was called with company filter
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          id: expect.objectContaining({
+            _type: 'equal',
+            _value: differentCompanyUserId,
+          }),
+          companyId: expect.objectContaining({
+            _type: 'equal',
+            _value: ctx.activeUser.companyId,
+          }),
+        }),
+        relations: expect.objectContaining({
+          profile: true,
+          role: true,
+        }),
+      });
+    });
   });
 
   describe('updateUser', () => {
-    it('should update user successfully', async () => {
-      const profile = new ProfileBuilder().build();
-      const user = new UserBuilder()
-        .with('profile', profile)
-        .with('companyId', ctx.activeUser.companyId!)
-        .build();
-      const updateDto: UpdateUserDto = {
+    it('should throw NotFound error for users from different companies', async () => {
+      const differentCompanyUserId = 'different-company-user-id';
+      const updateDto: Partial<UpdateUserDto> = {
         firstName: 'Updated',
         lastName: 'User',
-        roleId: user.roleId!,
         status: UserStatuses.ACTIVE,
       };
-      const role = new RoleBuilder().build();
 
-      userRepository.findOne.mockResolvedValue(user);
-      roleRepository.findOne.mockResolvedValue(role);
-      userRepository.update.mockResolvedValue({ affected: 1 } as any);
-      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
-
-      const result = await service.updateUser(ctx, user.id!, updateDto);
-      const mockRes = createMockResponse<User>();
-      mockRes.json(result);
-
-      expect(mockRes.body).toEqual(
-        ResponseFormatter.success(
-          userSuccessMessages.updatedUser,
-          expect.objectContaining({
-            profile: {
-              firstName: updateDto.firstName,
-              lastName: updateDto.lastName,
-            },
-            status: updateDto.status,
-          }),
-        ),
-      );
-      expect(userRepository.update).toHaveBeenCalled();
-      expect(profileRepository.update).toHaveBeenCalled();
-      expect(eventEmitter.emit).toHaveBeenCalled();
-    });
-
-    it('should throw when trying to update non-existent user', async () => {
-      const invalidId = 'invalid-id';
-      const updateDto: UpdateUserDto = {
-        firstName: 'Updated',
-        lastName: 'User',
-        roleId: 'valid-role-id',
-        status: UserStatuses.ACTIVE,
-      };
-      userRepository.findOne.mockResolvedValue(null);
+      userRepository.findOne.mockResolvedValue(null); // User not found due to company filter
 
       await expect(
-        service.updateUser(ctx, invalidId, updateDto),
+        service.updateUser(ctx, differentCompanyUserId, updateDto as UpdateUserDto),
       ).rejects.toThrow(INotFoundException);
 
-      const mockRes = createMockResponse();
-      mockRes
-        .status(404)
-        .json(ResponseFormatter.error(userErrors.userNotFound));
-
-      expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.userNotFound),
-      );
+      // Verify repository called with company filter
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          id: expect.objectContaining({
+            _type: 'equal',
+            _value: differentCompanyUserId,
+          }),
+          companyId: expect.objectContaining({
+            _type: 'equal',
+            _value: ctx.activeUser.companyId,
+          }),
+        }),
+        relations: expect.objectContaining({
+          profile: true,
+        }),
+      });
     });
 
-    it('should throw when trying to update self', async () => {
+    it('should throw BadRequest error when trying to update self', async () => {
       const currentUser = ctx.activeUser;
-      const updateDto: UpdateUserDto = {
+      const updateDto: Partial<UpdateUserDto> = {
         firstName: 'Updated',
         lastName: 'User',
-        roleId: currentUser.roleId!,
         status: UserStatuses.ACTIVE,
       };
       userRepository.findOne.mockResolvedValue(currentUser);
 
       await expect(
-        service.updateUser(ctx, currentUser.id!, updateDto),
+        service.updateUser(ctx, currentUser.id!, updateDto as UpdateUserDto),
       ).rejects.toThrow(IBadRequestException);
-
-      const mockRes = createMockResponse();
-      mockRes
-        .status(400)
-        .json(ResponseFormatter.error(userErrors.cannotUpdateSelf));
-
-      expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.cannotUpdateSelf),
-      );
     });
 
-    it('should throw when trying to deactivate self', async () => {
+    it('should throw BadRequest error when trying to deactivate self', async () => {
       const currentUser = ctx.activeUser;
-      const updateDto: UpdateUserDto = {
+      const updateDto: Partial<UpdateUserDto> = {
         firstName: 'Updated',
         lastName: 'User',
-        roleId: currentUser.roleId!,
         status: UserStatuses.INACTIVE,
       };
       userRepository.findOne.mockResolvedValue(currentUser);
 
       await expect(
-        service.updateUser(ctx, currentUser.id!, updateDto),
+        service.updateUser(ctx, currentUser.id!, updateDto as UpdateUserDto),
       ).rejects.toThrow(IBadRequestException);
-
-      const mockRes = createMockResponse();
-      mockRes
-        .status(400)
-        .json(ResponseFormatter.error(userErrors.cannotDeactivateSelf));
-
-      expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.cannotDeactivateSelf),
-      );
     });
 
-    it('should update user role when roleId is provided', async () => {
+    it('should throw BadRequest error for invalid roleId', async () => {
       const user = new UserBuilder()
         .with('profile', new ProfileBuilder().build())
         .with('companyId', ctx.activeUser.companyId!)
+        .build();
+      const updateDto: UpdateUserDto = {
+        firstName: 'Updated',
+        lastName: 'User',
+        roleId: 'invalid-role-id',
+        status: UserStatuses.ACTIVE,
+      };
+
+      userRepository.findOne.mockResolvedValue(user);
+      roleRepository.findOne.mockResolvedValue(null); // Role not found
+
+      await expect(
+        service.updateUser(ctx, user.id!, updateDto),
+      ).rejects.toThrow(IBadRequestException);
+
+      // Verify role validation checks company, parentId, status, and global roles
+      expect(roleRepository.findOne).toHaveBeenCalledWith({
+        where: [
+          expect.objectContaining({
+            id: Equal(updateDto.roleId),
+            parentId: Equal(ctx.activeUser.role.parentId),
+            companyId: Equal(ctx.activeUser.companyId),
+            status: RoleStatuses.ACTIVE,
+          }),
+          expect.objectContaining({
+            id: Equal(updateDto.roleId),
+            parentId: Equal(ctx.activeUser.role.parentId),
+            companyId: IsNull(), // Global role condition
+            status: RoleStatuses.ACTIVE,
+          }),
+        ],
+      });
+    });
+
+    it('should update user status, role, firstName, and lastName', async () => {
+      const user = new UserBuilder()
+        .with('profile', new ProfileBuilder().build())
+        .with('companyId', ctx.activeUser.companyId!)
+        .with('status', UserStatuses.PENDING)
         .build();
       const newRole = new RoleBuilder().build();
       const updateDto: UpdateUserDto = {
@@ -868,18 +716,128 @@ describe('UsersService', () => {
       userRepository.update.mockResolvedValue({ affected: 1 } as any);
       profileRepository.update.mockResolvedValue({ affected: 1 } as any);
 
-      const result = await service.updateUser(ctx, user.id!, updateDto);
-      const mockRes = createMockResponse<User>();
-      mockRes.json(result);
+      await service.updateUser(ctx, user.id!, updateDto);
 
-      expect(roleRepository.findOne).toHaveBeenCalledWith({
-        where: expect.arrayContaining([
-          expect.objectContaining({ id: Equal(newRole.id!) }),
-        ]),
-      });
+      // Verify user fields are updated
       expect(userRepository.update).toHaveBeenCalledWith(
         { id: user.id },
-        expect.objectContaining({ roleId: newRole.id }),
+        expect.objectContaining({
+          roleId: newRole.id,
+          status: updateDto.status,
+        }),
+      );
+
+      // Verify profile fields are updated
+      expect(profileRepository.update).toHaveBeenCalledWith(
+        { id: user.profile!.id },
+        expect.objectContaining({
+          firstName: updateDto.firstName,
+          lastName: updateDto.lastName,
+        }),
+      );
+    });
+
+    it('should emit UserReactivatedEvent when status changes to ACTIVE', async () => {
+      const user = new UserBuilder()
+        .with('profile', new ProfileBuilder().build())
+        .with('companyId', ctx.activeUser.companyId!)
+        .with('status', UserStatuses.INACTIVE)
+        .build();
+      const updateDto: Partial<UpdateUserDto> = {
+        status: UserStatuses.ACTIVE,
+      };
+
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updateUser(ctx, user.id!, updateDto as UpdateUserDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'user.reactivated',
+        expect.objectContaining({
+          name: 'user.reactivated',
+          author: ctx.activeUser,
+          user: expect.objectContaining({
+            id: user.id,
+          }),
+        }),
+      );
+    });
+
+    it('should emit UserDeactivatedEvent when status changes to INACTIVE', async () => {
+      const user = new UserBuilder()
+        .with('profile', new ProfileBuilder().build())
+        .with('companyId', ctx.activeUser.companyId!)
+        .with('status', UserStatuses.ACTIVE)
+        .build();
+      const updateDto: Partial<UpdateUserDto> = {
+        status: UserStatuses.INACTIVE,
+      };
+
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updateUser(ctx, user.id!, updateDto as UpdateUserDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'user.deactivated',
+        expect.objectContaining({
+          name: 'user.deactivated',
+          author: ctx.activeUser,
+          user: expect.objectContaining({
+            id: user.id,
+          }),
+        }),
+      );
+    });
+
+    it('should always emit UserUpdatedEvent and return updated user in standardized DTO format', async () => {
+      const user = new UserBuilder()
+        .with('profile', new ProfileBuilder().build())
+        .with('companyId', ctx.activeUser.companyId!)
+        .build();
+      const updateDto: Partial<UpdateUserDto> = {
+        firstName: 'Updated',
+        lastName: 'User',
+        status: UserStatuses.ACTIVE,
+      };
+
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateUser(ctx, user.id!, updateDto as UpdateUserDto);
+
+      // Verify UserUpdatedEvent is emitted
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'user.updated',
+        expect.objectContaining({
+          name: 'user.updated',
+          author: ctx.activeUser,
+          user: expect.objectContaining({
+            id: user.id,
+          }),
+          metadata: expect.objectContaining({
+            pre: user,
+            post: expect.any(Object),
+          }),
+        }),
+      );
+
+      // Verify standardized DTO format response
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          userSuccessMessages.updatedUser,
+          expect.objectContaining({
+            profile: expect.objectContaining({
+              firstName: updateDto.firstName,
+              lastName: updateDto.lastName,
+            }),
+            status: updateDto.status,
+          }),
+        ),
       );
     });
   });
