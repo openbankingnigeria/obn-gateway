@@ -878,7 +878,68 @@ describe('UsersService', () => {
   });
 
   describe('deleteUser', () => {
-    it('should soft delete user successfully', async () => {
+    it('should throw NotFound error for users from different companies', async () => {
+      const differentCompanyUserId = 'different-company-user-id';
+      
+      userRepository.findOne.mockResolvedValue(null); // User not found due to company filter
+
+      await expect(service.deleteUser(ctx, differentCompanyUserId)).rejects.toThrow(
+        INotFoundException,
+      );
+
+      // Verify repository called with company filter
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          id: expect.objectContaining({
+            _type: 'equal',
+            _value: differentCompanyUserId,
+          }),
+          companyId: expect.objectContaining({
+            _type: 'equal',
+            _value: ctx.activeUser.companyId,
+          }),
+        }),
+      });
+    });
+
+    it('should throw BadRequest error when trying to delete self', async () => {
+      const currentUser = ctx.activeUser;
+      userRepository.findOne.mockResolvedValue(currentUser);
+
+      await expect(service.deleteUser(ctx, currentUser.id!)).rejects.toThrow(
+        IBadRequestException,
+      );
+    });
+
+    it('should soft delete user and emit UserDeletedEvent', async () => {
+      const user = new UserBuilder()
+        .with('companyId', ctx.activeUser.companyId!)
+        .build();
+
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
+
+      await service.deleteUser(ctx, user.id!);
+
+      // Verify soft delete is used (not permanent deletion)
+      expect(userRepository.softDelete).toHaveBeenCalledWith({ id: user.id });
+
+      // Verify UserDeletedEvent is emitted
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'user.deleted',
+        expect.objectContaining({
+          name: 'user.deleted',
+          author: ctx.activeUser,
+          user: user,
+          metadata: expect.objectContaining({
+            pre: user,
+            post: null,
+          }),
+        }),
+      );
+    });
+
+    it('should return standardized success message on successful deletion', async () => {
       const user = new UserBuilder()
         .with('companyId', ctx.activeUser.companyId!)
         .build();
@@ -887,49 +948,9 @@ describe('UsersService', () => {
       userRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
 
       const result = await service.deleteUser(ctx, user.id!);
-      const mockRes = createMockResponse();
-      mockRes.json(result);
 
-      expect(mockRes.body).toEqual(
+      expect(result).toEqual(
         ResponseFormatter.success(userSuccessMessages.deletedUser, null),
-      );
-      expect(userRepository.softDelete).toHaveBeenCalledWith({ id: user.id });
-      expect(eventEmitter.emit).toHaveBeenCalled();
-    });
-
-    it('should throw when trying to delete non-existent user', async () => {
-      const invalidId = 'invalid-id';
-      userRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.deleteUser(ctx, invalidId)).rejects.toThrow(
-        INotFoundException,
-      );
-
-      const mockRes = createMockResponse();
-      mockRes
-        .status(404)
-        .json(ResponseFormatter.error(userErrors.userNotFound));
-
-      expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.userNotFound),
-      );
-    });
-
-    it('should throw when trying to delete self', async () => {
-      const currentUser = ctx.activeUser;
-      userRepository.findOne.mockResolvedValue(currentUser);
-
-      await expect(service.deleteUser(ctx, currentUser.id!)).rejects.toThrow(
-        IBadRequestException,
-      );
-
-      const mockRes = createMockResponse();
-      mockRes
-        .status(400)
-        .json(ResponseFormatter.error(userErrors.cannotDeleteSelf));
-
-      expect(mockRes.body).toEqual(
-        ResponseFormatter.error(userErrors.cannotDeleteSelf),
       );
     });
   });
