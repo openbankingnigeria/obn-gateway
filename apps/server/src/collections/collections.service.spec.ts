@@ -148,8 +148,16 @@ describe('CollectionsService', () => {
     it('should return paginated collections successfully', async () => {
       const pagination = DEFAULT_PAGINATION;
       const mockCollections = [
-        new CollectionBuilder().with('id', 'collection1').with('apis', []).build(),
-        new CollectionBuilder().with('id', 'collection2').with('apis', []).build(),
+        new CollectionBuilder()
+          .with('id', 'collection1')
+          .with('name', 'Test Collection 1')
+          .with('apis', [])
+          .build(),
+        new CollectionBuilder()
+          .with('id', 'collection2')
+          .with('name', 'Test Collection 2')
+          .with('apis', [])
+          .build(),
       ];
       
       collectionRepository.findAndCount.mockResolvedValue([mockCollections, 2]);
@@ -168,8 +176,8 @@ describe('CollectionsService', () => {
         ResponseFormatter.success(
           collectionsSuccessMessages.fetchedCollections,
           expect.arrayContaining([
-            expect.objectContaining({ id: 'collection1' }),
-            expect.objectContaining({ id: 'collection2' }),
+            expect.objectContaining({ id: 'collection1', name: 'Test Collection 1' }),
+            expect.objectContaining({ id: 'collection2', name: 'Test Collection 2' }),
           ]),
           expect.objectContaining({
             totalNumberOfRecords: 2,
@@ -180,13 +188,65 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collections: mockCollections,
+            pagination: pagination,
+            filters: {},
+            totalRecords: 2,
+          }),
+        }),
+      );
     });
 
     it('should apply name filter when provided in listCollections', async () => {
       const pagination = { page: 1, limit: 10 };
-      const filters = { name: 'test' };
-      const mockCollections = [new CollectionBuilder().with('apis', []).build()];
+      const filters = { name: 'Payment APIs' };
+      const mockCollections = [
+        new CollectionBuilder()
+          .with('name', 'Payment APIs')
+          .with('apis', [])
+          .build(),
+      ];
+      
+      collectionRepository.findAndCount.mockResolvedValue([mockCollections, 1]);
+
+      const result = await service.listCollections(ctx, pagination, filters);
+
+      expect(collectionRepository.findAndCount).toHaveBeenCalledWith({
+        where: filters,
+        skip: 0,
+        take: 10,
+        order: { name: 'ASC' },
+        relations: { apis: true },
+      });
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collections: mockCollections,
+            pagination,
+            filters,
+            totalRecords: 1,
+          }),
+        }),
+      );
+    });
+
+    it('should apply slug filter when provided', async () => {
+      const pagination = { page: 1, limit: 10 };
+      const filters = { slug: 'payment-apis' };
+      const mockCollections = [
+        new CollectionBuilder()
+          .with('slug', 'payment-apis')
+          .with('apis', [])
+          .build(),
+      ];
       
       collectionRepository.findAndCount.mockResolvedValue([mockCollections, 1]);
 
@@ -196,6 +256,58 @@ describe('CollectionsService', () => {
         where: filters,
         skip: 0,
         take: 10,
+        order: { name: 'ASC' },
+        relations: { apis: true },
+      });
+    });
+
+    it('should apply createdAt filter when provided', async () => {
+      const pagination = { page: 1, limit: 10 };
+      const createdDate = new Date('2024-01-01');
+      const filters = { createdAt: createdDate };
+      const mockCollections = [
+        new CollectionBuilder()
+          .with('createdAt', createdDate)
+          .with('apis', [])
+          .build(),
+      ];
+      
+      collectionRepository.findAndCount.mockResolvedValue([mockCollections, 1]);
+
+      await service.listCollections(ctx, pagination, filters);
+
+      expect(collectionRepository.findAndCount).toHaveBeenCalledWith({
+        where: filters,
+        skip: 0,
+        take: 10,
+        order: { name: 'ASC' },
+        relations: { apis: true },
+      });
+    });
+
+    it('should apply multiple filters simultaneously', async () => {
+      const pagination = { page: 1, limit: 5 };
+      const filters = { 
+        name: 'Payment', 
+        slug: 'payment-apis',
+        createdAt: new Date('2024-01-01')
+      };
+      const mockCollections = [
+        new CollectionBuilder()
+          .with('name', 'Payment')
+          .with('slug', 'payment-apis')
+          .with('apis', [])
+          .build(),
+      ];
+      
+      collectionRepository.findAndCount.mockResolvedValue([mockCollections, 1]);
+
+      await service.listCollections(ctx, pagination, filters);
+
+      expect(collectionRepository.findAndCount).toHaveBeenCalledWith({
+        where: filters,
+        skip: 0,
+        take: 5,
         order: { name: 'ASC' },
         relations: { apis: true },
       });
@@ -211,11 +323,121 @@ describe('CollectionsService', () => {
 
       expect(collectionRepository.findAndCount).toHaveBeenCalledWith({
         where: {},
-        skip: 5, // (page - 1) * limit = (2 - 1) * 5 = 5
+        skip: 5, 
         take: 5,
         order: { name: 'ASC' },
         relations: { apis: true },
       });
+    });
+
+    it('should include APIs with tiers in response', async () => {
+      const pagination = { page: 1, limit: 10 };
+      const mockApi = new CollectionRouteBuilder()
+        .with('id', 'api-1')
+        .with('name', 'Payment API')
+        .with('tiers', [1, 2])
+        .build();
+      const mockCollections = [
+        new CollectionBuilder()
+          .with('id', 'collection1')
+          .with('apis', [mockApi])
+          .build(),
+      ];
+      
+      collectionRepository.findAndCount.mockResolvedValue([mockCollections, 1]);
+
+      const result = await service.listCollections(ctx, pagination);
+
+      expect(result.data).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'collection1',
+            apis: expect.arrayContaining([
+              expect.objectContaining({
+                id: 'api-1',
+                name: 'Payment API',
+                tiers: [1, 2],
+              }),
+            ]),
+          }),
+        ]),
+      );
+    });
+
+    it('should handle empty results correctly', async () => {
+      const pagination = { page: 1, limit: 10 };
+      const filters = { name: 'NonExistent' };
+      
+      collectionRepository.findAndCount.mockResolvedValue([[], 0]);
+
+      const result = await service.listCollections(ctx, pagination, filters);
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          collectionsSuccessMessages.fetchedCollections,
+          [],
+          expect.objectContaining({
+            totalNumberOfRecords: 0,
+            totalNumberOfPages: 0,
+            pageNumber: 1,
+            pageSize: 10,
+          }),
+        ),
+      );
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collections: [],
+            pagination,
+            filters,
+            totalRecords: 0,
+          }),
+        }),
+      );
+    });
+
+    it('should sort collections by name in ascending order', async () => {
+      const pagination = { page: 1, limit: 10 };
+      const mockCollections = [
+        new CollectionBuilder().with('name', 'A Collection').with('apis', []).build(),
+        new CollectionBuilder().with('name', 'Z Collection').with('apis', []).build(),
+      ];
+      
+      collectionRepository.findAndCount.mockResolvedValue([mockCollections, 2]);
+
+      await service.listCollections(ctx, pagination);
+
+      expect(collectionRepository.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: { name: 'ASC' },
+        }),
+      );
+    });
+
+    it('should calculate pagination metadata correctly for multiple pages', async () => {
+      const pagination = { page: 3, limit: 5 };
+      const mockCollections = [new CollectionBuilder().with('apis', []).build()];
+      
+      collectionRepository.findAndCount.mockResolvedValue([mockCollections, 23]); // 23 total records
+
+      const result = await service.listCollections(ctx, pagination);
+
+      expect(result.meta).toEqual({
+        totalNumberOfRecords: 23,
+        totalNumberOfPages: 5, // Math.ceil(23 / 5) = 5
+        pageNumber: 3,
+        pageSize: 5,
+      });
+
+      expect(collectionRepository.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 10, // (3 - 1) * 5 = 10
+          take: 5,
+        }),
+      );
     });
   });
 
