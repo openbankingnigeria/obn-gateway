@@ -4,24 +4,18 @@ import {
   UserBuilder,
   RoleBuilder,
   ProfileBuilder,
-  CompanyBuilder,
-  RolePermissionBuilder,
-  PermissionBuilder,
 } from '@test/utils/builders';
 import { createMockRepository, MockRepository } from '@test/utils/mocks';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { userSuccessMessages } from '@users/user.constants';
 import { userErrors } from '@users/user.errors';
-import { UserStatuses, CompanyStatuses, RoleStatuses } from '@common/database/entities';
+import { UserStatuses, RoleStatuses } from '@common/database/entities';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Auth } from '@common/utils/authentication/auth.helper';
 import {
   User,
   Role,
   Profile,
-  Company,
-  RolePermission,
-  Permission,
 } from '@common/database/entities';
 import { RequestContext } from '@common/utils/request/request-context';
 import {
@@ -46,88 +40,32 @@ describe('UsersService', () => {
   let userRepository: MockRepository<User>;
   let roleRepository: MockRepository<Role>;
   let profileRepository: MockRepository<Profile>;
-  let companyRepository: MockRepository<Company>;
-  let rolePermissionRepository: MockRepository<RolePermission>;
-  let permissionRepository: MockRepository<Permission>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
   let auth: jest.Mocked<Pick<Auth, 'getToken' | 'hashToken'>>;
   let ctx: RequestContext;
 
   beforeEach(async () => {
-    const rolePermissions = [
-      new RolePermissionBuilder()
-        .with('role', new RoleBuilder().build())
-        .with('permission', new PermissionBuilder().build())
-        .build(),
-      new RolePermissionBuilder()
-        .with('role', new RoleBuilder().build())
-        .with('permission', new PermissionBuilder().build())
-        .build(),
-    ];
-    const permission = new PermissionBuilder()
-      .with('roles', rolePermissions)
-      .build();
-
-    const role = new RoleBuilder().with('permissions', [permission]).build();
-    const company = new CompanyBuilder()
-      .with('status', CompanyStatuses.ACTIVE)
-      .build();
-    const user = new UserBuilder()
-      .with('role', role)
-      .with('company', company)
-      .with('companyId', company.id!) // Ensure companyId is set
-      .with('profile', new ProfileBuilder().build())
-      .build();
-
+    // Simple context setup - createMockContext handles the complexity
     ctx = createMockContext({
-      user,
       permissions: [PERMISSIONS.ADD_TEAM_MEMBERS],
     }).ctx;
 
+    // Only mock repositories that are actually used
     userRepository = {
       ...createMockRepository<User>(),
       count: jest.fn(),
       find: jest.fn(),
       query: jest.fn(),
-      createQueryBuilder: jest.fn(() => ({
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        getOne: jest.fn(),
-        getMany: jest.fn(),
-        skip: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-      })),
     } as any;
 
     roleRepository = {
       ...createMockRepository<Role>(),
       findOne: jest.fn(),
-      createQueryBuilder: jest.fn(() => ({
-        where: jest.fn().mockReturnThis(),
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        getOne: jest.fn(),
-      })),
     } as any;
 
     profileRepository = {
       ...createMockRepository<Profile>(),
-      createQueryBuilder: jest.fn(() => ({
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        getOne: jest.fn(),
-        getMany: jest.fn(),
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        setParameter: jest.fn().mockReturnThis(),
-      })) as any,
-    };
-
-    companyRepository = createMockRepository<Company>();
-    rolePermissionRepository = createMockRepository<RolePermission>();
-    permissionRepository = createMockRepository<Permission>();
+    } as any;
     eventEmitter = mockEventEmitter();
     auth = {
       getToken: jest.fn().mockResolvedValue('test-token'),
@@ -140,12 +78,6 @@ describe('UsersService', () => {
         { provide: 'UserRepository', useValue: userRepository },
         { provide: 'RoleRepository', useValue: roleRepository },
         { provide: 'ProfileRepository', useValue: profileRepository },
-        { provide: 'CompanyRepository', useValue: companyRepository },
-        {
-          provide: 'RolePermissionRepository',
-          useValue: rolePermissionRepository,
-        },
-        { provide: 'PermissionRepository', useValue: permissionRepository },
         { provide: EventEmitter2, useValue: eventEmitter },
         { provide: Auth, useValue: auth },
       ],
@@ -166,7 +98,7 @@ describe('UsersService', () => {
         roleId: 'valid-role-id',
       };
 
-      userRepository.count.mockResolvedValue(1); // Email exists
+      userRepository.count.mockResolvedValue(1);
 
       await expect(service.createUser(ctx, createDto)).rejects.toThrow(
         IBadRequestException,
@@ -184,8 +116,8 @@ describe('UsersService', () => {
         roleId: 'invalid-role-id',
       };
 
-      userRepository.count.mockResolvedValue(0); // Email is unique
-      roleRepository.findOne.mockResolvedValue(null); // Role not found
+      userRepository.count.mockResolvedValue(0); 
+      roleRepository.findOne.mockResolvedValue(null);
 
       await expect(service.createUser(ctx, createDto)).rejects.toThrow(
         IBadRequestException,
@@ -203,7 +135,7 @@ describe('UsersService', () => {
           expect.objectContaining({
             id: Equal(createDto.roleId),
             parentId: Equal(ctx.activeUser.role.parentId),
-            companyId: IsNull(), // Global role condition
+            companyId: IsNull(), 
             status: RoleStatuses.ACTIVE,
           }),
         ],
@@ -240,7 +172,7 @@ describe('UsersService', () => {
           password: '', // Blank password
           companyId: ctx.activeUser.companyId,
           resetPasswordToken: 'hashed-token',
-          resetPasswordExpires: expect.any(Date), // 24 hours from now
+          resetPasswordExpires: expect.any(Date), 
         }),
       );
 
@@ -249,7 +181,7 @@ describe('UsersService', () => {
       const expiryDate = saveCall.resetPasswordExpires;
       const expectedExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
       const timeDiff = Math.abs((expiryDate as Date).getTime() - expectedExpiry.getTime());
-      expect(timeDiff).toBeLessThan(60 * 1000); // Within 1 minute tolerance
+      expect(timeDiff).toBeLessThan(60 * 1000); 
     });
 
     it('should initialize profile with empty values', async () => {
@@ -301,7 +233,7 @@ describe('UsersService', () => {
           author: ctx.activeUser,
           user: mockUser,
           metadata: expect.objectContaining({
-            token: 'test-token', // Raw token for email
+            token: 'test-token', 
             pre: null,
             post: mockUser,
           }),
@@ -607,7 +539,7 @@ describe('UsersService', () => {
         status: UserStatuses.ACTIVE,
       };
 
-      userRepository.findOne.mockResolvedValue(null); // User not found due to company filter
+      userRepository.findOne.mockResolvedValue(null);
 
       await expect(
         service.updateUser(ctx, differentCompanyUserId, updateDto as UpdateUserDto),
@@ -672,7 +604,7 @@ describe('UsersService', () => {
       };
 
       userRepository.findOne.mockResolvedValue(user);
-      roleRepository.findOne.mockResolvedValue(null); // Role not found
+      roleRepository.findOne.mockResolvedValue(null); 
 
       await expect(
         service.updateUser(ctx, user.id!, updateDto),
@@ -690,7 +622,7 @@ describe('UsersService', () => {
           expect.objectContaining({
             id: Equal(updateDto.roleId),
             parentId: Equal(ctx.activeUser.role.parentId),
-            companyId: IsNull(), // Global role condition
+            companyId: IsNull(), 
             status: RoleStatuses.ACTIVE,
           }),
         ],
@@ -904,7 +836,7 @@ describe('UsersService', () => {
     it('should throw NotFound error for users from different companies', async () => {
       const differentCompanyUserId = 'different-company-user-id';
       
-      userRepository.findOne.mockResolvedValue(null); // User not found due to company filter
+      userRepository.findOne.mockResolvedValue(null); 
 
       await expect(service.deleteUser(ctx, differentCompanyUserId)).rejects.toThrow(
         INotFoundException,
