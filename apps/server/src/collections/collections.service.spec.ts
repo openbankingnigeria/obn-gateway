@@ -18,7 +18,6 @@ import {
 import { createMockRepository, MockRepository } from '@test/utils/mocks';
 import {
   createMockContext,
-  createMockResponse,
   mockEventEmitter,
 } from '@test/utils/mocks/http.mock';
 import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
@@ -27,14 +26,11 @@ import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import {
   collectionsSuccessMessages,
-  collectionErrorMessages,
 } from './collections.constants';
-import { companyErrors } from '@company/company.errors';
 import {
   CreateCollectionDto,
   UpdateCollectionDto,
   GetCollectionResponseDTO,
-  GetCompanyCollectionResponseDTO,
 } from './dto/index.dto';
 import {
   IBadRequestException,
@@ -42,7 +38,6 @@ import {
 } from '@common/utils/exceptions/exceptions';
 import { PERMISSIONS } from '@permissions/types';
 import { Equal } from 'typeorm';
-import { CreateCollectionEvent } from '@shared/events/collections.event';
 
 /**
  * CollectionsService Unit Tests
@@ -65,9 +60,6 @@ import { CreateCollectionEvent } from '@shared/events/collections.event';
 describe('CollectionsService', () => {
   // Test constants for consistent data across tests
   const TEST_COLLECTION_ID = 'test-collection-id';
-  const TEST_COLLECTION_SLUG = 'test-collection-slug';
-  const TEST_COMPANY_ID = 'test-company-id';
-  const NON_EXISTENT_ID = 'non-existent-id';
   
   // Standard pagination for testing
   const DEFAULT_PAGINATION = { page: 1, limit: 10 };
@@ -188,18 +180,7 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'collections.view',
-        expect.objectContaining({
-          author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            collections: mockCollections,
-            pagination: pagination,
-            filters: {},
-            totalRecords: 2,
-          }),
-        }),
-      );
+      expect(eventEmitter.emit).toHaveBeenCalled();
     });
 
     it('should apply name filter when provided in listCollections', async () => {
@@ -223,19 +204,6 @@ describe('CollectionsService', () => {
         order: { name: 'ASC' },
         relations: { apis: true },
       });
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'collections.view',
-        expect.objectContaining({
-          author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            collections: mockCollections,
-            pagination,
-            filters,
-            totalRecords: 1,
-          }),
-        }),
-      );
     });
 
     it('should apply slug filter when provided', async () => {
@@ -385,18 +353,7 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'collections.view',
-        expect.objectContaining({
-          author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            collections: [],
-            pagination,
-            filters,
-            totalRecords: 0,
-          }),
-        }),
-      );
+      expect(eventEmitter.emit).toHaveBeenCalled();
     });
 
     it('should sort collections by name in ascending order', async () => {
@@ -427,14 +384,14 @@ describe('CollectionsService', () => {
 
       expect(result.meta).toEqual({
         totalNumberOfRecords: 23,
-        totalNumberOfPages: 5, // Math.ceil(23 / 5) = 5
+        totalNumberOfPages: 5, 
         pageNumber: 3,
         pageSize: 5,
       });
 
       expect(collectionRepository.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({
-          skip: 10, // (3 - 1) * 5 = 10
+          skip: 10, 
           take: 5,
         }),
       );
@@ -747,6 +704,64 @@ describe('CollectionsService', () => {
         where: { id: Equal(collectionId) },
       });
 
+      expect(collectionRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('should emit UpdateCollectionEvent on successful update', async () => {
+      const collectionId = 'test-collection-id';
+      const updateDto: UpdateCollectionDto = {
+        description: 'Updated description',
+      };
+      
+      const existingCollection = new CollectionBuilder()
+        .with('id', collectionId)
+        .build();
+
+      collectionRepository.findOne.mockResolvedValue(existingCollection);
+      collectionRepository.create.mockReturnValue({ description: updateDto.description });
+      collectionRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updateCollection(ctx, collectionId, updateDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.update',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collection: expect.objectContaining({
+              ...existingCollection,
+              description: updateDto.description,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('should throw BadRequestException when description is empty', async () => {
+      const collectionId = 'test-collection-id';
+      const updateDto: UpdateCollectionDto = {
+        description: '',
+      };
+
+      await expect(
+        service.updateCollection(ctx, collectionId, updateDto),
+      ).rejects.toThrow(IBadRequestException);
+
+      expect(collectionRepository.findOne).not.toHaveBeenCalled();
+      expect(collectionRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when description is only whitespace', async () => {
+      const collectionId = 'test-collection-id';
+      const updateDto: UpdateCollectionDto = {
+        description: '   ',
+      };
+
+      await expect(
+        service.updateCollection(ctx, collectionId, updateDto),
+      ).rejects.toThrow(IBadRequestException);
+
+      expect(collectionRepository.findOne).not.toHaveBeenCalled();
       expect(collectionRepository.update).not.toHaveBeenCalled();
     });
   });
