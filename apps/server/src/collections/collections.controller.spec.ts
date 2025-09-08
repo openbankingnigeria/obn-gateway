@@ -5,11 +5,6 @@ import { PERMISSIONS } from '@permissions/types';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { createMockContext } from '@test/utils/mocks/http.mock';
-import { 
-  UserBuilder, 
-  CompanyBuilder, 
-  RoleBuilder 
-} from '@test/utils/builders';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { collectionsSuccessMessages } from './collections.constants';
 import { GetCollectionResponseDTO, GetCompanyCollectionResponseDTO } from './dto/index.dto';
