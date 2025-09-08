@@ -843,37 +843,60 @@ describe('UsersService', () => {
   });
 
   describe('getStats', () => {
-    it('should return valid stats response', async () => {
+    it('should return count of users by status for acting user company', async () => {
       const mockStats = [
         { count: 5, value: UserStatuses.ACTIVE },
         { count: 2, value: UserStatuses.PENDING },
+        { count: 0, value: UserStatuses.INACTIVE },
       ];
       userRepository.query.mockResolvedValue(mockStats);
 
       const result = await service.getStats(ctx);
-      const mockRes = createMockResponse<GetStatsResponseDTO[]>();
-      mockRes.json(result);
 
-      expect(mockRes.body).toEqual(
+      // Verify query filters by company
+      expect(userRepository.query).toHaveBeenCalledWith(
+        expect.stringContaining('AND users.company_id = ?'),
+        [ctx.activeUser.companyId],
+      );
+
+      // Verify response includes stats for all statuses
+      expect(result).toEqual(
         ResponseFormatter.success(
           userSuccessMessages.fetchedUsersStats,
           mockStats.map((stat) => new GetStatsResponseDTO(stat)),
         ),
       );
-      expect(userRepository.query).toHaveBeenCalledWith(
-        expect.stringContaining('AND users.company_id = ?'),
-        [ctx.activeUser.companyId],
+
+      // Verify all user statuses are included, even with zero count
+      expect(result.data).toHaveLength(3);
+      expect(result.data).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ count: 5, value: UserStatuses.ACTIVE }),
+          expect.objectContaining({ count: 2, value: UserStatuses.PENDING }),
+          expect.objectContaining({ count: 0, value: UserStatuses.INACTIVE }),
+        ]),
       );
     });
 
-    it('should return empty array when no stats available', async () => {
-      userRepository.query.mockResolvedValue([]);
+    it('should include all statuses even when no users exist', async () => {
+      const mockStats = [
+        { count: 0, value: UserStatuses.ACTIVE },
+        { count: 0, value: UserStatuses.PENDING },
+        { count: 0, value: UserStatuses.INACTIVE },
+      ];
+      userRepository.query.mockResolvedValue(mockStats);
 
       const result = await service.getStats(ctx);
-      const mockRes = createMockResponse<GetStatsResponseDTO[]>();
-      mockRes.json(result);
 
-      expect(mockRes.body.data).toHaveLength(0);
+      // Verify all statuses are returned with zero counts
+      expect(result.data).toHaveLength(3);
+      expect(result.data).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ count: 0, value: UserStatuses.ACTIVE }),
+          expect.objectContaining({ count: 0, value: UserStatuses.PENDING }),
+          expect.objectContaining({ count: 0, value: UserStatuses.INACTIVE }),
+        ]),
+      );
     });
   });
 
