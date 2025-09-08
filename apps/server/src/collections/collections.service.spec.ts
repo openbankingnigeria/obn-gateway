@@ -42,6 +42,7 @@ import {
 } from '@common/utils/exceptions/exceptions';
 import { PERMISSIONS } from '@permissions/types';
 import { Equal } from 'typeorm';
+import { CreateCollectionEvent } from '@shared/events/collections.event';
 
 /**
  * CollectionsService Unit Tests
@@ -359,6 +360,91 @@ describe('CollectionsService', () => {
         slug: 'test-collection-with-spaces-and-special-chars',
         description: createDto.description,
       });
+    });
+
+    it('should throw BadRequestException when name is empty', async () => {
+      const createDto: CreateCollectionDto = {
+        name: '',
+        description: 'Test description',
+      };
+
+      await expect(
+        service.createCollection(ctx, createDto),
+      ).rejects.toThrow(IBadRequestException);
+
+      expect(collectionRepository.countBy).not.toHaveBeenCalled();
+      expect(collectionRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when name is only whitespace', async () => {
+      const createDto: CreateCollectionDto = {
+        name: '   ',
+        description: 'Test description',
+      };
+
+      await expect(
+        service.createCollection(ctx, createDto),
+      ).rejects.toThrow(IBadRequestException);
+
+      expect(collectionRepository.countBy).not.toHaveBeenCalled();
+      expect(collectionRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when description is empty', async () => {
+      const createDto: CreateCollectionDto = {
+        name: 'Test Collection',
+        description: '',
+      };
+
+      await expect(
+        service.createCollection(ctx, createDto),
+      ).rejects.toThrow(IBadRequestException);
+
+      expect(collectionRepository.countBy).not.toHaveBeenCalled();
+      expect(collectionRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when description is only whitespace', async () => {
+      const createDto: CreateCollectionDto = {
+        name: 'Test Collection',
+        description: '   ',
+      };
+
+      await expect(
+        service.createCollection(ctx, createDto),
+      ).rejects.toThrow(IBadRequestException);
+
+      expect(collectionRepository.countBy).not.toHaveBeenCalled();
+      expect(collectionRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should emit CreateCollectionEvent on successful creation', async () => {
+      const createDto: CreateCollectionDto = {
+        name: 'New Collection',
+        description: 'Test description',
+      };
+      
+      const expectedCollection = new CollectionBuilder()
+        .with('name', createDto.name)
+        .with('slug', 'new-collection')
+        .with('description', createDto.description)
+        .build();
+
+      collectionRepository.countBy.mockResolvedValue(0);
+      collectionRepository.create.mockReturnValue(expectedCollection);
+      collectionRepository.save.mockResolvedValue(expectedCollection);
+
+      await service.createCollection(ctx, createDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.create',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collection: expectedCollection,
+          }),
+        }),
+      );
     });
   });
 
