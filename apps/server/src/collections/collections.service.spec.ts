@@ -500,6 +500,27 @@ describe('CollectionsService', () => {
         where: [{ id: Equal(collectionId) }, { slug: Equal(collectionId) }],
       });
     });
+
+    it('should emit ViewCollectionEvent on successful retrieval', async () => {
+      const collectionId = 'test-collection-id';
+      const mockCollection = new CollectionBuilder()
+        .with('id', collectionId)
+        .build();
+      
+      collectionRepository.findOne.mockResolvedValue(mockCollection);
+
+      await service.viewCollection(ctx, collectionId);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collection: mockCollection,
+          }),
+        }),
+      );
+    });
   });
 
   describe('createCollection', () => {
