@@ -64,6 +64,23 @@ describe('CollectionsService', () => {
   // Standard pagination for testing
   const DEFAULT_PAGINATION = { page: 1, limit: 10 };
   const SECOND_PAGE_PAGINATION = { page: 2, limit: 5 };
+
+  // Mock QueryBuilder for TypeORM queries
+  const createMockQueryBuilder = (collections: any[] = [], count = 0) => ({
+    createQueryBuilder: jest.fn().mockReturnThis(),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    offset: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    addGroupBy: jest.fn().mockReturnThis(),
+    getRawMany: jest.fn().mockResolvedValue(collections),
+    getCount: jest.fn().mockResolvedValue(count),
+  });
+
   let service: CollectionsService;
   let collectionRepository: MockRepository<Collection>;
   let routeRepository: MockRepository<CollectionRoute>;
@@ -866,21 +883,6 @@ describe('CollectionsService', () => {
   });
 
   describe('getCollectionsAssignedToCompany', () => {
-    const createMockQueryBuilder = (collections: any[] = [], count = 0) => ({
-      createQueryBuilder: jest.fn().mockReturnThis(),
-      leftJoinAndSelect: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      offset: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      addGroupBy: jest.fn().mockReturnThis(),
-      getRawMany: jest.fn().mockResolvedValue(collections),
-      getCount: jest.fn().mockResolvedValue(count),
-    });
-
     it('should return collections with proper pagination and response format', async () => {
       const companyId = 'test-company-id';
       const environment = KONG_ENVIRONMENT.DEVELOPMENT;
@@ -1003,6 +1005,92 @@ describe('CollectionsService', () => {
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         "collection.name LIKE '%Payment%' AND collection.slug LIKE '%payment-apis%'",
       );
+    });
+
+    it('should default to current user company when companyId not provided', async () => {
+      const environment = KONG_ENVIRONMENT.DEVELOPMENT;
+      const pagination = { page: 1, limit: 10 };
+      const mockCompany = new CompanyBuilder().with('id', ctx.activeCompany.id).build();
+
+      companyRepository.findOne.mockResolvedValue(mockCompany);
+      collectionRepository.createQueryBuilder.mockReturnValue(createMockQueryBuilder() as any);
+
+      await service.getCollectionsAssignedToCompany(ctx, environment, undefined, pagination);
+
+      expect(companyRepository.findOne).toHaveBeenCalledWith({
+        where: { id: Equal(ctx.activeCompany.id) },
+      });
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+    });
+  });
+
+  describe('User Context Validation', () => {
+    describe('User Context Scoping', () => {
+      it('should consistently use the provided request context across all methods', async () => {
+        const testUser = new UserBuilder()
+          .with('id', 'test-user-123')
+          .with('company', new CompanyBuilder().with('id', 'test-company-123').build())
+          .with('role', new RoleBuilder().build())
+          .build();
+
+        const testCtx = createMockContext({
+          user: testUser,
+          permissions: [
+            PERMISSIONS.LIST_API_COLLECTIONS,
+            PERMISSIONS.VIEW_API_COLLECTION,
+            PERMISSIONS.CREATE_API_COLLECTION,
+            PERMISSIONS.UPDATE_API_COLLECTION,
+            PERMISSIONS.DELETE_API_COLLECTION,
+            PERMISSIONS.VIEW_ASSIGNED_API_ENDPOINTS,
+          ],
+        }).ctx;
+
+        // Test listCollections
+        collectionRepository.findAndCount.mockResolvedValue([[], 0]);
+        await service.listCollections(testCtx, { page: 1, limit: 10 });
+
+        // Test viewCollection
+        const mockCollection = new CollectionBuilder().build();
+        collectionRepository.findOne.mockResolvedValue(mockCollection);
+        await service.viewCollection(testCtx, 'test-id');
+
+        // Test createCollection
+        collectionRepository.countBy.mockResolvedValue(0);
+        collectionRepository.create.mockReturnValue(mockCollection);
+        collectionRepository.save.mockResolvedValue(mockCollection);
+        await service.createCollection(testCtx, { name: 'Test', description: 'Test' });
+
+        // Test updateCollection
+        collectionRepository.create.mockReturnValue({ description: 'Updated' });
+        collectionRepository.update.mockResolvedValue({ affected: 1 } as any);
+        await service.updateCollection(testCtx, 'test-id', { description: 'Updated' });
+
+        // Test deleteCollection
+        routeRepository.find.mockResolvedValue([]);
+        collectionRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
+        await service.deleteCollection(testCtx, 'test-id');
+
+        // Test getCollectionsAssignedToCompany
+        const mockCompany = new CompanyBuilder().with('id', testUser.company!.id).build();
+        companyRepository.findOne.mockResolvedValue(mockCompany);
+        collectionRepository.createQueryBuilder.mockReturnValue(createMockQueryBuilder() as any);
+        await service.getCollectionsAssignedToCompany(testCtx, KONG_ENVIRONMENT.DEVELOPMENT, undefined, { page: 1, limit: 10 });
+
+        // Verify all events were emitted with the same user context
+        const emitCalls = eventEmitter.emit.mock.calls;
+        emitCalls.forEach(call => {
+          const eventData = call[1];
+          expect(eventData.author).toEqual(testCtx.activeUser);
+          expect(eventData.author.id).toBe('test-user-123');
+          expect(eventData.author.company.id).toBe('test-company-123');
+        });
+      });
     });
   });
 
