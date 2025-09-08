@@ -12,7 +12,7 @@ import {
 } from '@test/utils/builders';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { collectionsSuccessMessages } from './collections.constants';
-import { GetCollectionResponseDTO } from './dto/index.dto';
+import { GetCollectionResponseDTO, GetCompanyCollectionResponseDTO } from './dto/index.dto';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
 /**
@@ -109,6 +109,226 @@ describe('CollectionsController', () => {
     it('should require AP_VIEW_ASSIGNED_API_ENDPOINTS permission for viewCompanyApis', () => {
       const permissions = reflector.get<string>('allowed_permissions', controller.viewCompanyApis);
       expect(permissions).toEqual(PERMISSIONS.AP_VIEW_ASSIGNED_API_ENDPOINTS);
+    });
+  });
+
+  describe('listCollections', () => {
+    it('should call collectionsService.listCollections with correct parameters', async () => {
+      // Arrange
+      const { ctx } = createMockContext();
+      const pagination = { page: 1, limit: 10 };
+      const filters = { search: 'test' };
+      const mockCollections: GetCollectionResponseDTO[] = [
+        new GetCollectionResponseDTO({
+          id: '1',
+          name: 'Test Collection',
+          description: 'Test Description',
+          slug: 'test-collection',
+          createdAt: new Date(),
+          apis: []
+        })
+      ];
+      const expectedResponse = ResponseFormatter.success(
+        collectionsSuccessMessages.fetchedCollections,
+        mockCollections
+      );
+
+      service.listCollections.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await controller.listCollections(ctx, pagination, filters);
+
+      // Assert
+      expect(service.listCollections).toHaveBeenCalledWith(ctx, pagination, filters);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('createCollection', () => {
+    it('should call collectionsService.createCollection with correct parameters', async () => {
+      // Arrange
+      const { ctx } = createMockContext();
+      const createData = {
+        name: 'Test Collection',
+        description: 'Test Description',
+      };
+      const mockCollection = new GetCollectionResponseDTO({
+        id: '123',
+        name: createData.name,
+        description: createData.description,
+        slug: 'test-collection',
+        createdAt: new Date(),
+        apis: []
+      });
+      const expectedResponse = ResponseFormatter.success(
+        collectionsSuccessMessages.createdCollection,
+        mockCollection
+      );
+
+      service.createCollection.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await controller.createCollection(ctx, createData);
+
+      // Assert
+      expect(service.createCollection).toHaveBeenCalledWith(ctx, createData);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('viewCollection', () => {
+    it('should call collectionsService.viewCollection with correct parameters', async () => {
+      // Arrange
+      const { ctx } = createMockContext();
+      const collectionId = '123';
+      const mockCollection = new GetCollectionResponseDTO({
+        id: collectionId,
+        name: 'Test Collection',
+        description: 'Test Description',
+        slug: 'test-collection',
+        createdAt: new Date(),
+        apis: []
+      });
+      const expectedResponse = ResponseFormatter.success(
+        collectionsSuccessMessages.fetchedCollection,
+        mockCollection
+      );
+
+      service.viewCollection.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await controller.viewCollection(ctx, collectionId);
+
+      // Assert
+      expect(service.viewCollection).toHaveBeenCalledWith(ctx, collectionId);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('updateCollection', () => {
+    it('should call collectionsService.updateCollection with correct parameters', async () => {
+      // Arrange
+      const { ctx } = createMockContext();
+      const collectionId = '123';
+      const updateData = {
+        description: 'Updated Description',
+      };
+      const mockCollection = new GetCollectionResponseDTO({
+        id: collectionId,
+        name: 'Test Collection',
+        description: updateData.description,
+        slug: 'test-collection',
+        createdAt: new Date(),
+        apis: []
+      });
+      const expectedResponse = ResponseFormatter.success(
+        collectionsSuccessMessages.updatedCollection,
+        mockCollection
+      );
+
+      service.updateCollection.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await controller.updateCollection(ctx, collectionId, updateData);
+
+      // Assert
+      expect(service.updateCollection).toHaveBeenCalledWith(ctx, collectionId, updateData);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('deleteCollection', () => {
+    it('should call collectionsService.deleteCollection with correct parameters', async () => {
+      // Arrange
+      const { ctx } = createMockContext();
+      const collectionId = '123';
+      const expectedResponse = ResponseFormatter.success(
+        collectionsSuccessMessages.deletedCollection
+      );
+
+      service.deleteCollection.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await controller.deleteCollection(ctx, collectionId);
+
+      // Assert
+      expect(service.deleteCollection).toHaveBeenCalledWith(ctx, collectionId);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('viewMyCompanyApis', () => {
+    it('should call collectionsService.getCollectionsAssignedToCompany with correct parameters', async () => {
+      // Arrange
+      const { ctx } = createMockContext();
+      const params = { environment: KONG_ENVIRONMENT.PRODUCTION };
+      const pagination = { page: 1, limit: 10 };
+      const filters = { search: 'test' };
+      const mockCollections: GetCompanyCollectionResponseDTO[] = [
+        new GetCompanyCollectionResponseDTO({
+          id: '1',
+          name: 'Test Collection',
+          description: 'Test Description',
+          routeCount: '5'
+        })
+      ];
+      const expectedResponse = ResponseFormatter.success(
+        collectionsSuccessMessages.fetchedCollections,
+        mockCollections
+      );
+
+      service.getCollectionsAssignedToCompany.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await controller.viewMyCompanyApis(ctx, params, pagination, filters);
+
+      // Assert
+      expect(service.getCollectionsAssignedToCompany).toHaveBeenCalledWith(
+        ctx,
+        params.environment,
+        undefined,
+        pagination,
+        filters
+      );
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('viewCompanyApis', () => {
+    it('should call collectionsService.getCollectionsAssignedToCompany with correct parameters', async () => {
+      // Arrange
+      const { ctx } = createMockContext();
+      const params = { environment: KONG_ENVIRONMENT.DEVELOPMENT };
+      const companyId = 'company-123';
+      const pagination = { page: 1, limit: 10 };
+      const filters = { search: 'test' };
+      const mockCollections: GetCompanyCollectionResponseDTO[] = [
+        new GetCompanyCollectionResponseDTO({
+          id: '1',
+          name: 'Test Collection',
+          description: 'Test Description',
+          routeCount: '3'
+        })
+      ];
+      const expectedResponse = ResponseFormatter.success(
+        collectionsSuccessMessages.fetchedCollections,
+        mockCollections
+      );
+
+      service.getCollectionsAssignedToCompany.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await controller.viewCompanyApis(ctx, params, companyId, pagination, filters);
+
+      // Assert
+      expect(service.getCollectionsAssignedToCompany).toHaveBeenCalledWith(
+        ctx,
+        params.environment,
+        companyId,
+        pagination,
+        filters
+      );
+      expect(result).toEqual(expectedResponse);
     });
   });
 });
