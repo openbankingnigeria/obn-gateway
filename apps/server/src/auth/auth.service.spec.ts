@@ -46,6 +46,7 @@ import { CompanyTiers } from '@company/types';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
 import { GetUserResponseDTO } from '@users/dto/index.dto';
+import { AuthEvents } from '@shared/events/auth.event';
 import moment from 'moment';
 import { Equal } from 'typeorm';
 import * as bcryptjs from 'bcryptjs';
@@ -242,7 +243,17 @@ describe('AuthService', () => {
             expect.any(GetUserResponseDTO),
           ),
         );
-        expect(eventEmitter.emit).toHaveBeenCalled();
+        expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+        expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.SIGN_UP, expect.objectContaining({
+          name: AuthEvents.SIGN_UP,
+          author: expect.objectContaining({
+            email: mockUser.email,
+            id: mockUser.id
+          }),
+          metadata: expect.objectContaining({
+            otp: expect.any(String)
+          })
+        }));
         expect(userRepository.save).toHaveBeenCalled();
         expect(companyRepository.save).toHaveBeenCalled();
       });
@@ -345,7 +356,17 @@ describe('AuthService', () => {
             expect.any(GetUserResponseDTO),
           ),
         );
-        expect(eventEmitter.emit).toHaveBeenCalled();
+        expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+        expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.SIGN_UP, expect.objectContaining({
+          name: AuthEvents.SIGN_UP,
+          author: expect.objectContaining({
+            email: mockUser.email,
+            id: mockUser.id
+          }),
+          metadata: expect.objectContaining({
+            otp: expect.any(String)
+          })
+        }));
       });
 
       it('should throw error when user with BVN already exists', async () => {
@@ -390,7 +411,17 @@ describe('AuthService', () => {
             expect.any(GetUserResponseDTO),
           ),
         );
-        expect(eventEmitter.emit).toHaveBeenCalled();
+        expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+        expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.SIGN_UP, expect.objectContaining({
+          name: AuthEvents.SIGN_UP,
+          author: expect.objectContaining({
+            email: mockUser.email,
+            id: mockUser.id
+          }),
+          metadata: expect.objectContaining({
+            otp: expect.any(String)
+          })
+        }));
       });
     });
 
@@ -431,7 +462,15 @@ describe('AuthService', () => {
       expect(result.data).toHaveProperty('accessToken', 'access-token');
       expect(result.data).toHaveProperty('refreshToken', 'refresh-token');
       expect(result.data).toHaveProperty('tokenType', 'Bearer');
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+      expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.LOGIN, expect.objectContaining({
+        name: AuthEvents.LOGIN,
+        author: expect.objectContaining({
+          email: mockUser.email,
+          id: mockUser.id
+        }),
+        metadata: expect.any(Object)
+      }));
     });
 
     it('should throw error when user not found', async () => {
@@ -669,7 +708,17 @@ describe('AuthService', () => {
           resetPasswordExpires: expect.any(Date),
         },
       );
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+      expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.RESET_PASSWORD_REQUEST, expect.objectContaining({
+        name: AuthEvents.RESET_PASSWORD_REQUEST,
+        user: expect.objectContaining({
+          email: mockUser.email,
+          id: mockUser.id
+        }),
+        metadata: expect.objectContaining({
+          token: expect.any(String)
+        })
+      }));
     });
 
     it('should return success response even when user does not exist', async () => {
@@ -722,7 +771,14 @@ describe('AuthService', () => {
             emailVerified: true,
           }),
         );
-        expect(eventEmitter.emit).toHaveBeenCalled();
+        expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+        expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.RESET_PASSWORD_REQUEST, expect.objectContaining({
+          name: AuthEvents.RESET_PASSWORD_REQUEST,
+          user: expect.objectContaining({
+            id: expect.any(String)
+          }),
+          metadata: expect.any(Object)
+        }));
       });
 
       it('should throw error when reset token is invalid or expired', async () => {
@@ -942,7 +998,17 @@ describe('AuthService', () => {
           emailVerificationExpires: expect.any(Date),
         },
       );
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+      expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.SIGN_UP, expect.objectContaining({
+        name: AuthEvents.SIGN_UP,
+        author: expect.objectContaining({
+          email: mockUser.email,
+          id: mockUser.id
+        }),
+        metadata: expect.objectContaining({
+          otp: expect.any(String)
+        })
+      }));
     });
 
     it('should return success response when user does not exist', async () => {
