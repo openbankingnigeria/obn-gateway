@@ -240,20 +240,40 @@ describe('AuthService', () => {
         expect(result).toEqual(
           ResponseFormatter.success(
             authSuccessMessages.signup,
-            expect.any(GetUserResponseDTO),
+            expect.objectContaining({
+              id: mockUser.id,
+              email: mockUser.email,
+              status: UserStatuses.ACTIVE,
+              emailVerified: mockUser.emailVerified,
+              twofaEnabled: false,
+              company: expect.objectContaining({
+                id: mockCompany.id,
+                status: CompanyStatuses.ACTIVE,
+                type: CompanyTypes.BUSINESS,
+                tier: CompanyTiers.TIER_0,
+              }),
+              profile: expect.objectContaining({
+                firstName: mockProfile.firstName,
+                lastName: mockProfile.lastName,
+                phone: mockProfile.phone,
+              }),
+            }),
           ),
         );
         expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
-        expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.SIGN_UP, expect.objectContaining({
-          name: AuthEvents.SIGN_UP,
-          author: expect.objectContaining({
-            email: mockUser.email,
-            id: mockUser.id
+        expect(eventEmitter.emit).toHaveBeenCalledWith(
+          AuthEvents.SIGN_UP,
+          expect.objectContaining({
+            name: AuthEvents.SIGN_UP,
+            author: expect.objectContaining({
+              email: mockUser.email,
+              id: mockUser.id,
+            }),
+            metadata: expect.objectContaining({
+              otp: expect.any(String),
+            }),
           }),
-          metadata: expect.objectContaining({
-            otp: expect.any(String)
-          })
-        }));
+        );
         expect(userRepository.save).toHaveBeenCalled();
         expect(companyRepository.save).toHaveBeenCalled();
       });
@@ -353,20 +373,40 @@ describe('AuthService', () => {
         expect(result).toEqual(
           ResponseFormatter.success(
             authSuccessMessages.signup,
-            expect.any(GetUserResponseDTO),
+            expect.objectContaining({
+              id: mockUser.id,
+              email: mockUser.email,
+              status: UserStatuses.ACTIVE,
+              emailVerified: mockUser.emailVerified,
+              twofaEnabled: false,
+              company: expect.objectContaining({
+                id: mockCompany.id,
+                status: CompanyStatuses.ACTIVE,
+                type: CompanyTypes.BUSINESS,
+                tier: CompanyTiers.TIER_0,
+              }),
+              profile: expect.objectContaining({
+                firstName: mockProfile.firstName,
+                lastName: mockProfile.lastName,
+                phone: mockProfile.phone,
+              }),
+            }),
           ),
         );
         expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
-        expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.SIGN_UP, expect.objectContaining({
-          name: AuthEvents.SIGN_UP,
-          author: expect.objectContaining({
-            email: mockUser.email,
-            id: mockUser.id
+        expect(eventEmitter.emit).toHaveBeenCalledWith(
+          AuthEvents.SIGN_UP,
+          expect.objectContaining({
+            name: AuthEvents.SIGN_UP,
+            author: expect.objectContaining({
+              email: mockUser.email,
+              id: mockUser.id,
+            }),
+            metadata: expect.objectContaining({
+              otp: expect.any(String),
+            }),
           }),
-          metadata: expect.objectContaining({
-            otp: expect.any(String)
-          })
-        }));
+        );
       });
 
       it('should throw error when user with BVN already exists', async () => {
@@ -408,20 +448,40 @@ describe('AuthService', () => {
         expect(result).toEqual(
           ResponseFormatter.success(
             authSuccessMessages.signup,
-            expect.any(GetUserResponseDTO),
+            expect.objectContaining({
+              id: mockUser.id,
+              email: mockUser.email,
+              status: UserStatuses.ACTIVE,
+              emailVerified: mockUser.emailVerified,
+              twofaEnabled: false,
+              company: expect.objectContaining({
+                id: mockCompany.id,
+                status: CompanyStatuses.ACTIVE,
+                type: CompanyTypes.BUSINESS,
+                tier: CompanyTiers.TIER_0,
+              }),
+              profile: expect.objectContaining({
+                firstName: mockProfile.firstName,
+                lastName: mockProfile.lastName,
+                phone: mockProfile.phone,
+              }),
+            }),
           ),
         );
         expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
-        expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.SIGN_UP, expect.objectContaining({
-          name: AuthEvents.SIGN_UP,
-          author: expect.objectContaining({
-            email: mockUser.email,
-            id: mockUser.id
+        expect(eventEmitter.emit).toHaveBeenCalledWith(
+          AuthEvents.SIGN_UP,
+          expect.objectContaining({
+            name: AuthEvents.SIGN_UP,
+            author: expect.objectContaining({
+              email: mockUser.email,
+              id: mockUser.id,
+            }),
+            metadata: expect.objectContaining({
+              otp: expect.any(String),
+            }),
           }),
-          metadata: expect.objectContaining({
-            otp: expect.any(String)
-          })
-        }));
+        );
       });
     });
 
@@ -463,14 +523,17 @@ describe('AuthService', () => {
       expect(result.data).toHaveProperty('refreshToken', 'refresh-token');
       expect(result.data).toHaveProperty('tokenType', 'Bearer');
       expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
-      expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.LOGIN, expect.objectContaining({
-        name: AuthEvents.LOGIN,
-        author: expect.objectContaining({
-          email: mockUser.email,
-          id: mockUser.id
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        AuthEvents.LOGIN,
+        expect.objectContaining({
+          name: AuthEvents.LOGIN,
+          author: expect.objectContaining({
+            email: mockUser.email,
+            id: mockUser.id,
+          }),
+          metadata: expect.any(Object),
         }),
-        metadata: expect.any(Object)
-      }));
+      );
     });
 
     it('should throw error when user not found', async () => {
@@ -709,16 +772,19 @@ describe('AuthService', () => {
         },
       );
       expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
-      expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.RESET_PASSWORD_REQUEST, expect.objectContaining({
-        name: AuthEvents.RESET_PASSWORD_REQUEST,
-        user: expect.objectContaining({
-          email: mockUser.email,
-          id: mockUser.id
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        AuthEvents.RESET_PASSWORD_REQUEST,
+        expect.objectContaining({
+          name: AuthEvents.RESET_PASSWORD_REQUEST,
+          user: expect.objectContaining({
+            email: mockUser.email,
+            id: mockUser.id,
+          }),
+          metadata: expect.objectContaining({
+            token: expect.any(String),
+          }),
         }),
-        metadata: expect.objectContaining({
-          token: expect.any(String)
-        })
-      }));
+      );
     });
 
     it('should return success response even when user does not exist', async () => {
@@ -744,7 +810,10 @@ describe('AuthService', () => {
       const resetToken = 'valid-reset-token';
 
       it('should successfully reset password with valid token', async () => {
-        const userWithDifferentPassword = { ...mockUser, password: 'old-hashed-password' };
+        const userWithDifferentPassword = {
+          ...mockUser,
+          password: 'old-hashed-password',
+        };
         auth.hashToken.mockResolvedValue('hashed-reset-token');
         userRepository.findOneBy.mockResolvedValue(userWithDifferentPassword);
         mockedBcryptjs.compareSync.mockImplementation(() => {
@@ -772,13 +841,16 @@ describe('AuthService', () => {
           }),
         );
         expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
-        expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.RESET_PASSWORD_REQUEST, expect.objectContaining({
-          name: AuthEvents.RESET_PASSWORD_REQUEST,
-          user: expect.objectContaining({
-            id: expect.any(String)
+        expect(eventEmitter.emit).toHaveBeenCalledWith(
+          AuthEvents.RESET_PASSWORD_REQUEST,
+          expect.objectContaining({
+            name: AuthEvents.RESET_PASSWORD_REQUEST,
+            user: expect.objectContaining({
+              id: expect.any(String),
+            }),
+            metadata: expect.any(Object),
           }),
-          metadata: expect.any(Object)
-        }));
+        );
       });
 
       it('should throw error when reset token is invalid or expired', async () => {
@@ -793,12 +865,18 @@ describe('AuthService', () => {
 
     describe('when using User object', () => {
       it('should successfully reset password for authenticated user', async () => {
-        const userInstance = Object.assign(new User(), { ...mockUser, password: 'old-hashed-password' });
+        const userInstance = Object.assign(new User(), {
+          ...mockUser,
+          password: 'old-hashed-password',
+        });
         mockedBcryptjs.compareSync.mockReturnValue(false);
         mockedBcryptjs.hashSync.mockReturnValue('new-hashed-password');
         userRepository.update.mockResolvedValue({ affected: 1 } as any);
 
-        const result = await service.resetPassword(resetPasswordDto, userInstance);
+        const result = await service.resetPassword(
+          resetPasswordDto,
+          userInstance,
+        );
 
         expect(result).toEqual(
           ResponseFormatter.success(authSuccessMessages.changePassword),
@@ -820,9 +898,9 @@ describe('AuthService', () => {
       };
       const userInstance = Object.assign(new User(), mockUser);
 
-      await expect(service.resetPassword(invalidDto, userInstance)).rejects.toThrow(
-        IBadRequestException,
-      );
+      await expect(
+        service.resetPassword(invalidDto, userInstance),
+      ).rejects.toThrow(IBadRequestException);
     });
 
     it('should throw error when new password is same as old password', async () => {
@@ -999,16 +1077,19 @@ describe('AuthService', () => {
         },
       );
       expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
-      expect(eventEmitter.emit).toHaveBeenCalledWith(AuthEvents.SIGN_UP, expect.objectContaining({
-        name: AuthEvents.SIGN_UP,
-        author: expect.objectContaining({
-          email: mockUser.email,
-          id: mockUser.id
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        AuthEvents.SIGN_UP,
+        expect.objectContaining({
+          name: AuthEvents.SIGN_UP,
+          author: expect.objectContaining({
+            email: mockUser.email,
+            id: mockUser.id,
+          }),
+          metadata: expect.objectContaining({
+            otp: expect.any(String),
+          }),
         }),
-        metadata: expect.objectContaining({
-          otp: expect.any(String)
-        })
-      }));
+      );
     });
 
     it('should return success response when user does not exist', async () => {
