@@ -108,6 +108,7 @@ describe('UsersService', () => {
       expect(userRepository.count).toHaveBeenCalledWith({
         where: { email: createDto.email },
       });
+      expect(userRepository.count).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequest error for invalid role', async () => {
@@ -140,6 +141,7 @@ describe('UsersService', () => {
           }),
         ],
       });
+      expect(roleRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should create user with blank password and hashed reset token', async () => {
@@ -161,8 +163,10 @@ describe('UsersService', () => {
       await service.createUser(ctx, createDto);
 
       // Verify auth services called for token generation
-      expect(auth.getToken).toHaveBeenCalled();
+      expect(auth.getToken).toHaveBeenCalledWith();
+      expect(auth.getToken).toHaveBeenCalledTimes(1);
       expect(auth.hashToken).toHaveBeenCalledWith('test-token');
+      expect(auth.hashToken).toHaveBeenCalledTimes(1);
 
       // Verify user creation with correct password and token details
       expect(userRepository.save).toHaveBeenCalledWith(
@@ -175,6 +179,7 @@ describe('UsersService', () => {
           resetPasswordExpires: expect.any(Date), 
         }),
       );
+      expect(userRepository.save).toHaveBeenCalledTimes(1);
 
       // Verify token expires in approximately 24 hours
       const saveCall = userRepository.save.mock.calls[0][0];
@@ -206,6 +211,7 @@ describe('UsersService', () => {
           },
         }),
       );
+      expect(userRepository.save).toHaveBeenCalledTimes(1);
     });
 
     it('should emit UserCreatedEvent with invite token', async () => {
@@ -239,6 +245,7 @@ describe('UsersService', () => {
           }),
         }),
       );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should return created user in standardized DTO format', async () => {
@@ -318,6 +325,7 @@ describe('UsersService', () => {
           }),
         }),
       );
+      expect(userRepository.find).toHaveBeenCalledTimes(1);
 
       // Verify response includes profile and role details
       expect(result.status).toBe('success');
@@ -348,6 +356,7 @@ describe('UsersService', () => {
           take: 5,
         }),
       );
+      expect(userRepository.find).toHaveBeenCalledTimes(1);
 
       // Verify pagination metadata
       expect(result.meta).toMatchObject({
@@ -393,6 +402,7 @@ describe('UsersService', () => {
           }),
         }),
       );
+      expect(userRepository.find).toHaveBeenCalledTimes(1);
     });
 
     it('should return standardized DTO format on success', async () => {
@@ -460,6 +470,7 @@ describe('UsersService', () => {
           role: true,
         }),
       });
+      expect(userRepository.findOne).toHaveBeenCalledTimes(1);
 
       // Verify standardized response format with complete details
       expect(result).toEqual(
@@ -527,6 +538,7 @@ describe('UsersService', () => {
           role: true,
         }),
       });
+      expect(userRepository.findOne).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -561,6 +573,7 @@ describe('UsersService', () => {
           profile: true,
         }),
       });
+      expect(userRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequest error when trying to update self', async () => {
@@ -627,6 +640,7 @@ describe('UsersService', () => {
           }),
         ],
       });
+      expect(roleRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should update user status, role, firstName, and lastName', async () => {
@@ -658,6 +672,7 @@ describe('UsersService', () => {
           status: updateDto.status,
         }),
       );
+      expect(userRepository.update).toHaveBeenCalledTimes(1);
 
       // Verify profile fields are updated
       expect(profileRepository.update).toHaveBeenCalledWith(
@@ -667,6 +682,7 @@ describe('UsersService', () => {
           lastName: updateDto.lastName,
         }),
       );
+      expect(profileRepository.update).toHaveBeenCalledTimes(1);
     });
 
     it('should emit UserReactivatedEvent when status changes to ACTIVE', async () => {
@@ -695,6 +711,7 @@ describe('UsersService', () => {
           }),
         }),
       );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(2);
     });
 
     it('should emit UserDeactivatedEvent when status changes to INACTIVE', async () => {
@@ -723,6 +740,7 @@ describe('UsersService', () => {
           }),
         }),
       );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(2);
     });
 
     it('should always emit UserUpdatedEvent and return updated user in standardized DTO format', async () => {
@@ -757,6 +775,7 @@ describe('UsersService', () => {
           }),
         }),
       );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(2);
 
       // Verify standardized DTO format response
       expect(result).toEqual(
@@ -790,6 +809,7 @@ describe('UsersService', () => {
         expect.stringContaining('AND users.company_id = ?'),
         [ctx.activeUser.companyId],
       );
+      expect(userRepository.query).toHaveBeenCalledTimes(1);
 
       // Verify response includes stats for all statuses
       expect(result).toEqual(
@@ -855,6 +875,7 @@ describe('UsersService', () => {
           }),
         }),
       });
+      expect(userRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequest error when trying to delete self', async () => {
@@ -878,6 +899,7 @@ describe('UsersService', () => {
 
       // Verify soft delete is used (not permanent deletion)
       expect(userRepository.softDelete).toHaveBeenCalledWith({ id: user.id });
+      expect(userRepository.softDelete).toHaveBeenCalledTimes(1);
 
       // Verify UserDeletedEvent is emitted
       expect(eventEmitter.emit).toHaveBeenCalledWith(
@@ -892,6 +914,7 @@ describe('UsersService', () => {
           }),
         }),
       );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should return standardized success message on successful deletion', async () => {
@@ -944,11 +967,20 @@ describe('UsersService', () => {
       mockRes.json(result);
 
       // auth was called to get and hash token
-      expect(auth.getToken).toHaveBeenCalled();
+      expect(auth.getToken).toHaveBeenCalledWith();
+      expect(auth.getToken).toHaveBeenCalledTimes(1);
       expect(auth.hashToken).toHaveBeenCalledWith('test-token');
+      expect(auth.hashToken).toHaveBeenCalledTimes(1);
 
       // repository updated with hashed token and expiry (about 24 hours)
-      expect(userRepository.update).toHaveBeenCalled();
+      expect(userRepository.update).toHaveBeenCalledWith(
+        { id: user.id },
+        expect.objectContaining({
+          resetPasswordToken: 'hashed-token',
+          resetPasswordExpires: expect.any(Date),
+        })
+      );
+      expect(userRepository.update).toHaveBeenCalledTimes(1);
       const updateArgs = (userRepository.update as jest.Mock).mock.calls[0][1];
       expect(updateArgs.resetPasswordToken).toBe('hashed-token');
       expect(updateArgs.resetPasswordExpires).toBeInstanceOf(Date);
@@ -961,12 +993,15 @@ describe('UsersService', () => {
       expect(diff).toBeLessThan(60 * 1000);
 
       // event emitted and should include the raw token in metadata
-      expect(eventEmitter.emit).toHaveBeenCalled();
-      const emitCall = (eventEmitter.emit as jest.Mock).mock.calls[0];
-      // emit(name, event)
-      expect(emitCall[1]).toBeDefined();
-      expect(emitCall[1].metadata).toBeDefined();
-      expect(emitCall[1].metadata.token).toBe('test-token');
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'user.created',
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            token: 'test-token',
+          }),
+        })
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
 
       // response should be a success with sentInvite message
       expect(mockRes.body).toEqual(
