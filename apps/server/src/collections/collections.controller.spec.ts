@@ -10,15 +10,6 @@ import { collectionsSuccessMessages } from './collections.constants';
 import { GetCollectionResponseDTO, GetCompanyCollectionResponseDTO } from './dto/index.dto';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 
-/**
- * CollectionsController Unit Tests
- * 
- * This test suite focuses on testing the controller layer, particularly:
- * - Permission enforcement via @RequiredPermission decorators
- * - Request/response handling
- * - Parameter validation and transformation
- * - Integration between controller and service layers
- */
 describe('CollectionsController', () => {
   let controller: CollectionsController;
   let service: jest.Mocked<CollectionsService>;

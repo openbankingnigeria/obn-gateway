@@ -39,24 +39,6 @@ import {
 import { PERMISSIONS } from '@permissions/types';
 import { Equal } from 'typeorm';
 
-/**
- * CollectionsService Unit Tests
- * 
- * This test suite covers all public methods of the CollectionsService class:
- * - listCollections: Pagination and filtering of collections
- * - viewCollection: Retrieving collections by ID or slug
- * - createCollection: Creating new collections with validation
- * - updateCollection: Updating existing collections
- * - deleteCollection: Soft deletion with route validation
- * - getCollectionsAssignedToCompany: Kong ACL integration for company-specific collections
- * 
- * Test coverage includes:
- * ✓ Happy path scenarios
- * ✓ Error handling and validation
- * ✓ Edge cases and boundary conditions
- * ✓ Kong integration for development/production environments
- * ✓ Proper audit logging through EventEmitter
- */
 describe('CollectionsService', () => {
   // Test constants for consistent data across tests
   const TEST_COLLECTION_ID = 'test-collection-id';
@@ -180,6 +162,7 @@ describe('CollectionsService', () => {
         order: { name: 'ASC' },
         relations: { apis: true },
       });
+      expect(collectionRepository.findAndCount).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -197,7 +180,13 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should apply name filter when provided in listCollections', async () => {
@@ -221,6 +210,7 @@ describe('CollectionsService', () => {
         order: { name: 'ASC' },
         relations: { apis: true },
       });
+      expect(collectionRepository.findAndCount).toHaveBeenCalledTimes(1);
     });
 
     it('should apply slug filter when provided', async () => {
@@ -244,6 +234,7 @@ describe('CollectionsService', () => {
         order: { name: 'ASC' },
         relations: { apis: true },
       });
+      expect(collectionRepository.findAndCount).toHaveBeenCalledTimes(1);
     });
 
     it('should apply createdAt filter when provided', async () => {
@@ -268,6 +259,7 @@ describe('CollectionsService', () => {
         order: { name: 'ASC' },
         relations: { apis: true },
       });
+      expect(collectionRepository.findAndCount).toHaveBeenCalledTimes(1);
     });
 
     it('should apply multiple filters simultaneously', async () => {
@@ -296,6 +288,7 @@ describe('CollectionsService', () => {
         order: { name: 'ASC' },
         relations: { apis: true },
       });
+      expect(collectionRepository.findAndCount).toHaveBeenCalledTimes(1);
     });
 
     it('should calculate correct offset for second page pagination', async () => {
@@ -313,6 +306,7 @@ describe('CollectionsService', () => {
         order: { name: 'ASC' },
         relations: { apis: true },
       });
+      expect(collectionRepository.findAndCount).toHaveBeenCalledTimes(1);
     });
 
     it('should include APIs with tiers in response', async () => {
@@ -370,7 +364,13 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should sort collections by name in ascending order', async () => {
@@ -389,6 +389,7 @@ describe('CollectionsService', () => {
           order: { name: 'ASC' },
         }),
       );
+      expect(collectionRepository.findAndCount).toHaveBeenCalledTimes(1);
     });
 
     it('should calculate pagination metadata correctly for multiple pages', async () => {
@@ -412,6 +413,7 @@ describe('CollectionsService', () => {
           take: 5,
         }),
       );
+      expect(collectionRepository.findAndCount).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -429,6 +431,7 @@ describe('CollectionsService', () => {
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
         where: [{ id: Equal(collectionId) }, { slug: Equal(collectionId) }],
       });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -437,7 +440,16 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collection: mockCollection,
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should return collection by slug successfully', async () => {
@@ -453,6 +465,7 @@ describe('CollectionsService', () => {
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
         where: [{ id: Equal(collectionSlug) }, { slug: Equal(collectionSlug) }],
       });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -473,6 +486,7 @@ describe('CollectionsService', () => {
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
         where: [{ id: Equal(collectionId) }, { slug: Equal(collectionId) }],
       });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should emit ViewCollectionEvent on successful retrieval', async () => {
@@ -519,14 +533,17 @@ describe('CollectionsService', () => {
       expect(collectionRepository.countBy).toHaveBeenCalledWith({
         name: createDto.name,
       });
+      expect(collectionRepository.countBy).toHaveBeenCalledTimes(1);
 
       expect(collectionRepository.create).toHaveBeenCalledWith({
         name: createDto.name,
         slug: 'new-collection',
         description: createDto.description,
       });
+      expect(collectionRepository.create).toHaveBeenCalledTimes(1);
 
       expect(collectionRepository.save).toHaveBeenCalledWith(expectedCollection);
+      expect(collectionRepository.save).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -535,7 +552,16 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.create',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collection: expectedCollection,
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequestException when collection name already exists', async () => {
@@ -553,6 +579,7 @@ describe('CollectionsService', () => {
       expect(collectionRepository.countBy).toHaveBeenCalledWith({
         name: createDto.name,
       });
+      expect(collectionRepository.countBy).toHaveBeenCalledTimes(1);
 
       expect(collectionRepository.create).not.toHaveBeenCalled();
       expect(collectionRepository.save).not.toHaveBeenCalled();
@@ -577,6 +604,7 @@ describe('CollectionsService', () => {
         slug: 'test-collection-with-spaces-and-special-chars',
         description: createDto.description,
       });
+      expect(collectionRepository.create).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequestException when name is empty', async () => {
@@ -685,15 +713,18 @@ describe('CollectionsService', () => {
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(collectionId) },
       });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(collectionRepository.create).toHaveBeenCalledWith({
         description: updateDto.description,
       });
+      expect(collectionRepository.create).toHaveBeenCalledTimes(1);
 
       expect(collectionRepository.update).toHaveBeenCalledWith(
         { id: collectionId },
         { description: updateDto.description },
       );
+      expect(collectionRepository.update).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -702,7 +733,19 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.update',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collection: expect.objectContaining({
+              ...existingCollection,
+              description: updateDto.description,
+            }),
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when collection does not exist', async () => {
@@ -720,6 +763,7 @@ describe('CollectionsService', () => {
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(collectionId) },
       });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(collectionRepository.update).not.toHaveBeenCalled();
     });
@@ -799,20 +843,32 @@ describe('CollectionsService', () => {
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(collectionId) },
       });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(routeRepository.find).toHaveBeenCalledWith({
         where: { collectionId: Equal(collectionId) },
       });
+      expect(routeRepository.find).toHaveBeenCalledTimes(1);
 
       expect(collectionRepository.softDelete).toHaveBeenCalledWith({
         id: collectionId,
       });
+      expect(collectionRepository.softDelete).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(collectionsSuccessMessages.deletedCollection),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.delete',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            collection: existingCollection,
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when collection does not exist', async () => {
@@ -826,6 +882,7 @@ describe('CollectionsService', () => {
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(collectionId) },
       });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(routeRepository.find).not.toHaveBeenCalled();
       expect(collectionRepository.softDelete).not.toHaveBeenCalled();
@@ -850,10 +907,12 @@ describe('CollectionsService', () => {
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(collectionId) },
       });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(routeRepository.find).toHaveBeenCalledWith({
         where: { collectionId: Equal(collectionId) },
       });
+      expect(routeRepository.find).toHaveBeenCalledTimes(1);
 
       expect(collectionRepository.softDelete).not.toHaveBeenCalled();
     });
@@ -900,6 +959,7 @@ describe('CollectionsService', () => {
       expect(companyRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(companyId) },
       });
+      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -922,7 +982,13 @@ describe('CollectionsService', () => {
         ),
       );
 
-      expect(eventEmitter.emit).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'collections.company.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequestException when company does not exist', async () => {
@@ -939,6 +1005,7 @@ describe('CollectionsService', () => {
       expect(companyRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(companyId) },
       });
+      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should use context company ID when companyId is not provided', async () => {
@@ -954,6 +1021,7 @@ describe('CollectionsService', () => {
       expect(companyRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(ctx.activeCompany.id) },
       });
+      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should fetch Kong ACLs for production environment', async () => {
@@ -978,6 +1046,7 @@ describe('CollectionsService', () => {
       await service.getCollectionsAssignedToCompany(ctx, environment, companyId, pagination);
 
       expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(environment, companyId, undefined);
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'route.id IN (:routes) OR route.tiers IN (:tiers)',
@@ -986,6 +1055,7 @@ describe('CollectionsService', () => {
           tiers: ['premium'],
         },
       );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(2);
     });
 
     it('should support filtering by name and slug', async () => {
@@ -1005,6 +1075,7 @@ describe('CollectionsService', () => {
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         "collection.name LIKE '%Payment%' AND collection.slug LIKE '%payment-apis%'",
       );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(1);
     });
 
     it('should default to current user company when companyId not provided', async () => {
@@ -1020,13 +1091,15 @@ describe('CollectionsService', () => {
       expect(companyRepository.findOne).toHaveBeenCalledWith({
         where: { id: Equal(ctx.activeCompany.id) },
       });
+      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(eventEmitter.emit).toHaveBeenCalledWith(
-        expect.any(String),
+        'collections.company.view',
         expect.objectContaining({
           author: ctx.activeUser,
         }),
       );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
   });
 
