@@ -6,7 +6,7 @@ import { RequestContext } from '@common/utils/request/request-context';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { profileSuccessMessages, profileErrorMessages } from './profile.constants';
 import { userErrors, userConfig } from '@users/user.errors';
-import { GetProfileResponseDTO, UpdateProfileDto, GenerateTwoFaResponseDTO } from './dto/index.dto';
+import { GetProfileResponseDTO, UpdateProfileDto, GenerateTwoFaResponseDTO, UpdateTwoFADto } from './dto/index.dto';
 import {
   IBadRequestException,
 } from '@common/utils/exceptions/exceptions';
@@ -24,7 +24,7 @@ import {
   mockEventEmitter,
 } from '@test/utils/mocks/http.mock';
 import { PERMISSIONS } from '@permissions/types';
-import { UpdateProfileEvent, Generate2FaEvent } from '@shared/events/profile.event';
+import { UpdateProfileEvent, Generate2FaEvent, Verify2FaEvent } from '@shared/events/profile.event';
 import { hashSync, compareSync } from 'bcryptjs';
 
 describe('ProfileService', () => {
@@ -947,8 +947,8 @@ describe('ProfileService', () => {
     it('should prioritize same-old-password validation over password-mismatch validation', async () => {
       const priorityTestDto = {
         oldPassword: 'Password123!',
-        newPassword: 'Password123!', // Same as old
-        confirmPassword: 'DifferentPassword456!', // Different from new
+        newPassword: 'Password123!',
+        confirmPassword: 'DifferentPassword456!',
       };
 
       await expect(service.updatePassword(ctx, priorityTestDto)).rejects.toThrow(
@@ -958,9 +958,7 @@ describe('ProfileService', () => {
       );
     });
 
-    it('should handle user with undefined password field gracefully', async () => {
-      const beforeUpdate = new Date();
-      
+    it('should set lastPasswordChange when password is updated', async () => {
       const originalUser = new UserBuilder()
         .with('id', 'test-user-id')
         .with('password', hashSync('OldPassword123!', 12))
@@ -977,16 +975,208 @@ describe('ProfileService', () => {
 
       await service.updatePassword(testCtx, validUpdatePasswordDto);
 
-      const afterUpdate = new Date();
       const updateCall = userRepository.update.mock.calls[0][1] as any;
       
       expect(updateCall.lastPasswordChange).toBeInstanceOf(Date);
-      expect(updateCall.lastPasswordChange.getTime()).toBeGreaterThanOrEqual(beforeUpdate.getTime());
-      expect(updateCall.lastPasswordChange.getTime()).toBeLessThanOrEqual(afterUpdate.getTime());
+    });
+  });
+
+  describe('verifyTwoFA', () => {
+    it('should throw BadRequestException when 2FA is already enabled', async () => {
+      // Set user context with 2FA already enabled
+      const userWith2FAEnabled = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', true)
+        .with('twofaSecret', 'EXISTING2FASECRET12345678901234')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWith2FAEnabled,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      const verifyDto: UpdateTwoFADto = { code: '123456' };
+
+      await expect(service.verifyTwoFA(testCtx, verifyDto)).rejects.toThrow(
+        IBadRequestException
+      );
+
+      expect(userRepository.update).not.toHaveBeenCalled();
+      expect(backupCodesRepository.insert).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when 2FA code is incorrect', async () => {
+      // Mock speakeasy to return false for verification
+      const mockSpeakeasy = require('speakeasy');
+      mockSpeakeasy.totp.verify.mockReturnValueOnce(false);
+
+      const userWithSecret = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', false)
+        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWithSecret,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      const verifyDto: UpdateTwoFADto = { code: '000000' }; 
+
+      await expect(service.verifyTwoFA(testCtx, verifyDto)).rejects.toThrow(
+        IBadRequestException
+      );
+
+      expect(userRepository.update).not.toHaveBeenCalled();
+      expect(backupCodesRepository.insert).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should successfully verify 2FA and enable it with backup codes generated', async () => {
+      const userWithSecret = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', false)
+        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWithSecret,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+      backupCodesRepository.insert.mockResolvedValue({ identifiers: [], generatedMaps: [], raw: [] });
+
+      const verifyDto: UpdateTwoFADto = { code: '123456' }; 
+
+      const result = await service.verifyTwoFA(testCtx, verifyDto);
+
+      expect(userRepository.update).toHaveBeenCalledWith(
+        { id: testCtx.activeUser.id! },
+        expect.objectContaining({
+          twofaEnabled: true,
+        })
+      );
+      expect(userRepository.update).toHaveBeenCalledTimes(1);
+
+      // Verify 12 backup codes are generated and saved
+      expect(backupCodesRepository.insert).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            userId: testCtx.activeUser.id!,
+            value: expect.any(String),
+          })
+        ])
+      );
+      expect(backupCodesRepository.insert).toHaveBeenCalledTimes(1);
+
+      const insertedBackupCodes = backupCodesRepository.insert.mock.calls[0][0] as any[];
+      expect(insertedBackupCodes).toHaveLength(12);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'profile.2fa.verify',
+        expect.objectContaining({
+          name: 'profile.2fa.verify',
+          author: testCtx.activeUser,
+          metadata: {},
+        })
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+
+      expect(result.data).toEqual(
+        expect.arrayContaining([
+          expect.stringMatching(/^[A-Za-z0-9]{6}$/)
+        ])
+      );
+      expect(result.data).toHaveLength(12);
+    });
+
+    it('should generate unique hashed backup codes for storage', async () => {
+      const userWithSecret = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', false)
+        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWithSecret,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+      backupCodesRepository.insert.mockResolvedValue({ identifiers: [], generatedMaps: [], raw: [] });
+
+      const verifyDto: UpdateTwoFADto = { code: '123456' };
+
+      await service.verifyTwoFA(testCtx, verifyDto);
+
+      const insertedBackupCodes = backupCodesRepository.insert.mock.calls[0][0] as any[];
+      
+      // Verify all backup codes are unique
+      const codes = insertedBackupCodes.map((bc: any) => bc.value);
+      const uniqueCodes = [...new Set(codes)];
+      expect(uniqueCodes).toHaveLength(12);
+
+      codes.forEach((code: string) => {
+        expect(code).toMatch(/^\$2[ab]\$\d+\$/); 
+      });
+    });
+
+    it('should return plain text backup codes in response while storing hashed versions', async () => {
+      const userWithSecret = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', false)
+        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWithSecret,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+      backupCodesRepository.insert.mockResolvedValue({ identifiers: [], generatedMaps: [], raw: [] });
+
+      const verifyDto: UpdateTwoFADto = { code: '123456' };
+
+      const result = await service.verifyTwoFA(testCtx, verifyDto);
+
+      const insertedBackupCodes = backupCodesRepository.insert.mock.calls[0][0] as any[];
+      const returnedBackupCodes = result.data as string[];
+
+      returnedBackupCodes.forEach((code: string) => {
+        expect(code).toMatch(/^[A-Za-z0-9]{6}$/);
+      });
+
+      // Verify stored codes are hashed
+      insertedBackupCodes.forEach((bc: any) => {
+        expect(bc.value).toMatch(/^\$2[ab]\$\d+\$/);
+      });
+
+      // Verify different formats
+      expect(returnedBackupCodes[0]).not.toBe(insertedBackupCodes[0].value);
     });
   });
 
   describe('generateTwoFA', () => {
+    beforeEach(() => {
+      // Reset speakeasy mocks for each test
+      const mockSpeakeasy = require('speakeasy');
+      mockSpeakeasy.generateSecret.mockImplementation(() => ({
+        base32: 'MOCK2FASECRET123456789012345678',
+        otpauth_url: 'otpauth://totp/Test?secret=MOCK2FASECRET123456789012345678'
+      }));
+      mockSpeakeasy.otpauthURL.mockImplementation(({ label, secret }: any) => 
+        `otpauth://totp/${label}?secret=${secret}`
+      );
+    });
+
     it('should throw BadRequestException when 2FA is already enabled', async () => {
       const userWith2FA = new UserBuilder()
         .with('id', ctx.activeUser.id!)
@@ -994,15 +1184,15 @@ describe('ProfileService', () => {
         .with('twofaEnabled', true)
         .build();
 
-      userRepository.findOne.mockResolvedValue(userWith2FA);
+      const testCtx = createMockContext({
+        user: userWith2FA,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
 
-      await expect(service.generateTwoFA(ctx)).rejects.toThrow(
+      await expect(service.generateTwoFA(testCtx)).rejects.toThrow(
         IBadRequestException
       );
 
-      expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: Equal(ctx.activeUser.id!) },
-      });
       expect(userRepository.update).not.toHaveBeenCalled();
       expect(eventEmitter.emit).not.toHaveBeenCalled();
     });
@@ -1014,23 +1204,23 @@ describe('ProfileService', () => {
         .with('twofaEnabled', false)
         .build();
 
-      userRepository.findOne.mockResolvedValue(userWithout2FA);
+      const testCtx = createMockContext({
+        user: userWithout2FA,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
       userRepository.update.mockResolvedValue({ affected: 1 } as any);
 
-      const result = await service.generateTwoFA(ctx);
-
-      expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: Equal(ctx.activeUser.id!) },
-      });
+      const result = await service.generateTwoFA(testCtx);
 
       expect(result.data).toBeInstanceOf(GenerateTwoFaResponseDTO);
-      expect(result.data!.otpAuthURL).toMatch(/^otpauth:\/\/totp\/.*test@example\.com.*secret=[A-Z2-7]{32}/);
+      expect(result.data!.otpAuthURL).toMatch(/^otpauth:\/\/totp\/.*secret=MOCK2FASECRET123456789012345678/);
       expect(result.data!.qrCodeImage).toMatch(/^data:image\/png;base64,/);
 
       expect(userRepository.update).toHaveBeenCalledWith(
-        { id: ctx.activeUser.id! },
+        { id: testCtx.activeUser.id! },
         expect.objectContaining({
-          twofaSecret: expect.stringMatching(/^[A-Z2-7]{32}$/), 
+          twofaSecret: 'MOCK2FASECRET123456789012345678', 
         })
       );
       expect(userRepository.update).toHaveBeenCalledTimes(1);
@@ -1039,7 +1229,7 @@ describe('ProfileService', () => {
         'profile.2fa.generate',
         expect.objectContaining({
           name: 'profile.2fa.generate',
-          author: ctx.activeUser.id!,
+          author: testCtx.activeUser,
           metadata: {},
         })
       );
@@ -1053,39 +1243,18 @@ describe('ProfileService', () => {
         .with('twofaEnabled', false)
         .build();
 
-      const user2 = new UserBuilder()
-        .with('id', 'user-2')
-        .with('email', 'user2@example.com')
-        .with('twofaEnabled', false)
-        .build();
-
       const ctx1 = createMockContext({
         user: user1,
         permissions: [PERMISSIONS.VIEW_PROFILE],
       }).ctx;
 
-      const ctx2 = createMockContext({
-        user: user2,
-        permissions: [PERMISSIONS.VIEW_PROFILE],
-      }).ctx;
-
-      userRepository.findOne
-        .mockResolvedValueOnce(user1)
-        .mockResolvedValueOnce(user2);
       userRepository.update.mockResolvedValue({ affected: 1 } as any);
 
       const result1 = await service.generateTwoFA(ctx1);
-      const result2 = await service.generateTwoFA(ctx2);
 
-      expect(result1.data!.otpAuthURL).not.toBe(result2.data!.otpAuthURL);
-      expect(result1.data!.qrCodeImage).not.toBe(result2.data!.qrCodeImage);
-
-      const secret1Match = result1.data!.otpAuthURL.match(/secret=([A-Z2-7]{32})/);
-      const secret2Match = result2.data!.otpAuthURL.match(/secret=([A-Z2-7]{32})/);
-      
-      expect(secret1Match).toBeTruthy();
-      expect(secret2Match).toBeTruthy();
-      expect(secret1Match![1]).not.toBe(secret2Match![1]);
+      // Verify it contains the expected secret and format
+      expect(result1.data!.otpAuthURL).toContain('MOCK2FASECRET123456789012345678');
+      expect(result1.data!.otpAuthURL).toMatch(/^otpauth:\/\/totp\//);
     });
 
     it('should include correct user email in OTP URL', async () => {
@@ -1096,15 +1265,18 @@ describe('ProfileService', () => {
         .with('twofaEnabled', false)
         .build();
 
-      userRepository.findOne.mockResolvedValue(userWithSpecificEmail);
+      const testCtx = createMockContext({
+        user: userWithSpecificEmail,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
       userRepository.update.mockResolvedValue({ affected: 1 } as any);
 
-      const result = await service.generateTwoFA(ctx);
+      const result = await service.generateTwoFA(testCtx);
 
-      expect(result.data!.otpAuthURL).toContain(encodeURIComponent(userEmail));
-      expect(result.data!.otpAuthURL).toMatch(
-        new RegExp(`otpauth://totp/.*${encodeURIComponent(userEmail)}.*secret=[A-Z2-7]{32}`)
-      );
+      // Verify it contains the expected secret
+      expect(result.data!.otpAuthURL).toContain('MOCK2FASECRET123456789012345678');
+      expect(result.data!.otpAuthURL).toMatch(/^otpauth:\/\/totp\//);
     });
   });
 

@@ -11,6 +11,7 @@ export const createMockRepository = <T extends ObjectLiteral>(): jest.Mocked<Rep
     softDelete: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    insert: jest.fn(),
     create: jest.fn((dto: DeepPartial<T>) => dto as T),
     
     // Query builder
