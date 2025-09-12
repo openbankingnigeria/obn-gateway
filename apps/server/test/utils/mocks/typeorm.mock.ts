@@ -6,6 +6,7 @@ export const createMockRepository = <T extends ObjectLiteral>(): jest.Mocked<Rep
     save: jest.fn((entity: T) => Promise.resolve(entity)),
     findOne: jest.fn(),
     find: jest.fn(),
+    findBy: jest.fn(),
     count: jest.fn(),
     query: jest.fn(),
     softDelete: jest.fn(),

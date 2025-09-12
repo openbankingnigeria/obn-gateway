@@ -5,7 +5,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RequestContext } from '@common/utils/request/request-context';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { profileSuccessMessages, profileErrorMessages } from './profile.constants';
-import { userErrors, userConfig } from '@users/user.errors';
+import { userErrors } from '@users/user.errors';
 import { GetProfileResponseDTO, UpdateProfileDto, GenerateTwoFaResponseDTO, UpdateTwoFADto } from './dto/index.dto';
 import {
   IBadRequestException,
@@ -17,6 +17,7 @@ import {
   RoleBuilder,
   CompanyBuilder,
   PermissionBuilder,
+  TwoFaBackupCodeBuilder,
 } from '@test/utils/builders';
 import { createMockRepository, MockRepository } from '@test/utils/mocks';
 import {
@@ -24,8 +25,8 @@ import {
   mockEventEmitter,
 } from '@test/utils/mocks/http.mock';
 import { PERMISSIONS } from '@permissions/types';
-import { UpdateProfileEvent, Generate2FaEvent, Verify2FaEvent } from '@shared/events/profile.event';
-import { hashSync, compareSync } from 'bcryptjs';
+import { UpdateProfileEvent } from '@shared/events/profile.event';
+import { hashSync } from 'bcryptjs';
 
 describe('ProfileService', () => {
   let service: ProfileService;
@@ -1277,6 +1278,263 @@ describe('ProfileService', () => {
       // Verify it contains the expected secret
       expect(result.data!.otpAuthURL).toContain('MOCK2FASECRET123456789012345678');
       expect(result.data!.otpAuthURL).toMatch(/^otpauth:\/\/totp\//);
+    });
+  });
+
+  describe('disableTwoFA', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should throw BadRequestException when 2FA is not enabled', async () => {
+      const userWithout2FA = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', false)
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWithout2FA,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      const disableDto: UpdateTwoFADto = { code: '123456' };
+
+      await expect(service.disableTwoFA(testCtx, disableDto)).rejects.toThrow(
+        expect.objectContaining({
+          message: profileErrorMessages.twoFaAlreadyDisabled,
+        })
+      );
+
+      expect(userRepository.update).not.toHaveBeenCalled();
+      expect(backupCodesRepository.softDelete).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when TOTP code is incorrect', async () => {
+      // Mock speakeasy to return false for verification
+      const mockSpeakeasy = require('speakeasy');
+      mockSpeakeasy.totp.verify.mockReturnValueOnce(false);
+
+      const userWith2FA = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', true)
+        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWith2FA,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      backupCodesRepository.findBy.mockResolvedValue([]);
+
+      const disableDto: UpdateTwoFADto = { code: '000000' };
+
+      await expect(service.disableTwoFA(testCtx, disableDto)).rejects.toThrow(
+        expect.objectContaining({
+          message: profileErrorMessages.incorrectTwoFaCode,
+        })
+      );
+
+      expect(userRepository.update).not.toHaveBeenCalled();
+      expect(backupCodesRepository.softDelete).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when backup code does not match stored codes', async () => {
+      const userWith2FA = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', true)
+        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWith2FA,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      // Mock stored backup codes
+      const storedBackupCodes = [
+        new TwoFaBackupCodeBuilder()
+          .with('id', '1')
+          .with('userId', testCtx.activeUser.id!)
+          .with('value', hashSync('ABC123', 12))
+          .build(),
+        new TwoFaBackupCodeBuilder()
+          .with('id', '2')
+          .with('userId', testCtx.activeUser.id!)
+          .with('value', hashSync('DEF456', 12))
+          .build(),
+      ];
+
+      backupCodesRepository.findBy.mockResolvedValue(storedBackupCodes);
+
+      const disableDto: UpdateTwoFADto = { code: 'WRONG1' };
+
+      await expect(service.disableTwoFA(testCtx, disableDto)).rejects.toThrow(
+        expect.objectContaining({
+          message: profileErrorMessages.incorrectTwoFaCode,
+        })
+      );
+
+      expect(backupCodesRepository.findBy).toHaveBeenCalledWith({
+        userId: Equal(testCtx.activeUser.id!),
+      });
+      expect(backupCodesRepository.findBy).toHaveBeenCalledTimes(1);
+
+      expect(userRepository.update).not.toHaveBeenCalled();
+      expect(backupCodesRepository.softDelete).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should successfully disable 2FA with valid TOTP code', async () => {
+      // Mock speakeasy to return true for verification
+      const mockSpeakeasy = require('speakeasy');
+      mockSpeakeasy.totp.verify.mockReturnValueOnce(true);
+
+      const userWith2FA = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', true)
+        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWith2FA,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      backupCodesRepository.findBy.mockResolvedValue([]);
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+      backupCodesRepository.softDelete.mockResolvedValue({ affected: 5 } as any);
+
+      const disableDto: UpdateTwoFADto = { code: '123456' };
+
+      const result = await service.disableTwoFA(testCtx, disableDto);
+
+      expect(mockSpeakeasy.totp.verify).toHaveBeenCalledWith({
+        secret: userWith2FA.twofaSecret,
+        encoding: 'base32',
+        token: disableDto.code,
+      });
+
+      // Verify twofaEnabled flag is set to false
+      expect(userRepository.update).toHaveBeenCalledWith(
+        { id: testCtx.activeUser.id! },
+        expect.objectContaining({
+          twofaEnabled: false,
+        })
+      );
+      expect(userRepository.update).toHaveBeenCalledTimes(1);
+
+      // Verify all backup codes are deleted
+      expect(backupCodesRepository.softDelete).toHaveBeenCalledWith({
+        userId: testCtx.activeUser.id!,
+      });
+      expect(backupCodesRepository.softDelete).toHaveBeenCalledTimes(1);
+
+      // Verify Disable2FaEvent is emitted
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'profile.2fa.disable',
+        expect.objectContaining({
+          name: 'profile.2fa.disable',
+          author: testCtx.activeUser,
+          metadata: {},
+        })
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+
+      // Verify standardized success response
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          profileSuccessMessages.twoFaDisabled,
+          undefined,
+        )
+      );
+    });
+
+    it('should successfully disable 2FA with valid backup code', async () => {
+      const userWith2FA = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('email', 'test@example.com')
+        .with('twofaEnabled', true)
+        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWith2FA,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      // Mock stored backup codes
+      const validBackupCode = 'ABC123';
+      const storedBackupCodes = [
+        new TwoFaBackupCodeBuilder()
+          .with('id', '1')
+          .with('userId', testCtx.activeUser.id!)
+          .with('value', hashSync(validBackupCode, 12))
+          .build(),
+        new TwoFaBackupCodeBuilder()
+          .with('id', '2')
+          .with('userId', testCtx.activeUser.id!)
+          .with('value', hashSync('DEF456', 12))
+          .build(),
+      ];
+
+      backupCodesRepository.findBy.mockResolvedValue(storedBackupCodes);
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+      backupCodesRepository.softDelete
+        .mockResolvedValueOnce({ affected: 1 } as any) 
+        .mockResolvedValueOnce({ affected: 2 } as any); 
+
+      const disableDto: UpdateTwoFADto = { code: validBackupCode };
+
+      const result = await service.disableTwoFA(testCtx, disableDto);
+
+      expect(backupCodesRepository.findBy).toHaveBeenCalledWith({
+        userId: Equal(testCtx.activeUser.id!),
+      });
+      expect(backupCodesRepository.findBy).toHaveBeenCalledTimes(1);
+
+      // Verify twofaEnabled flag is set to false
+      expect(userRepository.update).toHaveBeenCalledWith(
+        { id: testCtx.activeUser.id! },
+        expect.objectContaining({
+          twofaEnabled: false,
+        })
+      );
+      expect(userRepository.update).toHaveBeenCalledTimes(1);
+
+      // Verify all backup codes are deleted (first specific code, then all user codes)
+      expect(backupCodesRepository.softDelete).toHaveBeenNthCalledWith(1, {
+        id: storedBackupCodes[0].id,
+      });
+      expect(backupCodesRepository.softDelete).toHaveBeenNthCalledWith(2, {
+        userId: testCtx.activeUser.id!,
+      });
+      expect(backupCodesRepository.softDelete).toHaveBeenCalledTimes(2);
+
+      // Verify Disable2FaEvent is emitted
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'profile.2fa.disable',
+        expect.objectContaining({
+          name: 'profile.2fa.disable',
+          author: testCtx.activeUser,
+          metadata: {},
+        })
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+
+      // Verify standardized success response
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          profileSuccessMessages.twoFaDisabled,
+          undefined,
+        )
+      );
     });
   });
 
