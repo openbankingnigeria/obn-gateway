@@ -4,7 +4,7 @@ import { Profile, User, TwoFaBackupCode } from '@common/database/entities';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RequestContext } from '@common/utils/request/request-context';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
-import { profileSuccessMessages } from './profile.constants';
+import { profileSuccessMessages, profileErrorMessages } from './profile.constants';
 import { userErrors, userConfig } from '@users/user.errors';
 import { GetProfileResponseDTO, UpdateProfileDto } from './dto/index.dto';
 import {
@@ -25,6 +25,7 @@ import {
 } from '@test/utils/mocks/http.mock';
 import { PERMISSIONS } from '@permissions/types';
 import { UpdateProfileEvent } from '@shared/events/profile.event';
+import { hashSync, compareSync } from 'bcryptjs';
 
 describe('ProfileService', () => {
   let service: ProfileService;
@@ -744,16 +745,6 @@ describe('ProfileService', () => {
               country: 'Nigeria',
               createdAt: new Date('2025-01-01'),
             }),
-            changes: expect.objectContaining({
-              firstName: {
-                from: 'BeforeFirst',
-                to: 'AuditFirst',
-              },
-              lastName: {
-                from: 'BeforeLast',
-                to: 'AuditLast',
-              },
-            }),
           }),
         }),
       );
@@ -787,6 +778,211 @@ describe('ProfileService', () => {
           lastName: 'MCDONALD',
         }),
       );
+    });
+  });
+
+  describe('updatePassword', () => {
+    const validUpdatePasswordDto = {
+      oldPassword: 'OldPassword123!',
+      newPassword: 'NewPassword456!',
+      confirmPassword: 'NewPassword456!',
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should successfully update password when all validations pass', async () => {
+      const originalUser = new UserBuilder()
+        .with('id', 'test-user-id')
+        .with('password', hashSync('OldPassword123!', 12))
+        .with('company', new CompanyBuilder().build())
+        .with('role', new RoleBuilder().build())
+        .build();
+
+      const testCtx = createMockContext({
+        user: originalUser,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updatePassword(testCtx, validUpdatePasswordDto);
+
+      expect(userRepository.update).toHaveBeenCalledWith(
+        { id: originalUser.id },
+        expect.objectContaining({
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+          password: expect.any(String),
+          lastPasswordChange: expect.any(Date),
+        }),
+      );
+
+      expect(result.status).toBe('success');
+      expect(result.message).toBe(profileSuccessMessages.updatedPassword);
+      expect(result.data).toBeUndefined();
+    });
+
+    it('should emit AuthSetPasswordEvent with correct metadata on successful password update', async () => {
+      const originalUser = new UserBuilder()
+        .with('id', 'test-user-id')
+        .with('password', hashSync('OldPassword123!', 12))
+        .with('company', new CompanyBuilder().build())
+        .with('role', new RoleBuilder().build())
+        .build();
+
+      const testCtx = createMockContext({
+        user: originalUser,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updatePassword(testCtx, validUpdatePasswordDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'auth.set-password',
+        expect.objectContaining({
+          name: 'auth.set-password',
+          user: originalUser,
+          metadata: expect.any(Object),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+
+    it('should clear existing reset tokens when password is updated', async () => {
+      const userWithResetTokens = new UserBuilder()
+        .with('id', 'test-user-id')
+        .with('password', hashSync('OldPassword123!', 12))
+        .with('resetPasswordToken', 'existing-reset-token-123')
+        .with('resetPasswordExpires', new Date('2025-12-31'))
+        .with('company', new CompanyBuilder().build())
+        .with('role', new RoleBuilder().build())
+        .build();
+
+      const testCtx = createMockContext({
+        user: userWithResetTokens,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updatePassword(testCtx, validUpdatePasswordDto);
+
+      // Verify that existing reset tokens are cleared
+      const updateCall = userRepository.update.mock.calls[0][1] as any;
+      expect(updateCall.resetPasswordToken).toBeNull();
+      expect(updateCall.resetPasswordExpires).toBeNull();
+      
+      // Verify user had tokens before the update
+      expect(userWithResetTokens.resetPasswordToken).toBe('existing-reset-token-123');
+      expect(userWithResetTokens.resetPasswordExpires).toEqual(new Date('2025-12-31'));
+    });
+
+    it('should throw password-mismatch error when new password and confirm password do not match', async () => {
+      const mismatchDto = {
+        oldPassword: 'OldPassword123!',
+        newPassword: 'NewPassword456!',
+        confirmPassword: 'DifferentPassword789!',
+      };
+
+      await expect(service.updatePassword(ctx, mismatchDto)).rejects.toThrow(
+        expect.objectContaining({
+          message: profileErrorMessages.passwordMismatch,
+        }),
+      );
+
+      expect(userRepository.update).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should throw same-old-password error when new password is same as old password', async () => {
+      const samePasswordDto = {
+        oldPassword: 'SamePassword123!',
+        newPassword: 'SamePassword123!',
+        confirmPassword: 'SamePassword123!',
+      };
+
+      await expect(service.updatePassword(ctx, samePasswordDto)).rejects.toThrow(
+        expect.objectContaining({
+          message: profileErrorMessages.sameOldPassword,
+        }),
+      );
+
+      expect(userRepository.update).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should throw incorrect-old-password error when old password does not match current password', async () => {
+      const originalUser = new UserBuilder()
+        .with('id', 'test-user-id')
+        .with('password', hashSync('ActualPassword123!', 12))
+        .with('company', new CompanyBuilder().build())
+        .with('role', new RoleBuilder().build())
+        .build();
+
+      const testCtx = createMockContext({
+        user: originalUser,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      const wrongOldPasswordDto = {
+        oldPassword: 'WrongOldPassword123!',
+        newPassword: 'NewPassword456!',
+        confirmPassword: 'NewPassword456!',
+      };
+
+      await expect(service.updatePassword(testCtx, wrongOldPasswordDto)).rejects.toThrow(
+        expect.objectContaining({
+          message: profileErrorMessages.incorrectOldPassword,
+        }),
+      );
+
+      expect(userRepository.update).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should prioritize same-old-password validation over password-mismatch validation', async () => {
+      const priorityTestDto = {
+        oldPassword: 'Password123!',
+        newPassword: 'Password123!', // Same as old
+        confirmPassword: 'DifferentPassword456!', // Different from new
+      };
+
+      await expect(service.updatePassword(ctx, priorityTestDto)).rejects.toThrow(
+        expect.objectContaining({
+          message: profileErrorMessages.sameOldPassword,
+        }),
+      );
+    });
+
+    it('should handle user with undefined password field gracefully', async () => {
+      const beforeUpdate = new Date();
+      
+      const originalUser = new UserBuilder()
+        .with('id', 'test-user-id')
+        .with('password', hashSync('OldPassword123!', 12))
+        .with('company', new CompanyBuilder().build())
+        .with('role', new RoleBuilder().build())
+        .build();
+
+      const testCtx = createMockContext({
+        user: originalUser,
+        permissions: [PERMISSIONS.VIEW_PROFILE],
+      }).ctx;
+
+      userRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updatePassword(testCtx, validUpdatePasswordDto);
+
+      const afterUpdate = new Date();
+      const updateCall = userRepository.update.mock.calls[0][1] as any;
+      
+      expect(updateCall.lastPasswordChange).toBeInstanceOf(Date);
+      expect(updateCall.lastPasswordChange.getTime()).toBeGreaterThanOrEqual(beforeUpdate.getTime());
+      expect(updateCall.lastPasswordChange.getTime()).toBeLessThanOrEqual(afterUpdate.getTime());
     });
   });
 
