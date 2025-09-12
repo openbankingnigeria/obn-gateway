@@ -557,7 +557,8 @@ describe('CollectionsService', () => {
         expect.objectContaining({
           author: ctx.activeUser,
           metadata: expect.objectContaining({
-            collection: expectedCollection,
+            pre: null,
+            post: expectedCollection,
           }),
         }),
       );
@@ -686,7 +687,8 @@ describe('CollectionsService', () => {
         expect.objectContaining({
           author: ctx.activeUser,
           metadata: expect.objectContaining({
-            collection: expectedCollection,
+            pre: null,
+            post: expectedCollection,
           }),
         }),
       );
@@ -738,7 +740,8 @@ describe('CollectionsService', () => {
         expect.objectContaining({
           author: ctx.activeUser,
           metadata: expect.objectContaining({
-            collection: expect.objectContaining({
+            pre: existingCollection,
+            post: expect.objectContaining({
               ...existingCollection,
               description: updateDto.description,
             }),
@@ -789,7 +792,8 @@ describe('CollectionsService', () => {
         expect.objectContaining({
           author: ctx.activeUser,
           metadata: expect.objectContaining({
-            collection: expect.objectContaining({
+            pre: existingCollection,
+            post: expect.objectContaining({
               ...existingCollection,
               description: updateDto.description,
             }),
@@ -864,7 +868,8 @@ describe('CollectionsService', () => {
         expect.objectContaining({
           author: ctx.activeUser,
           metadata: expect.objectContaining({
-            collection: existingCollection,
+            pre: existingCollection,
+            post: null,
           }),
         }),
       );
@@ -934,7 +939,8 @@ describe('CollectionsService', () => {
         expect.objectContaining({
           author: ctx.activeUser,
           metadata: expect.objectContaining({
-            collection: existingCollection,
+            pre: existingCollection,
+            post: null,
           }),
         }),
       );
