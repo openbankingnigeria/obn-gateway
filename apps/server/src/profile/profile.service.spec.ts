@@ -5,8 +5,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RequestContext } from '@common/utils/request/request-context';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { profileSuccessMessages } from './profile.constants';
-import { userErrors } from '@users/user.errors';
-import { GetProfileResponseDTO } from './dto/index.dto';
+import { userErrors, userConfig } from '@users/user.errors';
+import { GetProfileResponseDTO, UpdateProfileDto } from './dto/index.dto';
 import {
   IBadRequestException,
 } from '@common/utils/exceptions/exceptions';
@@ -24,6 +24,7 @@ import {
   mockEventEmitter,
 } from '@test/utils/mocks/http.mock';
 import { PERMISSIONS } from '@permissions/types';
+import { UpdateProfileEvent } from '@shared/events/profile.event';
 
 describe('ProfileService', () => {
   let service: ProfileService;
@@ -324,6 +325,468 @@ describe('ProfileService', () => {
 
       // Verify data is properly formatted as DTO
       expect(result.data).toBeInstanceOf(GetProfileResponseDTO);
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should update authenticated user profile successfully', async () => {
+      const updateDto: UpdateProfileDto = {
+        firstName: 'UpdatedFirst',
+        lastName: 'UpdatedLast',
+      };
+
+      const existingProfile = new ProfileBuilder()
+        .with('id', 'profile-id')
+        .with('userId', ctx.activeUser.id!)
+        .with('firstName', 'OriginalFirst')
+        .with('lastName', 'OriginalLast')
+        .with('companyRole', 'Developer')
+        .build();
+
+      const updatedProfileData = {
+        firstName: updateDto.firstName,
+        lastName: updateDto.lastName,
+      };
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.create.mockReturnValue(updatedProfileData as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateProfile(ctx, updateDto);
+
+      // Verify profile lookup for authenticated user only
+      expect(profileRepository.findOne).toHaveBeenCalledWith({
+        where: { userId: Equal(ctx.activeUser.id!) },
+      });
+      expect(profileRepository.findOne).toHaveBeenCalledTimes(1);
+
+      // Verify profile creation with updated data
+      expect(profileRepository.create).toHaveBeenCalledWith({
+        firstName: updateDto.firstName,
+        lastName: updateDto.lastName,
+      });
+      expect(profileRepository.create).toHaveBeenCalledTimes(1);
+
+      // Verify profile update for authenticated user only
+      expect(profileRepository.update).toHaveBeenCalledWith(
+        { userId: ctx.activeUser.id },
+        updatedProfileData,
+      );
+      expect(profileRepository.update).toHaveBeenCalledTimes(1);
+
+      // Verify UpdateProfileEvent is emitted
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'profile.update',
+        expect.objectContaining({
+          name: 'profile.update',
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            pre: expect.objectContaining({
+              firstName: 'OriginalFirst',
+              lastName: 'OriginalLast',
+            }),
+            post: expect.objectContaining({
+              firstName: 'UpdatedFirst',
+              lastName: 'UpdatedLast',
+            }),
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+
+      // Verify successful response with updated data
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          profileSuccessMessages.updatedProfile,
+          new GetProfileResponseDTO(
+            Object.assign({}, existingProfile, updatedProfileData),
+          ),
+        ),
+      );
+
+      // Verify response includes both original and updated data
+      expect(result.data).toEqual(
+        expect.objectContaining({
+          id: 'profile-id',
+          firstName: 'UpdatedFirst',
+          lastName: 'UpdatedLast',
+          companyRole: 'Developer',
+        }),
+      );
+    });
+
+    it('should only allow authenticated user to update their own profile', async () => {
+      const updateDto: UpdateProfileDto = {
+        firstName: 'UpdatedFirst',
+        lastName: 'UpdatedLast',
+      };
+
+      const userProfile = new ProfileBuilder()
+        .with('userId', ctx.activeUser.id!)
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(userProfile);
+      profileRepository.create.mockReturnValue({} as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updateProfile(ctx, updateDto);
+
+      // Verify lookup is scoped to authenticated user
+      expect(profileRepository.findOne).toHaveBeenCalledWith({
+        where: { userId: Equal(ctx.activeUser.id!) },
+      });
+
+      // Verify update is scoped to authenticated user
+      expect(profileRepository.update).toHaveBeenCalledWith(
+        { userId: ctx.activeUser.id },
+        expect.any(Object),
+      );
+    });
+
+    it('should throw BadRequest error when profile does not exist', async () => {
+      const updateDto: UpdateProfileDto = {
+        firstName: 'UpdatedFirst',
+        lastName: 'UpdatedLast',
+      };
+
+      profileRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.updateProfile(ctx, updateDto),
+      ).rejects.toThrow(IBadRequestException);
+
+      expect(profileRepository.findOne).toHaveBeenCalledWith({
+        where: { userId: Equal(ctx.activeUser.id!) },
+      });
+      expect(profileRepository.findOne).toHaveBeenCalledTimes(1);
+
+      // Verify no update operations were attempted
+      expect(profileRepository.create).not.toHaveBeenCalled();
+      expect(profileRepository.update).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    });
+
+    it('should validate firstName is required and meets constraints', async () => {
+      const existingProfile = new ProfileBuilder()
+        .with('userId', ctx.activeUser.id!)
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+
+      const validDto: UpdateProfileDto = {
+        firstName: 'ValidName', 
+        lastName: 'ValidLast',
+      };
+
+      profileRepository.create.mockReturnValue({
+        firstName: validDto.firstName,
+        lastName: validDto.lastName,
+      } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateProfile(ctx, validDto);
+
+      expect(result.status).toBe('success');
+      expect(profileRepository.create).toHaveBeenCalledWith({
+        firstName: 'ValidName',
+        lastName: 'ValidLast',
+      });
+    });
+
+    it('should validate lastName is required and meets constraints', async () => {
+      const existingProfile = new ProfileBuilder()
+        .with('userId', ctx.activeUser.id!)
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+
+      const validDto: UpdateProfileDto = {
+        firstName: 'ValidFirst',
+        lastName: 'ValidLastName',
+      };
+
+      profileRepository.create.mockReturnValue({
+        firstName: validDto.firstName,
+        lastName: validDto.lastName,
+      } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateProfile(ctx, validDto);
+
+      expect(result.status).toBe('success');
+      expect(profileRepository.create).toHaveBeenCalledWith({
+        firstName: 'ValidFirst',
+        lastName: 'ValidLastName',
+      });
+    });
+
+    it('should handle names with valid alphabetic characters and hyphens', async () => {
+      const existingProfile = new ProfileBuilder()
+        .with('userId', ctx.activeUser.id!)
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+
+      const validDto: UpdateProfileDto = {
+        firstName: 'Mary-Jane',
+        lastName: 'Smith-Johnson',
+      };
+
+      profileRepository.create.mockReturnValue({
+        firstName: validDto.firstName,
+        lastName: validDto.lastName,
+      } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateProfile(ctx, validDto);
+
+      expect(result.status).toBe('success');
+      expect(profileRepository.create).toHaveBeenCalledWith({
+        firstName: 'Mary-Jane',
+        lastName: 'Smith-Johnson',
+      });
+    });
+
+    it('should preserve existing profile data not being updated', async () => {
+      const updateDto: UpdateProfileDto = {
+        firstName: 'NewFirst',
+        lastName: 'NewLast',
+      };
+
+      const existingProfile = new ProfileBuilder()
+        .with('id', 'profile-id')
+        .with('userId', ctx.activeUser.id!)
+        .with('firstName', 'OldFirst')
+        .with('lastName', 'OldLast')
+        .with('companyRole', 'Senior Developer')
+        .with('phone', '+1234567890')
+        .with('country', 'Nigeria')
+        .with('createdAt', new Date('2024-01-01'))
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.create.mockReturnValue({
+        firstName: updateDto.firstName,
+        lastName: updateDto.lastName,
+      } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateProfile(ctx, updateDto);
+
+      // Verify only firstName and lastName are updated, other fields preserved
+      expect(result.data).toEqual(
+        expect.objectContaining({
+          id: 'profile-id',
+          firstName: 'NewFirst', 
+          lastName: 'NewLast',
+          companyRole: 'Senior Developer', 
+          phone: '+1234567890',
+          country: 'Nigeria',
+          createdAt: new Date('2024-01-01'),
+        }),
+      );
+    });
+
+    it('should emit UpdateProfileEvent with correct author and metadata', async () => {
+      const updateDto: UpdateProfileDto = {
+        firstName: 'EventTest',
+        lastName: 'EventLast',
+      };
+
+      const existingProfile = new ProfileBuilder()
+        .with('id', 'profile-id')
+        .with('userId', ctx.activeUser.id!)
+        .with('firstName', 'OriginalFirstName')
+        .with('lastName', 'OriginalLastName')
+        .with('companyRole', 'Developer')
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.create.mockReturnValue({
+        firstName: updateDto.firstName,
+        lastName: updateDto.lastName,
+      } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updateProfile(ctx, updateDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'profile.update',
+        expect.objectContaining({
+          name: 'profile.update',
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            pre: expect.objectContaining({
+              firstName: 'OriginalFirstName',
+              lastName: 'OriginalLastName',
+            }),
+            post: expect.objectContaining({
+              firstName: 'EventTest',
+              lastName: 'EventLast',
+            }),
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return updated profile in standardized DTO format', async () => {
+      const updateDto: UpdateProfileDto = {
+        firstName: 'StandardizedFirst',
+        lastName: 'StandardizedLast',
+      };
+
+      const existingProfile = new ProfileBuilder()
+        .with('userId', ctx.activeUser.id!)
+        .with('firstName', 'Original')
+        .with('lastName', 'Name')
+        .build();
+
+      const updatedData = {
+        firstName: updateDto.firstName,
+        lastName: updateDto.lastName,
+      };
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.create.mockReturnValue(updatedData as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateProfile(ctx, updateDto);
+
+      // Verify standardized response structure
+      expect(result).toEqual(
+        expect.objectContaining({
+          status: 'success',
+          message: profileSuccessMessages.updatedProfile,
+          data: expect.any(Object),
+        }),
+      );
+
+      // Verify data is properly formatted as DTO
+      expect(result.data).toBeInstanceOf(GetProfileResponseDTO);
+    });
+
+    it('should validate minimum length requirement is met', async () => {
+      const existingProfile = new ProfileBuilder()
+        .with('userId', ctx.activeUser.id!)
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+
+      const validMinLengthDto: UpdateProfileDto = {
+        firstName: 'Jo',
+        lastName: 'Li',
+      };
+
+      profileRepository.create.mockReturnValue({
+        firstName: validMinLengthDto.firstName,
+        lastName: validMinLengthDto.lastName,
+      } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateProfile(ctx, validMinLengthDto);
+
+      expect(result.status).toBe('success');
+      expect(result.data).toEqual(
+        expect.objectContaining({
+          firstName: 'Jo',
+          lastName: 'Li',
+        }),
+      );
+    });
+
+    it('should include complete audit trail in event metadata for change tracking', async () => {
+      const updateDto: UpdateProfileDto = {
+        firstName: 'AuditFirst',
+        lastName: 'AuditLast',
+      };
+
+      const originalProfile = new ProfileBuilder()
+        .with('id', 'audit-profile-id')
+        .with('userId', ctx.activeUser.id!)
+        .with('firstName', 'BeforeFirst')
+        .with('lastName', 'BeforeLast')
+        .with('companyRole', 'Senior Developer')
+        .with('phone', '+1234567890')
+        .with('country', 'Nigeria')
+        .with('createdAt', new Date('2025-01-01'))
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(originalProfile);
+      profileRepository.create.mockReturnValue({
+        firstName: updateDto.firstName,
+        lastName: updateDto.lastName,
+      } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      await service.updateProfile(ctx, updateDto);
+
+      // Verify complete audit trail metadata
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'profile.update',
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            pre: expect.objectContaining({
+              id: 'audit-profile-id',
+              firstName: 'BeforeFirst',
+              lastName: 'BeforeLast',
+              companyRole: 'Senior Developer',
+              phone: '+1234567890',
+              country: 'Nigeria',
+              createdAt: new Date('2025-01-01'),
+            }),
+            post: expect.objectContaining({
+              id: 'audit-profile-id',
+              firstName: 'AuditFirst',
+              lastName: 'AuditLast',
+              companyRole: 'Senior Developer',
+              phone: '+1234567890',
+              country: 'Nigeria',
+              createdAt: new Date('2025-01-01'),
+            }),
+            changes: expect.objectContaining({
+              firstName: {
+                from: 'BeforeFirst',
+                to: 'AuditFirst',
+              },
+              lastName: {
+                from: 'BeforeLast',
+                to: 'AuditLast',
+              },
+            }),
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle case-insensitive alphabetic validation', async () => {
+      const existingProfile = new ProfileBuilder()
+        .with('userId', ctx.activeUser.id!)
+        .build();
+
+      profileRepository.findOne.mockResolvedValue(existingProfile);
+
+      const mixedCaseDto: UpdateProfileDto = {
+        firstName: 'JohnPaul',
+        lastName: 'MCDONALD',
+      };
+
+      profileRepository.create.mockReturnValue({
+        firstName: mixedCaseDto.firstName,
+        lastName: mixedCaseDto.lastName,
+      } as any);
+      profileRepository.update.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.updateProfile(ctx, mixedCaseDto);
+
+      expect(result.status).toBe('success');
+      expect(result.data).toEqual(
+        expect.objectContaining({
+          firstName: 'JohnPaul',
+          lastName: 'MCDONALD',
+        }),
+      );
     });
   });
 
