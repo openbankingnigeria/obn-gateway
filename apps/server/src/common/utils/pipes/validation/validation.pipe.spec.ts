@@ -184,7 +184,9 @@ describe('IValidationPipe', () => {
           const result = await pipe.transform(inputValue, mockMetadata);
 
           expect(result).toBe(transformedInstance);
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestRequiredDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
         });
 
@@ -202,7 +204,9 @@ describe('IValidationPipe', () => {
           const result = await pipe.transform(inputValue, metadata);
 
           expect(result).toBe(transformedInstance);
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestNestedDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
         });
 
@@ -219,7 +223,9 @@ describe('IValidationPipe', () => {
           const result = await pipe.transform(inputValue, mockMetadata);
 
           expect(result).toBe(transformedInstance);
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestRequiredDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
         });
       });
@@ -249,8 +255,11 @@ describe('IValidationPipe', () => {
 
           await expect(pipe.transform(inputValue, mockMetadata)).rejects.toThrow(mockError);
 
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestRequiredDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
+          expect(mockedIBadRequestException).toHaveBeenCalledTimes(1);
           expect(mockedIBadRequestException).toHaveBeenCalledWith({
             data: {
               name: 'Name should not be empty',
@@ -288,8 +297,11 @@ describe('IValidationPipe', () => {
 
           await expect(pipe.transform(inputValue, mockMetadata)).rejects.toThrow(mockError);
 
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestRequiredDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
+          expect(mockedIBadRequestException).toHaveBeenCalledTimes(1);
           expect(mockedIBadRequestException).toHaveBeenCalledWith({
             data: {
               name: 'Name is required',
@@ -329,8 +341,11 @@ describe('IValidationPipe', () => {
 
           await expect(pipe.transform(inputValue, metadata)).rejects.toThrow(mockError);
 
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestNestedDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
+          expect(mockedIBadRequestException).toHaveBeenCalledTimes(1);
           expect(mockedIBadRequestException).toHaveBeenCalledWith({
             data: {
               profile: {
@@ -366,8 +381,11 @@ describe('IValidationPipe', () => {
 
           await expect(pipe.transform(inputValue, mockMetadata)).rejects.toThrow(mockError);
 
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestRequiredDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
+          expect(mockedIBadRequestException).toHaveBeenCalledTimes(1);
           expect(mockedIBadRequestException).toHaveBeenCalledWith({
             data: {
               name: 'Name is required'
@@ -401,8 +419,11 @@ describe('IValidationPipe', () => {
 
           await expect(pipe.transform(inputValue, metadata)).rejects.toThrow(mockError);
 
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestTypeDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
+          expect(mockedIBadRequestException).toHaveBeenCalledTimes(1);
           expect(mockedIBadRequestException).toHaveBeenCalledWith({
             data: {
               age: 'Age must be a number'
@@ -436,8 +457,11 @@ describe('IValidationPipe', () => {
 
           await expect(pipe.transform(inputValue, metadata)).rejects.toThrow(mockError);
 
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestStructureDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
+          expect(mockedIBadRequestException).toHaveBeenCalledTimes(1);
           expect(mockedIBadRequestException).toHaveBeenCalledWith({
             data: {
               email: 'Email format is invalid'
@@ -469,8 +493,11 @@ describe('IValidationPipe', () => {
 
           await expect(pipe.transform(inputValue, mockMetadata)).rejects.toThrow(mockError);
 
+          expect(mockedPlainToInstance).toHaveBeenCalledTimes(1);
           expect(mockedPlainToInstance).toHaveBeenCalledWith(TestRequiredDto, inputValue);
+          expect(mockedValidate).toHaveBeenCalledTimes(1);
           expect(mockedValidate).toHaveBeenCalledWith(transformedInstance, {});
+          expect(mockedIBadRequestException).toHaveBeenCalledTimes(1);
           expect(mockedIBadRequestException).toHaveBeenCalledWith({
             data: {
               customField: 'Custom validation failed'
