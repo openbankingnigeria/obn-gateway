@@ -6,11 +6,13 @@ export const createMockRepository = <T extends ObjectLiteral>(): jest.Mocked<Rep
     save: jest.fn((entity: T) => Promise.resolve(entity)),
     findOne: jest.fn(),
     find: jest.fn(),
+    findBy: jest.fn(),
     count: jest.fn(),
     query: jest.fn(),
     softDelete: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    insert: jest.fn(),
     create: jest.fn((dto: DeepPartial<T>) => dto as T),
     
     // Query builder
