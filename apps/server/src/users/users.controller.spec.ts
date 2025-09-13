@@ -18,26 +18,12 @@ describe('UsersController', () => {
   let ctx: ReturnType<typeof createMockContext>;
 
   beforeEach(async () => {
-    const testRole = new RoleBuilder()
-      .with('id', 'test-role-id')
-      .with('name', 'Admin')
-      .build();
-
-    const testCompany = new CompanyBuilder()
-      .with('id', 'test-company-id')
-      .with('name', 'Test Company')
-      .build();
-
-    const testUser = new UserBuilder()
-      .with('id', 'test-user-id')
-      .with('email', 'test@example.com')
-      .with('company', testCompany)
-      .with('role', testRole)
-      .build();
-
     ctx = createMockContext({
       permissions: [PERMISSIONS.ADD_TEAM_MEMBERS, PERMISSIONS.LIST_TEAM_MEMBERS],
-      user: testUser
+      user: new UserBuilder()
+        .with("company", new CompanyBuilder().build())
+        .with("role", new RoleBuilder().build())
+        .build()
     });
 
     mockUsersService = {
@@ -49,6 +35,9 @@ describe('UsersController', () => {
       updateUser: jest.fn(),
       deleteUser: jest.fn(),
     };
+
+    const testUser = new UserBuilder().build();
+    const testRole = new RoleBuilder().build();
 
     // Mock implementations using createMockResponse
     mockUsersService.createUser.mockImplementation((_ctx: any, dto: any) => {
@@ -64,7 +53,7 @@ describe('UsersController', () => {
       const mockRes = createMockResponse();
       mockRes.json(ResponseFormatter.success(
         userSuccessMessages.sentInvite,
-        { id, email: testUser.email }
+        { id, email: 'test@example.com' }
       ));
       return Promise.resolve(mockRes.body);
     });
@@ -100,7 +89,7 @@ describe('UsersController', () => {
       const mockRes = createMockResponse();
       mockRes.json(ResponseFormatter.success(
         userSuccessMessages.fetchedUser,
-        { id, email: testUser.email }
+        { id, email: 'test@example.com' }
       ));
       return Promise.resolve(mockRes.body);
     });
@@ -149,11 +138,12 @@ describe('UsersController', () => {
 
   describe('createUser', () => {
     it('should create user successfully', async () => {
+      const role = new RoleBuilder().build();
       const createUserDto = {
-        email: 'newuser@example.com',
+        email: 'test@example.com',
         firstName: 'Test',
         lastName: 'User', 
-        roleId: ctx.ctx.activeUser.role!.id!
+        roleId: role.id!
       };
 
       const result = await controller.createUser(ctx.ctx, createUserDto);
@@ -174,7 +164,7 @@ describe('UsersController', () => {
 
   describe('resendInvite', () => {
     it('should resend invite successfully', async () => {
-      const userId = ctx.ctx.activeUser.id!;
+      const userId = 'test-user-id';
 
       const result = await controller.resendInvite(ctx.ctx, userId);
       const mockRes = createMockResponse();
@@ -185,7 +175,7 @@ describe('UsersController', () => {
         message: userSuccessMessages.sentInvite,
         data: {
           id: userId,
-          email: ctx.ctx.activeUser.email
+          email: 'test@example.com'
         }
       });
       expect(mockUsersService.resendInvite).toHaveBeenCalledWith(ctx.ctx, userId);
@@ -240,7 +230,7 @@ describe('UsersController', () => {
 
   describe('getUser', () => {
     it('should get user by id successfully', async () => {
-      const userId = ctx.ctx.activeUser.id!;
+      const userId = 'test-user-id';
 
       const result = await controller.getUser(ctx.ctx, userId);
       const mockRes = createMockResponse();
@@ -251,7 +241,7 @@ describe('UsersController', () => {
         message: userSuccessMessages.fetchedUser,
         data: {
           id: userId,
-          email: ctx.ctx.activeUser.email
+          email: 'test@example.com'
         }
       });
       expect(mockUsersService.getUser).toHaveBeenCalledWith(ctx.ctx, userId);
@@ -260,11 +250,11 @@ describe('UsersController', () => {
 
   describe('updateUser', () => {
     it('should update user successfully', async () => {
-      const userId = ctx.ctx.activeUser.id!;
+      const userId = 'test-user-id';
       const updateUserDto: UpdateUserDto = {
         firstName: 'Updated',
         lastName: 'User', 
-        roleId: ctx.ctx.activeUser.role!.id!, 
+        roleId: 'role-id', 
         status: UserStatuses.ACTIVE 
       };
 
@@ -290,7 +280,7 @@ describe('UsersController', () => {
 
   describe('deleteUser', () => {
     it('should delete user successfully', async () => {
-      const userId = ctx.ctx.activeUser.id!;
+      const userId = 'test-user-id';
 
       const result = await controller.deleteUser(ctx.ctx, userId);
       const mockRes = createMockResponse();
