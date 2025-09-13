@@ -28,6 +28,8 @@ import { PERMISSIONS } from '@permissions/types';
 import { UpdateProfileEvent } from '@shared/events/profile.event';
 import { hashSync } from 'bcryptjs';
 
+const mockSpeakeasy = jest.mocked(require('speakeasy'));
+
 describe('ProfileService', () => {
   let service: ProfileService;
   let profileRepository: MockRepository<Profile>;
@@ -1010,7 +1012,6 @@ describe('ProfileService', () => {
 
     it('should throw BadRequestException when 2FA code is incorrect', async () => {
       // Mock speakeasy to return false for verification
-      const mockSpeakeasy = require('speakeasy');
       mockSpeakeasy.totp.verify.mockReturnValueOnce(false);
 
       const userWithSecret = new UserBuilder()
@@ -1168,7 +1169,6 @@ describe('ProfileService', () => {
   describe('generateTwoFA', () => {
     beforeEach(() => {
       // Reset speakeasy mocks for each test
-      const mockSpeakeasy = require('speakeasy');
       mockSpeakeasy.generateSecret.mockImplementation(() => ({
         base32: 'MOCK2FASECRET123456789012345678',
         otpauth_url: 'otpauth://totp/Test?secret=MOCK2FASECRET123456789012345678'
@@ -1313,7 +1313,6 @@ describe('ProfileService', () => {
 
     it('should throw BadRequestException when TOTP code is incorrect', async () => {
       // Mock speakeasy to return false for verification
-      const mockSpeakeasy = require('speakeasy');
       mockSpeakeasy.totp.verify.mockReturnValueOnce(false);
 
       const userWith2FA = new UserBuilder()
@@ -1392,7 +1391,6 @@ describe('ProfileService', () => {
 
     it('should successfully disable 2FA with valid TOTP code', async () => {
       // Mock speakeasy to return true for verification
-      const mockSpeakeasy = require('speakeasy');
       mockSpeakeasy.totp.verify.mockReturnValueOnce(true);
 
       const userWith2FA = new UserBuilder()
