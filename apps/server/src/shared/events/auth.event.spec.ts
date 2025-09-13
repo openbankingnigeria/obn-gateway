@@ -16,11 +16,11 @@ describe('Auth Events', () => {
   let mockUser: User;
 
   beforeEach(() => {
-    mockUser = new UserBuilder()
-      .with('id', 'user-id')
-      .with('email', 'test@example.com')
-      .with('password', 'hashed-password')
-      .build();
+    mockUser = new UserBuilder({
+      id: 'user-id',
+      email: 'test@example.com',
+      password: 'hashed-password',
+    }).build();
   });
 
   describe('AuthEvents enum', () => {
@@ -28,7 +28,9 @@ describe('Auth Events', () => {
       expect(AuthEvents.SIGN_UP).toBe('auth.signup');
       expect(AuthEvents.LOGIN).toBe('auth.login');
       expect(AuthEvents.SET_PASSWORD).toBe('auth.set-password');
-      expect(AuthEvents.RESET_PASSWORD_REQUEST).toBe('auth.reset-password-request');
+      expect(AuthEvents.RESET_PASSWORD_REQUEST).toBe(
+        'auth.reset-password-request',
+      );
       expect(AuthEvents.RESET_PASSWORD).toBe('auth.reset-password');
     });
   });
@@ -86,7 +88,11 @@ describe('Auth Events', () => {
   });
 
   describe('AuthSignupEvent', () => {
-    const mockSignupMetadata = { otp: '123456', source: 'web', ipAddress: '127.0.0.1' };
+    const mockSignupMetadata = {
+      otp: '123456',
+      source: 'web',
+      ipAddress: '127.0.0.1',
+    };
 
     it('should create signup event with required properties', () => {
       const event = new AuthSignupEvent(mockUser, mockSignupMetadata);
@@ -194,15 +200,21 @@ describe('Auth Events', () => {
       const event = new AuthSetPasswordEvent(mockUser);
 
       expect(event.user).toBe(mockUser);
-      expect(event.author).toBe(mockUser); // inherited from base
+      expect(event.author).toBe(mockUser);
     });
   });
 
   describe('AuthResetPasswordRequestEvent', () => {
-    const mockTokenMetadata = { token: 'reset-token-123', requestTime: Date.now() };
+    const mockTokenMetadata = {
+      token: 'reset-token-123',
+      requestTime: Date.now(),
+    };
 
     it('should create reset password request event with required properties', () => {
-      const event = new AuthResetPasswordRequestEvent(mockUser, mockTokenMetadata);
+      const event = new AuthResetPasswordRequestEvent(
+        mockUser,
+        mockTokenMetadata,
+      );
 
       expect(event).toBeInstanceOf(AuthEvent);
       expect(event).toBeInstanceOf(BaseEvent);
@@ -220,10 +232,13 @@ describe('Auth Events', () => {
     });
 
     it('should use user property instead of author', () => {
-      const event = new AuthResetPasswordRequestEvent(mockUser, mockTokenMetadata);
+      const event = new AuthResetPasswordRequestEvent(
+        mockUser,
+        mockTokenMetadata,
+      );
 
       expect(event.user).toBe(mockUser);
-      expect(event.author).toBe(mockUser); // inherited from base
+      expect(event.author).toBe(mockUser);
     });
   });
 
@@ -258,7 +273,7 @@ describe('Auth Events', () => {
       const event = new AuthResetPasswordEvent(mockUser);
 
       expect(event.user).toBe(mockUser);
-      expect(event.author).toBe(mockUser); // inherited from base
+      expect(event.author).toBe(mockUser);
     });
   });
 
@@ -273,7 +288,7 @@ describe('Auth Events', () => {
         new AuthResetPasswordEvent(mockUser, { success: true }),
       ];
 
-      events.forEach(event => {
+      events.forEach((event) => {
         expect(event).toBeInstanceOf(AuthEvent);
         expect(event).toBeInstanceOf(BaseEvent);
         expect(event.author).toBe(mockUser);
@@ -289,7 +304,7 @@ describe('Auth Events', () => {
         new AuthLoginEvent(mockUser),
       ];
 
-      events.forEach(event => {
+      events.forEach((event) => {
         expect(event).toBeInstanceOf(BaseEvent);
         expect(event.author).toBe(mockUser);
         expect(event.name).toBeDefined();
@@ -331,7 +346,7 @@ describe('Auth Events', () => {
       expect(signupEvent.author).toBe(mockUser);
       expect(loginEvent.author).toBe(mockUser);
       expect(passwordEvent.user).toBe(mockUser);
-      expect(passwordEvent.author).toBe(mockUser); // inherited
+      expect(passwordEvent.author).toBe(mockUser);
     });
 
     it('should handle different user instances correctly', () => {
