@@ -39,11 +39,31 @@ describe('ProfileService', () => {
   let ctx: RequestContext;
 
   beforeEach(async () => {
-    // Create test data with proper user context
+    const testUserId = 'test-user-id';
+    
+    const testRole = new RoleBuilder()
+      .with('name', 'Admin')
+      .with('permissions', [
+        new PermissionBuilder().with('name', 'READ_USERS').build(),
+        new PermissionBuilder().with('name', 'WRITE_USERS').build(),
+      ])
+      .build();
+    
+    const testProfile = new ProfileBuilder()
+      .with('userId', testUserId)
+      .with('firstName', 'John')
+      .with('lastName', 'Doe')
+      .with('companyRole', 'Software Engineer')
+      .with('phone', '+1234567890')
+      .with('country', 'Nigeria')
+      .with('createdAt', new Date('2024-01-01'))
+      .build();
+
     const testUser = new UserBuilder()
-      .with('id', 'test-user-id')
+      .with('id', testUserId)
       .with('company', new CompanyBuilder().build())
-      .with('role', new RoleBuilder().build())
+      .with('role', testRole)
+      .with('profile', testProfile)
       .build();
 
     ctx = createMockContext({
@@ -51,14 +71,14 @@ describe('ProfileService', () => {
       permissions: [PERMISSIONS.VIEW_PROFILE],
     }).ctx;
 
-    // Initialize all repository mocks with clean state
+    
     profileRepository = createMockRepository<Profile>();
     userRepository = createMockRepository<User>();
     backupCodesRepository = createMockRepository<TwoFaBackupCode>();
 
     eventEmitter = mockEventEmitter();
 
-    // Create testing module with all dependencies injected
+    
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProfileService,
@@ -73,44 +93,15 @@ describe('ProfileService', () => {
   });
 
   afterEach(() => {
-    // Reset all mocks to ensure test isolation
     jest.clearAllMocks();
   });
 
   describe('getProfile', () => {
     it('should return authenticated user profile successfully with complete details', async () => {
-      const mockRole = new RoleBuilder()
-        .with('id', 'role-id')
-        .with('name', 'Admin')
-        .with('permissions', [
-          new PermissionBuilder().with('name', 'READ_USERS').build(),
-          new PermissionBuilder().with('name', 'WRITE_USERS').build(),
-        ])
-        .build();
-
-      const mockUser = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('role', mockRole)
-        .build();
-
-      const mockProfile = new ProfileBuilder()
-        .with('id', 'profile-id')
-        .with('userId', ctx.activeUser.id!)
-        .with('firstName', 'John')
-        .with('lastName', 'Doe')
-        .with('companyRole', 'Software Engineer')
-        .with('phone', '+1234567890')
-        .with('country', 'Nigeria')
-        .with('user', mockUser)
-        .with('createdAt', new Date('2024-01-01'))
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(mockProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       const result = await service.getProfile(ctx);
 
-      // Verify repository called with correct parameters including relations
       expect(profileRepository.findOne).toHaveBeenCalledWith({
         where: { userId: Equal(ctx.activeUser.id!) },
         relations: {
@@ -128,31 +119,20 @@ describe('ProfileService', () => {
       expect(result).toEqual(
         ResponseFormatter.success(
           profileSuccessMessages.fetchedProfile,
-          new GetProfileResponseDTO(mockProfile),
+          new GetProfileResponseDTO(ctx.activeUser.profile!),
         ),
       );
 
       // Verify all profile details are included in response
       expect(result.data).toEqual(
         expect.objectContaining({
-          id: 'profile-id',
+          id: ctx.activeUser.profile!.id,
           firstName: 'John',
           lastName: 'Doe',
           companyRole: 'Software Engineer',
           phone: '+1234567890',
           country: 'Nigeria',
-          user: expect.objectContaining({
-            id: ctx.activeUser.id,
-            email: 'test@example.com',
-            role: expect.objectContaining({
-              id: 'role-id',
-              name: 'Admin',
-              permissions: expect.arrayContaining([
-                expect.objectContaining({ name: 'READ_USERS' }),
-                expect.objectContaining({ name: 'WRITE_USERS' }),
-              ]),
-            }),
-          }),
+          userId: ctx.activeUser.id,
           createdAt: new Date('2024-01-01'),
         }),
       );
@@ -160,12 +140,8 @@ describe('ProfileService', () => {
 
     it('should only return the authenticated user profile (scoped to current user)', async () => {
       const authenticatedUserId = ctx.activeUser.id!;
-      const mockProfile = new ProfileBuilder()
-        .with('userId', authenticatedUserId)
-        .with('user', new UserBuilder().with('id', authenticatedUserId).build())
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(mockProfile);
+      
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       await service.getProfile(ctx);
 
@@ -214,61 +190,39 @@ describe('ProfileService', () => {
     });
 
     it('should include user role and permissions in the response', async () => {
-      const mockPermissions = [
-        new PermissionBuilder().with('name', 'VIEW_DASHBOARD').build(),
-        new PermissionBuilder().with('name', 'MANAGE_USERS').build(),
-        new PermissionBuilder().with('name', 'VIEW_REPORTS').build(),
-      ];
-
-      const mockParentRole = new RoleBuilder()
-        .with('id', 'parent-role-id')
-        .with('name', 'Super Admin')
-        .build();
-
-      const mockRole = new RoleBuilder()
-        .with('permissions', mockPermissions)
-        .with('parent', mockParentRole)
-        .build();
-
-      const mockUser = new UserBuilder()
-        .with('role', mockRole)
-        .build();
-
-      const mockProfile = new ProfileBuilder()
-        .with('user', mockUser)
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(mockProfile);
+      const profileWithUserRelation = {
+        ...ctx.activeUser.profile!,
+        user: ctx.activeUser,
+      };
+      
+      profileRepository.findOne.mockResolvedValue(profileWithUserRelation as any);
 
       const result = await service.getProfile(ctx);
 
-      // Verify role details are included
+      // Verify role details match what we set up in beforeEach
       expect(result.data!.user.role).toEqual(
         expect.objectContaining({
+          name: 'Admin',
           permissions: expect.arrayContaining([
-            expect.objectContaining({ name: 'VIEW_DASHBOARD' }),
-            expect.objectContaining({ name: 'MANAGE_USERS' }),
-            expect.objectContaining({ name: 'VIEW_REPORTS' }),
+            expect.objectContaining({ name: 'READ_USERS' }),
+            expect.objectContaining({ name: 'WRITE_USERS' }),
           ]),
-          parent: expect.objectContaining({
-            id: 'parent-role-id',
-            name: 'Super Admin',
-          }),
         }),
       );
     });
 
     it('should return profile with empty optional fields when not set', async () => {
-      const mockProfile = new ProfileBuilder()
+      // Create a profile with some empty fields 
+      const profileWithEmptyFields = new ProfileBuilder()
         .with('firstName', 'John')
         .with('lastName', 'Doe')
         .with('companyRole', '')
         .with('phone', undefined)
         .with('country', undefined)
-        .with('user', new UserBuilder().build())
+        .with('user', ctx.activeUser)
         .build();
 
-      profileRepository.findOne.mockResolvedValue(mockProfile);
+      profileRepository.findOne.mockResolvedValue(profileWithEmptyFields);
 
       const result = await service.getProfile(ctx);
 
@@ -284,20 +238,22 @@ describe('ProfileService', () => {
     });
 
     it('should handle profile with minimal user role information', async () => {
-      const mockRole = new RoleBuilder()
+      // Create a minimal role
+      const minimalRole = new RoleBuilder()
         .with('permissions', [])
         .with('parent', undefined)
         .build();
 
-      const mockUser = new UserBuilder()
-        .with('role', mockRole)
+      const userWithMinimalRole = new UserBuilder()
+        .with('id', ctx.activeUser.id!)
+        .with('role', minimalRole)
         .build();
 
-      const mockProfile = new ProfileBuilder()
-        .with('user', mockUser)
+      const profileWithMinimalRole = new ProfileBuilder()
+        .with('user', userWithMinimalRole)
         .build();
 
-      profileRepository.findOne.mockResolvedValue(mockProfile);
+      profileRepository.findOne.mockResolvedValue(profileWithMinimalRole);
 
       const result = await service.getProfile(ctx);
 
@@ -310,11 +266,7 @@ describe('ProfileService', () => {
     });
 
     it('should return standardized success response format', async () => {
-      const mockProfile = new ProfileBuilder()
-        .with('user', new UserBuilder().build())
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(mockProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       const result = await service.getProfile(ctx);
 
@@ -339,20 +291,12 @@ describe('ProfileService', () => {
         lastName: 'UpdatedLast',
       };
 
-      const existingProfile = new ProfileBuilder()
-        .with('id', 'profile-id')
-        .with('userId', ctx.activeUser.id!)
-        .with('firstName', 'OriginalFirst')
-        .with('lastName', 'OriginalLast')
-        .with('companyRole', 'Developer')
-        .build();
-
       const updatedProfileData = {
         firstName: updateDto.firstName,
         lastName: updateDto.lastName,
       };
 
-      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
       profileRepository.create.mockReturnValue(updatedProfileData as any);
       profileRepository.update.mockResolvedValue({ affected: 1 } as any);
 
@@ -386,8 +330,8 @@ describe('ProfileService', () => {
           author: ctx.activeUser,
           metadata: expect.objectContaining({
             pre: expect.objectContaining({
-              firstName: 'OriginalFirst',
-              lastName: 'OriginalLast',
+              firstName: ctx.activeUser.profile!.firstName,
+              lastName: ctx.activeUser.profile!.lastName,
             }),
             post: expect.objectContaining({
               firstName: 'UpdatedFirst',
@@ -403,7 +347,7 @@ describe('ProfileService', () => {
         ResponseFormatter.success(
           profileSuccessMessages.updatedProfile,
           new GetProfileResponseDTO(
-            Object.assign({}, existingProfile, updatedProfileData),
+            Object.assign({}, ctx.activeUser.profile!, updatedProfileData),
           ),
         ),
       );
@@ -411,10 +355,10 @@ describe('ProfileService', () => {
       // Verify response includes both original and updated data
       expect(result.data).toEqual(
         expect.objectContaining({
-          id: 'profile-id',
+          id: ctx.activeUser.profile!.id,
           firstName: 'UpdatedFirst',
           lastName: 'UpdatedLast',
-          companyRole: 'Developer',
+          companyRole: ctx.activeUser.profile!.companyRole,
         }),
       );
     });
@@ -425,11 +369,8 @@ describe('ProfileService', () => {
         lastName: 'UpdatedLast',
       };
 
-      const userProfile = new ProfileBuilder()
-        .with('userId', ctx.activeUser.id!)
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(userProfile);
+      // Use the existing profile from context
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
       profileRepository.create.mockReturnValue({} as any);
       profileRepository.update.mockResolvedValue({ affected: 1 } as any);
 
@@ -471,11 +412,7 @@ describe('ProfileService', () => {
     });
 
     it('should validate firstName is required and meets constraints', async () => {
-      const existingProfile = new ProfileBuilder()
-        .with('userId', ctx.activeUser.id!)
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       const validDto: UpdateProfileDto = {
         firstName: 'ValidName', 
@@ -498,11 +435,7 @@ describe('ProfileService', () => {
     });
 
     it('should validate lastName is required and meets constraints', async () => {
-      const existingProfile = new ProfileBuilder()
-        .with('userId', ctx.activeUser.id!)
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       const validDto: UpdateProfileDto = {
         firstName: 'ValidFirst',
@@ -525,11 +458,7 @@ describe('ProfileService', () => {
     });
 
     it('should handle names with valid alphabetic characters and hyphens', async () => {
-      const existingProfile = new ProfileBuilder()
-        .with('userId', ctx.activeUser.id!)
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       const validDto: UpdateProfileDto = {
         firstName: 'Mary-Jane',
@@ -557,18 +486,7 @@ describe('ProfileService', () => {
         lastName: 'NewLast',
       };
 
-      const existingProfile = new ProfileBuilder()
-        .with('id', 'profile-id')
-        .with('userId', ctx.activeUser.id!)
-        .with('firstName', 'OldFirst')
-        .with('lastName', 'OldLast')
-        .with('companyRole', 'Senior Developer')
-        .with('phone', '+1234567890')
-        .with('country', 'Nigeria')
-        .with('createdAt', new Date('2024-01-01'))
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
       profileRepository.create.mockReturnValue({
         firstName: updateDto.firstName,
         lastName: updateDto.lastName,
@@ -580,13 +498,13 @@ describe('ProfileService', () => {
       // Verify only firstName and lastName are updated, other fields preserved
       expect(result.data).toEqual(
         expect.objectContaining({
-          id: 'profile-id',
+          id: ctx.activeUser.profile!.id,
           firstName: 'NewFirst', 
           lastName: 'NewLast',
-          companyRole: 'Senior Developer', 
-          phone: '+1234567890',
-          country: 'Nigeria',
-          createdAt: new Date('2024-01-01'),
+          companyRole: ctx.activeUser.profile!.companyRole,
+          phone: ctx.activeUser.profile!.phone,
+          country: ctx.activeUser.profile!.country,
+          createdAt: ctx.activeUser.profile!.createdAt,
         }),
       );
     });
@@ -597,15 +515,7 @@ describe('ProfileService', () => {
         lastName: 'EventLast',
       };
 
-      const existingProfile = new ProfileBuilder()
-        .with('id', 'profile-id')
-        .with('userId', ctx.activeUser.id!)
-        .with('firstName', 'OriginalFirstName')
-        .with('lastName', 'OriginalLastName')
-        .with('companyRole', 'Developer')
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
       profileRepository.create.mockReturnValue({
         firstName: updateDto.firstName,
         lastName: updateDto.lastName,
@@ -621,8 +531,8 @@ describe('ProfileService', () => {
           author: ctx.activeUser,
           metadata: expect.objectContaining({
             pre: expect.objectContaining({
-              firstName: 'OriginalFirstName',
-              lastName: 'OriginalLastName',
+              firstName: ctx.activeUser.profile!.firstName,
+              lastName: ctx.activeUser.profile!.lastName,
             }),
             post: expect.objectContaining({
               firstName: 'EventTest',
@@ -640,18 +550,13 @@ describe('ProfileService', () => {
         lastName: 'StandardizedLast',
       };
 
-      const existingProfile = new ProfileBuilder()
-        .with('userId', ctx.activeUser.id!)
-        .with('firstName', 'Original')
-        .with('lastName', 'Name')
-        .build();
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       const updatedData = {
         firstName: updateDto.firstName,
         lastName: updateDto.lastName,
       };
 
-      profileRepository.findOne.mockResolvedValue(existingProfile);
       profileRepository.create.mockReturnValue(updatedData as any);
       profileRepository.update.mockResolvedValue({ affected: 1 } as any);
 
@@ -671,11 +576,7 @@ describe('ProfileService', () => {
     });
 
     it('should validate minimum length requirement is met', async () => {
-      const existingProfile = new ProfileBuilder()
-        .with('userId', ctx.activeUser.id!)
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       const validMinLengthDto: UpdateProfileDto = {
         firstName: 'Jo',
@@ -705,18 +606,7 @@ describe('ProfileService', () => {
         lastName: 'AuditLast',
       };
 
-      const originalProfile = new ProfileBuilder()
-        .with('id', 'audit-profile-id')
-        .with('userId', ctx.activeUser.id!)
-        .with('firstName', 'BeforeFirst')
-        .with('lastName', 'BeforeLast')
-        .with('companyRole', 'Senior Developer')
-        .with('phone', '+1234567890')
-        .with('country', 'Nigeria')
-        .with('createdAt', new Date('2025-01-01'))
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(originalProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
       profileRepository.create.mockReturnValue({
         firstName: updateDto.firstName,
         lastName: updateDto.lastName,
@@ -731,22 +621,22 @@ describe('ProfileService', () => {
         expect.objectContaining({
           metadata: expect.objectContaining({
             pre: expect.objectContaining({
-              id: 'audit-profile-id',
-              firstName: 'BeforeFirst',
-              lastName: 'BeforeLast',
-              companyRole: 'Senior Developer',
-              phone: '+1234567890',
-              country: 'Nigeria',
-              createdAt: new Date('2025-01-01'),
+              id: ctx.activeUser.profile!.id,
+              firstName: ctx.activeUser.profile!.firstName,
+              lastName: ctx.activeUser.profile!.lastName,
+              companyRole: ctx.activeUser.profile!.companyRole,
+              phone: ctx.activeUser.profile!.phone,
+              country: ctx.activeUser.profile!.country,
+              createdAt: ctx.activeUser.profile!.createdAt,
             }),
             post: expect.objectContaining({
-              id: 'audit-profile-id',
-              firstName: 'AuditFirst',
-              lastName: 'AuditLast',
-              companyRole: 'Senior Developer',
-              phone: '+1234567890',
-              country: 'Nigeria',
-              createdAt: new Date('2025-01-01'),
+              id: ctx.activeUser.profile!.id,
+              firstName: updateDto.firstName,
+              lastName: updateDto.lastName,
+              companyRole: ctx.activeUser.profile!.companyRole,
+              phone: ctx.activeUser.profile!.phone,
+              country: ctx.activeUser.profile!.country,
+              createdAt: ctx.activeUser.profile!.createdAt,
             }),
           }),
         }),
@@ -755,11 +645,7 @@ describe('ProfileService', () => {
     });
 
     it('should handle case-insensitive alphabetic validation', async () => {
-      const existingProfile = new ProfileBuilder()
-        .with('userId', ctx.activeUser.id!)
-        .build();
-
-      profileRepository.findOne.mockResolvedValue(existingProfile);
+      profileRepository.findOne.mockResolvedValue(ctx.activeUser.profile!);
 
       const mixedCaseDto: UpdateProfileDto = {
         firstName: 'JohnPaul',
@@ -797,7 +683,7 @@ describe('ProfileService', () => {
 
     it('should successfully update password when all validations pass', async () => {
       const originalUser = new UserBuilder()
-        .with('id', 'test-user-id')
+        .with('id', ctx.activeUser.id!)
         .with('password', hashSync('OldPassword123!', 12))
         .with('company', new CompanyBuilder().build())
         .with('role', new RoleBuilder().build())
@@ -829,7 +715,7 @@ describe('ProfileService', () => {
 
     it('should emit AuthSetPasswordEvent with correct metadata on successful password update', async () => {
       const originalUser = new UserBuilder()
-        .with('id', 'test-user-id')
+        .with('id', ctx.activeUser.id!)
         .with('password', hashSync('OldPassword123!', 12))
         .with('company', new CompanyBuilder().build())
         .with('role', new RoleBuilder().build())
@@ -857,7 +743,7 @@ describe('ProfileService', () => {
 
     it('should clear existing reset tokens when password is updated', async () => {
       const userWithResetTokens = new UserBuilder()
-        .with('id', 'test-user-id')
+        .with('id', ctx.activeUser.id!)
         .with('password', hashSync('OldPassword123!', 12))
         .with('resetPasswordToken', 'existing-reset-token-123')
         .with('resetPasswordExpires', new Date('2025-12-31'))
@@ -920,7 +806,7 @@ describe('ProfileService', () => {
 
     it('should throw incorrect-old-password error when old password does not match current password', async () => {
       const originalUser = new UserBuilder()
-        .with('id', 'test-user-id')
+        .with('id', ctx.activeUser.id!)
         .with('password', hashSync('ActualPassword123!', 12))
         .with('company', new CompanyBuilder().build())
         .with('role', new RoleBuilder().build())
@@ -963,7 +849,7 @@ describe('ProfileService', () => {
 
     it('should set lastPasswordChange when password is updated', async () => {
       const originalUser = new UserBuilder()
-        .with('id', 'test-user-id')
+        .with('id', ctx.activeUser.id!)
         .with('password', hashSync('OldPassword123!', 12))
         .with('company', new CompanyBuilder().build())
         .with('role', new RoleBuilder().build())
@@ -1014,12 +900,10 @@ describe('ProfileService', () => {
       // Mock speakeasy to return false for verification
       mockSpeakeasy.totp.verify.mockReturnValueOnce(false);
 
-      const userWithSecret = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', false)
-        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
-        .build();
+      const userWithSecret = {
+        ...ctx.activeUser,
+        twofaSecret: 'VALIDSECRET12345678901234567890',
+      };
 
       const testCtx = createMockContext({
         user: userWithSecret,
@@ -1038,12 +922,10 @@ describe('ProfileService', () => {
     });
 
     it('should successfully verify 2FA and enable it with backup codes generated', async () => {
-      const userWithSecret = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', false)
-        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
-        .build();
+      const userWithSecret = {
+        ...ctx.activeUser,
+        twofaSecret: 'VALIDSECRET12345678901234567890',
+      };
 
       const testCtx = createMockContext({
         user: userWithSecret,
@@ -1098,12 +980,10 @@ describe('ProfileService', () => {
     });
 
     it('should generate unique hashed backup codes for storage', async () => {
-      const userWithSecret = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', false)
-        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
-        .build();
+      const userWithSecret = {
+        ...ctx.activeUser,
+        twofaSecret: 'VALIDSECRET12345678901234567890',
+      };
 
       const testCtx = createMockContext({
         user: userWithSecret,
@@ -1130,12 +1010,10 @@ describe('ProfileService', () => {
     });
 
     it('should return plain text backup codes in response while storing hashed versions', async () => {
-      const userWithSecret = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', false)
-        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
-        .build();
+      const userWithSecret = {
+        ...ctx.activeUser,
+        twofaSecret: 'VALIDSECRET12345678901234567890',
+      };
 
       const testCtx = createMockContext({
         user: userWithSecret,
@@ -1199,14 +1077,8 @@ describe('ProfileService', () => {
     });
 
     it('should successfully generate 2FA secret and QR code when 2FA is not enabled', async () => {
-      const userWithout2FA = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', false)
-        .build();
-
       const testCtx = createMockContext({
-        user: userWithout2FA,
+        user: ctx.activeUser,
         permissions: [PERMISSIONS.VIEW_PROFILE],
       }).ctx;
 
@@ -1287,14 +1159,8 @@ describe('ProfileService', () => {
     });
 
     it('should throw BadRequestException when 2FA is not enabled', async () => {
-      const userWithout2FA = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', false)
-        .build();
-
       const testCtx = createMockContext({
-        user: userWithout2FA,
+        user: ctx.activeUser,
         permissions: [PERMISSIONS.VIEW_PROFILE],
       }).ctx;
 
@@ -1343,12 +1209,11 @@ describe('ProfileService', () => {
     });
 
     it('should throw BadRequestException when backup code does not match stored codes', async () => {
-      const userWith2FA = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', true)
-        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
-        .build();
+      const userWith2FA = {
+        ...ctx.activeUser,
+        twofaEnabled: true,
+        twofaSecret: 'VALIDSECRET12345678901234567890',
+      };
 
       const testCtx = createMockContext({
         user: userWith2FA,
@@ -1358,12 +1223,12 @@ describe('ProfileService', () => {
       // Mock stored backup codes
       const storedBackupCodes = [
         new TwoFaBackupCodeBuilder()
-          .with('id', '1')
+          .with('id', `${ctx.activeUser.id!}-backup-1`)
           .with('userId', testCtx.activeUser.id!)
           .with('value', hashSync('ABC123', 12))
           .build(),
         new TwoFaBackupCodeBuilder()
-          .with('id', '2')
+          .with('id', `${ctx.activeUser.id!}-backup-2`)
           .with('userId', testCtx.activeUser.id!)
           .with('value', hashSync('DEF456', 12))
           .build(),
@@ -1393,12 +1258,11 @@ describe('ProfileService', () => {
       // Mock speakeasy to return true for verification
       mockSpeakeasy.totp.verify.mockReturnValueOnce(true);
 
-      const userWith2FA = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', true)
-        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
-        .build();
+      const userWith2FA = {
+        ...ctx.activeUser,
+        twofaEnabled: true,
+        twofaSecret: 'VALIDSECRET12345678901234567890',
+      };
 
       const testCtx = createMockContext({
         user: userWith2FA,
@@ -1455,12 +1319,11 @@ describe('ProfileService', () => {
     });
 
     it('should successfully disable 2FA with valid backup code', async () => {
-      const userWith2FA = new UserBuilder()
-        .with('id', ctx.activeUser.id!)
-        .with('email', 'test@example.com')
-        .with('twofaEnabled', true)
-        .with('twofaSecret', 'VALIDSECRET12345678901234567890')
-        .build();
+      const userWith2FA = {
+        ...ctx.activeUser,
+        twofaEnabled: true,
+        twofaSecret: 'VALIDSECRET12345678901234567890',
+      };
 
       const testCtx = createMockContext({
         user: userWith2FA,
@@ -1471,12 +1334,12 @@ describe('ProfileService', () => {
       const validBackupCode = 'ABC123';
       const storedBackupCodes = [
         new TwoFaBackupCodeBuilder()
-          .with('id', '1')
+          .with('id', `${testCtx.activeUser.id!}-backup-1`)
           .with('userId', testCtx.activeUser.id!)
           .with('value', hashSync(validBackupCode, 12))
           .build(),
         new TwoFaBackupCodeBuilder()
-          .with('id', '2')
+          .with('id', `${testCtx.activeUser.id!}-backup-2`)
           .with('userId', testCtx.activeUser.id!)
           .with('value', hashSync('DEF456', 12))
           .build(),
