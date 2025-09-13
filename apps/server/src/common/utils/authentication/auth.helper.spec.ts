@@ -10,7 +10,6 @@ describe('Auth', () => {
   let jwtService: jest.Mocked<JwtService>;
 
   beforeEach(async () => {
-    // Initialize service mocks with default implementations BEFORE creating the module
     configService = {
       get: jest.fn().mockImplementation((key: string) => {
         switch (key) {
@@ -48,11 +47,9 @@ describe('Auth', () => {
     expect(auth).toBeDefined();
   });
 
-  // 2) authSecret captured at construction
   it('verify uses the secret captured at construction even if ConfigService changes later', async () => {
     jwtService.verifyAsync.mockResolvedValue({ ok: true });
 
-    // mutate config after instance creation
     configService.get.mockImplementation((key: string) => {
       switch (key) {
         case 'auth.jwtSecret':
@@ -70,7 +67,6 @@ describe('Auth', () => {
     });
   });
 
-  // 3) Exact options when all custom options provided
   it('sign passes exactly the provided custom options when all keys are supplied', async () => {
     const payload = { userId: '123' };
     const options = {
@@ -83,7 +79,6 @@ describe('Auth', () => {
 
     await auth.sign(payload, options);
 
-    // exact match — ensures no default keys leak in
     expect(jwtService.signAsync).toHaveBeenCalledWith(payload, options);
   });
 
@@ -392,7 +387,7 @@ describe('Auth', () => {
       const result = await auth.getToken();
 
       expect(typeof result).toBe('string');
-      expect(result).toHaveLength(40); // 20 bytes = 40 hex characters
+      expect(result).toHaveLength(40);
       expect(result).toMatch(/^[0-9a-f]{40}$/);
     });
 
@@ -432,7 +427,7 @@ describe('Auth', () => {
 
       expect(hash1).toBe(hash2);
       expect(typeof hash1).toBe('string');
-      expect(hash1).toHaveLength(64); // SHA256 produces 64-character hex strings
+      expect(hash1).toHaveLength(64);
       expect(hash1).toMatch(/^[0-9a-f]{64}$/);
     });
 
