@@ -1,8 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { Test, TestingModule } from '@nestjs/testing';
 import { Auth } from './auth.helper';
-import * as crypto from 'crypto';
 
 describe('Auth', () => {
   let auth: Auth;
@@ -62,6 +61,7 @@ describe('Auth', () => {
     });
 
     await auth.verify('token');
+    expect(jwtService.verifyAsync).toHaveBeenCalledTimes(1);
     expect(jwtService.verifyAsync).toHaveBeenCalledWith('token', {
       secret: 'test-jwt-secret',
     });
@@ -79,6 +79,7 @@ describe('Auth', () => {
 
     await auth.sign(payload, options);
 
+    expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
     expect(jwtService.signAsync).toHaveBeenCalledWith(payload, options);
   });
 
@@ -92,6 +93,7 @@ describe('Auth', () => {
         const result = await auth.sign(payload);
 
         expect(result).toBe(expectedToken);
+        expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(payload, {
           expiresIn: '1h',
           secret: 'test-jwt-secret',
@@ -104,6 +106,7 @@ describe('Auth', () => {
 
         await auth.sign(payload);
 
+        expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
           expect.objectContaining({
@@ -118,6 +121,7 @@ describe('Auth', () => {
 
         await auth.sign(payload);
 
+        expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
           expect.objectContaining({
@@ -136,6 +140,7 @@ describe('Auth', () => {
 
         await auth.sign(payload, options);
 
+        expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
           expect.objectContaining({
@@ -153,6 +158,7 @@ describe('Auth', () => {
 
         await auth.sign(payload, options);
 
+        expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
           expect.objectContaining({
@@ -174,6 +180,7 @@ describe('Auth', () => {
 
         await auth.sign(payload, options);
 
+        expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(payload, options);
       });
 
@@ -187,6 +194,7 @@ describe('Auth', () => {
 
         await auth.sign(payload, options);
 
+        expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
           expect.objectContaining({
@@ -220,6 +228,7 @@ describe('Auth', () => {
         const result = await auth.sign(payload);
 
         expect(result).toBe('token');
+        expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
           expect.any(Object),
@@ -243,6 +252,7 @@ describe('Auth', () => {
         const result = await auth.verify(token);
 
         expect(result).toEqual(decodedPayload);
+        expect(jwtService.verifyAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.verifyAsync).toHaveBeenCalledWith(token, {
           secret: 'test-jwt-secret',
         });
@@ -268,6 +278,7 @@ describe('Auth', () => {
 
         await auth.verify(token);
 
+        expect(jwtService.verifyAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.verifyAsync).toHaveBeenCalledWith(token, {
           secret: 'test-jwt-secret',
         });
@@ -284,6 +295,7 @@ describe('Auth', () => {
         const result = await auth.verify(token, customSecret);
 
         expect(result).toEqual(decodedPayload);
+        expect(jwtService.verifyAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.verifyAsync).toHaveBeenCalledWith(token, {
           secret: customSecret,
         });
@@ -296,6 +308,7 @@ describe('Auth', () => {
 
         await auth.verify(token, customSecret);
 
+        expect(jwtService.verifyAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.verifyAsync).toHaveBeenCalledWith(token, {
           secret: customSecret,
         });
