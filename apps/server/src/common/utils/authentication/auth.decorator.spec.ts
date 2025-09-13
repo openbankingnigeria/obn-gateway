@@ -12,7 +12,6 @@ import { PERMISSIONS } from 'src/permissions/types';
 
 describe('Auth Decorators', () => {
   beforeEach(() => {
-    // Reset mocks
     jest.clearAllMocks();
   });
 
@@ -28,7 +27,6 @@ describe('Auth Decorators', () => {
     it('should create decorator that sets skip auth metadata', () => {
       const decorator = SkipAuthGuard();
 
-      // The decorator should be a function
       expect(typeof decorator).toBe('function');
     });
 
@@ -62,8 +60,7 @@ describe('Auth Decorators', () => {
 
     it('should be a metadata decorator', () => {
       const decorator = SkipAuthGuard();
-      
-      // Should return a function that can be applied to classes/methods
+
       expect(typeof decorator).toBe('function');
     });
   });
@@ -85,7 +82,7 @@ describe('Auth Decorators', () => {
         PERMISSIONS.LIST_AUDIT_LOGS,
       ];
 
-      testCases.forEach(permission => {
+      testCases.forEach((permission) => {
         const decorator = RequiredPermission(permission);
         expect(typeof decorator).toBe('function');
       });
@@ -94,7 +91,7 @@ describe('Auth Decorators', () => {
     it('should be a metadata decorator with permission parameter', () => {
       const permission = PERMISSIONS.VIEW_API_CONSUMER;
       const decorator = RequiredPermission(permission);
-      
+
       expect(typeof decorator).toBe('function');
     });
 
@@ -134,7 +131,7 @@ describe('Auth Decorators', () => {
         PERMISSIONS.ASSIGN_API_ENDPOINTS,
       ];
 
-      providerPermissions.forEach(permission => {
+      providerPermissions.forEach((permission) => {
         const decorator = RequiredPermission(permission);
         expect(typeof decorator).toBe('function');
       });
@@ -148,7 +145,7 @@ describe('Auth Decorators', () => {
         PERMISSIONS.SET_API_RESTRICTIONS,
       ];
 
-      consumerPermissions.forEach(permission => {
+      consumerPermissions.forEach((permission) => {
         const decorator = RequiredPermission(permission);
         expect(typeof decorator).toBe('function');
       });
@@ -176,14 +173,14 @@ describe('Auth Decorators', () => {
 
     it('should be a metadata decorator with default parameter', () => {
       const decorator = RequireTwoFA();
-      
+
       expect(typeof decorator).toBe('function');
     });
 
     it('should be a metadata decorator with explicit strict value', () => {
       const strictDecorator = RequireTwoFA(true);
       const nonStrictDecorator = RequireTwoFA(false);
-      
+
       expect(typeof strictDecorator).toBe('function');
       expect(typeof nonStrictDecorator).toBe('function');
     });
@@ -227,12 +224,10 @@ describe('Auth Decorators', () => {
 
   describe('Ctx Parameter Decorator', () => {
     it('should be a parameter decorator', () => {
-      // Ctx should be a ParameterDecorator function
       expect(typeof Ctx).toBe('function');
     });
 
     it('should be usable as parameter decorator in controller methods', () => {
-      // This test verifies the decorator can be used syntactically
       class TestController {
         testMethod(@Ctx() ctx: any) {
           return ctx;
@@ -244,13 +239,10 @@ describe('Auth Decorators', () => {
     });
 
     it('should be created using createParamDecorator', () => {
-      // The Ctx decorator should be created using NestJS createParamDecorator
-      // This is validated by the fact that it can be used as a parameter decorator
       expect(typeof Ctx).toBe('function');
     });
 
     it('should work with different parameter names', () => {
-      // Test that the decorator works with different parameter names
       class TestController {
         method1(@Ctx() context: any) {
           return context;
@@ -324,7 +316,6 @@ describe('Auth Decorators', () => {
 
   describe('Decorator Type Safety', () => {
     it('should only accept valid permission values', () => {
-      // These should compile without TypeScript errors
       const validDecorators = [
         RequiredPermission(PERMISSIONS.VIEW_PROFILE),
         RequiredPermission(PERMISSIONS.LIST_API_CONSUMERS),
@@ -332,21 +323,20 @@ describe('Auth Decorators', () => {
         RequiredPermission(PERMISSIONS.UPDATE_SYSTEM_SETTING),
       ];
 
-      validDecorators.forEach(decorator => {
+      validDecorators.forEach((decorator) => {
         expect(typeof decorator).toBe('function');
       });
     });
 
     it('should handle all permission categories correctly', () => {
-      // Test provider permissions
-      const providerDecorator = RequiredPermission(PERMISSIONS.APPROVE_API_CONSUMER);
+      const providerDecorator = RequiredPermission(
+        PERMISSIONS.APPROVE_API_CONSUMER,
+      );
       expect(typeof providerDecorator).toBe('function');
 
-      // Test consumer permissions  
       const consumerDecorator = RequiredPermission(PERMISSIONS.RESET_API_KEY);
       expect(typeof consumerDecorator).toBe('function');
 
-      // Test shared permissions
       const sharedDecorator = RequiredPermission(PERMISSIONS.VIEW_PROFILE);
       expect(typeof sharedDecorator).toBe('function');
     });
@@ -354,13 +344,10 @@ describe('Auth Decorators', () => {
 
   describe('Metadata Verification', () => {
     it('should set correct metadata for SkipAuthGuard decorator', () => {
-      // Since we cannot mock SetMetadata easily, we verify the decorator behavior
       const decorator = SkipAuthGuard();
-      
-      // Test that it returns a decorator function
+
       expect(typeof decorator).toBe('function');
-      
-      // Test that it can be applied to classes and methods without errors
+
       @decorator
       class TestClass {
         @decorator
@@ -368,16 +355,16 @@ describe('Auth Decorators', () => {
           return 'test';
         }
       }
-      
+
       expect(new TestClass().testMethod()).toBe('test');
     });
 
     it('should set correct metadata for RequiredPermission decorator', () => {
       const permission = PERMISSIONS.VIEW_PROFILE;
       const decorator = RequiredPermission(permission);
-      
+
       expect(typeof decorator).toBe('function');
-      
+
       @decorator
       class TestClass {
         @decorator
@@ -385,17 +372,17 @@ describe('Auth Decorators', () => {
           return 'test';
         }
       }
-      
+
       expect(new TestClass().testMethod()).toBe('test');
     });
 
     it('should set correct metadata for RequireTwoFA decorator', () => {
       const strictDecorator = RequireTwoFA(true);
       const nonStrictDecorator = RequireTwoFA(false);
-      
+
       expect(typeof strictDecorator).toBe('function');
       expect(typeof nonStrictDecorator).toBe('function');
-      
+
       @strictDecorator
       class StrictClass {
         @nonStrictDecorator
@@ -403,7 +390,7 @@ describe('Auth Decorators', () => {
           return 'test';
         }
       }
-      
+
       expect(new StrictClass().testMethod()).toBe('test');
     });
   });
