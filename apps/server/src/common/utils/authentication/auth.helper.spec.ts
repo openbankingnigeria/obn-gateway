@@ -77,8 +77,9 @@ describe('Auth', () => {
     };
     jwtService.signAsync.mockResolvedValue('token');
 
-    await auth.sign(payload, options);
+    const result = await auth.sign(payload, options);
 
+    expect(result).toBe('token');
     expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
     expect(jwtService.signAsync).toHaveBeenCalledWith(payload, options);
   });
@@ -104,8 +105,9 @@ describe('Auth', () => {
         const payload = { userId: '123' };
         jwtService.signAsync.mockResolvedValue('token');
 
-        await auth.sign(payload);
+        const result = await auth.sign(payload);
 
+        expect(result).toBe('token');
         expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
@@ -119,8 +121,9 @@ describe('Auth', () => {
         const payload = { userId: '123' };
         jwtService.signAsync.mockResolvedValue('token');
 
-        await auth.sign(payload);
+        const result = await auth.sign(payload);
 
+        expect(result).toBe('token');
         expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
@@ -138,8 +141,9 @@ describe('Auth', () => {
         const options = { secret: customSecret };
         jwtService.signAsync.mockResolvedValue('token');
 
-        await auth.sign(payload, options);
+        const result = await auth.sign(payload, options);
 
+        expect(result).toBe('token');
         expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
@@ -156,8 +160,9 @@ describe('Auth', () => {
         const options = { expiresIn: customExpires };
         jwtService.signAsync.mockResolvedValue('token');
 
-        await auth.sign(payload, options);
+        const result = await auth.sign(payload, options);
 
+        expect(result).toBe('token');
         expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
@@ -178,8 +183,9 @@ describe('Auth', () => {
         };
         jwtService.signAsync.mockResolvedValue('token');
 
-        await auth.sign(payload, options);
+        const result = await auth.sign(payload, options);
 
+        expect(result).toBe('token');
         expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(payload, options);
       });
@@ -192,8 +198,9 @@ describe('Auth', () => {
         };
         jwtService.signAsync.mockResolvedValue('token');
 
-        await auth.sign(payload, options);
+        const result = await auth.sign(payload, options);
 
+        expect(result).toBe('token');
         expect(jwtService.signAsync).toHaveBeenCalledTimes(1);
         expect(jwtService.signAsync).toHaveBeenCalledWith(
           payload,
