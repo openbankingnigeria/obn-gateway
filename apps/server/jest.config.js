@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const { pathsToModuleNameMapper } = require('ts-jest');
 const { compilerOptions } = require('./tsconfig.json');
 
@@ -12,19 +13,17 @@ module.exports = {
   ],
 
   setupFilesAfterEnv: [
-    '<rootDir>/test/utils/config/test-db-config.ts',
     '<rootDir>/test/jest.setup.ts',
     '<rootDir>/test/utils/config/test-setup.ts',
     'jest-extended/all',
   ],
 
-   moduleNameMapper: {
+  moduleNameMapper: {
     ...pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' }),
     '^@elastic/elasticsearch$': '<rootDir>/node_modules/@elastic/elasticsearch',
     '^@nestjs/elasticsearch$': '<rootDir>/node_modules/@nestjs/elasticsearch',
     '^sqlite3$': require.resolve('sqlite3'),
   },
-  
   modulePaths: ['<rootDir>'],
 
   transform: {
@@ -72,7 +71,7 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/**/*.mock.ts',
     '!src/**/*.guard.ts',
-    '!src/**/*.pipe.ts', 
+    '!src/**/*.pipe.ts',
   ],
   coveragePathIgnorePatterns: [
     '/src/setup.ts',
@@ -89,7 +88,7 @@ module.exports = {
     '.*\\.spec.ts$',
     '.*\\.test.ts$',
     '/src/common/utils/pipes/',
-    '/src/common/utils/authentication/.*\\.guard.ts'
+    '/src/common/utils/authentication/.*\\.guard.ts',
   ],
   coverageDirectory: 'test/coverage',
   coverageReporters: ['text', 'html', 'lcov', 'text-summary', 'clover'],
@@ -119,7 +118,7 @@ module.exports = {
   maxWorkers: process.env.CI ? '50%' : '80%',
   workerIdleMemoryLimit: '512MB',
   cacheDirectory: '<rootDir>/test/.jest-cache',
-  silent: true,
+  silent: false,
   verbose: true,
   bail: false,
   testTimeout: 30000,
