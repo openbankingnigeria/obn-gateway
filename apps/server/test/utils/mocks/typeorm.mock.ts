@@ -5,6 +5,9 @@ export const createMockRepository = <T extends ObjectLiteral>(): jest.Mocked<Rep
     // Basic CRUD operations
     save: jest.fn((entity: T) => Promise.resolve(entity)),
     findOne: jest.fn(),
+    findOneBy: jest.fn(),
+    findOneByOrFail: jest.fn(),
+    findBy: jest.fn(),
     find: jest.fn(),
     findAndCount: jest.fn(),
     findOneBy: jest.fn(),
