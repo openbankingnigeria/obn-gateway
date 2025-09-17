@@ -10,8 +10,6 @@ export const createMockRepository = <T extends ObjectLiteral>(): jest.Mocked<Rep
     findBy: jest.fn(),
     find: jest.fn(),
     findAndCount: jest.fn(),
-    findOneBy: jest.fn(),
-    findBy: jest.fn(),
     count: jest.fn(),
     countBy: jest.fn(),
     query: jest.fn(),
