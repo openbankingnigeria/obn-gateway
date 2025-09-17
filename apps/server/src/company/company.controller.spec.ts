@@ -1,38 +1,36 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CompanyController } from './company.controller';
-import { CompanyService } from './company.service';
-import { ModuleMocker, MockFunctionMetadata } from 'jest-mock';
-import {
-  ResponseFormatter,
-  ResponseMetaDTO,
-} from '@common/utils/response/response.formatter';
-import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
-import { PERMISSIONS } from '@permissions/types';
-import {
-  UpdateCompanyDetailsDto,
-  GetCompanyKYBDataResponseDTO,
-  PrimaryUserDto,
-  GetCompanyTypesResponseDTO,
-  GetCompanyResponseDTO,
-  GetStatsResponseDTO,
-  GetCompanyCustomFieldsResponseDTO,
-  UpdateKybStatusDto,
-  GetStatsDto,
-  KybStatusActions,
-} from './dto/index.dto';
-import { CompanyBuilder, createMockContext, UserBuilder } from '@test/utils';
-import { KybStatuses, CompanyStatuses } from '@common/database/entities';
 import { CompanyTypes } from '@common/database/constants';
-import {
-  IBadRequestException,
-  INotFoundException,
-} from '@common/utils/exceptions/exceptions';
+import { CompanyStatuses, KybStatuses } from '@common/database/entities';
 import {
   REQUIRED_PERMISSION_METADATA_KEY,
   SKIP_AUTH_METADATA_KEY,
 } from '@common/utils/authentication/auth.decorator';
-import { Reflector } from '@nestjs/core';
+import { IBadRequestException } from '@common/utils/exceptions/exceptions';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
+import {
+  ResponseFormatter,
+  ResponseMetaDTO,
+} from '@common/utils/response/response.formatter';
+import { Reflector } from '@nestjs/core';
+import { Test, TestingModule } from '@nestjs/testing';
+import { PERMISSIONS } from '@permissions/types';
+import { CompanyBuilder, createMockContext, UserBuilder } from '@test/utils';
+import { MockFunctionMetadata, ModuleMocker } from 'jest-mock';
+import { CompanyController } from './company.controller';
+import { CompanyService } from './company.service';
+import {
+  GetCompanyCustomFieldsResponseDTO,
+  GetCompanyKYBDataResponseDTO,
+  GetCompanyResponseDTO,
+  GetCompanyTypesResponseDTO,
+  GetStatsDto,
+  GetStatsResponseDTO,
+  KybStatusActions,
+  PrimaryUserDto,
+  UpdateCompanyDetailsDto,
+  UpdateCompanyKybStatusResponseDTO,
+  UpdateKybStatusDto,
+} from './dto/index.dto';
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -228,10 +226,12 @@ describe('CompanyController', () => {
           primaryUser: new PrimaryUserDto({
             id: 'user-id',
             email: 'test@company.com',
-            firstName: 'Test',
-            lastName: 'User',
+            profile: {
+              firstName: 'Test',
+              lastName: 'User',
+            },
           }),
-          kybData: {},
+          kybData: new Map(),
         });
 
         const expectedResponse = ResponseFormatter.success(
@@ -296,9 +296,18 @@ describe('CompanyController', () => {
         const mockCompanyTypesData = new GetCompanyTypesResponseDTO({
           companyTypes: [CompanyTypes.INDIVIDUAL, CompanyTypes.BUSINESS],
           companySubtypes: {
-            individual: ['personal', 'freelancer'],
-            business: ['startup', 'enterprise'],
-            'licensed-entity': ['bank', 'payment-institution'],
+            [CompanyTypes.INDIVIDUAL]: [
+              { value: 'personal', default: true },
+              { value: 'freelancer', default: false },
+            ],
+            [CompanyTypes.BUSINESS]: [
+              { value: 'startup', default: true },
+              { value: 'enterprise', default: false },
+            ],
+            [CompanyTypes.LICENSED_ENTITY]: [
+              { value: 'bank', default: true },
+              { value: 'payment-institution', default: false },
+            ],
           },
         });
 
@@ -777,20 +786,14 @@ describe('CompanyController', () => {
         };
 
         const mockStatsAggregate: GetStatsResponseDTO[] = [
-          {
-            period: '2024-01',
-            totalCompanies: 10,
-            verifiedCompanies: 8,
-            pendingCompanies: 1,
-            rejectedCompanies: 1,
-          },
-          {
-            period: '2024-02',
-            totalCompanies: 15,
-            verifiedCompanies: 12,
-            pendingCompanies: 2,
-            rejectedCompanies: 1,
-          },
+          new GetStatsResponseDTO({
+            count: 10,
+            value: '2024-01',
+          }),
+          new GetStatsResponseDTO({
+            count: 15,
+            value: '2024-02',
+          }),
         ];
 
         const expectedResponse = ResponseFormatter.success(
@@ -878,19 +881,22 @@ describe('CompanyController', () => {
           reason: 'Documents verified successfully',
         };
 
-        const mockCompany = new CompanyBuilder()
-          .with('id', companyId)
-          .with('kybStatus', KybStatuses.APPROVED)
-          .build();
+        const mockResponse = new UpdateCompanyKybStatusResponseDTO({
+          tier: 'tier-1',
+        });
 
         const expectedResponse = ResponseFormatter.success(
           'KYB status updated successfully',
-          mockCompany,
+          mockResponse,
         );
 
         mockCompanyService.updateKYBStatus.mockResolvedValue(expectedResponse);
 
-        const result = await controller.updateKybStatus(ctx.ctx, data, companyId);
+        const result = await controller.updateKybStatus(
+          ctx.ctx,
+          data,
+          companyId,
+        );
 
         expect(result).toEqual(expectedResponse);
         expect(mockCompanyService.updateKYBStatus).toHaveBeenCalledWith(
@@ -913,10 +919,7 @@ describe('CompanyController', () => {
 
     describe('validation', () => {
       it('should apply IValidationPipe to updateKybStatus endpoint', () => {
-        const pipes = reflector.get(
-          '__pipes__',
-          controller.updateKybStatus,
-        );
+        const pipes = reflector.get('__pipes__', controller.updateKybStatus);
         expect(pipes).toContain(IValidationPipe);
       });
     });
@@ -967,9 +970,14 @@ describe('CompanyController', () => {
           mockCompany,
         );
 
-        mockCompanyService.toggleCompanyAccess.mockResolvedValue(expectedResponse);
+        mockCompanyService.toggleCompanyAccess.mockResolvedValue(
+          expectedResponse,
+        );
 
-        const result = await controller.activateCompanyAccess(ctx.ctx, companyId);
+        const result = await controller.activateCompanyAccess(
+          ctx.ctx,
+          companyId,
+        );
 
         expect(result).toEqual(expectedResponse);
         expect(mockCompanyService.toggleCompanyAccess).toHaveBeenCalledWith(
@@ -1031,9 +1039,14 @@ describe('CompanyController', () => {
           mockCompany,
         );
 
-        mockCompanyService.toggleCompanyAccess.mockResolvedValue(expectedResponse);
+        mockCompanyService.toggleCompanyAccess.mockResolvedValue(
+          expectedResponse,
+        );
 
-        const result = await controller.deactivateCompanyAccess(ctx.ctx, companyId);
+        const result = await controller.deactivateCompanyAccess(
+          ctx.ctx,
+          companyId,
+        );
 
         expect(result).toEqual(expectedResponse);
         expect(mockCompanyService.toggleCompanyAccess).toHaveBeenCalledWith(
@@ -1081,14 +1094,14 @@ describe('CompanyController', () => {
           {
             id: 'agreement-1',
             title: 'Terms of Service',
-            content: 'Lorem ipsum dolor sit amet...',
+            content: 'Lorem ipsum dolor sit...',
             version: '1.0',
             isActive: true,
           },
           {
             id: 'agreement-2',
             title: 'Privacy Policy',
-            content: 'Lorem ipsum dolor sit amet...',
+            content: 'Lorem ipsum dolor sit...',
             version: '2.0',
             isActive: true,
           },
@@ -1099,7 +1112,9 @@ describe('CompanyController', () => {
           mockAgreements,
         );
 
-        mockCompanyService.getUserAgreements.mockResolvedValue(expectedResponse);
+        mockCompanyService.getUserAgreements.mockResolvedValue(
+          expectedResponse,
+        );
 
         const result = await controller.getUserAgreements();
 
