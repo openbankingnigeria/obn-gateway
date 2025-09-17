@@ -32,7 +32,7 @@ import {
 } from '@test/utils/mocks';
 import moment from 'moment';
 import { BUSINESS_SETTINGS_NAME } from 'src/settings/settings.constants';
-import { Equal } from 'typeorm';
+import { Equal, Not } from 'typeorm';
 import { CompanyService } from './company.service';
 import {
   GetStatsDto,
@@ -349,8 +349,12 @@ describe('CompanyService', () => {
           mockFiles,
         );
 
-        expect(result).toHaveProperty('status', 'success');
-        expect(result).toHaveProperty('message');
+        expect(result).toEqual(
+          expect.objectContaining({
+            status: 'success',
+            message: 'Successfully updated company KYB details.',
+          }),
+        );
       });
 
       it('should only accept valid fields from request payload', async () => {
@@ -1010,7 +1014,7 @@ describe('CompanyService', () => {
         expect(companyRepository.count).toHaveBeenCalledWith({
           where: expect.objectContaining({
             ...filters,
-            type: expect.anything(), // Not API_PROVIDER
+            type: Not(CompanyTypes.API_PROVIDER),
           }),
         });
 
@@ -1019,7 +1023,7 @@ describe('CompanyService', () => {
           expect.objectContaining({
             where: expect.objectContaining({
               ...filters,
-              type: expect.anything(), // Not API_PROVIDER
+              type: Not(CompanyTypes.API_PROVIDER),
             }),
             skip: 0, // (page - 1) * limit
             take: 10,
@@ -1040,7 +1044,7 @@ describe('CompanyService', () => {
         expect(companyRepository.count).toHaveBeenCalledTimes(1);
         expect(companyRepository.count).toHaveBeenCalledWith({
           where: expect.objectContaining({
-            type: expect.anything(), // Should be Not(CompanyTypes.API_PROVIDER)
+            type: Not(CompanyTypes.API_PROVIDER),
           }),
         });
 
@@ -1048,7 +1052,7 @@ describe('CompanyService', () => {
         expect(companyRepository.find).toHaveBeenCalledWith(
           expect.objectContaining({
             where: expect.objectContaining({
-              type: expect.anything(), // Should be Not(CompanyTypes.API_PROVIDER)
+              type: Not(CompanyTypes.API_PROVIDER),
             }),
           }),
         );
@@ -1085,7 +1089,12 @@ describe('CompanyService', () => {
         expect(result).toEqual(
           expect.objectContaining({
             status: 'success',
-            data: expect.any(Array),
+            data: expect.arrayContaining([
+              expect.objectContaining({
+                id: expect.any(String),
+                name: expect.any(String),
+              }),
+            ]),
           }),
         );
 
@@ -1132,12 +1141,17 @@ describe('CompanyService', () => {
           expect.objectContaining({
             status: 'success',
             message: 'Successfully fetched company',
-            data: expect.any(Array),
+            data: expect.arrayContaining([
+              expect.objectContaining({
+                id: expect.any(String),
+                name: expect.any(String),
+              }),
+            ]),
             meta: expect.objectContaining({
               totalNumberOfRecords: expect.any(Number),
               totalNumberOfPages: expect.any(Number),
-              pageNumber: expect.any(Number),
-              pageSize: expect.any(Number),
+              pageNumber: 1,
+              pageSize: 10,
             }),
           }),
         );
@@ -1228,7 +1242,7 @@ describe('CompanyService', () => {
         expect(result).toEqual(
           expect.objectContaining({
             rcNumber: rcNumber,
-            tier: expect.any(String),
+            tier: CompanyTiers.TIER_0,
           }),
         );
       });
@@ -2129,15 +2143,13 @@ describe('CompanyService', () => {
           expect.objectContaining({
             status: 'success',
             message: 'Company types fetched successfully',
-            data: expect.any(Object),
+            data: expect.objectContaining({
+              companyTypes: expect.any(Array),
+              companySubtypes: expect.any(Object),
+            }),
             meta: undefined,
           }),
         );
-
-        expect(result.data).toHaveProperty('companyTypes');
-        expect(result.data).toHaveProperty('companySubtypes');
-        expect(Array.isArray(result.data!.companyTypes)).toBe(true);
-        expect(typeof result.data!.companySubtypes).toBe('object');
       });
     });
 
@@ -2742,15 +2754,19 @@ describe('CompanyService', () => {
         );
 
         // Verify both responses follow the same ResponseFormatter pattern
-        expect(activationResult).toHaveProperty('status');
-        expect(activationResult).toHaveProperty('message');
-        expect(activationResult).toHaveProperty('data');
-        expect(activationResult).toHaveProperty('meta');
+        expect(activationResult).toEqual(
+          expect.objectContaining({
+            status: 'success',
+            message: 'Successfully activated business.',
+          }),
+        );
 
-        expect(deactivationResult).toHaveProperty('status');
-        expect(deactivationResult).toHaveProperty('message');
-        expect(deactivationResult).toHaveProperty('data');
-        expect(deactivationResult).toHaveProperty('meta');
+        expect(deactivationResult).toEqual(
+          expect.objectContaining({
+            status: 'success',
+            message: 'Successfully deactivated business.',
+          }),
+        );
       });
     });
   });
@@ -2835,7 +2851,7 @@ describe('CompanyService', () => {
         expect(userRepository.query).toHaveBeenCalledTimes(1);
         expect(userRepository.query).toHaveBeenCalledWith(
           expect.stringContaining("type != 'api-provider'"),
-          expect.any(Array),
+          expect.arrayContaining(['2024-01-01', '2024-12-31']),
         );
       });
 
@@ -2942,7 +2958,12 @@ describe('CompanyService', () => {
           expect.objectContaining({
             status: 'success',
             message: 'Company stats fetched successfully',
-            data: expect.any(Array),
+            data: expect.arrayContaining([
+              expect.objectContaining({
+                count: expect.any(Number),
+                value: expect.any(String),
+              }),
+            ]),
             meta: undefined,
           }),
         );
@@ -3029,7 +3050,7 @@ describe('CompanyService', () => {
         expect(userRepository.query).toHaveBeenCalledTimes(1);
         expect(userRepository.query).toHaveBeenCalledWith(
           expect.stringContaining("type != 'api-provider'"),
-          expect.any(Array),
+          expect.arrayContaining(['2024-01-01', '2024-12-31']),
         );
       });
 
@@ -3103,7 +3124,12 @@ describe('CompanyService', () => {
           expect.objectContaining({
             status: 'success',
             message: 'Company stats fetched successfully',
-            data: expect.any(Array),
+            data: expect.arrayContaining([
+              expect.objectContaining({
+                count: expect.any(Number),
+                value: expect.any(String),
+              }),
+            ]),
             meta: undefined,
           }),
         );
@@ -3296,12 +3322,22 @@ describe('CompanyService', () => {
             expect.objectContaining({
               count: 10,
               value: CompanyStatuses.ACTIVE,
-              data: expect.any(Array),
+              data: expect.arrayContaining([
+                expect.objectContaining({
+                  count: expect.any(Number),
+                  value: expect.any(String),
+                }),
+              ]),
             }),
             expect.objectContaining({
               count: 5,
               value: CompanyStatuses.INACTIVE,
-              data: expect.any(Array),
+              data: expect.arrayContaining([
+                expect.objectContaining({
+                  count: expect.any(Number),
+                  value: expect.any(String),
+                }),
+              ]),
             }),
           ]),
         );
@@ -3329,7 +3365,12 @@ describe('CompanyService', () => {
           expect.objectContaining({
             status: 'success',
             message: 'Company stats fetched successfully',
-            data: expect.any(Array),
+            data: expect.arrayContaining([
+              expect.objectContaining({
+                count: expect.any(Number),
+                value: expect.any(String),
+              }),
+            ]),
             meta: undefined,
           }),
         );
