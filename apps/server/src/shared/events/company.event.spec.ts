@@ -19,10 +19,10 @@ describe('Company Events', () => {
       email: 'test@example.com',
     }).build();
 
-    mockCompany = new CompanyBuilder({
-      id: 'company-id',
-      name: 'Test Company',
-    }).build();
+    mockCompany = new CompanyBuilder()
+      .with('id', 'company-id')
+      .with('name', 'Test Company')
+      .build();
   });
 
   describe('CompanyEvents enum', () => {
@@ -61,7 +61,12 @@ describe('Company Events', () => {
   describe('CompanyEvent', () => {
     it('should create company event with all properties', () => {
       const metadata = { source: 'admin', timestamp: Date.now() };
-      const event = new CompanyEvent('custom.company.event', mockUser, mockCompany, metadata);
+      const event = new CompanyEvent(
+        'custom.company.event',
+        mockUser,
+        mockCompany,
+        metadata,
+      );
 
       expect(event).toBeInstanceOf(BaseEvent);
       expect(event.name).toBe('custom.company.event');
@@ -71,7 +76,11 @@ describe('Company Events', () => {
     });
 
     it('should create company event without metadata', () => {
-      const event = new CompanyEvent('custom.company.event', mockUser, mockCompany);
+      const event = new CompanyEvent(
+        'custom.company.event',
+        mockUser,
+        mockCompany,
+      );
 
       expect(event.name).toBe('custom.company.event');
       expect(event.author).toBe(mockUser);
@@ -119,7 +128,11 @@ describe('Company Events', () => {
   describe('CompanyKybSubmittedEvent', () => {
     it('should create KYB submitted event with required properties', () => {
       const metadata = { submissionId: 'sub-123', documentsCount: 5 };
-      const event = new CompanyKybSubmittedEvent(mockUser, mockCompany, metadata);
+      const event = new CompanyKybSubmittedEvent(
+        mockUser,
+        mockCompany,
+        metadata,
+      );
 
       expect(event).toBeInstanceOf(CompanyEvent);
       expect(event).toBeInstanceOf(BaseEvent);
@@ -140,7 +153,11 @@ describe('Company Events', () => {
 
     it('should handle minimal metadata', () => {
       const minimalMetadata = { submissionId: 'sub-456' };
-      const event = new CompanyKybSubmittedEvent(mockUser, mockCompany, minimalMetadata);
+      const event = new CompanyKybSubmittedEvent(
+        mockUser,
+        mockCompany,
+        minimalMetadata,
+      );
 
       expect(event.metadata).toEqual(minimalMetadata);
       expect(event.metadata.submissionId).toBe('sub-456');
@@ -155,7 +172,11 @@ describe('Company Events', () => {
     };
 
     it('should create denied event with required properties', () => {
-      const event = new CompanyDeniedEvent(mockUser, mockCompany, mockDeniedMetadata);
+      const event = new CompanyDeniedEvent(
+        mockUser,
+        mockCompany,
+        mockDeniedMetadata,
+      );
 
       expect(event).toBeInstanceOf(CompanyEvent);
       expect(event).toBeInstanceOf(BaseEvent);
@@ -173,10 +194,10 @@ describe('Company Events', () => {
     });
 
     it('should handle additional metadata along with reason', () => {
-      const metadata = { 
-        reason: 'Failed verification', 
+      const metadata = {
+        reason: 'Failed verification',
         details: 'Could not verify business address',
-        reviewerId: 'reviewer-123' 
+        reviewerId: 'reviewer-123',
       };
       const event = new CompanyDeniedEvent(mockUser, mockCompany, metadata);
 
@@ -190,8 +211,12 @@ describe('Company Events', () => {
     it('should allow treating all events as CompanyEvent instances', () => {
       const events = [
         new CompanyApprovedEvent(mockUser, mockCompany, { approved: true }),
-        new CompanyKybSubmittedEvent(mockUser, mockCompany, { submitted: true }),
-        new CompanyDeniedEvent(mockUser, mockCompany, { reason: 'test reason' }),
+        new CompanyKybSubmittedEvent(mockUser, mockCompany, {
+          submitted: true,
+        }),
+        new CompanyDeniedEvent(mockUser, mockCompany, {
+          reason: 'test reason',
+        }),
       ];
 
       events.forEach((event) => {
@@ -228,7 +253,11 @@ describe('Company Events', () => {
         flags: { isFirstApproval: true, requiresNotification: false },
       };
 
-      const event = new CompanyApprovedEvent(mockUser, mockCompany, complexMetadata);
+      const event = new CompanyApprovedEvent(
+        mockUser,
+        mockCompany,
+        complexMetadata,
+      );
 
       expect(event.metadata).toEqual(complexMetadata);
       expect(event.metadata.company.id).toBe('comp-123');
@@ -236,7 +265,11 @@ describe('Company Events', () => {
     });
 
     it('should handle null and undefined metadata gracefully', () => {
-      const event1 = new CompanyApprovedEvent(mockUser, mockCompany, null as any);
+      const event1 = new CompanyApprovedEvent(
+        mockUser,
+        mockCompany,
+        null as any,
+      );
       const event2 = new CompanyApprovedEvent(mockUser, mockCompany, undefined);
 
       expect(event1.metadata).toBeNull();
@@ -247,8 +280,13 @@ describe('Company Events', () => {
   describe('Company and User property consistency', () => {
     it('should maintain user and company references across different event types', () => {
       const approvedEvent = new CompanyApprovedEvent(mockUser, mockCompany);
-      const submittedEvent = new CompanyKybSubmittedEvent(mockUser, mockCompany);
-      const deniedEvent = new CompanyDeniedEvent(mockUser, mockCompany, { reason: 'test' });
+      const submittedEvent = new CompanyKybSubmittedEvent(
+        mockUser,
+        mockCompany,
+      );
+      const deniedEvent = new CompanyDeniedEvent(mockUser, mockCompany, {
+        reason: 'test',
+      });
 
       expect(approvedEvent.author).toBe(mockUser);
       expect(approvedEvent.company).toBe(mockCompany);
