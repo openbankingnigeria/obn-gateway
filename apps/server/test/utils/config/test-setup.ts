@@ -1,17 +1,11 @@
-import { createMockRepository } from '../mocks/typeorm.mock';
 import { mockHttpService } from '../mocks/http.mock';
 
 jest.mock('@nestjs/axios', () => ({
   HttpService: mockHttpService
 }));
 
-jest.mock('typeorm', () => ({
-  ...jest.requireActual('typeorm'),
-  getRepository: () => createMockRepository(),
-  PrimaryGeneratedColumn: () => jest.fn(),
-  Column: () => jest.fn(),
-  Entity: () => jest.fn()
-}));
+// TypeORM mocking moved to unit-test-setup.ts 
+// E2e tests need real TypeORM decorators to create entity metadata
 
 beforeEach(() => {
   jest.clearAllMocks();

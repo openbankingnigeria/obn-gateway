@@ -15,6 +15,7 @@ module.exports = {
   setupFilesAfterEnv: [
     '<rootDir>/test/jest.setup.ts',
     '<rootDir>/test/utils/config/test-setup.ts',
+    // '<rootDir>/test/utils/config/unit-test-setup.ts',
     'jest-extended/all',
   ],
 
