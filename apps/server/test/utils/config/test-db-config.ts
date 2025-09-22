@@ -8,21 +8,16 @@ const getEnv = (key: string, defaultValue: string): string => {
 export const getTestDbConfig = (): DataSourceOptions => {
   return {
     type: 'mysql',
-    host: getEnv('MYSQL_TEST_HOST', 'localhost'),
+    host: getEnv('MYSQL_TEST_HOST', '127.0.0.1'),
     port: parseInt(getEnv('TEST_DATABASE_PORT', '3307'), 10),
     username: getEnv('TEST_DATABASE_USERNAME', 'test_user'),
     password: getEnv('TEST_DATABASE_PASSWORD', 'password'),
     database: getEnv('TEST_DATABASE_NAME', 'test_db'),
-    synchronize: false,
+    synchronize: true, // Use synchronize for tests instead of migrations
     dropSchema: true,
     logging: false,
-    entities: [path.join(__dirname, '../../../src/**/*.entity{.ts,.js}')],
-    migrations: [
-      path.join(
-        __dirname,
-        '../../../src/common/database/migrations/*{.ts,.js}',
-      ),
-    ],
-    migrationsRun: true,
+    // entities: [path.join(__dirname, '../../../src/common/database/entities/*.entity{.ts,.js}')],
+    // Don't run migrations in tests - use synchronize instead
+    migrationsRun: false,
   };
 };
