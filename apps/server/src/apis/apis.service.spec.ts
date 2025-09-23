@@ -32,7 +32,7 @@ import {
   mockEventEmitter,
 } from '@test/utils/mocks/http.mock';
 import { HTTP_METHODS } from './types';
-import { ListServicesResponse, GetServiceResponse } from '@shared/integrations/kong/service/service.kong.interface';
+import { ListServicesResponse, GetServiceResponse, CreateServiceResponse } from '@shared/integrations/kong/service/service.kong.interface';
 import { ListRoutesResponse, CreateRouteResponse, ListPluginsResponse } from '@shared/integrations/kong/route/route.kong.interface';
 
 describe('APIService', () => {
@@ -61,10 +61,13 @@ describe('APIService', () => {
   let testRoute: CollectionRoute;
   let testRouteArray: CollectionRoute[];
   let mockGatewayService: GetServiceResponse;
+  let mockCreateGatewayService: CreateServiceResponse;
   let mockGatewayServices: ListServicesResponse;
   let mockGatewayRoute: CreateRouteResponse;
   let mockGatewayRoutes: ListRoutesResponse;
   let mockPlugins: ListPluginsResponse;
+
+  let testCreateDto: any;
 
   beforeEach(async () => {
     testCompany = new CompanyBuilder()
@@ -140,6 +143,11 @@ describe('APIService', () => {
       data: [mockGatewayService],
     };
 
+    mockCreateGatewayService = {
+      ...mockGatewayService,
+      url: 'https://api.example.com/v1',
+    };
+
     mockGatewayRoute = {
       id: 'test-route-id',
       hosts: [],
@@ -182,19 +190,18 @@ describe('APIService', () => {
       permissions: [PERMISSIONS.ADD_API_ENDPOINT],
     }).ctx;
 
-    // Initialize all repository mocks with clean state
     routeRepository = createMockRepository<CollectionRoute>();
     collectionRepository = createMockRepository<Collection>();
     companyRepository = createMockRepository<Company>();
     userRepository = createMockRepository<User>();
 
-    // Setup Kong service mocks for external API interactions
     kongServiceService = {
       createService: jest.fn(),
       updateService: jest.fn(),
       deleteService: jest.fn(),
       getService: jest.fn(),
       listServices: jest.fn(),
+      updateOrCreateService: jest.fn(),
     } as any;
 
     kongRouteService = {
@@ -204,12 +211,15 @@ describe('APIService', () => {
       getRoute: jest.fn(),
       listRoutes: jest.fn(),
       getPlugins: jest.fn(),
+      updateOrCreatePlugin: jest.fn(),
     } as any;
 
     kongConsumerService = {
       getConsumerAcls: jest.fn(),
       addConsumerAcl: jest.fn(),
       removeConsumerAcl: jest.fn(),
+      updateConsumerAcl: jest.fn(),
+      updateOrCreateConsumer: jest.fn(),
     } as any;
 
     elasticsearchService = {
@@ -240,6 +250,22 @@ describe('APIService', () => {
     }).compile();
 
     service = module.get<APIService>(APIService);
+
+    testCreateDto = {
+      collectionId: testCollection.id!,
+      name: 'Test API',
+      enabled: true,
+      upstream: {
+        url: 'https://upstream.example.com/api',
+      },
+      downstream: {
+        path: '/test-api',
+        method: HTTP_METHODS.POST,
+        url: '/external/test-api',
+      },
+      tiers: [1, 2],
+      introspectAuthorization: false,
+    };
   });
 
   afterEach(() => {
@@ -314,7 +340,7 @@ describe('APIService', () => {
     it('should return response with pagination metadata for total records, pages, current page and page size', async () => {
       const pagination = SECOND_PAGE_PAGINATION;
       
-      routeRepository.findAndCount.mockResolvedValue([testRouteArray, 23]); // 23 total records
+      routeRepository.findAndCount.mockResolvedValue([testRouteArray, 23]);
       kongServiceService.listServices.mockResolvedValue({ data: [] });
       kongRouteService.listRoutes.mockResolvedValue({ data: [] });
 
@@ -322,14 +348,14 @@ describe('APIService', () => {
 
       expect(result.meta).toEqual({
         totalNumberOfRecords: 23,
-        totalNumberOfPages: 5, // Math.ceil(23 / 5)
+        totalNumberOfPages: 5,
         pageNumber: 2,
         pageSize: 5,
       });
 
       expect(routeRepository.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({
-          skip: 5, // (page - 1) * limit = (2 - 1) * 5
+          skip: 5,
           take: 5,
         }),
       );
@@ -498,6 +524,457 @@ describe('APIService', () => {
 
       expect(kongServiceService.getService).not.toHaveBeenCalled();
       expect(kongRouteService.getRoute).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Create API', () => {
+    it('should throw BadRequest error when collectionId does not exist', async () => {
+      const createDto = {
+        ...testCreateDto,
+        collectionId: 'non-existent-collection-id',
+        name: 'New API',
+      };
+
+      collectionRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.createAPI(ctx, TEST_ENVIRONMENT, createDto),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(`Collection '${createDto.collectionId}' does not exist`),
+        }),
+      );
+
+      expect(collectionRepository.findOne).toHaveBeenCalledWith({
+        where: { id: expect.objectContaining({ _type: 'equal', _value: createDto.collectionId }) },
+      });
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw BadRequest error when API name is not unique within environment', async () => {
+      const createDto = {
+        ...testCreateDto,
+        name: 'Existing API Name',
+        downstream: {
+          ...testCreateDto.downstream,
+          path: '/existing-api',
+          method: HTTP_METHODS.GET,
+          url: '/external/existing-api',
+        },
+        tiers: [1],
+      };
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(1);
+
+      await expect(
+        service.createAPI(ctx, TEST_ENVIRONMENT, createDto),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(`API name '${createDto.name}' exists`),
+        }),
+      );
+
+      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(routeRepository.countBy).toHaveBeenCalledWith({
+        name: createDto.name,
+        environment: TEST_ENVIRONMENT,
+      });
+      expect(routeRepository.countBy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw BadRequest error when introspectAuthorization is enabled but registry introspection endpoint is not configured', async () => {
+      const createDto = {
+        ...testCreateDto,
+        name: 'Secure API',
+        downstream: {
+          ...testCreateDto.downstream,
+          path: '/secure-api',
+          url: '/external/secure-api',
+        },
+        tiers: [2, 3],
+        introspectAuthorization: true,
+      };
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(0);
+      configService.get.mockReturnValue({});
+
+      await expect(
+        service.createAPI(ctx, TEST_ENVIRONMENT, createDto),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining('Introspection endpoint is not configured'),
+        }),
+      );
+
+      expect(configService.get).toHaveBeenCalledWith('registry.introspectionEndpoint');
+      expect(configService.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('should create API with unique routeId and slug when all validations pass', async () => {
+      const createDto = {
+        ...testCreateDto,
+        name: 'Valid New API',
+        downstream: {
+          ...testCreateDto.downstream,
+          response: [{ status: 200, data: 'success' }],
+        },
+        tiers: [1, 2, 3],
+      };
+
+      const createdRoute = {
+        ...testRoute,
+        id: 'new-route-id',
+        name: createDto.name,
+        slug: 'valid-new-api',
+        enabled: createDto.enabled,
+        collectionId: createDto.collectionId,
+        tiers: createDto.tiers,
+        introspectAuthorization: createDto.introspectAuthorization,
+      };
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.create.mockReturnValue(createdRoute as any);
+      routeRepository.save.mockResolvedValue(createdRoute as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'https://gateway.example.com' });
+
+      const result = await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
+
+      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
+        name: 'upstreamexamplecom-api',
+        enabled: true,
+        url: createDto.upstream.url,
+        retries: 1,
+        tags: [testCollection.slug],
+      });
+      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledTimes(1);
+
+      expect(kongRouteService.createRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
+        name: expect.stringMatching(/valid-new-api/),
+        tags: [testCollection.slug],
+        paths: [createDto.downstream.path],
+        methods: [createDto.downstream.method],
+        service: {
+          id: mockCreateGatewayService.id,
+        },
+      });
+      expect(kongRouteService.createRoute).toHaveBeenCalledTimes(1);
+
+      expect(routeRepository.save).toHaveBeenCalledWith(createdRoute);
+      expect(routeRepository.save).toHaveBeenCalledTimes(1);
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          apiSuccessMessages.createdAPI,
+          expect.any(GetAPIResponseDTO),
+        ),
+      );
+    });
+
+    it('should create/update upstream service and route in Kong with correct tags and configuration', async () => {
+      const createDto = {
+        ...testCreateDto,
+        name: 'Kong Integration API',
+        upstream: {
+          ...testCreateDto.upstream,
+          url: 'https://backend.service.com/v2/payments',
+          method: HTTP_METHODS.PUT,
+          headers: [{ key: 'Authorization', value: 'Bearer token123' }],
+          querystring: [{ key: 'version', value: 'v2' }],
+          body: [{ key: 'metadata', value: 'enabled' }],
+        },
+        downstream: {
+          ...testCreateDto.downstream,
+          path: '/payments/process',
+          url: '/external/payments',
+        },
+        tiers: [2, 3],
+      };
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.create.mockReturnValue(testRoute as any);
+      routeRepository.save.mockResolvedValue(testRoute as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'https://gateway.example.com' });
+
+      await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
+
+      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
+        name: 'backendservicecom-v2payments',
+        enabled: true,
+        url: createDto.upstream.url,
+        retries: 1,
+        tags: [testCollection.slug],
+      });
+
+      expect(kongRouteService.createRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
+        name: expect.stringMatching(/kong-integration-api/),
+        tags: [testCollection.slug],
+        paths: [createDto.downstream.path],
+        methods: [createDto.downstream.method],
+        service: {
+          id: mockCreateGatewayService.id,
+        },
+      });
+    });
+
+    it('should set up ACLs and plugins (ACL, request termination, authorization, request validator, request transformer) as required', async () => {
+      const createDto = {
+        ...testCreateDto,
+        name: 'Full Security API',
+        upstream: {
+          ...testCreateDto.upstream,
+          url: 'https://secure.backend.com/api',
+          method: HTTP_METHODS.PATCH,
+          headers: [{ key: 'X-API-Key', value: 'secret123' }],
+        },
+        downstream: {
+          ...testCreateDto.downstream,
+          path: '/secure/endpoint',
+          url: '/external/secure/endpoint',
+          request: {
+            description: '<table><thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td>id</td><td>string</td><td>Required User ID</td></tr></tbody></table>',
+            body: {
+              raw: '{"id": "user123"}'
+            }
+          },
+        },
+        tiers: [1, 2, 3],
+        introspectAuthorization: true,
+      };
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.create.mockReturnValue(testRoute as any);
+      routeRepository.save.mockResolvedValue(testRoute as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
+      configService.get.mockImplementation((key: string) => {
+        switch (key) {
+          case 'registry.introspectionEndpoint':
+            return { [TEST_ENVIRONMENT]: 'https://registry.example.com/introspect' };
+          case 'registry.introspectionClientID':
+            return { [TEST_ENVIRONMENT]: 'client123' };
+          case 'registry.introspectionClientSecret':
+            return { [TEST_ENVIRONMENT]: 'secret456' };
+          default:
+            return { [TEST_ENVIRONMENT]: 'https://gateway.example.com' };
+        }
+      });
+
+      await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        {
+          name: 'request-termination',
+          enabled: false,
+          config: {
+            message: 'This API is currently unavailable.',
+          },
+        },
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        expect.objectContaining({
+          name: 'obn-authorization',
+          enabled: true,
+          config: expect.objectContaining({
+            introspection_endpoint: 'https://registry.example.com/introspect',
+            client_id: 'client123',
+            client_secret: 'secret456',
+            scope: [mockGatewayRoute.name],
+          }),
+        }),
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        expect.objectContaining({
+          name: 'obn-request-validator',
+          enabled: true,
+          config: expect.objectContaining({
+            body: expect.any(Object),
+          }),
+        }),
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        expect.objectContaining({
+          name: 'request-transformer',
+          enabled: true,
+          config: expect.objectContaining({
+            add: expect.objectContaining({
+              headers: expect.arrayContaining(['X-API-Key:secret123']),
+            }),
+          }),
+        }),
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        expect.objectContaining({
+          name: 'acl',
+          enabled: true,
+          config: expect.objectContaining({
+            allow: ['tier-1', 'tier-2', 'tier-3'],
+            hide_groups_header: true,
+          }),
+        }),
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledTimes(5);
+    });
+
+    it('should save API in database with all relevant details', async () => {
+      const createDto = {
+        ...testCreateDto,
+        enabled: false,
+        downstream: {
+          ...testCreateDto.downstream,
+          response: [{ status: 201, message: 'Created' }],
+        },
+        introspectAuthorization: true,
+      };
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.create.mockReturnValue(testRoute as any);
+      routeRepository.save.mockResolvedValue(testRoute as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
+
+      await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
+
+      expect(routeRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.any(String),
+          name: createDto.name,
+          slug: mockGatewayRoute.name,
+          environment: TEST_ENVIRONMENT,
+          introspectAuthorization: createDto.introspectAuthorization,
+          serviceId: mockCreateGatewayService.id,
+          routeId: mockGatewayRoute.id,
+          collectionId: createDto.collectionId,
+          enabled: createDto.enabled,
+          url: createDto.downstream.url || expect.stringMatching(/https:\/\/gateway\.example\.com/),
+          method: createDto.downstream.method,
+          response: createDto.downstream.response,
+          tiers: createDto.tiers,
+        }),
+      );
+      expect(routeRepository.create).toHaveBeenCalledTimes(1);
+
+      expect(routeRepository.save).toHaveBeenCalledWith(
+        expect.any(Object),
+      );
+      expect(routeRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return created API in standardized DTO format on success', async () => {
+      const createDto = testCreateDto;
+
+      const expectedCreatedRoute = {
+        ...testRoute,
+        name: createDto.name,
+        enabled: createDto.enabled,
+        collectionId: createDto.collectionId,
+        tiers: createDto.tiers,
+        introspectAuthorization: createDto.introspectAuthorization,
+      };
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.create.mockReturnValue(expectedCreatedRoute as any);
+      routeRepository.save.mockResolvedValue(expectedCreatedRoute as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'https://gateway.example.com' });
+
+      const result = await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          apiSuccessMessages.createdAPI,
+          expect.any(GetAPIResponseDTO),
+        ),
+      );
+
+      const apiDto = result.data;
+      expect(apiDto).toEqual(
+        expect.objectContaining({
+          id: expectedCreatedRoute.id,
+          name: expectedCreatedRoute.name,
+          slug: expectedCreatedRoute.slug,
+          enabled: expectedCreatedRoute.enabled,
+          introspectAuthorization: expectedCreatedRoute.introspectAuthorization,
+          collectionId: expectedCreatedRoute.collectionId,
+          tiers: expectedCreatedRoute.tiers,
+          upstream: expect.objectContaining({
+            url: expect.stringContaining('https://api.example.com'),
+          }),
+          downstream: expect.objectContaining({
+            path: expect.any(String),
+            method: expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('should emit CreateApiEvent after successful API creation', async () => {
+      const createDto = testCreateDto;
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.create.mockReturnValue(testRoute as any);
+      routeRepository.save.mockResolvedValue(testRoute as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
+
+      await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.create',
+        expect.objectContaining({
+          name: 'apis.create',
+          author: ctx.activeUser,
+          metadata: {},
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
   });
 
