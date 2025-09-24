@@ -1359,6 +1359,327 @@ describe('APIService', () => {
     });
   });
 
+  describe('Assign APIs to Company', () => {
+    const ASSIGNMENT_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
+
+    beforeEach(() => {
+      // Clear all mocks for this test suite to ensure isolated testing
+      jest.clearAllMocks();
+    });
+
+    it('should throw BadRequest error when company does not exist', async () => {
+      const companyId = 'non-existent-company-id';
+      const assignDto = { apiIds: ['test-api-1', 'test-api-2'] };
+
+      companyRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(`No company found with ID - ${companyId}`),
+        }),
+      );
+
+      expect(companyRepository.findOne).toHaveBeenCalledWith({
+        where: { id: expect.objectContaining({ _type: 'equal', _value: companyId }) },
+      });
+      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
+    });
+
+    it('should only assign APIs not already assigned to the company', async () => {
+      const companyId = 'test-company-id';
+      const assignDto = { apiIds: ['test-api-1', 'test-api-2', 'test-api-3'] };
+
+      const testCompanyForAssign = new CompanyBuilder()
+        .with('id', companyId)
+        .with('name', 'Test Company for Assignment')
+        .with('tier', '1')
+        .build();
+
+      const testApiRoutes = [
+        new CollectionRouteBuilder()
+          .with('id', 'test-api-1')
+          .with('name', 'API 1')
+          .with('environment', ASSIGNMENT_ENVIRONMENT)
+          .build(),
+        new CollectionRouteBuilder()
+          .with('id', 'test-api-2')
+          .with('name', 'API 2')
+          .with('environment', ASSIGNMENT_ENVIRONMENT)
+          .build(),
+        new CollectionRouteBuilder()
+          .with('id', 'test-api-3')
+          .with('name', 'API 3')
+          .with('environment', ASSIGNMENT_ENVIRONMENT)
+          .build(),
+      ];
+
+      // Mock existing ACLs - API 1 is already assigned
+      const existingAcls = [
+        { id: 'acl-1', group: 'route-test-api-1', created_at: Date.now() },
+        { id: 'acl-2', group: 'tier-1', created_at: Date.now() },
+      ];
+
+      companyRepository.findOne.mockResolvedValue(testCompanyForAssign);
+      routeRepository.find
+        .mockResolvedValueOnce(testApiRoutes) // For API existence check
+        .mockResolvedValueOnce([testApiRoutes[1], testApiRoutes[2]]); // For filtered assignment (excluding already assigned)
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-id', 
+        created_at: Date.now(),
+        custom_id: companyId,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
+        id: 'new-acl-id',
+        created_at: Date.now(),
+      });
+
+      await service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto);
+
+      // Should check for existing APIs
+      expect(routeRepository.find).toHaveBeenCalledWith({
+        where: {
+          id: expect.objectContaining({ _type: 'in', _value: assignDto.apiIds }),
+          environment: ASSIGNMENT_ENVIRONMENT,
+        },
+      });
+
+      // Should only assign APIs not already assigned (test-api-2 and test-api-3)
+      expect(routeRepository.find).toHaveBeenCalledWith({
+        where: {
+          id: expect.objectContaining({ _type: 'in', _value: ['test-api-2', 'test-api-3'] }),
+          environment: ASSIGNMENT_ENVIRONMENT,
+        },
+      });
+
+      // Should call Kong ACL update: 2 tier calls (main + assignAPIs updateConsumerId) + 2 API calls
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: 'tier-1', // From main updateConsumerId
+        consumerId: 'consumer-id',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: 'route-test-api-2',
+        consumerId: 'consumer-id',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: 'route-test-api-3',
+        consumerId: 'consumer-id',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(4); // 2 for tier (main + assignAPIs) + 2 for APIs
+
+      // Should still call updateOrCreateConsumer for consumer ID update
+      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        custom_id: companyId,
+      });
+      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); // Once for main call + once in assignAPIs updateConsumerId
+    });
+
+    it('should update Kong consumer ACLs to allow access to assigned APIs', async () => {
+      const companyId = testCompany.id!;
+      const assignDto = { apiIds: ['test-new-api-1', 'test-new-api-2'] };
+
+      const testNewRoutes = [
+        new CollectionRouteBuilder()
+          .with('id', 'test-new-api-1')
+          .with('name', 'New API 1')
+          .with('environment', ASSIGNMENT_ENVIRONMENT)
+          .build(),
+        new CollectionRouteBuilder()
+          .with('id', 'test-new-api-2')
+          .with('name', 'New API 2')
+          .with('environment', ASSIGNMENT_ENVIRONMENT)
+          .build(),
+      ];
+
+      companyRepository.findOne.mockResolvedValue(testCompany);
+      routeRepository.find
+        .mockResolvedValueOnce(testNewRoutes) // For API existence check
+        .mockResolvedValueOnce(testNewRoutes); // For assignment (no existing ACLs)
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-123', 
+        created_at: Date.now(),
+        custom_id: companyId,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: [{ id: 'existing-tier-acl', group: 'tier-1', created_at: Date.now() }], // No existing route ACLs
+        offset: undefined,
+      } as any);
+      kongConsumerService.updateConsumerAcl
+        .mockResolvedValueOnce({ id: 'acl-new-1', created_at: Date.now() })
+        .mockResolvedValueOnce({ id: 'acl-new-2', created_at: Date.now() });
+
+      await service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto);
+
+      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        custom_id: companyId,
+      });
+      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); // Once for main call + once in assignAPIs updateConsumerId
+
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
+        ASSIGNMENT_ENVIRONMENT,
+        'consumer-123',
+        undefined,
+      );
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
+
+      // Should call Kong ACL update for: 2 tier calls (main + assignAPIs updateConsumerId) + 2 API calls
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: `tier-${testCompany.tier}`, // From main updateConsumerId
+        consumerId: 'consumer-123',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: 'route-test-new-api-1',
+        consumerId: 'consumer-123',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: 'route-test-new-api-2',
+        consumerId: 'consumer-123',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(4); // 2 for tier (main + assignAPIs) + 2 for APIs
+    });
+
+    it('should emit AssignApiEvent after successful API assignment', async () => {
+      const companyId = testCompany.id!;
+      const assignDto = { apiIds: ['test-event-api'] };
+
+      const testEventRoute = new CollectionRouteBuilder()
+        .with('id', 'test-event-api')
+        .with('name', 'Event Test API')
+        .with('environment', ASSIGNMENT_ENVIRONMENT)
+        .build();
+
+      companyRepository.findOne.mockResolvedValue(testCompany);
+      routeRepository.find
+        .mockResolvedValueOnce([testEventRoute]) // For API existence check
+        .mockResolvedValueOnce([testEventRoute]); // For assignment
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-event', 
+        created_at: Date.now(),
+        custom_id: testCompany.id!,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: [], // No existing ACLs
+        offset: undefined,
+      } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
+        id: 'acl-event',
+        created_at: Date.now(),
+      });
+
+      await service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto);
+
+      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        custom_id: companyId,
+      });
+      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); // Once for main call + once in assignAPIs updateConsumerId
+
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
+        ASSIGNMENT_ENVIRONMENT,
+        'consumer-event',
+        undefined,
+      );
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
+
+      // Should call Kong ACL update for: 2 tier calls (main + assignAPIs updateConsumerId) + 1 API call
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: `tier-${testCompany.tier}`, // From main updateConsumerId
+        consumerId: 'consumer-event',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: 'route-test-event-api',
+        consumerId: 'consumer-event',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(3); // 2 for tier (main + assignAPIs) + 1 for API
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.assign',
+        expect.objectContaining({
+          name: 'apis.assign',
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            apiIds: ['test-event-api'],
+            company: testCompany,
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.unassign',
+        expect.objectContaining({
+          name: 'apis.unassign',
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            apiIds: [], // Empty since no APIs to unassign
+            company: testCompany,
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(2); // 1 for assign + 1 for unassign
+    });
+
+    it('should return standardized success message on successful assignment', async () => {
+      const companyId = testCompany.id!;
+      const assignDto = { apiIds: ['test-success-api'] };
+
+      const testSuccessRoute = new CollectionRouteBuilder()
+        .with('id', 'test-success-api')
+        .with('name', 'Success Test API')
+        .with('environment', ASSIGNMENT_ENVIRONMENT)
+        .build();
+
+      companyRepository.findOne.mockResolvedValue(testCompany);
+      routeRepository.find
+        .mockResolvedValueOnce([testSuccessRoute]) // For API existence check
+        .mockResolvedValueOnce([testSuccessRoute]); // For assignment
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-success', 
+        created_at: Date.now(),
+        custom_id: testCompany.id!,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: [],
+        offset: undefined,
+      } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
+        id: 'acl-success',
+        created_at: Date.now(),
+      });
+
+      const result = await service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto);
+
+      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        custom_id: companyId,
+      });
+      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); // Once for main call + once in assignAPIs updateConsumerId
+
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
+        ASSIGNMENT_ENVIRONMENT,
+        'consumer-success',
+        undefined,
+      );
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
+
+      // Should call Kong ACL update for: 2 tier calls (main + assignAPIs updateConsumerId) + 1 API call
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: `tier-${testCompany.tier}`, // From main updateConsumerId
+        consumerId: 'consumer-success',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
+        aclAllowedGroupName: 'route-test-success-api',
+        consumerId: 'consumer-success',
+      });
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(3); // 2 for tier (main + assignAPIs) + 1 for API
+
+      expect(result).toEqual(
+        ResponseFormatter.success('Successfully updated company API access'),
+      );
+    });
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
