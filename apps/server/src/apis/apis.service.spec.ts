@@ -68,6 +68,7 @@ describe('APIService', () => {
   let mockPlugins: ListPluginsResponse;
 
   let testCreateDto: any;
+  let testUpdateDto: any;
 
   beforeEach(async () => {
     testCompany = new CompanyBuilder()
@@ -265,6 +266,24 @@ describe('APIService', () => {
       },
       tiers: [1, 2],
       introspectAuthorization: false,
+    };
+
+    testUpdateDto = {
+      name: 'Updated Test API',
+      enabled: false,
+      upstream: {
+        url: 'https://updated-upstream.example.com/api',
+        method: HTTP_METHODS.PUT,
+        headers: [{ key: 'X-Update-Header', value: 'update-value' }],
+      },
+      downstream: {
+        path: '/updated-test-api',
+        method: HTTP_METHODS.PATCH,
+        url: '/external/updated-test-api',
+        response: [{ status: 200, data: 'updated' }],
+      },
+      tiers: [2, 3],
+      introspectAuthorization: true,
     };
   });
 
@@ -970,6 +989,368 @@ describe('APIService', () => {
         'apis.create',
         expect.objectContaining({
           name: 'apis.create',
+          author: ctx.activeUser,
+          metadata: {},
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Update API', () => {
+    it('should throw NotFound error when API does not exist for the specified environment', async () => {
+      const routeId = 'non-existent-route-id';
+      const updateDto = { name: 'Updated API Name', introspectAuthorization: false };
+
+      routeRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(`API '${routeId}' does not exist`),
+        }),
+      );
+
+      expect(routeRepository.findOne).toHaveBeenCalledWith({
+        where: { id: expect.objectContaining({ _type: 'equal', _value: routeId }), environment: TEST_ENVIRONMENT },
+        relations: { collection: true },
+      });
+      expect(routeRepository.findOne).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw BadRequest error when new name is not unique within environment', async () => {
+      const routeId = testRoute.id!;
+      const updateDto = {
+        ...testUpdateDto,
+        name: 'Existing API Name',
+      };
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      routeRepository.countBy.mockResolvedValue(1);
+
+      await expect(
+        service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(`API name '${updateDto.name}' exists`),
+        }),
+      );
+
+      expect(routeRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(routeRepository.countBy).toHaveBeenCalledWith({
+        id: expect.objectContaining({ _type: 'not', _value: routeId }),
+        environment: TEST_ENVIRONMENT,
+        name: updateDto.name,
+      });
+      expect(routeRepository.countBy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw BadRequest error when introspectAuthorization is toggled but registry introspection endpoint is not configured', async () => {
+      const routeId = testRoute.id!;
+      const updateDto = {
+        ...testUpdateDto,
+        introspectAuthorization: true,
+      };
+
+      const testRouteWithoutAuth = { ...testRoute, introspectAuthorization: false };
+
+      routeRepository.findOne.mockResolvedValue(testRouteWithoutAuth);
+      routeRepository.countBy.mockResolvedValue(0);
+      configService.get.mockReturnValue({});
+
+      await expect(
+        service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining('Introspection endpoint is not configured'),
+        }),
+      );
+
+      expect(configService.get).toHaveBeenCalledWith('registry.introspectionEndpoint');
+      expect(configService.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('should update upstream service and route in Kong when upstream changes are provided', async () => {
+      const routeId = testRoute.id!;
+      const updateDto = {
+        ...testUpdateDto,
+        name: 'Kong Update API',
+        upstream: {
+          ...testUpdateDto.upstream,
+          url: 'https://new-backend.service.com/v3/payments',
+          method: HTTP_METHODS.DELETE,
+          headers: [{ key: 'X-Kong-Update', value: 'kong-update-123' }],
+        },
+      };
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.getPlugins.mockResolvedValue({ data: [{ name: 'request-transformer', config: {} }] } as any);
+      kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.update.mockResolvedValue({ affected: 1 } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'https://registry.example.com/introspect' });
+
+      await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
+
+      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
+        name: 'new-backendservicecom-v3payments',
+        enabled: true,
+        url: updateDto.upstream.url,
+        retries: 1,
+        tags: [testCollection.slug],
+      });
+      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledTimes(1);
+
+      expect(kongRouteService.updateRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, testRoute.routeId, {
+        service: {
+          id: mockCreateGatewayService.id,
+        },
+      });
+      expect(kongRouteService.updateRoute).toHaveBeenCalledTimes(2);
+    });
+
+    it('should update route in Kong when downstream changes are provided', async () => {
+      const routeId = testRoute.id!;
+      const updateDto = {
+        ...testUpdateDto,
+        downstream: {
+          ...testUpdateDto.downstream,
+          path: '/kong/updated-path',
+          method: HTTP_METHODS.DELETE,
+        },
+      };
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongServiceService.getService.mockResolvedValue(mockGatewayService);
+      kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.getPlugins.mockResolvedValue({ data: [{ name: 'request-transformer', config: {} }] } as any);
+      kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.update.mockResolvedValue({ affected: 1 } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
+
+      await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
+
+      expect(kongRouteService.updateRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, testRoute.routeId, {
+        name: expect.stringMatching(/updated-test-api/),
+        paths: [updateDto.downstream.path],
+        methods: [updateDto.downstream.method],
+        service: {
+          id: mockGatewayService.id,
+        },
+      });
+      expect(kongRouteService.updateRoute).toHaveBeenCalledTimes(2);
+    });
+
+    it('should update plugins (ACL, request termination, authorization, request validator, request transformer) as required', async () => {
+      const routeId = testRoute.id!;
+      const updateDto = {
+        ...testUpdateDto,
+        enabled: true,
+        upstream: {
+          ...testUpdateDto.upstream,
+          headers: [{ key: 'X-Security-Token', value: 'security123' }],
+        },
+        downstream: {
+          ...testUpdateDto.downstream,
+          request: {
+            description: '<table><thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead><tbody><tr><td>userId</td><td>string</td><td>Yes</td></tr></tbody></table>',
+            body: {
+              raw: '{"userId": "user456"}'
+            }
+          },
+        },
+        introspectAuthorization: true,
+        tiers: [1, 2, 3],
+      };
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongServiceService.getService.mockResolvedValue(mockGatewayService);
+      kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      kongRouteService.getPlugins.mockResolvedValue({ data: [{ name: 'request-transformer', config: {} }] } as any);
+      routeRepository.update.mockResolvedValue({ affected: 1 } as any);
+      configService.get.mockImplementation((key: string) => {
+        switch (key) {
+          case 'registry.introspectionEndpoint':
+            return { [TEST_ENVIRONMENT]: 'https://registry.example.com/introspect' };
+          case 'registry.introspectionClientID':
+            return { [TEST_ENVIRONMENT]: 'client456' };
+          case 'registry.introspectionClientSecret':
+            return { [TEST_ENVIRONMENT]: 'secret789' };
+          default:
+            return { [TEST_ENVIRONMENT]: 'https://gateway.example.com' };
+        }
+      });
+
+      await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        {
+          name: 'request-termination',
+          enabled: false,
+          config: {
+            message: 'This API is currently unavailable.',
+          },
+        },
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        expect.objectContaining({
+          name: 'obn-authorization',
+          enabled: true,
+          config: expect.objectContaining({
+            introspection_endpoint: 'https://registry.example.com/introspect',
+            client_id: 'client456',
+            client_secret: 'secret789',
+            scope: [mockGatewayRoute.name],
+          }),
+        }),
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        expect.objectContaining({
+          name: 'obn-request-validator',
+          enabled: true,
+          config: expect.objectContaining({
+            body: expect.any(Object),
+          }),
+        }),
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        expect.objectContaining({
+          name: 'request-transformer',
+          enabled: true,
+          config: expect.objectContaining({
+            add: expect.objectContaining({
+              headers: expect.arrayContaining(['X-Security-Token:security123']),
+            }),
+          }),
+        }),
+      );
+
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        mockGatewayRoute.id,
+        expect.objectContaining({
+          name: 'acl',
+          enabled: true,
+          config: expect.objectContaining({
+            allow: ['tier-1', 'tier-2', 'tier-3'],
+            hide_groups_header: true,
+          }),
+        }),
+      );
+    });
+
+    it('should update API in database with all relevant details', async () => {
+      const routeId = testRoute.id!;
+      const updateDto = {
+        ...testUpdateDto,
+        name: 'Database Update API',
+        enabled: true,
+      };
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongServiceService.getService.mockResolvedValue(mockGatewayService);
+      kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.getPlugins.mockResolvedValue({ data: [{ name: 'request-transformer', config: {} }] } as any);
+      kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.update.mockResolvedValue({ affected: 1 } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
+
+      await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
+
+      expect(routeRepository.update).toHaveBeenCalledWith(
+        { id: testRoute.id, environment: TEST_ENVIRONMENT },
+        expect.objectContaining({
+          name: updateDto.name,
+          slug: mockGatewayRoute.name,
+          introspectAuthorization: updateDto.introspectAuthorization,
+          serviceId: mockCreateGatewayService.id,
+          routeId: mockGatewayRoute.id,
+          enabled: updateDto.enabled,
+          url: updateDto.downstream.url,
+          method: updateDto.downstream.method,
+          request: updateDto.downstream.request,
+          response: updateDto.downstream.response,
+          tiers: updateDto.tiers,
+        }),
+      );
+      expect(routeRepository.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return updated API in standardized DTO format on success', async () => {
+      const routeId = testRoute.id!;
+      const updateDto = testUpdateDto;
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongServiceService.getService.mockResolvedValue(mockGatewayService);
+      kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.update.mockResolvedValue({ affected: 1 } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
+
+      const result = await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          apiSuccessMessages.updatedAPI,
+          expect.any(GetAPIResponseDTO),
+        ),
+      );
+
+      const apiDto = result.data;
+      expect(apiDto).toHaveProperty('id', testRoute.id);
+      expect(apiDto).toHaveProperty('name', updateDto.name);
+      expect(apiDto).toHaveProperty('enabled');
+      expect(apiDto).toHaveProperty('collectionId', testRoute.collectionId);
+      expect(apiDto).toHaveProperty('upstream');
+      expect(apiDto).toHaveProperty('downstream');
+    });
+
+    it('should emit UpdateApiEvent after successful API update', async () => {
+      const routeId = testRoute.id!;
+      const updateDto = testUpdateDto;
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongServiceService.getService.mockResolvedValue(mockGatewayService);
+      kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.update.mockResolvedValue({ affected: 1 } as any);
+      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
+
+      await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.update',
+        expect.objectContaining({
+          name: 'apis.update',
           author: ctx.activeUser,
           metadata: {},
         }),
