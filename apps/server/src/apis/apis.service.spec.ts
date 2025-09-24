@@ -1965,6 +1965,301 @@ describe('APIService', () => {
     });
   });
 
+  describe('Get APIs Assigned to Company', () => {
+    const GET_ASSIGNED_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should throw BadRequest error when company does not exist', async () => {
+      const companyId = 'non-existent-company-id';
+      const pagination = DEFAULT_PAGINATION;
+
+      companyRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, companyId, pagination),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(`No company found with ID - ${companyId}`),
+        }),
+      );
+
+      expect(companyRepository.findOne).toHaveBeenCalledWith({
+        where: { id: expect.objectContaining({ _type: 'equal', _value: companyId }) },
+      });
+      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use current company when companyId is not specified', async () => {
+      const pagination = DEFAULT_PAGINATION;
+      const mockAssignedRoutes = [testApiRoutesForAssignment[0], testApiRoutesForAssignment[1]];
+      const existingAcls = [
+        { id: 'acl-1', group: `route-${testApiRoutesForAssignment[0].id}`, created_at: Date.now() },
+        { id: 'acl-2', group: `route-${testApiRoutesForAssignment[1].id}`, created_at: Date.now() },
+        { id: 'acl-tier', group: `tier-${testCompany.tier}`, created_at: Date.now() },
+      ];
+
+      companyRepository.findOne.mockResolvedValue(testCompany);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-current', 
+        created_at: Date.now(),
+        custom_id: testCompany.id!,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      routeRepository.findAndCount.mockResolvedValue([mockAssignedRoutes, 2]);
+      kongServiceService.listServices.mockResolvedValue({ data: [] });
+      kongRouteService.listRoutes.mockResolvedValue({ data: [] });
+
+      const result = await service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, undefined, pagination);
+
+      expect(companyRepository.findOne).toHaveBeenCalledWith({
+        where: { id: expect.objectContaining({ _type: 'equal', _value: testCompany.id }) },
+      });
+      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          expect.any(String),
+          expect.arrayContaining([
+            expect.any(Object),
+            expect.any(Object),
+          ]),
+          expect.objectContaining({
+            totalNumberOfRecords: 2,
+            totalNumberOfPages: 1,
+            pageNumber: 1,
+            pageSize: 10,
+          }),
+        ),
+      );
+    });
+
+    it('should return paginated APIs assigned to specified company with filtering support', async () => {
+      const companyId = testCompanyForAssignment.id!;
+      const pagination = { page: 2, limit: 5 };
+      const filters = { name: 'Assignment API' };
+      const mockAssignedRoutes = [testApiRoutesForAssignment[1], testApiRoutesForAssignment[2]];
+      const existingAcls = [
+        { id: 'acl-1', group: `route-${testApiRoutesForAssignment[1].id}`, created_at: Date.now() },
+        { id: 'acl-2', group: `route-${testApiRoutesForAssignment[2].id}`, created_at: Date.now() },
+        { id: 'acl-tier', group: `tier-${testCompanyForAssignment.tier}`, created_at: Date.now() },
+      ];
+
+      companyRepository.findOne.mockResolvedValue(testCompanyForAssignment);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-paginated', 
+        created_at: Date.now(),
+        custom_id: companyId,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      routeRepository.findAndCount.mockResolvedValue([mockAssignedRoutes, 15]);
+      kongServiceService.listServices.mockResolvedValue({ data: [] });
+      kongRouteService.listRoutes.mockResolvedValue({ data: [] });
+
+      const result = await service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, companyId, pagination, filters);
+
+      expect(routeRepository.findAndCount).toHaveBeenCalledWith({
+        where: expect.any(Array),
+        skip: 5,
+        take: 5,
+        order: { name: 'ASC' },
+      });
+      expect(routeRepository.findAndCount).toHaveBeenCalledTimes(1);
+
+      expect(result.meta).toEqual({
+        totalNumberOfRecords: 15,
+        totalNumberOfPages: 3,
+        pageNumber: 2,
+        pageSize: 5,
+      });
+    });
+
+    it('should include upstream and downstream details, collection, tiers, and enabled status for each API', async () => {
+      const companyId = testCompanyForUnassignment.id!;
+      const pagination = DEFAULT_PAGINATION;
+      const mockAssignedRoute = {
+        ...testApiRoutesForUnassignment[0],
+        collection: testCollection,
+        tiers: [1, 2],
+        enabled: true,
+      };
+      const existingAcls = [
+        { id: 'acl-1', group: `route-${testApiRoutesForUnassignment[0].id}`, created_at: Date.now() },
+        { id: 'acl-tier', group: `tier-${testCompanyForUnassignment.tier}`, created_at: Date.now() },
+      ];
+
+      companyRepository.findOne.mockResolvedValue(testCompanyForUnassignment);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-details', 
+        created_at: Date.now(),
+        custom_id: companyId,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      routeRepository.findAndCount.mockResolvedValue([[mockAssignedRoute], 1]);
+      kongServiceService.listServices.mockResolvedValue(mockGatewayServices);
+      kongRouteService.listRoutes.mockResolvedValue(mockGatewayRoutes);
+
+      const result = await service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, companyId, pagination);
+
+      expect(result.data).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: mockAssignedRoute.id,
+            name: mockAssignedRoute.name,
+            enabled: mockAssignedRoute.enabled,
+            tiers: mockAssignedRoute.tiers,
+          }),
+        ]),
+      );
+
+
+    });
+
+    it('should return APIs in standardized DTO format on success', async () => {
+      const companyId = testCompany.id!;
+      const pagination = DEFAULT_PAGINATION;
+      const mockAssignedRoutes = [testApiRoutesForAssignment[0]];
+      const existingAcls = [
+        { id: 'acl-1', group: `route-${testApiRoutesForAssignment[0].id}`, created_at: Date.now() },
+        { id: 'acl-tier', group: `tier-${testCompany.tier}`, created_at: Date.now() },
+      ];
+
+      companyRepository.findOne.mockResolvedValue(testCompany);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-dto', 
+        created_at: Date.now(),
+        custom_id: companyId,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      routeRepository.findAndCount.mockResolvedValue([mockAssignedRoutes, 1]);
+      kongServiceService.listServices.mockResolvedValue({ data: [] });
+      kongRouteService.listRoutes.mockResolvedValue({ data: [] });
+
+      const result = await service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, companyId, pagination);
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          expect.any(String),
+          expect.arrayContaining([
+            expect.any(GetAPIResponseDTO),
+          ]),
+          expect.objectContaining({
+            totalNumberOfRecords: expect.any(Number),
+            totalNumberOfPages: expect.any(Number),
+            pageNumber: expect.any(Number),
+            pageSize: expect.any(Number),
+          }),
+        ),
+      );
+
+      const apiDto = result.data![0];
+      expect(apiDto).toHaveProperty('id');
+      expect(apiDto).toHaveProperty('name');
+      expect(apiDto).toHaveProperty('slug');
+      expect(apiDto).toHaveProperty('enabled');
+      expect(apiDto).toHaveProperty('introspectAuthorization');
+      expect(apiDto).toHaveProperty('collectionId');
+      expect(apiDto).toHaveProperty('tiers');
+      expect(apiDto).toHaveProperty('upstream');
+      expect(apiDto).toHaveProperty('downstream');
+    });
+
+    it('should emit GetAssignedAPIsEvent after successful retrieval', async () => {
+      const companyId = testCompanyForAssignment.id!;
+      const pagination = DEFAULT_PAGINATION;
+      const mockAssignedRoutes = [testApiRoutesForAssignment[2]];
+      const existingAcls = [
+        { id: 'acl-1', group: `route-${testApiRoutesForAssignment[2].id}`, created_at: Date.now() },
+        { id: 'acl-tier', group: `tier-${testCompanyForAssignment.tier}`, created_at: Date.now() },
+      ];
+
+      companyRepository.findOne.mockResolvedValue(testCompanyForAssignment);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-event', 
+        created_at: Date.now(),
+        custom_id: companyId,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      routeRepository.findAndCount.mockResolvedValue([mockAssignedRoutes, 1]);
+      kongServiceService.listServices.mockResolvedValue({ data: [] });
+      kongRouteService.listRoutes.mockResolvedValue({ data: [] });
+
+      await service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, companyId, pagination);
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.company.view',
+        expect.objectContaining({
+          name: 'apis.company.view',
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            companyId: companyId,
+          }),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty results when company has no assigned APIs', async () => {
+      const companyId = testCompany.id!;
+      const pagination = DEFAULT_PAGINATION;
+      const existingAcls = [
+        { id: 'acl-tier', group: `tier-${testCompany.tier}`, created_at: Date.now() },
+      ];
+
+      companyRepository.findOne.mockResolvedValue(testCompany);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-empty', 
+        created_at: Date.now(),
+        custom_id: companyId,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      routeRepository.findAndCount.mockResolvedValue([[], 0]);
+
+      const result = await service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, companyId, pagination);
+
+      expect(routeRepository.findAndCount).toHaveBeenCalledWith({
+        where: expect.any(Array),
+        skip: 0,
+        take: 10,
+        order: { name: 'ASC' },
+      });
+      expect(routeRepository.findAndCount).toHaveBeenCalledTimes(1);
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          expect.any(String),
+          [],
+          expect.objectContaining({
+            totalNumberOfRecords: 0,
+            totalNumberOfPages: 0,
+            pageNumber: 1,
+            pageSize: 10,
+          }),
+        ),
+      );
+    });
+  });
+
   describe('Update Company API Access', () => {
     const UPDATE_ACCESS_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
 
