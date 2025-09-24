@@ -1965,6 +1965,255 @@ describe('APIService', () => {
     });
   });
 
+  describe('Security & Permissions', () => {
+    it('should verify access is scoped to current user context and environment for viewAPIs', async () => {
+      const pagination = DEFAULT_PAGINATION;
+      const filters = { name: 'Test API' };
+      routeRepository.findAndCount.mockResolvedValue([testRouteArray, 2]);
+      kongServiceService.listServices.mockResolvedValue(mockGatewayServices);
+      kongRouteService.listRoutes.mockResolvedValue(mockGatewayRoutes);
+
+      await service.viewAPIs(ctx, TEST_ENVIRONMENT, pagination, filters);
+      expect(routeRepository.findAndCount).toHaveBeenCalledWith({
+        where: { ...filters, environment: TEST_ENVIRONMENT },
+        skip: 0,
+        take: 10,
+        order: { name: 'ASC' },
+        relations: { collection: true },
+      });
+
+      expect(kongServiceService.listServices).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
+        tags: 'test-collection',
+      });
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+    });
+
+    it('should verify access is scoped to current user context for createAPI', async () => {
+      const securityTestCreateDto = { ...testCreateDto, collectionId: testCollection.id };
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.findOne.mockResolvedValue(null);
+      routeRepository.countBy.mockResolvedValue(0);
+      configService.get.mockReturnValue(null);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({
+        id: 'plugin-id',
+        created_at: Date.now(),
+        updated_at: Date.now(),
+        name: 'acl',
+        instance_name: 'acl-instance',
+        protocols: ['http', 'https'],
+        enabled: true,
+        tags: [],
+        config: {},
+        route: { id: 'test-route-id' },
+      });
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({
+        id: 'consumer-id',
+        created_at: Date.now(),
+        custom_id: testCompany.id,
+      });
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({
+        id: 'acl-id',
+        created_at: Date.now(),
+      });
+      routeRepository.save.mockResolvedValue(testRoute);
+
+      await service.createAPI(ctx, TEST_ENVIRONMENT, securityTestCreateDto);
+
+      expect(collectionRepository.findOne).toHaveBeenCalledWith({
+        where: { 
+          id: expect.objectContaining({ _value: securityTestCreateDto.collectionId })
+        },
+      });
+
+      expect(routeRepository.countBy).toHaveBeenCalledWith({
+        name: securityTestCreateDto.name,
+        environment: TEST_ENVIRONMENT,
+      });
+
+      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        expect.any(Object)
+      );
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.create',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+    });
+
+    it('should verify access is scoped to current user context for updateAPI', async () => {
+      routeRepository.findOne.mockResolvedValueOnce(testRoute);
+      routeRepository.findOne.mockResolvedValueOnce(null);
+      configService.get.mockReturnValue({ 
+        development: null,
+        production: null 
+      });
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.getPlugins.mockResolvedValue(mockPlugins);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({
+        id: 'plugin-id',
+        created_at: Date.now(),
+        updated_at: Date.now(),
+        name: 'acl',
+        instance_name: 'acl-instance',
+        protocols: ['http', 'https'],
+        enabled: true,
+        tags: [],
+        config: {},
+        route: { id: 'test-route-id' },
+      });
+      routeRepository.save.mockResolvedValue({ ...testRoute, ...testUpdateDto });
+
+      await service.updateAPI(ctx, TEST_ENVIRONMENT, testRoute.id!, testUpdateDto);
+      expect(routeRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: expect.objectContaining({ _value: testRoute.id }),
+            environment: TEST_ENVIRONMENT,
+          }),
+          relations: { collection: true },
+        })
+      );
+
+      // Verify name uniqueness check excludes current API and scopes to environment
+      expect(routeRepository.countBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: testUpdateDto.name,
+          environment: TEST_ENVIRONMENT,
+          id: expect.objectContaining({ _type: 'not', _value: testRoute.id }),
+        })
+      );
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.update',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+    });
+
+    it('should verify company access operations are scoped to environment and user context', async () => {
+      const ASSIGNMENT_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
+      const companyId = testCompanyForAssignment.id!;
+      const assignDto = { apiIds: testApiRoutesForAssignment.map(api => api.id!) };
+      
+      configService.get.mockReturnValue(ASSIGNMENT_ENVIRONMENT);
+      companyRepository.findOneBy.mockResolvedValue(testCompanyForAssignment);
+      companyRepository.findOne.mockResolvedValue(testCompanyForAssignment);
+      routeRepository.find.mockResolvedValue(testApiRoutesForAssignment);
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: [],
+        offset: undefined,
+      } as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-id',
+        created_at: Date.now(),
+        custom_id: companyId,
+      });
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
+        id: 'new-acl-id',
+        created_at: Date.now(),
+      });
+
+      // Act
+      await service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto);
+
+      expect(routeRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: expect.objectContaining({ 
+              _type: 'in',
+              _value: assignDto.apiIds 
+            }),
+            environment: ASSIGNMENT_ENVIRONMENT,
+          }),
+        })
+      );
+
+      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
+        ASSIGNMENT_ENVIRONMENT,
+        'consumer-id',
+        undefined
+      );
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.assign',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+    });
+
+    it('should verify assigned APIs retrieval uses current company when companyId not specified', async () => {
+      // Arrange
+      const GET_ASSIGNED_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
+      const existingAcls = [
+        { id: 'acl-1', group: `route-${testApiRoutesForAssignment[0].id}`, created_at: Date.now() },
+        { id: 'acl-2', group: `route-${testApiRoutesForAssignment[1].id}`, created_at: Date.now() },
+      ];
+      
+      configService.get.mockReturnValue(GET_ASSIGNED_ENVIRONMENT);
+      companyRepository.findOne.mockResolvedValue(testCompany);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-current',
+        created_at: Date.now(),
+        custom_id: ctx.activeUser.company!.id,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      routeRepository.find.mockResolvedValue(testApiRoutesForAssignment);
+      routeRepository.findAndCount.mockResolvedValue([testApiRoutesForAssignment, 3]);
+
+      await service.getApisAssignedToCompany(
+        ctx,
+        GET_ASSIGNED_ENVIRONMENT,
+        undefined,
+        DEFAULT_PAGINATION
+      );
+
+      expect(companyRepository.findOne).toHaveBeenCalledWith({
+        where: { id: expect.objectContaining({ _type: 'equal', _value: ctx.activeUser.company!.id }) },
+      });
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.company.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+    });
+
+    it('should verify environment-specific access restrictions for API operations', async () => {
+      // Arrange - Test that DEVELOPMENT environment is rejected for company access updates
+      const DEVELOPMENT_ENV = KONG_ENVIRONMENT.DEVELOPMENT;
+
+      // Act & Assert - Should throw error for development environment
+      await expect(
+        service.updateCompanyApiAccess(
+          ctx,
+          DEVELOPMENT_ENV,
+          testCompanyForAssignment.id!,
+          { apiIds: ['api-1', 'api-2'] }
+        )
+      ).rejects.toThrow('Cannot configure API access for this environment');
+
+      expect(kongConsumerService.updateConsumerAcl).not.toHaveBeenCalled();
+      expect(kongConsumerService.getConsumerAcls).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Get APIs Assigned to Company', () => {
     const GET_ASSIGNED_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
 
