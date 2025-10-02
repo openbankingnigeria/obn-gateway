@@ -46,7 +46,6 @@ describe('Users Controller (e2e)', () => {
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
-          envFilePath: '.env.test',
         }),
         TypeOrmModule.forRoot({
           ...getTestDbConfig(),
