@@ -8,7 +8,6 @@
   },
   "setupFilesAfterEnv": [
     "<rootDir>/test/jest.setup.ts",
-    "<rootDir>/test/utils/config/test-setup.ts",
     "jest-extended/all"
   ],
   "moduleNameMapper": {

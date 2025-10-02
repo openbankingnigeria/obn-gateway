@@ -66,7 +66,8 @@ export class IValidationPipe implements PipeTransform<any> {
     if (
       !metatype ||
       !this.toValidate(metatype) ||
-      value instanceof RequestContext
+      value instanceof RequestContext ||
+      metatype === RequestContext
     ) {
       return value;
     }
