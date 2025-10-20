@@ -10,8 +10,12 @@ import {
   Query,
   UseInterceptors,
   UsePipes,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { APIService } from './apis.service';
+import { ApiSpecImportService } from './import/import.service';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {
   APIParam,
@@ -21,6 +25,7 @@ import {
   SetAPITransformationDTO,
   UpdateCompanyAPIAccessDto,
 } from './dto/index.dto';
+import { ImportApiSpecDto } from './import/dto/import.dto';
 import {
   PaginationParameters,
   PaginationPipe,
@@ -39,7 +44,10 @@ import { APIInterceptor } from './apis.interceptor';
 @Controller('apis/:environment')
 @UseInterceptors(APIInterceptor)
 export class APIController {
-  constructor(private readonly apiService: APIService) {}
+  constructor(
+    private readonly apiService: APIService,
+    private readonly importService: ApiSpecImportService,
+  ) {}
 
   @Get('')
   @UsePipes(IValidationPipe)
@@ -67,6 +75,42 @@ export class APIController {
     @Body() data: CreateAPIDto,
   ) {
     return this.apiService.createAPI(ctx, params.environment, data);
+  }
+
+  @Post('import')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 },
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(json|yaml|yml)$/)) {
+          return cb(new BadRequestException('Only JSON and YAML files are allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.IMPORT_API_SPEC)
+  async importApiSpec(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() data: ImportApiSpecDto,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
+    const importDto: ImportApiSpecDto = {
+      ...data,
+      specFile: file.buffer.toString('utf-8'),
+    };
+    
+    return this.importService.importApiSpec(
+      ctx,
+      params.environment,
+      importDto,
+    );
   }
 
   @Put('company/:companyId')
