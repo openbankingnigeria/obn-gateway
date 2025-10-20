@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Collection } from './collection.entity';
+import { ImportedApiSpec } from './importedapispec.entity';
 import { HTTP_METHODS } from 'src/apis/types';
 
 @Entity({ name: 'api_collection_service_routes' })
@@ -95,6 +96,19 @@ export class CollectionRoute {
 
   @Column({ name: 'collection_id', nullable: true, length: 36 })
   collectionId: string;
+
+  @JoinColumn({ name: 'imported_spec_id' })
+  @ManyToOne(() => ImportedApiSpec, { nullable: true })
+  importedSpec?: ImportedApiSpec;
+
+  @Column({ name: 'imported_spec_id', nullable: true, length: 36 })
+  importedSpecId?: string;
+
+  @Column({ name: 'original_spec_path', type: 'varchar', length: 500, nullable: true })
+  originalSpecPath?: string;
+
+  @Column({ name: 'spec_metadata', type: 'json', nullable: true })
+  specMetadata?: any;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;
