@@ -44,7 +44,7 @@ const ImportHistoryPage = async ({ searchParams }: ImportHistoryPageProps) => {
   const environment = await getCookies('environment')
   const { search_query, page, rows } = searchParams
 
-  const { result, error }: any = await applyAxiosRequest({
+  const result: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getAPIImports({
       environment: environment || 'development',
@@ -54,6 +54,19 @@ const ImportHistoryPage = async ({ searchParams }: ImportHistoryPageProps) => {
     method: 'GET',
     data: null,
   })
+
+  // Debug logging
+  console.log('=== IMPORTS PAGE DEBUG ===');
+  console.log('API Endpoint:', API.getAPIImports({
+    environment: environment || 'development',
+    page: page || '1',
+    limit: rows || '10',
+  }));
+  console.log('Result Status:', result?.status);
+  console.log('Result Data:', result?.data);
+  console.log('Result meta_data:', result?.meta_data);
+  console.log('Result message:', result?.message);
+  console.log('=========================')
 
   /** REFRESH TOKEN CHECK */
   let refreshTokenRes = null; 
@@ -74,12 +87,15 @@ const ImportHistoryPage = async ({ searchParams }: ImportHistoryPageProps) => {
   }
 
   const imports: ImportedSpecDataProps[] = result?.data || []
-  const metadata = result?.metadata || {
-    totalElements: 0,
-    totalElementsInPage: 0,
-    totalPages: 1,
-    page: 1,
-    rows: 10,
+  const metadata = result?.meta_data || {}
+  
+  // Map backend metadata to frontend format
+  const mappedMetadata = {
+    totalElements: metadata?.totalNumberOfRecords || 0,
+    totalElementsInPage: metadata?.pageSize || 0,
+    totalPages: metadata?.totalNumberOfPages || 1,
+    page: metadata?.pageNumber || 1,
+    rows: metadata?.pageSize || 10,
   }
 
   // Transform data to match table structure
@@ -132,11 +148,11 @@ const ImportHistoryPage = async ({ searchParams }: ImportHistoryPageProps) => {
           rawData={transformedImports}
           filters={[search_query, page, rows]}
           message={result?.message || ''}
-          rows={metadata.rows}
-          page={metadata.page}
-          totalElements={metadata.totalElements}
-          totalElementsInPage={metadata.totalElementsInPage}
-          totalPages={metadata.totalPages}
+          rows={mappedMetadata.rows}
+          page={mappedMetadata.page}
+          totalElements={mappedMetadata.totalElements}
+          totalElementsInPage={mappedMetadata.totalElementsInPage}
+          totalPages={mappedMetadata.totalPages}
         />
       </div>
     </div>
