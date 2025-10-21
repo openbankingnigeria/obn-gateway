@@ -102,7 +102,7 @@ const ImportSpecModal = ({
   if (importResult) {
     return (
       <div className='flex flex-col h-full w-full relative'>
-        <div className='flex flex-col h-[calc(100%-90px)] overflow-auto gap-[20px] w-full'>
+        <div className='flex flex-col h-[calc(100%-60px)] overflow-auto gap-[20px] w-full'>
           {/* Summary Card */}
           <div className='flex flex-col gap-[16px] p-[20px] bg-o-bg-disabled rounded-[8px] border border-o-border'>
             <h3 className='text-f18 font-[600] text-o-text-dark'>Import Summary</h3>
