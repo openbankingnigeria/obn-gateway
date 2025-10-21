@@ -139,7 +139,7 @@ const ImportSpecModal = ({
                   Failed Endpoints
                 </h3>
                 <span className='text-f12 font-[500] text-o-text-muted2 bg-red-100 px-[10px] py-[4px] rounded-[4px]'>
-                  {importResult.errors.length} errors
+                  {importResult.failedCount} errors
                 </span>
               </div>
               <div className='flex flex-col gap-[10px] max-h-[400px] overflow-auto pr-[8px]'>

@@ -140,10 +140,24 @@ export class APIController {
       parsedSpec.parsed.metadata,
     );
 
+    // Calculate actual success/failure counts from database 
+    const endpointNames = parsedSpec.parsed.endpoints.map(ep => ep.name);
+    const actualSuccessCount = await this.apiService.getActualImportSuccessCount(
+      importRecord.collectionId,
+      endpointNames,
+    );
+    const actualFailedCount = parsedSpec.parsed.endpoints.length - actualSuccessCount;
+    const importStatus = actualFailedCount === 0 ? 'completed' : 
+                        actualSuccessCount > 0 ? 'partial' : 'failed';
+
     await this.importService.finalizeImport(
       importRecord.id,
       importRecord.collectionId,
-      results,
+      {
+        successCount: actualSuccessCount,
+        failedCount: actualFailedCount,
+        errors: results.errors,
+      },
       ctx,
     );
 
@@ -152,9 +166,9 @@ export class APIController {
       importId: importRecord.id,
       collectionId: importRecord.collectionId,
       totalEndpoints: parsedSpec.parsed.endpoints.length,
-      successCount: results.successCount,
-      failedCount: results.failedCount,
-      status: results.failedCount > 0 ? 'partial' : 'completed',
+      successCount: actualSuccessCount,
+      failedCount: actualFailedCount,
+      status: importStatus,
       errors: results.errors,
     });
 
@@ -172,8 +186,6 @@ export class APIController {
     options: ImportApiSpecDto,
     metadata: any,
   ) {
-    let successCount = 0;
-    let failedCount = 0;
     const errors: ImportErrorDto[] = [];
 
     for (const endpoint of endpoints) {
@@ -186,10 +198,8 @@ export class APIController {
         );
 
         await this.apiService.createAPI(ctx, environment, apiDto);
-        successCount++;
       } catch (error: any) {
         console.error(`Failed to import endpoint ${endpoint?.method} ${endpoint?.path}:`, error);
-        failedCount++;
         
         // Create proper DTO instance for serialization
         const errorDto = Object.assign(new ImportErrorDto(), {
@@ -200,7 +210,7 @@ export class APIController {
       }
     }
 
-    return { successCount, failedCount, errors };
+    return { errors };
   }
 
   private parseArrayField(value: any): string[] | undefined {

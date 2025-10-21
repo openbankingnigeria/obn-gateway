@@ -291,6 +291,21 @@ export class APIService {
     );
   }
 
+  async getActualImportSuccessCount(
+    collectionId: string,
+    endpointNames: string[],
+  ): Promise<number> {
+    // Count how many of these endpoints actually exist in the database
+    const count = await this.routeRepository.count({
+      where: {
+        collectionId: Equal(collectionId),
+        name: In(endpointNames),
+      },
+    });
+
+    return count;
+  }
+
   async deleteAPI(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
