@@ -26,6 +26,7 @@ const ImportSpecModal = ({
   const [enableByDefault, setEnableByDefault] = useState(true)
   const [defaultTiers, setDefaultTiers] = useState('0,1')
   const [requireAuth, setRequireAuth] = useState(false)
+  const [importResult, setImportResult] = useState<ImportResultDataProps | null>(null)
 
   const incorrect = !specFile || (!selectedCollectionId && !collectionName)
 
@@ -55,7 +56,7 @@ const ImportSpecModal = ({
       formData.append('defaultTiers', defaultTiers)
       formData.append('requireAuth', String(requireAuth))
 
-      const result: ImportResultDataProps = await clientAxiosRequest({
+      const result: any = await clientAxiosRequest({
         headers: { 'Content-Type': 'multipart/form-data' },
         apiEndpoint: API.postImportAPISpec({ environment }),
         method: 'POST',
@@ -64,19 +65,134 @@ const ImportSpecModal = ({
 
       setLoading(false)
 
-      if (result?.importId) {
-        toast.success(
-          `Successfully imported ${result.successCount} of ${result.totalEndpoints} endpoints${
-            result.failedCount > 0 ? ` (${result.failedCount} failed)` : ''
-          }`
-        )
-        close()
+      if (result?.data?.importId) {
+        // Store the result to show details (data is nested in response)
+        const importData: ImportResultDataProps = result.data
+        setImportResult(importData)
+        
+        // Show success message
+        if (importData.failedCount === 0) {
+          toast.success(`Successfully imported all ${importData.totalEndpoints} endpoints`)
+        } else if (importData.successCount > 0) {
+          toast.warning(
+            `Imported ${importData.successCount} of ${importData.totalEndpoints} endpoints. ${importData.failedCount} failed.`
+          )
+        } else {
+          toast.error(`Failed to import all ${importData.totalEndpoints} endpoints`)
+        }
+        
         router.refresh()
       }
     } catch (error: any) {
       setLoading(false)
       toast.error(error?.message || 'Failed to import specification')
     }
+  }
+
+  const handleViewDetails = () => {
+    close()
+    router.push(`/app/api-management/imports`)
+  }
+
+  const handleCloseResults = () => {
+    close()
+  }
+
+  // Show results view if import completed
+  if (importResult) {
+    return (
+      <div className='flex flex-col h-full w-full relative'>
+        <div className='flex flex-col h-[calc(100%-90px)] overflow-auto gap-[20px] w-full'>
+          {/* Summary Card */}
+          <div className='flex flex-col gap-[16px] p-[20px] bg-o-bg-disabled rounded-[8px] border border-o-border'>
+            <h3 className='text-f18 font-[600] text-o-text-dark'>Import Summary</h3>
+            <div className='grid grid-cols-2 gap-[16px]'>
+              <div className='flex flex-col gap-[6px] p-[16px] bg-white rounded-[6px]'>
+                <p className='text-f12 text-o-text-muted2 font-[500]'>Total Endpoints</p>
+                <p className='text-f24 font-[600] text-o-text-dark'>{importResult.totalEndpoints}</p>
+              </div>
+              <div className='flex flex-col gap-[6px] p-[16px] bg-white rounded-[6px]'>
+                <p className='text-f12 text-o-text-muted2 font-[500]'>Status</p>
+                <p className={`text-f16 font-[600] uppercase ${
+                  importResult.status === 'completed' ? 'text-green-600' : 
+                  importResult.status === 'partial' ? 'text-yellow-600' : 'text-red-600'
+                }`}>
+                  {importResult.status}
+                </p>
+              </div>
+              <div className='flex flex-col gap-[6px] p-[16px] bg-white rounded-[6px]'>
+                <p className='text-f12 text-o-text-muted2 font-[500]'>Successful</p>
+                <p className='text-f24 font-[600] text-green-600'>{importResult.successCount}</p>
+              </div>
+              <div className='flex flex-col gap-[6px] p-[16px] bg-white rounded-[6px]'>
+                <p className='text-f12 text-o-text-muted2 font-[500]'>Failed</p>
+                <p className='text-f24 font-[600] text-red-600'>{importResult.failedCount}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Errors List */}
+          {importResult.errors && importResult.errors.length > 0 && (
+            <div className='flex flex-col gap-[12px] px-[20px]'>
+              <div className='flex items-center justify-between'>
+                <h3 className='text-f16 font-[600] text-o-text-dark'>
+                  Failed Endpoints
+                </h3>
+                <span className='text-f12 font-[500] text-o-text-muted2 bg-red-100 px-[10px] py-[4px] rounded-[4px]'>
+                  {importResult.errors.length} errors
+                </span>
+              </div>
+              <div className='flex flex-col gap-[10px] max-h-[400px] overflow-auto pr-[8px]'>
+                {importResult.errors.map((error, index) => (
+                  <div 
+                    key={index} 
+                    className='flex flex-col gap-[8px] p-[16px] bg-white border border-red-200 rounded-[8px] hover:border-red-300 transition-colors'
+                  >
+                    <div className='flex items-start gap-[8px]'>
+                      <svg className='w-[16px] h-[16px] mt-[2px] flex-shrink-0' viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 1.33334C4.32 1.33334 1.33333 4.32001 1.33333 8.00001C1.33333 11.68 4.32 14.6667 8 14.6667C11.68 14.6667 14.6667 11.68 14.6667 8.00001C14.6667 4.32001 11.68 1.33334 8 1.33334ZM8 10.6667C7.63333 10.6667 7.33333 10.3667 7.33333 10V8.00001C7.33333 7.63334 7.63333 7.33334 8 7.33334C8.36667 7.33334 8.66667 7.63334 8.66667 8.00001V10C8.66667 10.3667 8.36667 10.6667 8 10.6667ZM8.66667 6.00001H7.33333V4.66668H8.66667V6.00001Z" fill="#DC2626"/>
+                      </svg>
+                      <div className='flex-1'>
+                        <p className='text-f14 font-[600] text-o-text-dark mb-[4px]'>{error.endpoint}</p>
+                        <p className='text-f13 text-red-600'>{error.error}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Success Message if all succeeded */}
+          {importResult.errors.length === 0 && (
+            <div className='flex items-center gap-[12px] p-[16px] bg-green-50 border border-green-200 rounded-[8px]'>
+              <svg className='w-[24px] h-[24px] flex-shrink-0' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" fill="#16A34A"/>
+              </svg>
+              <div>
+                <p className='text-f14 font-[600] text-green-800'>All endpoints imported successfully!</p>
+                <p className='text-f12 text-green-600'>You can now view them in the collections.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className='px-[20px] w-full mt-auto absolute bottom-0 z-[10] bg-white flex items-end justify-between border-t border-o-border pt-[20px]'>
+          <Button
+            title='Close'
+            effect={handleCloseResults}
+            small
+            outlined
+          />
+
+          <Button
+            title='View Import History'
+            effect={handleViewDetails}
+            small
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
