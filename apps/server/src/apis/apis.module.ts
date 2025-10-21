@@ -36,5 +36,6 @@ import { ApiImportModule } from './import/import.module';
     }),
     ApiImportModule,
   ],
+  exports: [APIService],
 })
 export class APIModule {}

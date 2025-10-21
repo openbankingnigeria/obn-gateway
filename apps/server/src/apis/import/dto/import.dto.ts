@@ -7,7 +7,7 @@ import {
   IsUrl,
   IsNotEmpty,
 } from 'class-validator';
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 
 export class ImportApiSpecDto {
   @IsOptional()
@@ -38,15 +38,35 @@ export class ImportApiSpecDto {
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
   enableByDefault?: boolean;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value.split(',').map(v => v.trim());
+      }
+    }
+    return value;
+  })
   defaultTiers?: string[];
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
   requireAuth?: boolean;
 }
 

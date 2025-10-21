@@ -12,6 +12,7 @@ import {
   UsePipes,
   UploadedFile,
   BadRequestException,
+  HttpCode,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { APIService } from './apis.service';
@@ -25,7 +26,7 @@ import {
   SetAPITransformationDTO,
   UpdateCompanyAPIAccessDto,
 } from './dto/index.dto';
-import { ImportApiSpecDto } from './import/dto/import.dto';
+import { ImportApiSpecDto, ImportResultDto } from './import/dto/import.dto';
 import {
   PaginationParameters,
   PaginationPipe,
@@ -89,28 +90,51 @@ export class APIController {
       },
     }),
   )
-  @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.IMPORT_API_SPEC)
   async importApiSpec(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
     @UploadedFile() file: Express.Multer.File,
-    @Body() data: ImportApiSpecDto,
-  ) {
+    @Body() data: any,
+  ): Promise<ImportResultDto> {
     if (!file) {
       throw new BadRequestException('File is required');
     }
 
+    // Transform multipart form data to DTO
     const importDto: ImportApiSpecDto = {
-      ...data,
+      specName: data.specName,
       specFile: file.buffer.toString('utf-8'),
+      collectionId: data.collectionId,
+      collectionName: data.collectionName,
+      upstreamBaseUrl: data.upstreamBaseUrl,
+      downstreamBaseUrl: data.downstreamBaseUrl,
+      enableByDefault: data.enableByDefault === 'true' || data.enableByDefault === true,
+      defaultTiers: this.parseArrayField(data.defaultTiers),
+      requireAuth: data.requireAuth === 'true' || data.requireAuth === true,
     };
     
-    return this.importService.importApiSpec(
+    const result = await this.importService.importApiSpec(
       ctx,
       params.environment,
       importDto,
     );
+    
+    console.log('Import result:', result);
+    return result;
+  }
+
+  private parseArrayField(value: any): string[] | undefined {
+    if (!value) return undefined;
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value.split(',').map(v => v.trim()).filter(v => v);
+      }
+    }
+    return undefined;
   }
 
   @Put('company/:companyId')

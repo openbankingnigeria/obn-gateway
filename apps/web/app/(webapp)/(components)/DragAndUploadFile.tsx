@@ -11,13 +11,28 @@ const DragAndUploadFile = ({
   selectedFile,
   fileType,
   file,
-  setSelectedFile
+  setSelectedFile,
+  allowedTypes,
+  maxSizeMB = 2
 }: DragAndUploadFileProps) => {
 
-  const allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-  const maxFileSizeInBytes = 2 * 1024 * 1024; // 2MB
+  const allowedFileTypes = allowedTypes || ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+  const maxFileSizeInBytes = maxSizeMB * 1024 * 1024; // Default 2MB
   const [editFile, setEditFile] = useState('');
   const [openModal, setOpenModal] = useState(false);
+
+  // Generate accept attribute - can include both MIME types and extensions
+  const acceptAttribute = allowedTypes 
+    ? allowedTypes.join(', ') 
+    : '.jpg, .jpeg, .png, .pdf';
+
+  // Generate readable format list
+  const formatsList = allowedTypes 
+    ? allowedTypes.map(t => {
+        const ext = t.split('/')[1]?.toUpperCase();
+        return ext === 'X-YAML' ? 'YAML' : ext;
+      }).join(', ')
+    : 'JPG, JPEG, PNG, PDF';
 
   const formatBytes = (bytes: number, decimals = 2) => {
     if (!bytes) return '0 Bytes';
@@ -41,12 +56,15 @@ const DragAndUploadFile = ({
       const file = files[0];
 
       if (!allowedFileTypes.includes(file.type)) {
-        toast.error('Invalid file type. Please select a JPG, JPEG, PNG, or PDF file.');
+        const typesList = allowedTypes 
+          ? allowedTypes.map(t => t.split('/')[1]?.toUpperCase() || t).join(', ')
+          : 'JPG, JPEG, PNG, or PDF';
+        toast.error(`Invalid file type. Please select a ${typesList} file.`);
         return;
       }
 
       if (file.size > maxFileSizeInBytes) {
-        toast.error('File size exceeds the maximum limit of 2MB.');
+        toast.error(`File size exceeds the maximum limit of ${maxSizeMB}MB.`);
         return;
       }
 
@@ -174,7 +192,7 @@ const DragAndUploadFile = ({
                 id={name}
                 className='hidden'
                 name={name}
-                accept='.jpg, .jpeg, .png, .pdf'
+                accept={acceptAttribute}
                 type="file"
                 value={(editFile ? '' : selectedFile) || ''}
                 onChange={(event) => handleFileChange(event,'input')}
@@ -192,7 +210,7 @@ const DragAndUploadFile = ({
               </div>
 
               <div className='text-f12 text-o-text-muted2'>
-                JPG, JPEG, PNG, PDF (max 2MB)
+                {formatsList} (max {maxSizeMB}MB)
               </div>
             </div>
       }
