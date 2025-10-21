@@ -26,7 +26,7 @@ import {
   SetAPITransformationDTO,
   UpdateCompanyAPIAccessDto,
 } from './dto/index.dto';
-import { ImportApiSpecDto, ImportResultDto } from './import/dto/import.dto';
+import { ImportApiSpecDto, ImportResultDto, ImportErrorDto } from './import/dto/import.dto';
 import {
   PaginationParameters,
   PaginationPipe,
@@ -41,6 +41,9 @@ import {
 import { RequestContext } from '@common/utils/request/request-context';
 import { PERMISSIONS } from '@permissions/types';
 import { APIInterceptor } from './apis.interceptor';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import { apiSuccessMessages } from './apis.constants';
 
 @Controller('apis/:environment')
 @UseInterceptors(APIInterceptor)
@@ -79,6 +82,7 @@ export class APIController {
   }
 
   @Post('import')
+  @HttpCode(200)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: 10 * 1024 * 1024 },
@@ -96,7 +100,7 @@ export class APIController {
     @Param() params: APIParam,
     @UploadedFile() file: Express.Multer.File,
     @Body() data: any,
-  ): Promise<ImportResultDto> {
+  ) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
@@ -113,15 +117,90 @@ export class APIController {
       defaultTiers: this.parseArrayField(data.defaultTiers),
       requireAuth: data.requireAuth === 'true' || data.requireAuth === true,
     };
-    
-    const result = await this.importService.importApiSpec(
+
+    const parsedSpec = await this.importService.parseAndValidateSpec(
       ctx,
       params.environment,
       importDto,
     );
-    
-    console.log('Import result:', result);
-    return result;
+
+    const importRecord = await this.importService.createImportRecord(
+      ctx,
+      params.environment,
+      parsedSpec,
+      importDto,
+    );
+
+    const results = await this.importEndpoints(
+      ctx,
+      params.environment,
+      parsedSpec.parsed.endpoints,
+      importRecord.collectionId,
+      importDto,
+      parsedSpec.parsed.metadata,
+    );
+
+    await this.importService.finalizeImport(
+      importRecord.id,
+      importRecord.collectionId,
+      results,
+      ctx,
+    );
+
+    // Create DTO instance for proper serialization
+    const resultDto = Object.assign(new ImportResultDto(), {
+      importId: importRecord.id,
+      collectionId: importRecord.collectionId,
+      totalEndpoints: parsedSpec.parsed.endpoints.length,
+      successCount: results.successCount,
+      failedCount: results.failedCount,
+      status: results.failedCount > 0 ? 'partial' : 'completed',
+      errors: results.errors,
+    });
+
+    return ResponseFormatter.success(
+      apiSuccessMessages.importedAPISpec,
+      resultDto,
+    );
+  }
+
+  private async importEndpoints(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    endpoints: any[],
+    collectionId: string,
+    options: ImportApiSpecDto,
+    metadata: any,
+  ) {
+    let successCount = 0;
+    let failedCount = 0;
+    const errors: ImportErrorDto[] = [];
+
+    for (const endpoint of endpoints) {
+      try {
+        const apiDto = this.importService.transformEndpointToApiDto(
+          endpoint,
+          collectionId,
+          metadata,
+          options,
+        );
+
+        await this.apiService.createAPI(ctx, environment, apiDto);
+        successCount++;
+      } catch (error: any) {
+        console.error(`Failed to import endpoint ${endpoint?.method} ${endpoint?.path}:`, error);
+        failedCount++;
+        
+        // Create proper DTO instance for serialization
+        const errorDto = Object.assign(new ImportErrorDto(), {
+          endpoint: `${endpoint?.method || 'UNKNOWN'} ${endpoint?.path || 'UNKNOWN'}`,
+          error: error.message || error.toString() || 'Unknown error',
+        });
+        errors.push(errorDto);
+      }
+    }
+
+    return { successCount, failedCount, errors };
   }
 
   private parseArrayField(value: any): string[] | undefined {

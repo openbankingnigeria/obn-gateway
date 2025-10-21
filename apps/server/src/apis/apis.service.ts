@@ -535,10 +535,12 @@ export class APIService {
           },
         );
         // Update API provider consumer to allow access to this new route
-        await this.kongConsumerService.updateConsumerAcl(environment, {
-          aclAllowedGroupName: `route-${routeId}`,
-          consumerId: apiProviderConsumerId,
-        });
+        await this.kongConsumerService
+          .updateConsumerAcl(environment, {
+            aclAllowedGroupName: `route-${routeId}`,
+            consumerId: apiProviderConsumerId,
+          })
+          .catch(console.error);
       }
     }
 

@@ -53,3 +53,19 @@ export interface ParsedResponses {
     schema?: any;
   };
 }
+
+export interface ParsedSpecResult {
+  spec: any;
+  parser: IApiSpecParser;
+  parsed: ParsedApiSpec;
+  specInfo: {
+    format: string;
+    version: string;
+  };
+}
+
+export interface ImportEndpointsResult {
+  successCount: number;
+  failedCount: number;
+  errors: any[];
+}

@@ -6,13 +6,16 @@ import slugify from 'slugify';
 import * as yaml from 'js-yaml';
 import { ImportedApiSpec } from '@common/database/entities/importedapispec.entity';
 import { Collection } from '@common/database/entities/collection.entity';
-import { CollectionRoute } from '@common/database/entities/collectionroute.entity';
-import { APIService } from '../apis.service';
 import { OpenApiV3Parser } from './parsers/openapi-v3.parser';
 import { SwaggerV2Parser } from './parsers/swagger-v2.parser';
 import { PostmanV2Parser } from './parsers/postman-v2.parser';
-import { IApiSpecParser, ParsedEndpoint } from './interfaces/parser.interface';
-import { ImportApiSpecDto, ImportResultDto } from './dto/import.dto';
+import { 
+  IApiSpecParser, 
+  ParsedEndpoint,
+  ParsedSpecResult,
+  ImportEndpointsResult,
+} from './interfaces/parser.interface';
+import { ImportApiSpecDto } from './dto/import.dto';
 import { CreateAPIDto } from '../dto/index.dto';
 import { RequestContext } from '@common/utils/request/request-context';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
@@ -21,6 +24,7 @@ import {
   INotFoundException,
 } from '@common/utils/exceptions/exceptions';
 import { ImportStatus, SpecFormat } from '@common/database/entities/importedapispec.entity';
+import { ImportApiSpecEvent } from '@shared/events/api.event';
 
 @Injectable()
 export class ApiSpecImportService {
@@ -29,9 +33,8 @@ export class ApiSpecImportService {
     private readonly importedSpecRepo: Repository<ImportedApiSpec>,
     @InjectRepository(Collection)
     private readonly collectionRepo: Repository<Collection>,
-    @InjectRepository(CollectionRoute)
-    private readonly collectionRouteRepo: Repository<CollectionRoute>,
-    private readonly apiService: APIService,
+    // Removed: CollectionRoute repository (not needed)
+    // Removed: APIService injection (violates architecture)
     private readonly openApiV3Parser: OpenApiV3Parser,
     private readonly swaggerV2Parser: SwaggerV2Parser,
     private readonly postmanV2Parser: PostmanV2Parser,
@@ -68,11 +71,15 @@ export class ApiSpecImportService {
     }
   }
 
-  async importApiSpec(
+  /**
+   * Parse and validate an API spec file
+   * Returns parsed spec data ready for import
+   */
+  async parseAndValidateSpec(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
     data: ImportApiSpecDto,
-  ): Promise<ImportResultDto> {
+  ): Promise<ParsedSpecResult> {
     const spec = this.parseSpecFile(data.specFile);
 
     const parser = this.detectParser(spec);
@@ -96,123 +103,79 @@ export class ApiSpecImportService {
     const parsed = parser.parse(spec);
     const specInfo = parser.getSpecInfo(spec);
 
-    let collection: Collection | null;
-    if (data.collectionId) {
-      collection = await this.collectionRepo.findOne({
-        where: { id: Equal(data.collectionId) },
-      });
-      if (!collection) {
-        throw new INotFoundException({
-          message: `Collection ${data.collectionId} not found`,
-        });
-      }
-    } else {
-      collection = await this.collectionRepo.save({
-        name: data.collectionName || parsed.metadata.title,
-        slug: slugify(data.collectionName || parsed.metadata.title, {
-          lower: true,
-          strict: true,
-        }),
-        description: parsed.metadata.description,
-      });
-    }
+    return {
+      spec,
+      parser,
+      parsed,
+      specInfo,
+    };
+  }
 
-    if (!collection) {
-      throw new INotFoundException({
-        message: 'Failed to get or create collection',
-      });
-    }
+  /**
+   * Create an import record in the database
+   * Returns the created ImportedApiSpec entity
+   */
+  async createImportRecord(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    parsedSpec: ParsedSpecResult,
+    options: ImportApiSpecDto,
+  ): Promise<ImportedApiSpec> {
+    const collection = await this.getOrCreateCollection(
+      parsedSpec.parsed,
+      options,
+    );
 
     const importedSpec = await this.importedSpecRepo.save({
-      name: data.specName || parsed.metadata.title,
-      specFormat: specInfo.format as SpecFormat,
-      specVersion: specInfo.version,
-      originalSpec: JSON.stringify(spec),
-      parsedMetadata: parsed.metadata,
+      name: options.specName || parsedSpec.parsed.metadata.title,
+      specFormat: parsedSpec.specInfo.format as SpecFormat,
+      specVersion: parsedSpec.specInfo.version,
+      originalSpec: JSON.stringify(parsedSpec.spec),
+      parsedMetadata: parsedSpec.parsed.metadata,
       importStatus: ImportStatus.PROCESSING,
       collectionId: collection.id,
       environment,
       importedById: ctx.activeUser.id,
     });
 
-    const results = await this.importEndpoints(
-      ctx,
-      environment,
-      collection,
-      parsed.endpoints,
-      importedSpec,
-      data,
-    );
+    return importedSpec;
+  }
 
-    await this.importedSpecRepo.update(importedSpec.id, {
-      importStatus: results.failedCount > 0 ? ImportStatus.PARTIAL : ImportStatus.COMPLETED,
+  /**
+   * Finalize an import record after endpoint creation
+   * Updates status and counts, emits audit event
+   */
+  async finalizeImport(
+    importId: string,
+    collectionId: string,
+    results: ImportEndpointsResult,
+    ctx: RequestContext,
+  ): Promise<void> {
+    await this.importedSpecRepo.update(importId, {
+      importStatus: results.failedCount > 0 
+        ? ImportStatus.PARTIAL 
+        : ImportStatus.COMPLETED,
       importedCount: results.successCount,
       failedCount: results.failedCount,
       errorLog: results.errors,
     });
 
-    this.eventEmitter.emit('api.spec.imported', {
-      userId: ctx.activeUser.id,
-      companyId: ctx.activeUser.company?.id,
-      event: 'API_SPEC_IMPORTED',
-      details: {
-        specId: importedSpec.id,
-        collectionId: collection.id!,
-        importedCount: results.successCount,
-        failedCount: results.failedCount,
-      },
-    });
-
-    return {
-      importId: importedSpec.id,
-      collectionId: collection.id!,
-      totalEndpoints: parsed.endpoints.length,
-      successCount: results.successCount,
+    const event = new ImportApiSpecEvent(ctx.activeUser, {
+      specId: importId,
+      collectionId,
+      importedCount: results.successCount,
       failedCount: results.failedCount,
-      status: results.failedCount > 0 ? 'partial' : 'completed',
-      errors: results.errors,
-    };
+    });
+    this.eventEmitter.emit(event.name, event);
   }
 
-  private async importEndpoints(
-    ctx: RequestContext,
-    environment: KONG_ENVIRONMENT,
-    collection: Collection,
-    endpoints: ParsedEndpoint[],
-    importedSpec: ImportedApiSpec,
-    options: ImportApiSpecDto,
-  ): Promise<{ successCount: number; failedCount: number; errors: any[] }> {
-    let successCount = 0;
-    let failedCount = 0;
-    const errors: any[] = [];
-
-    for (const endpoint of endpoints) {
-      try {
-        const apiDto = this.transformToApiDto(
-          endpoint,
-          collection,
-          importedSpec.parsedMetadata,
-          options,
-        );
-
-        await this.apiService.createAPI(ctx, environment, apiDto);
-        successCount++;
-      } catch (error: any) {
-        failedCount++;
-        errors.push({
-          endpoint: `${endpoint.method} ${endpoint.path}`,
-          error: error.message || 'Unknown error',
-          details: error.response?.data || undefined,
-        });
-      }
-    }
-
-    return { successCount, failedCount, errors };
-  }
-
-  private transformToApiDto(
+  /**
+   * Transform a parsed endpoint to CreateAPIDto
+   * Pure transformation function with no side effects
+   */
+  transformEndpointToApiDto(
     endpoint: ParsedEndpoint,
-    collection: Collection,
+    collectionId: string,
     metadata: any,
     options: ImportApiSpecDto,
   ): CreateAPIDto {
@@ -224,7 +187,7 @@ export class ApiSpecImportService {
 
     return {
       name: endpoint.name,
-      collectionId: collection.id!,
+      collectionId,
       enabled: options.enableByDefault ?? true,
       tiers: (options.defaultTiers || []) as any,
       introspectAuthorization: options.requireAuth ?? false,
@@ -245,6 +208,39 @@ export class ApiSpecImportService {
         response: this.transformResponses(endpoint.responses),
       },
     };
+  }
+
+  /**
+   * Get or create a collection for the import
+   * Private helper method
+   */
+  private async getOrCreateCollection(
+    parsed: any,
+    options: ImportApiSpecDto,
+  ): Promise<Collection> {
+    if (options.collectionId) {
+      const collection = await this.collectionRepo.findOne({
+        where: { id: Equal(options.collectionId) },
+      });
+      if (!collection) {
+        throw new INotFoundException({
+          message: `Collection ${options.collectionId} not found`,
+        });
+      }
+      return collection;
+    }
+
+    // Create new collection
+    const collection = await this.collectionRepo.save({
+      name: options.collectionName || parsed.metadata.title,
+      slug: slugify(options.collectionName || parsed.metadata.title, {
+        lower: true,
+        strict: true,
+      }),
+      description: parsed.metadata.description,
+    });
+
+    return collection;
   }
 
   private constructUpstreamUrl(

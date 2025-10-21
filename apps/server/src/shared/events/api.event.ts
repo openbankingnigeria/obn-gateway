@@ -6,6 +6,7 @@ export enum ApiEvents {
   DELETE_APIS = 'apis.delete',
   CREATE_APIS = 'apis.create',
   UPDATE_APIS = 'apis.update',
+  IMPORT_API_SPEC = 'apis.spec.import',
   VIEW_API_LOGS = 'apis.logs.view',
   VIEW_API_LOG_STATS = 'apis.log-stats.view',
   VIEW_COMPANY_APIS = 'apis.company.view',
@@ -121,5 +122,14 @@ export class SetApiTransformationEvent extends ApiEvent {
     public readonly metadata: any,
   ) {
     super(ApiEvents.SET_TRANSFORMATION, author, metadata);
+  }
+}
+
+export class ImportApiSpecEvent extends ApiEvent {
+  constructor(
+    public readonly author: User,
+    public readonly metadata: any,
+  ) {
+    super(ApiEvents.IMPORT_API_SPEC, author, metadata);
   }
 }
