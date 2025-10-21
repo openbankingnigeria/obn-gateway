@@ -361,7 +361,36 @@ export class APIService {
     return response.id;
   }
 
+  /**
+   * Convert Kong regex path back to user-friendly OpenAPI format
+   * Example: ~/users/(?<userId>[^/]+) -> /users/{userId}
+   */
+  private convertKongPathToClean(path: string): string {
+    let cleanPath = path;
+    
+    // Remove Kong regex prefix
+    if (cleanPath.startsWith('~')) {
+      cleanPath = cleanPath.slice(1);
+    }
+    
+    // Convert Kong named capture groups back to OpenAPI format
+    // (?<paramName>[^/]+) -> {paramName}
+    cleanPath = cleanPath.replace(/\(\?<(\w+)>[^)]+\)/g, '{$1}');
+    
+    // Remove any trailing $ anchor
+    if (cleanPath.endsWith('$')) {
+      cleanPath = cleanPath.slice(0, -1);
+    }
+    
+    return cleanPath;
+  }
+
   private generateJSONSchema(data: CreateAPIDto['downstream']['request']) {
+    // Return null if description is missing or not a string
+    if (!data?.description || typeof data.description !== 'string') {
+      return null;
+    }
+
     const $ = cheerio.load(data.description, null, false);
 
     const tablesData: any[] = [];
@@ -559,11 +588,9 @@ export class APIService {
       }
     }
 
-    let cleanPath = data.downstream.path.replace(/\([^)]*\)\$/, '');
-    if (cleanPath.startsWith('~')) cleanPath = cleanPath.slice(1);
-    if (cleanPath.endsWith('$')) {
-      cleanPath = cleanPath.slice(0, cleanPath.length - 1);
-    }
+    // Convert Kong regex path back to user-friendly format for URL storage
+    // ~/path/(?<param>[^/]+) -> /path/{param}
+    const cleanPath = this.convertKongPathToClean(data.downstream.path);
 
     const createdRoute = await this.routeRepository.save(
       this.routeRepository.create({
@@ -1039,21 +1066,29 @@ export class APIService {
       );
     }
 
+    // Build update object conditionally - only include fields that are being changed
+    const updateData: any = {
+      serviceId: gatewayService.id,
+    };
+
+    if (name !== undefined) updateData.name = name;
+    if (gatewayRoute?.name !== undefined) updateData.slug = gatewayRoute.name;
+    if (introspectAuthorization !== undefined) updateData.introspectAuthorization = introspectAuthorization;
+    if (gatewayRoute?.id !== undefined) updateData.routeId = gatewayRoute.id;
+    if (enabled !== undefined) updateData.enabled = enabled;
+    if (tiers !== undefined) updateData.tiers = tiers;
+    
+    // Only update downstream fields if downstream object is provided
+    if (downstream) {
+      if (downstream.url !== undefined) updateData.url = downstream.url;
+      if (downstream.method !== undefined) updateData.method = downstream.method;
+      if (downstream.request !== undefined) updateData.request = downstream.request;
+      if (downstream.response !== undefined) updateData.response = downstream.response;
+    }
+
     await this.routeRepository.update(
       { id: route.id, environment },
-      {
-        name,
-        slug: gatewayRoute?.name,
-        introspectAuthorization,
-        serviceId: gatewayService.id,
-        routeId: gatewayRoute?.id,
-        enabled,
-        url: downstream?.url,
-        method: downstream?.method,
-        request: downstream?.request,
-        response: downstream?.response,
-        tiers,
-      },
+      updateData,
     );
 
     if (gatewayRoute) {

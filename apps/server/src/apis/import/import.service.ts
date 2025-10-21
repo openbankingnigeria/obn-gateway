@@ -249,11 +249,19 @@ export class ApiSpecImportService {
     override?: string,
   ): string {
     const baseUrl = override || metadata.baseUrl || '';
-    return `${baseUrl}${endpoint.path}`;
+    // Convert {param} to :param for upstream URL
+    const expressPath = endpoint.path.replace(/\{([^}]+)\}/g, ':$1');
+    return `${baseUrl}${expressPath}`;
   }
 
+  /**
+   * Transform OpenAPI-style path to Kong regex format
+   * Example: /users/{userId} -> ~/users/(?<userId>[^/]+)
+   */
   private transformPath(path: string): string {
-    return path.replace(/\{([^}]+)\}/g, ':$1');
+    // Convert {paramName} to Kong's named capture group format
+    const kongPath = path.replace(/\{([^}]+)\}/g, '(?<$1>[^/]+)');
+    return `~${kongPath}`;
   }
 
   private extractHeaders(parameters: any[]): any[] {
