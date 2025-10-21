@@ -185,3 +185,25 @@ export interface ImportedSpecDataProps {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ImportedSpecDetailProps extends ImportedSpecDataProps {
+  parsedMetadata?: any;
+  errorLog?: Array<{
+    endpoint: string;
+    error: string;
+    details?: any;
+  }>;
+
+  originalSpec?: string;
+  importedBy?: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  collection?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+}

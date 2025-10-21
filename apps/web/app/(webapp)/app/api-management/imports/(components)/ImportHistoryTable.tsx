@@ -9,6 +9,7 @@ import { toast } from 'react-toastify'
 import * as API from '@/config/endpoints'
 import { getJsCookies } from '@/config/jsCookie'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 const ImportHistoryTable = ({
   tableHeaders,
@@ -54,35 +55,16 @@ const ImportHistoryTable = ({
     }
   }
 
-  const handleDelete = async (importId: string) => {
-    if (!confirm('Are you sure you want to delete this import record?')) {
-      return
-    }
-
-    setLoading(importId)
-    
-    const result: any = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.deleteAPIImport({ 
-        environment: environment || 'development',
-        id: importId 
-      }),
-      method: 'DELETE',
-      data: null,
-    })
-
-    setLoading(null)
-
-    if (result?.message) {
-      toast.success('Import record deleted successfully')
-      router.refresh()
-    }
-  }
-
   const actionColumn = columnHelper.accessor('actions', {
     header: () => 'Actions',
     cell: ({ row }) => (
       <div className='flex items-center gap-[12px]'>
+        <Link
+          href={`/app/api-management/imports/${row.original.id}`}
+          className='text-f14 text-[#5277C7] cursor-pointer hover:underline'
+        >
+          View
+        </Link>
         {
           (row.original.importStatus === 'failed' || row.original.importStatus === 'partial') &&
           <button
@@ -93,13 +75,6 @@ const ImportHistoryTable = ({
             {loading === row.original.id ? 'Retrying...' : 'Retry'}
           </button>
         }
-        <button
-          onClick={() => handleDelete(row.original.id)}
-          disabled={loading === row.original.id}
-          className='text-f14 text-[#DF1C41] cursor-pointer hover:underline disabled:opacity-50'
-        >
-          {loading === row.original.id ? 'Deleting...' : 'Delete'}
-        </button>
       </div>
     )
   })

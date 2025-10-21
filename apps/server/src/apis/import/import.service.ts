@@ -15,7 +15,7 @@ import {
   ParsedSpecResult,
   ImportEndpointsResult,
 } from './interfaces/parser.interface';
-import { ImportApiSpecDto, ImportHistoryItemDto, ImportDetailDto } from './dto/import.dto';
+import { ImportApiSpecDto, ImportHistoryItemDto, ImportDetailDto, ImportResultDto, ImportErrorDto } from './dto/import.dto';
 import { CreateAPIDto } from '../dto/index.dto';
 import { RequestContext } from '@common/utils/request/request-context';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
@@ -139,13 +139,18 @@ export class ApiSpecImportService {
     results: ImportEndpointsResult,
     ctx: RequestContext,
   ): Promise<void> {
+    // Only store errorLog if there are actual errors with content
+    const errorLog = results.errors && results.errors.length > 0 
+      ? results.errors.filter(err => err && (err.endpoint || err.error))
+      : [];
+
     await this.importedSpecRepo.update(importId, {
       importStatus: results.failedCount > 0 
         ? ImportStatus.PARTIAL 
         : ImportStatus.COMPLETED,
       importedCount: results.successCount,
       failedCount: results.failedCount,
-      errorLog: results.errors,
+      errorLog: errorLog.length > 0 ? errorLog : undefined,
     });
 
     const event = new ImportApiSpecEvent(ctx.activeUser, {
@@ -317,7 +322,7 @@ export class ApiSpecImportService {
   ) {
     const importRecord = await this.importedSpecRepo.findOne({
       where: { id: Equal(importId) },
-      relations: ['collection'],
+      relations: ['collection', 'importedBy', 'importedBy.profile'],
     });
 
     if (!importRecord) {
@@ -339,14 +344,96 @@ export class ApiSpecImportService {
       environment: importRecord.environment,
       parsedMetadata: importRecord.parsedMetadata,
       errorLog: importRecord.errorLog || [],
+      originalSpec: importRecord.originalSpec,
       createdAt: importRecord.createdAt,
       updatedAt: importRecord.updatedAt,
+      importedBy: importRecord.importedBy ? {
+        id: importRecord.importedBy.id,
+        email: importRecord.importedBy.email,
+        firstName: importRecord.importedBy.profile?.firstName,
+        lastName: importRecord.importedBy.profile?.lastName,
+      } : undefined,
+      collection: importRecord.collection ? {
+        id: importRecord.collection.id,
+        name: importRecord.collection.name,
+        slug: importRecord.collection.slug,
+      } : undefined,
     });
 
     return ResponseFormatter.success(
       'Import details retrieved successfully',
       importDto,
     );
+  }
+
+  async getImportForRetry(
+    importId: string,
+  ) {
+    const importRecord = await this.importedSpecRepo.findOne({
+      where: { id: Equal(importId) },
+      relations: ['collection'],
+    });
+
+    if (!importRecord) {
+      throw new INotFoundException({
+        message: `Import record ${importId} not found`,
+      });
+    }
+
+    // Can only retry failed or partial imports
+    if (importRecord.importStatus === ImportStatus.COMPLETED) {
+      throw new IBadRequestException({
+        message: 'Cannot retry a completed import with no failures',
+      });
+    }
+
+    if (!importRecord.errorLog || importRecord.errorLog.length === 0) {
+      throw new IBadRequestException({
+        message: 'No failed endpoints to retry',
+      });
+    }
+
+    return importRecord;
+  }
+
+  async updateImportAfterRetry(
+    importId: string,
+    successCount: number,
+    errors: ImportErrorDto[],
+  ) {
+    const importRecord = await this.importedSpecRepo.findOne({
+      where: { id: Equal(importId) },
+    });
+
+    if (!importRecord) {
+      return;
+    }
+
+    // Update the import record with retry results
+    const newFailedCount = errors.length;
+    const newImportedCount = importRecord.importedCount + successCount;
+
+    // Only store errorLog if there are actual errors with content
+    const filteredErrors = errors && errors.length > 0 
+      ? errors.filter(err => err && (err.endpoint || err.error))
+      : [];
+
+    importRecord.errorLog = filteredErrors;
+    importRecord.failedCount = newFailedCount;
+    importRecord.importedCount = newImportedCount;
+
+    // Update status based on results
+    if (newFailedCount === 0) {
+      importRecord.importStatus = ImportStatus.COMPLETED;
+    } else if (successCount > 0) {
+      importRecord.importStatus = ImportStatus.PARTIAL;
+    } else {
+      importRecord.importStatus = ImportStatus.FAILED;
+    }
+
+    await this.importedSpecRepo.save(importRecord);
+
+    return importRecord;
   }
 
   async deleteImport(

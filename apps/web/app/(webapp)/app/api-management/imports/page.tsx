@@ -55,19 +55,6 @@ const ImportHistoryPage = async ({ searchParams }: ImportHistoryPageProps) => {
     data: null,
   })
 
-  // Debug logging
-  console.log('=== IMPORTS PAGE DEBUG ===');
-  console.log('API Endpoint:', API.getAPIImports({
-    environment: environment || 'development',
-    page: page || '1',
-    limit: rows || '10',
-  }));
-  console.log('Result Status:', result?.status);
-  console.log('Result Data:', result?.data);
-  console.log('Result meta_data:', result?.meta_data);
-  console.log('Result message:', result?.message);
-  console.log('=========================')
-
   /** REFRESH TOKEN CHECK */
   let refreshTokenRes = null; 
   

@@ -149,4 +149,19 @@ export class ImportDetailDto extends ImportHistoryItemDto {
 
   @Expose()
   originalSpec?: string;
+
+  @Expose()
+  importedBy?: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
+
+  @Expose()
+  collection?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }

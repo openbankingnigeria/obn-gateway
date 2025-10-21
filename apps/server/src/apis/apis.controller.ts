@@ -34,6 +34,10 @@ import {
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { APIFilters } from './apis.filter';
 import {
+  IBadRequestException,
+  INotFoundException,
+} from '@common/utils/exceptions/exceptions';
+import {
   Ctx,
   RequireTwoFA,
   RequiredPermission,
@@ -44,6 +48,8 @@ import { APIInterceptor } from './apis.interceptor';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
 import { apiSuccessMessages } from './apis.constants';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ImportApiSpecEvent } from '@shared/events/api.event';
 
 @Controller('apis/:environment')
 @UseInterceptors(APIInterceptor)
@@ -51,6 +57,7 @@ export class APIController {
   constructor(
     private readonly apiService: APIService,
     private readonly importService: ApiSpecImportService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Get('')
@@ -248,6 +255,98 @@ export class APIController {
     return this.importService.getImport(ctx, importId);
   }
 
+  @Post('imports/:importId/retry')
+  @HttpCode(200)
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.IMPORT_API_SPEC)
+  async retryImport(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('importId') importId: string,
+  ) {
+    const environment = params.environment;
+
+    // Get import record and validate
+    const importRecord = await this.importService.getImportForRetry(importId);
+
+    // Parse the original spec
+    const parsedSpec = await this.importService.parseAndValidateSpec(
+      ctx,
+      environment,
+      {
+        specFile: importRecord.originalSpec,
+        collectionId: importRecord.collectionId,
+      } as ImportApiSpecDto,
+    );
+
+    // Filter to only failed endpoints
+    const failedEndpointPaths = importRecord.errorLog.map((err: any) => err.endpoint);
+    const endpointsToRetry = parsedSpec.parsed.endpoints.filter((endpoint: any) => 
+      failedEndpointPaths.includes(`${endpoint.method} ${endpoint.path}`)
+    );
+
+    // Re-import the failed endpoints
+    const { errors } = await this.importEndpoints(
+      ctx,
+      environment,
+      endpointsToRetry,
+      importRecord.collectionId,
+      {} as ImportApiSpecDto, // Empty options for retry
+      parsedSpec.parsed.metadata,
+    );
+
+    const successCount = endpointsToRetry.length - errors.length;
+
+    // Update import record
+    const updatedRecord = await this.importService.updateImportAfterRetry(
+      importId,
+      successCount,
+      errors,
+    );
+
+    if (!updatedRecord) {
+      throw new INotFoundException({
+        message: `Import record ${importId} not found after update`,
+      });
+    }
+
+    // Emit event
+    this.eventEmitter.emit(
+      'import.retried',
+      new ImportApiSpecEvent(
+        ctx.activeUser,
+        {
+          importId: updatedRecord.id,
+          collectionId: updatedRecord.collectionId,
+          environment: updatedRecord.environment,
+          totalEndpoints: endpointsToRetry.length,
+          successCount,
+          failedCount: errors.length,
+          status: updatedRecord.importStatus,
+        },
+      ),
+    );
+
+    // Return results
+    const resultDto = Object.assign(new ImportResultDto(), {
+      importId: updatedRecord.id,
+      collectionId: updatedRecord.collectionId,
+      totalEndpoints: endpointsToRetry.length,
+      successCount,
+      failedCount: errors.length,
+      status: updatedRecord.importStatus,
+      errors,
+    });
+
+    return ResponseFormatter.success(
+      'Import retry completed',
+      resultDto,
+    );
+  }
+
+  // DELETE endpoint commented out - import history should be immutable for audit purposes
+  // Soft delete is still available via database if needed for admin cleanup
+  /*
   @Delete('imports/:importId')
   @UsePipes(IValidationPipe)
   @RequiredPermission(PERMISSIONS.DELETE_API_ENDPOINT)
@@ -258,6 +357,7 @@ export class APIController {
   ) {
     return this.importService.deleteImport(ctx, importId);
   }
+  */
 
   @Put('company/:companyId')
   @UsePipes(IValidationPipe)
