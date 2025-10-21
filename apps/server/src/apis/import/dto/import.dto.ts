@@ -104,3 +104,49 @@ export class ImportErrorDto {
   @IsOptional()
   details?: any;
 }
+
+export class ImportHistoryItemDto {
+  @Expose()
+  id: string;
+
+  @Expose()
+  name: string;
+
+  @Expose()
+  specFormat: string;
+
+  @Expose()
+  specVersion: string;
+
+  @Expose()
+  importStatus: string;
+
+  @Expose()
+  importedCount: number;
+
+  @Expose()
+  failedCount: number;
+
+  @Expose()
+  collectionId: string;
+
+  @Expose()
+  environment: string;
+
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  updatedAt: Date;
+}
+
+export class ImportDetailDto extends ImportHistoryItemDto {
+  @Expose()
+  parsedMetadata: any;
+
+  @Expose()
+  errorLog: ImportErrorDto[];
+
+  @Expose()
+  originalSpec?: string;
+}

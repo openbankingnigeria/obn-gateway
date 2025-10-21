@@ -15,7 +15,7 @@ import {
   ParsedSpecResult,
   ImportEndpointsResult,
 } from './interfaces/parser.interface';
-import { ImportApiSpecDto } from './dto/import.dto';
+import { ImportApiSpecDto, ImportHistoryItemDto, ImportDetailDto } from './dto/import.dto';
 import { CreateAPIDto } from '../dto/index.dto';
 import { RequestContext } from '@common/utils/request/request-context';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
@@ -25,6 +25,8 @@ import {
 } from '@common/utils/exceptions/exceptions';
 import { ImportStatus, SpecFormat } from '@common/database/entities/importedapispec.entity';
 import { ImportApiSpecEvent } from '@shared/events/api.event';
+import { PaginationParameters } from '@common/utils/pipes/query/pagination.pipe';
+import { ResponseFormatter, ResponseMetaDTO } from '@common/utils/response/response.formatter';
 
 @Injectable()
 export class ApiSpecImportService {
@@ -33,8 +35,6 @@ export class ApiSpecImportService {
     private readonly importedSpecRepo: Repository<ImportedApiSpec>,
     @InjectRepository(Collection)
     private readonly collectionRepo: Repository<Collection>,
-    // Removed: CollectionRoute repository (not needed)
-    // Removed: APIService injection (violates architecture)
     private readonly openApiV3Parser: OpenApiV3Parser,
     private readonly swaggerV2Parser: SwaggerV2Parser,
     private readonly postmanV2Parser: PostmanV2Parser,
@@ -71,10 +71,6 @@ export class ApiSpecImportService {
     }
   }
 
-  /**
-   * Parse and validate an API spec file
-   * Returns parsed spec data ready for import
-   */
   async parseAndValidateSpec(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -111,10 +107,6 @@ export class ApiSpecImportService {
     };
   }
 
-  /**
-   * Create an import record in the database
-   * Returns the created ImportedApiSpec entity
-   */
   async createImportRecord(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -141,10 +133,6 @@ export class ApiSpecImportService {
     return importedSpec;
   }
 
-  /**
-   * Finalize an import record after endpoint creation
-   * Updates status and counts, emits audit event
-   */
   async finalizeImport(
     importId: string,
     collectionId: string,
@@ -169,10 +157,6 @@ export class ApiSpecImportService {
     this.eventEmitter.emit(event.name, event);
   }
 
-  /**
-   * Transform a parsed endpoint to CreateAPIDto
-   * Pure transformation function with no side effects
-   */
   transformEndpointToApiDto(
     endpoint: ParsedEndpoint,
     collectionId: string,
@@ -210,10 +194,6 @@ export class ApiSpecImportService {
     };
   }
 
-  /**
-   * Get or create a collection for the import
-   * Private helper method
-   */
   private async getOrCreateCollection(
     parsed: any,
     options: ImportApiSpecDto,
@@ -288,5 +268,105 @@ export class ApiSpecImportService {
 
   private transformResponses(responses: any): any[] {
     return [];
+  }
+  async listImports(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    { limit, page }: PaginationParameters,
+  ) {
+    const [imports, totalNumberOfRecords] = await this.importedSpecRepo.findAndCount({
+      where: { environment },
+      relations: ['collection'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    // Transform to DTOs for proper serialization
+    const importDtos = imports.map(imp => 
+      Object.assign(new ImportHistoryItemDto(), {
+        id: imp.id,
+        name: imp.name,
+        specFormat: imp.specFormat,
+        specVersion: imp.specVersion,
+        importStatus: imp.importStatus,
+        importedCount: imp.importedCount || 0,
+        failedCount: imp.failedCount || 0,
+        collectionId: imp.collectionId,
+        environment: imp.environment,
+        createdAt: imp.createdAt,
+        updatedAt: imp.updatedAt,
+      })
+    );
+
+    return ResponseFormatter.success(
+      'Import history retrieved successfully',
+      importDtos,
+      new ResponseMetaDTO({
+        totalNumberOfRecords,
+        totalNumberOfPages: Math.ceil(totalNumberOfRecords / limit),
+        pageNumber: page,
+        pageSize: limit,
+      }),
+    );
+  }
+
+  async getImport(
+    ctx: RequestContext,
+    importId: string,
+  ) {
+    const importRecord = await this.importedSpecRepo.findOne({
+      where: { id: Equal(importId) },
+      relations: ['collection'],
+    });
+
+    if (!importRecord) {
+      throw new INotFoundException({
+        message: `Import record ${importId} not found`,
+      });
+    }
+
+    // Transform to DTO for proper serialization
+    const importDto = Object.assign(new ImportDetailDto(), {
+      id: importRecord.id,
+      name: importRecord.name,
+      specFormat: importRecord.specFormat,
+      specVersion: importRecord.specVersion,
+      importStatus: importRecord.importStatus,
+      importedCount: importRecord.importedCount || 0,
+      failedCount: importRecord.failedCount || 0,
+      collectionId: importRecord.collectionId,
+      environment: importRecord.environment,
+      parsedMetadata: importRecord.parsedMetadata,
+      errorLog: importRecord.errorLog || [],
+      createdAt: importRecord.createdAt,
+      updatedAt: importRecord.updatedAt,
+    });
+
+    return ResponseFormatter.success(
+      'Import details retrieved successfully',
+      importDto,
+    );
+  }
+
+  async deleteImport(
+    ctx: RequestContext,
+    importId: string,
+  ) {
+    const importRecord = await this.importedSpecRepo.findOne({
+      where: { id: Equal(importId) },
+    });
+
+    if (!importRecord) {
+      throw new INotFoundException({
+        message: `Import record ${importId} not found`,
+      });
+    }
+
+    await this.importedSpecRepo.remove(importRecord);
+
+    return ResponseFormatter.success(
+      'Import record deleted successfully',
+    );
   }
 }

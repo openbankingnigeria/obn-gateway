@@ -26,7 +26,7 @@ import {
   SetAPITransformationDTO,
   UpdateCompanyAPIAccessDto,
 } from './dto/index.dto';
-import { ImportApiSpecDto, ImportResultDto, ImportErrorDto } from './import/dto/import.dto';
+import { ImportApiSpecDto, ImportResultDto, ImportErrorDto, ImportHistoryItemDto, ImportDetailDto } from './import/dto/import.dto';
 import {
   PaginationParameters,
   PaginationPipe,
@@ -224,6 +224,39 @@ export class APIController {
       }
     }
     return undefined;
+  }
+
+  @Get('imports')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_API_ENDPOINTS)
+  async listImports(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+  ) {
+    return this.importService.listImports(ctx, params.environment, pagination);
+  }
+
+  @Get('imports/:importId')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_API_ENDPOINT)
+  async getImport(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('importId') importId: string,
+  ) {
+    return this.importService.getImport(ctx, importId);
+  }
+
+  @Delete('imports/:importId')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.DELETE_API_ENDPOINT)
+  async deleteImport(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('importId') importId: string,
+  ) {
+    return this.importService.deleteImport(ctx, importId);
   }
 
   @Put('company/:companyId')
