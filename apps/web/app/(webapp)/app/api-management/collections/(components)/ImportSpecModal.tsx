@@ -9,6 +9,7 @@ import { ImportSpecModalProps } from '@/types/webappTypes/componentsTypes'
 import React, { FormEvent, useState } from 'react'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
+import { IoInformationCircleOutline } from 'react-icons/io5'
 
 const ImportSpecModal = ({
   close,
@@ -283,38 +284,66 @@ const ImportSpecModal = ({
           </p>
         </div>
 
-        <div className='flex items-center gap-[12px] p-[16px] border border-o-border rounded-[8px]'>
+        {/* Enable APIs by Default Checkbox */}
+        <div className='flex items-start gap-[8px] p-[16px] bg-o-bg-disabled rounded-[8px] border border-o-border'>
           <input
             type='checkbox'
             id='enableByDefault'
             name='enableByDefault'
             checked={enableByDefault}
             onChange={(e) => setEnableByDefault(e.target.checked)}
-            className='w-[18px] h-[18px] cursor-pointer'
+            className='w-[18px] h-[18px] mt-[2px] cursor-pointer flex-shrink-0'
           />
-          <label
-            htmlFor='enableByDefault'
-            className='text-f14 text-o-text-dark cursor-pointer'
-          >
-            Enable APIs by default
-          </label>
+          <div className='flex-1'>
+            <label
+              htmlFor='enableByDefault'
+              className='text-f14 font-[500] text-o-text-dark cursor-pointer'
+            >
+              Enable APIs by Default
+            </label>
+            <p className='text-f12 text-o-text-medium3 mt-[4px]'>
+              Make imported endpoints immediately available to consumers
+            </p>
+          </div>
         </div>
 
-        <div className='flex items-center gap-[12px] p-[16px] border border-o-border rounded-[8px]'>
+        {/* Require Authorization Checkbox */}
+        <div className='flex items-start gap-[8px] p-[16px] bg-o-bg-disabled rounded-[8px] border border-o-border'>
           <input
             type='checkbox'
             id='requireAuth'
             name='requireAuth'
             checked={requireAuth}
             onChange={(e) => setRequireAuth(e.target.checked)}
-            className='w-[18px] h-[18px] cursor-pointer'
+            className='w-[18px] h-[18px] mt-[2px] cursor-pointer flex-shrink-0'
           />
-          <label
-            htmlFor='requireAuth'
-            className='text-f14 text-o-text-dark cursor-pointer'
-          >
-            Require introspect authorization
-          </label>
+          <div className='flex-1'>
+            <label
+              htmlFor='requireAuth'
+              className='text-f14 font-[500] text-o-text-dark cursor-pointer flex items-center gap-[6px]'
+            >
+              Enable OAuth Token Validation
+              <div className='relative group'>
+                <IoInformationCircleOutline 
+                  size={18} 
+                  className='text-o-text-medium3 cursor-help'
+                />
+                <div className='absolute left-0 top-[24px] w-[320px] p-[12px] bg-o-text-dark text-white text-f12 rounded-[6px] shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50'>
+                  <p className='font-[500] mb-[6px]'>What this does:</p>
+                  <ul className='space-y-[4px] text-f11'>
+                    <li>• Validates OAuth 2.0 access tokens via introspection</li>
+                    <li>• Verifies token scopes and client permissions</li>
+                    <li>• Rejects unauthorized requests automatically</li>
+                  </ul>
+                  <p className='mt-[8px] text-f11'>Only enable if you have an OAuth authorization server configured.</p>
+                  <div className='absolute -top-[6px] left-[12px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-o-text-dark'></div>
+                </div>
+              </div>
+            </label>
+            <p className='text-f12 text-o-text-medium3 mt-[4px]'>
+              Requires OAuth 2.0 tokens with valid scopes for API access
+            </p>
+          </div>
         </div>
       </div>
 
