@@ -251,7 +251,7 @@ const ImportSpecModal = ({
             placeholder='https://api.backend.com'
           />
           <p className='text-f12 text-o-text-muted2'>
-            Override base URL from specification
+            Base URL for the actual API server. Required if not defined in the spec file (e.g., Postman collections without baseUrl variable).
           </p>
         </div>
 

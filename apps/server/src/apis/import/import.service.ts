@@ -234,6 +234,23 @@ export class ApiSpecImportService {
     override?: string,
   ): string {
     const baseUrl = override || metadata.baseUrl || '';
+    
+    // If no base URL is provided, we cannot construct a valid upstream URL
+    if (!baseUrl) {
+      throw new IBadRequestException({
+        message: `Cannot import endpoint ${endpoint.method} ${endpoint.path}: No upstream base URL provided. Please specify an upstream base URL in the import configuration.`,
+      });
+    }
+
+    // Validate that baseUrl is a valid URL
+    try {
+      new URL(baseUrl);
+    } catch (error) {
+      throw new IBadRequestException({
+        message: `Invalid upstream base URL: ${baseUrl}. Please provide a valid URL (e.g., https://api.example.com)`,
+      });
+    }
+
     // Convert {param} to :param for upstream URL
     const expressPath = endpoint.path.replace(/\{([^}]+)\}/g, ':$1');
     return `${baseUrl}${expressPath}`;
