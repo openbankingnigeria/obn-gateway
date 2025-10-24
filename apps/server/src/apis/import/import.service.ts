@@ -182,19 +182,21 @@ export class ApiSpecImportService {
       introspectAuthorization: options.requireAuth ?? false,
       upstream: {
         url: upstreamUrl,
-        method: endpoint.method,
+        method: options.upstreamMethod || endpoint.method,
         headers: this.extractHeaders(endpoint.parameters || []),
         querystring: this.extractQueryParams(endpoint.parameters || []),
         body: this.extractBodyParams(endpoint.requestBody),
+        transformations: options.transformationRules?.upstream,
       },
       downstream: {
         path: this.transformPath(endpoint.path),
-        method: endpoint.method,
+        method: (options.downstreamMethod || endpoint.method) as any,
         url: options.downstreamBaseUrl
           ? `${options.downstreamBaseUrl}${endpoint.path}`
           : '',
         request: this.transformRequest(endpoint),
         response: this.transformResponses(endpoint.responses),
+        responseTransformations: options.transformationRules?.downstream,
       },
     };
   }

@@ -27,6 +27,8 @@ const ImportSpecModal = ({
   const [enableByDefault, setEnableByDefault] = useState(true)
   const [defaultTiers, setDefaultTiers] = useState('0,1')
   const [requireAuth, setRequireAuth] = useState(false)
+  const [upstreamMethod, setUpstreamMethod] = useState('')
+  const [downstreamMethod, setDownstreamMethod] = useState('')
   const [importResult, setImportResult] = useState<ImportResultDataProps | null>(null)
 
   const incorrect = !specFile || (!selectedCollectionId && !collectionName)
@@ -56,6 +58,13 @@ const ImportSpecModal = ({
       formData.append('enableByDefault', String(enableByDefault))
       formData.append('defaultTiers', defaultTiers)
       formData.append('requireAuth', String(requireAuth))
+      
+      if (upstreamMethod) {
+        formData.append('upstreamMethod', upstreamMethod)
+      }
+      if (downstreamMethod) {
+        formData.append('downstreamMethod', downstreamMethod)
+      }
 
       const result: any = await clientAxiosRequest({
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -282,6 +291,50 @@ const ImportSpecModal = ({
           <p className='text-f12 text-o-text-muted2'>
             Comma-separated tier values for imported endpoints
           </p>
+        </div>
+
+        {/* Method Transformation (Optional) */}
+        <div className='flex flex-col gap-[6px]'>
+          <label className='text-f14 font-[600] text-o-text-dark'>
+            Method Transformation (Optional)
+          </label>
+          <p className='text-f12 text-o-text-medium3 mb-[8px]'>
+            Override HTTP methods for all imported endpoints. Leave empty to use methods from specification.
+          </p>
+          <div className='grid grid-cols-2 gap-[12px]'>
+            <SelectElement
+              name='downstreamMethod'
+              label='Gateway Method'
+              value={downstreamMethod}
+              changeValue={setDownstreamMethod}
+              options={[
+                { value: '', label: 'Use spec method' },
+                { value: 'GET', label: 'GET' },
+                { value: 'POST', label: 'POST' },
+                { value: 'PUT', label: 'PUT' },
+                { value: 'PATCH', label: 'PATCH' },
+                { value: 'DELETE', label: 'DELETE' },
+                { value: 'OPTIONS', label: 'OPTIONS' },
+                { value: 'HEAD', label: 'HEAD' },
+              ]}
+            />
+            <SelectElement
+              name='upstreamMethod'
+              label='Backend Method'
+              value={upstreamMethod}
+              changeValue={setUpstreamMethod}
+              options={[
+                { value: '', label: 'Use spec method' },
+                { value: 'GET', label: 'GET' },
+                { value: 'POST', label: 'POST' },
+                { value: 'PUT', label: 'PUT' },
+                { value: 'PATCH', label: 'PATCH' },
+                { value: 'DELETE', label: 'DELETE' },
+                { value: 'OPTIONS', label: 'OPTIONS' },
+                { value: 'HEAD', label: 'HEAD' },
+              ]}
+            />
+          </div>
         </div>
 
         {/* Enable APIs by Default Checkbox */}

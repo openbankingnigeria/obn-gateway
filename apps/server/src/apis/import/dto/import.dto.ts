@@ -6,8 +6,11 @@ import {
   IsArray,
   IsUrl,
   IsNotEmpty,
+  IsEnum,
+  IsObject,
 } from 'class-validator';
 import { Expose, Transform } from 'class-transformer';
+import { HTTP_METHODS } from '../../types';
 
 export class ImportApiSpecDto {
   @IsOptional()
@@ -68,6 +71,33 @@ export class ImportApiSpecDto {
     return value;
   })
   requireAuth?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(HTTP_METHODS)
+  upstreamMethod?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(HTTP_METHODS)
+  downstreamMethod?: string;
+
+  @IsOptional()
+  @IsObject()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return undefined;
+      }
+    }
+    return value;
+  })
+  transformationRules?: {
+    upstream?: any;
+    downstream?: any;
+  };
 }
 
 export class ImportResultDto {

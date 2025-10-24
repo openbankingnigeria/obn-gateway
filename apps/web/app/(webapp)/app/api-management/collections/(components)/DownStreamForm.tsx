@@ -1,6 +1,6 @@
 'use client'
 
-import { InputElement } from '@/components/forms'
+import { InputElement, SelectElement } from '@/components/forms'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes';
 import React, { ChangeEvent, useEffect, useState } from 'react'
 import { motion } from 'framer-motion';
@@ -9,6 +9,7 @@ import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
 import { getJsCookies } from '@/config/jsCookie';
+import { HeaderMappingBuilder, HeaderMapping } from './HeaderMappingBuilder';
 
 const DownStreamForm = ({
   rawData,
@@ -22,6 +23,9 @@ const DownStreamForm = ({
   const [currentValue, setCurrentValue] = useState('header');
   // const [currentResValue, setCurrentResValue] = useState('body');
   const [loading, setLoading] = useState(false);
+  const [responseHeaderMappings, setResponseHeaderMappings] = useState<HeaderMapping[]>(
+    rawData?.downstream?.responseTransformations?.headerMappings || []
+  );
   // const [open2FA, setOpen2FA] = useState(false);
   const environment = getJsCookies('environment');
 
@@ -85,6 +89,10 @@ const DownStreamForm = ({
           "downstream": {
             ...rawData?.downstream,
             path,
+            method: request_method,
+            responseTransformations: {
+              headerMappings: responseHeaderMappings.filter(m => m.from && m.operation),
+            }
           }
         }
       });
@@ -267,13 +275,20 @@ const DownStreamForm = ({
                 value={api_name}
                 required
               />
-              <InputElement 
+              <SelectElement
                 name='request_method'
-                type='text'
-                placeholder=''
                 label='Method'
-                disabled
                 value={request_method}
+                changeValue={setRequestMethod}
+                options={[
+                  { value: 'GET', label: 'GET' },
+                  { value: 'POST', label: 'POST' },
+                  { value: 'PUT', label: 'PUT' },
+                  { value: 'PATCH', label: 'PATCH' },
+                  { value: 'DELETE', label: 'DELETE' },
+                  { value: 'OPTIONS', label: 'OPTIONS' },
+                  { value: 'HEAD', label: 'HEAD' },
+                ]}
                 required
               />
               {/* <InputElement 
@@ -294,6 +309,14 @@ const DownStreamForm = ({
                 disabled={false}
                 value={path}
                 required
+              />
+
+              {/* Response Header Transformations */}
+              <HeaderMappingBuilder
+                mappings={responseHeaderMappings}
+                onMappingsChange={setResponseHeaderMappings}
+                direction='response'
+                disabled={false}
               />
 
               <div className='w-full flex justify-end'>

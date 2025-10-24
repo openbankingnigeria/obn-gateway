@@ -10,6 +10,8 @@ import { useRouter } from 'next/navigation';
 import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
 import { HeadersContainer, KeyValueContainer } from '.';
 import { getJsCookies } from '@/config/jsCookie';
+import { MethodMapper } from './MethodMapper';
+import { HeaderMappingBuilder, HeaderMapping } from './HeaderMappingBuilder';
 
 const UpStreamForm = ({
   rawData,
@@ -28,6 +30,13 @@ const UpStreamForm = ({
   );
   const [endpointUrl, setEndpointUrl] = useState(rawData?.upstream?.url || '');
   const [tiers, setTiers] = useState(rawData?.tiers?.join(',') || '');
+  const [upstreamMethod, setUpstreamMethod] = useState(
+    rawData?.upstream?.transformations?.method || rawData?.upstream?.method || rawData?.downstream?.method || 'GET'
+  );
+  const [downstreamMethod, setDownstreamMethod] = useState(rawData?.downstream?.method || 'GET');
+  const [headerMappings, setHeaderMappings] = useState<HeaderMapping[]>(
+    rawData?.upstream?.transformations?.headerMappings || []
+  );
   // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const environment = getJsCookies('environment');
@@ -131,6 +140,7 @@ const UpStreamForm = ({
             "upstream": {
               ...rawData?.upstream,
               url: endpointUrl,
+              method: upstreamMethod,
               headers: headers?.map((header) => {
                 return({
                   key: header?.key,
@@ -149,6 +159,10 @@ const UpStreamForm = ({
                   value: qs?.value
                 })
               }),
+              transformations: {
+                method: upstreamMethod,
+                headerMappings: headerMappings.filter(m => m.from && m.operation),
+              }
             },
           }
         });
@@ -232,6 +246,17 @@ const UpStreamForm = ({
               required
             />
 
+            {/* Method Mapping */}
+            {!previewPage && (
+              <MethodMapper
+                downstreamMethod={downstreamMethod}
+                upstreamMethod={upstreamMethod}
+                onDownstreamChange={setDownstreamMethod}
+                onUpstreamChange={setUpstreamMethod}
+                disabled={previewPage}
+              />
+            )}
+
           <div className='w-full flex flex-col gap-[12px]'>
             <KeyValueContainer 
               data={headers}
@@ -273,6 +298,16 @@ const UpStreamForm = ({
               label='Query string'
             />
           </div>
+
+            {/* Header Transformations */}
+            {!previewPage && (
+              <HeaderMappingBuilder
+                mappings={headerMappings}
+                onMappingsChange={setHeaderMappings}
+                direction='request'
+                disabled={previewPage}
+              />
+            )}
 
             {/* <div className='w-full flex items-end gap-[12px]'>
               <InputElement 

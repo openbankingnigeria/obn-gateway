@@ -670,7 +670,8 @@ export class APIService {
       upstream.querystring ||
       upstream.body ||
       upstream.method ||
-      upstream.url
+      upstream.url ||
+      upstream.transformations
     ) {
       const config: {
         http_method: string | undefined;
@@ -684,25 +685,60 @@ export class APIService {
           querystring: string[];
           body: string[];
         };
+        rename?: {
+          headers: string[];
+          body: string[];
+        };
         replace: {
           uri?: string;
+          headers?: string[];
         };
       } = {
-        http_method: upstream.method?.toUpperCase(),
+        http_method:
+          upstream.transformations?.method?.toUpperCase() ||
+          upstream.method?.toUpperCase(),
         remove: {
-          headers: upstream.headers?.map((h) => `${h.key}:${h.value}`) || [],
-          querystring:
-            upstream.querystring?.map((h) => `${h.key}:${h.value}`) || [],
-          body: upstream.body?.map((h) => `${h.key}:${h.value}`) || [],
+          headers: this.buildHeaderRemovals(
+            upstream.transformations?.headerMappings,
+          ),
+          querystring: [],
+          body: this.buildBodyRemovals(upstream.transformations?.bodyMappings),
         },
         add: {
-          headers: upstream.headers?.map((h) => `${h.key}:${h.value}`) || [],
-          querystring:
-            upstream.querystring?.map((h) => `${h.key}:${h.value}`) || [],
-          body: upstream.body?.map((h) => `${h.key}:${h.value}`) || [],
+          headers: this.buildHeaderAdditions(
+            upstream.headers || [],
+            upstream.transformations?.headerMappings,
+          ),
+          querystring: [],
+          body: this.buildBodyAdditions(
+            upstream.body || [],
+            upstream.transformations?.bodyMappings,
+          ),
         },
         replace: {},
       };
+
+      // Add rename operations if they exist
+      const headerRenames = this.buildHeaderRenames(
+        upstream.transformations?.headerMappings,
+      );
+      const bodyRenames = this.buildBodyRenames(
+        upstream.transformations?.bodyMappings,
+      );
+      if (headerRenames.length > 0 || bodyRenames.length > 0) {
+        config.rename = {
+          headers: headerRenames,
+          body: bodyRenames,
+        };
+      }
+
+      // Add header replacements if they exist
+      const headerReplacements = this.buildHeaderReplacements(
+        upstream.transformations?.headerMappings,
+      );
+      if (headerReplacements.length > 0) {
+        config.replace.headers = headerReplacements;
+      }
 
       if (upstream.url) {
         const { pathname, searchParams } = new URL(upstream.url);
@@ -710,9 +746,19 @@ export class APIService {
           /(?:^|[:<])(\w+)(>|)/gi,
           '$(uri_captures["$1"])',
         );
+        
+        // Add querystring from URL searchParams
         searchParams.forEach((value, key) => {
           config.add.querystring.push(`${key}:${value}`);
           config.remove.querystring.push(`${key}:${value}`);
+        });
+      }
+      
+      // Add querystring from upstream.querystring if provided
+      if (upstream.querystring && upstream.querystring.length > 0) {
+        upstream.querystring.forEach((qs) => {
+          config.add.querystring.push(`${qs.key}:${qs.value}`);
+          config.remove.querystring.push(`${qs.key}:${qs.value}`);
         });
       }
 
@@ -755,6 +801,65 @@ export class APIService {
         ctx,
       ),
     );
+  }
+
+  private buildHeaderRemovals(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'remove')
+      .map((m) => m.from);
+  }
+
+  private buildHeaderAdditions(
+    headers: any[],
+    mappings?: any[],
+  ): string[] {
+    const staticHeaders = headers?.map((h) => `${h.key}:${h.value}`) || [];
+    const mappedHeaders =
+      mappings
+        ?.filter((m) => m.operation === 'add')
+        .map((m) => `${m.from}:${m.value || ''}`) || [];
+    return [...staticHeaders, ...mappedHeaders];
+  }
+
+  private buildHeaderRenames(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'rename')
+      .map((m) => `${m.from}:${m.to}`);
+  }
+
+  private buildHeaderReplacements(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'replace')
+      .map((m) => `${m.from}:${m.value || m.to || ''}`);
+  }
+
+  private buildBodyRemovals(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'remove')
+      .map((m) => m.from);
+  }
+
+  private buildBodyAdditions(
+    body: any[],
+    mappings?: any[],
+  ): string[] {
+    const staticBody = body?.map((b) => `${b.key}:${b.value}`) || [];
+    const mappedBody =
+      mappings
+        ?.filter((m) => m.operation === 'add')
+        .map((m) => `${m.from}:${m.value || ''}`) || [];
+    return [...staticBody, ...mappedBody];
+  }
+
+  private buildBodyRenames(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'rename')
+      .map((m) => `${m.from}:${m.to}`);
   }
 
   async assignAPIs(
@@ -1165,7 +1270,8 @@ export class APIService {
         upstream?.headers ||
         upstream?.querystring ||
         upstream?.body ||
-        upstream?.url
+        upstream?.url ||
+        upstream?.transformations
       ) {
         const plugins = await this.kongRouteService.getPlugins(
           environment,
@@ -1176,33 +1282,58 @@ export class APIService {
           (plugin) => plugin.name === KONG_PLUGINS.REQUEST_TRANSFORMER,
         );
 
-        const config = {
-          http_method: upstream.method?.toUpperCase(),
+        const config: {
+          http_method: string | undefined;
+          remove: {
+            headers: string[];
+            querystring: string[];
+            body: string[];
+          };
+          add: {
+            headers: string[];
+            querystring: string[];
+            body: string[];
+          };
+          rename?: {
+            headers: string[];
+            body: string[];
+          };
+          replace: {
+            uri?: string;
+            headers?: string[];
+          };
+        } = {
+          http_method:
+            upstream.transformations?.method?.toUpperCase() ||
+            upstream.method?.toUpperCase() ||
+            plugin?.config.http_method,
           remove: {
             headers:
-              upstream.headers?.map((h) => `${h.key}:${h.value}`) ||
+              this.buildHeaderRemovals(
+                upstream.transformations?.headerMappings,
+              ) ||
               plugin?.config.remove?.headers ||
               [],
-            querystring:
-              upstream.querystring?.map((q) => `${q.key}:${q.value}`) ||
-              plugin?.config.remove?.querystring ||
-              [],
+            querystring: [],
             body:
-              upstream.body?.map((b) => `${b.key}:${b.value}`) ||
+              this.buildBodyRemovals(upstream.transformations?.bodyMappings) ||
               plugin?.config.remove?.body ||
               [],
           },
           add: {
             headers:
-              upstream.headers?.map((h) => `${h.key}:${h.value}`) ||
+              this.buildHeaderAdditions(
+                upstream.headers || [],
+                upstream.transformations?.headerMappings,
+              ) ||
               plugin?.config.add?.headers ||
               [],
-            querystring:
-              upstream.querystring?.map((q) => `${q.key}:${q.value}`) ||
-              plugin?.config.add?.querystring ||
-              [],
+            querystring: [],
             body:
-              upstream.body?.map((b) => `${b.key}:${b.value}`) ||
+              this.buildBodyAdditions(
+                upstream.body || [],
+                upstream.transformations?.bodyMappings,
+              ) ||
               plugin?.config.add?.body ||
               [],
           },
@@ -1211,15 +1342,47 @@ export class APIService {
           },
         };
 
+        // Add rename operations if they exist
+        const headerRenames = this.buildHeaderRenames(
+          upstream.transformations?.headerMappings,
+        );
+        const bodyRenames = this.buildBodyRenames(
+          upstream.transformations?.bodyMappings,
+        );
+        if (headerRenames.length > 0 || bodyRenames.length > 0) {
+          config.rename = {
+            headers: headerRenames,
+            body: bodyRenames,
+          };
+        }
+
+        // Add header replacements if they exist
+        const headerReplacements = this.buildHeaderReplacements(
+          upstream.transformations?.headerMappings,
+        );
+        if (headerReplacements.length > 0) {
+          config.replace.headers = headerReplacements;
+        }
+
         if (upstream.url) {
           const { pathname, searchParams } = new URL(upstream.url);
           config.replace.uri = pathname.replace(
             /(?:^|[:<])(\w+)(>|)/gi,
             '$(uri_captures["$1"])',
           );
+          
+          // Add querystring from URL searchParams
           searchParams.forEach((value, key) => {
             config.add.querystring.push(`${key}:${value}`);
             config.remove.querystring.push(`${key}:${value}`);
+          });
+        }
+        
+        // Add querystring from upstream.querystring if provided
+        if (upstream.querystring && upstream.querystring.length > 0) {
+          upstream.querystring.forEach((qs) => {
+            config.add.querystring.push(`${qs.key}:${qs.value}`);
+            config.remove.querystring.push(`${qs.key}:${qs.value}`);
           });
         }
 
