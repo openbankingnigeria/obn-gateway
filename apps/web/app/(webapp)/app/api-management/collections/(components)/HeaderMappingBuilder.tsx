@@ -17,6 +17,7 @@ interface HeaderMappingBuilderProps {
   onMappingsChange: (mappings: HeaderMapping[]) => void
   direction?: 'request' | 'response'
   disabled?: boolean
+  fieldLabel?: string
 }
 
 export const HeaderMappingBuilder = ({
@@ -24,6 +25,7 @@ export const HeaderMappingBuilder = ({
   onMappingsChange,
   direction = 'request',
   disabled = false,
+  fieldLabel = 'Header',
 }: HeaderMappingBuilderProps) => {
   const handleAdd = () => {
     onMappingsChange([
@@ -52,10 +54,10 @@ export const HeaderMappingBuilder = ({
       <div className='flex items-center justify-between'>
         <div className='flex flex-col gap-[6px]'>
           <h4 className='text-f14 font-[600] text-o-text-dark'>
-            {direction === 'request' ? 'Request' : 'Response'} Header Transformations
+            {direction === 'request' ? 'Request' : 'Response'} {fieldLabel} Transformations
           </h4>
           <p className='text-f12 text-o-text-medium3'>
-            Transform headers between gateway and backend API. Use add/remove/rename/replace operations.
+            Transform {fieldLabel.toLowerCase()} between gateway and backend API. Use add/remove/rename/replace operations.
           </p>
         </div>
         <Button
@@ -92,13 +94,23 @@ export const HeaderMappingBuilder = ({
             <div className='flex-1'>
               <InputElement
                 name={`from-${mapping.id}`}
-                label={mapping.operation === 'add' ? 'Header Name' : 'From Header'}
+                label={
+                  mapping.operation === 'add' ? `${fieldLabel} Name` : `From ${fieldLabel}`
+                }
                 value={mapping.from}
                 changeValue={(v: any) => handleChange(mapping.id, 'from', v)}
                 placeholder={
                   mapping.operation === 'add'
-                    ? 'X-Custom-Header'
-                    : 'X-Original-Header'
+                    ? fieldLabel === 'Header'
+                      ? 'X-Custom-Header'
+                      : fieldLabel === 'Querystring'
+                      ? 'limit'
+                      : 'data.id'
+                    : fieldLabel === 'Header'
+                    ? 'X-Original-Header'
+                    : fieldLabel === 'Querystring'
+                    ? 'page'
+                    : 'user.name'
                 }
                 disabled={disabled}
               />
@@ -108,10 +120,12 @@ export const HeaderMappingBuilder = ({
               <div className='flex-1'>
                 <InputElement
                   name={`to-${mapping.id}`}
-                  label='To Header'
+                  label={`To ${fieldLabel}`}
                   value={mapping.to}
                   changeValue={(v: any) => handleChange(mapping.id, 'to', v)}
-                  placeholder='X-New-Header'
+                  placeholder={
+                    fieldLabel === 'Header' ? 'X-New-Header' : fieldLabel === 'Querystring' ? 'page' : 'user.id'
+                  }
                   disabled={disabled}
                 />
               </div>
@@ -124,7 +138,7 @@ export const HeaderMappingBuilder = ({
                   label='Value'
                   value={mapping.value || ''}
                   changeValue={(v: any) => handleChange(mapping.id, 'value', v)}
-                  placeholder='header-value'
+                  placeholder={ fieldLabel === 'Header' ? 'header-value' : 'value' }
                   disabled={disabled}
                 />
               </div>
@@ -143,7 +157,7 @@ export const HeaderMappingBuilder = ({
         {mappings.length === 0 && (
           <div className='p-[20px] bg-o-bg-disabled rounded-[6px] border border-o-border text-center'>
             <p className='text-f12 text-o-text-medium3'>
-              No header transformations configured. Click &quot;Add Mapping&quot; to begin.
+              No {fieldLabel.toLowerCase()} transformations configured. Click &quot;Add Mapping&quot; to begin.
             </p>
           </div>
         )}

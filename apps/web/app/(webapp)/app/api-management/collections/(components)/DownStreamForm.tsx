@@ -9,7 +9,6 @@ import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
 import { getJsCookies } from '@/config/jsCookie';
-import { HeaderMappingBuilder, HeaderMapping } from './HeaderMappingBuilder';
 
 const DownStreamForm = ({
   rawData,
@@ -23,9 +22,6 @@ const DownStreamForm = ({
   const [currentValue, setCurrentValue] = useState('header');
   // const [currentResValue, setCurrentResValue] = useState('body');
   const [loading, setLoading] = useState(false);
-  const [responseHeaderMappings, setResponseHeaderMappings] = useState<HeaderMapping[]>(
-    rawData?.downstream?.responseTransformations?.headerMappings || []
-  );
   // const [open2FA, setOpen2FA] = useState(false);
   const environment = getJsCookies('environment');
 
@@ -90,9 +86,6 @@ const DownStreamForm = ({
             ...rawData?.downstream,
             path,
             method: request_method,
-            responseTransformations: {
-              headerMappings: responseHeaderMappings.filter(m => m.from && m.operation),
-            }
           }
         }
       });
@@ -309,14 +302,6 @@ const DownStreamForm = ({
                 disabled={false}
                 value={path}
                 required
-              />
-
-              {/* Response Header Transformations */}
-              <HeaderMappingBuilder
-                mappings={responseHeaderMappings}
-                onMappingsChange={setResponseHeaderMappings}
-                direction='response'
-                disabled={false}
               />
 
               <div className='w-full flex justify-end'>

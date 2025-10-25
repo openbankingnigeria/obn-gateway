@@ -740,27 +740,35 @@ export class APIService {
         config.replace.headers = headerReplacements;
       }
 
+      // Collect URL searchParams first
+      const urlParams: { key: string; value: string }[] = [];
       if (upstream.url) {
         const { pathname, searchParams } = new URL(upstream.url);
         config.replace.uri = pathname.replace(
           /(?:^|[:<])(\w+)(>|)/gi,
           '$(uri_captures["$1"])',
         );
-        
-        // Add querystring from URL searchParams
+
+        // Collect URL searchParams
         searchParams.forEach((value, key) => {
-          config.add.querystring.push(`${key}:${value}`);
-          config.remove.querystring.push(`${key}:${value}`);
+          urlParams.push({ key, value });
         });
       }
+
+      // Build all querystring additions (URL params + static + mappings)
+      const allQueryParams = [
+        ...urlParams.map((p) => `${p.key}:${p.value}`),
+        ...this.buildQuerystringAdditions(
+          upstream.querystring || [],
+          upstream.transformations?.querystringMappings,
+        ),
+      ];
       
-      // Add querystring from upstream.querystring if provided
-      if (upstream.querystring && upstream.querystring.length > 0) {
-        upstream.querystring.forEach((qs) => {
-          config.add.querystring.push(`${qs.key}:${qs.value}`);
-          config.remove.querystring.push(`${qs.key}:${qs.value}`);
-        });
-      }
+      // Remove duplicates
+      config.add.querystring = Array.from(new Set(allQueryParams));
+      config.remove.querystring = this.buildQuerystringRemovals(
+        upstream.transformations?.querystringMappings,
+      );
 
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
@@ -817,8 +825,8 @@ export class APIService {
     const staticHeaders = headers?.map((h) => `${h.key}:${h.value}`) || [];
     const mappedHeaders =
       mappings
-        ?.filter((m) => m.operation === 'add')
-        .map((m) => `${m.from}:${m.value || ''}`) || [];
+        ?.filter((m) => m.operation === 'add' && m.value) // Only include if value exists
+        .map((m) => `${m.from}:${m.value}`) || [];
     return [...staticHeaders, ...mappedHeaders];
   }
 
@@ -850,8 +858,8 @@ export class APIService {
     const staticBody = body?.map((b) => `${b.key}:${b.value}`) || [];
     const mappedBody =
       mappings
-        ?.filter((m) => m.operation === 'add')
-        .map((m) => `${m.from}:${m.value || ''}`) || [];
+        ?.filter((m) => m.operation === 'add' && m.value) // Only include if value exists
+        .map((m) => `${m.from}:${m.value}`) || [];
     return [...staticBody, ...mappedBody];
   }
 
@@ -860,6 +868,39 @@ export class APIService {
     return mappings
       .filter((m) => m.operation === 'rename')
       .map((m) => `${m.from}:${m.to}`);
+  }
+
+  private buildQuerystringRemovals(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'remove')
+      .map((m) => m.from);
+  }
+
+  private buildQuerystringAdditions(
+    query: any[],
+    mappings?: any[],
+  ): string[] {
+    const staticQs = query?.map((q) => `${q.key}:${q.value}`) || [];
+    const mappedQs =
+      mappings
+        ?.filter((m) => m.operation === 'add' && m.value) // Only include if value exists
+        .map((m) => `${m.from}:${m.value}`) || [];
+    return [...staticQs, ...mappedQs];
+  }
+
+  private buildQuerystringRenames(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'rename')
+      .map((m) => `${m.from}:${m.to}`);
+  }
+
+  private buildQuerystringReplacements(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'replace')
+      .map((m) => `${m.from}:${m.value || m.to || ''}`);
   }
 
   async assignAPIs(
@@ -1314,7 +1355,9 @@ export class APIService {
               ) ||
               plugin?.config.remove?.headers ||
               [],
-            querystring: [],
+            querystring: this.buildQuerystringRemovals(
+              upstream.transformations?.querystringMappings,
+            ) || plugin?.config.remove?.querystring || [],
             body:
               this.buildBodyRemovals(upstream.transformations?.bodyMappings) ||
               plugin?.config.remove?.body ||
@@ -1328,7 +1371,11 @@ export class APIService {
               ) ||
               plugin?.config.add?.headers ||
               [],
-            querystring: [],
+            querystring:
+              this.buildQuerystringAdditions(
+                upstream.querystring || [],
+                upstream.transformations?.querystringMappings,
+              ) || plugin?.config.add?.querystring || [],
             body:
               this.buildBodyAdditions(
                 upstream.body || [],
@@ -1370,20 +1417,15 @@ export class APIService {
             /(?:^|[:<])(\w+)(>|)/gi,
             '$(uri_captures["$1"])',
           );
-          
-          // Add querystring from URL searchParams
+
+          // Add querystring from URL searchParams (explicit URL params)
+          const urlParams: string[] = [];
           searchParams.forEach((value, key) => {
-            config.add.querystring.push(`${key}:${value}`);
-            config.remove.querystring.push(`${key}:${value}`);
+            urlParams.push(`${key}:${value}`);
           });
-        }
-        
-        // Add querystring from upstream.querystring if provided
-        if (upstream.querystring && upstream.querystring.length > 0) {
-          upstream.querystring.forEach((qs) => {
-            config.add.querystring.push(`${qs.key}:${qs.value}`);
-            config.remove.querystring.push(`${qs.key}:${qs.value}`);
-          });
+          
+          // Merge with existing querystring additions and remove duplicates
+          config.add.querystring = Array.from(new Set([...config.add.querystring, ...urlParams]));
         }
 
         await this.kongRouteService.updateOrCreatePlugin(

@@ -63,6 +63,12 @@ class TransformationsDTO {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => MappingOperationDTO)
+  querystringMappings?: MappingOperationDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MappingOperationDTO)
   bodyMappings?: MappingOperationDTO[];
 }
 
