@@ -216,13 +216,14 @@ const ImportSpecModal = ({
             required={true}
             label='API Specification File'
             name='specFile'
+            value={specFile}
             changeValue={(file: any) => setSpecFile(file)}
             containerStyle='mb-2'
-            allowedTypes={['application/json', 'application/x-yaml', 'text/yaml', 'text/x-yaml', 'application/yaml']}
+            allowedTypes={['application/json', 'text/yaml']}
             maxSizeMB={10}
           />
           <p className='text-f12 text-o-text-muted2 -mt-2'>
-            Supported formats: OpenAPI v2/v3, Swagger, Postman Collection (JSON or YAML, max 10MB)
+            Supported formats: JSON, YAML (OpenAPI v2/v3, Swagger, Postman Collection, max 10MB)
           </p>
         </div>
 
