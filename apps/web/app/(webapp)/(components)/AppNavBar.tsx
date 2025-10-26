@@ -9,8 +9,7 @@ import { Button } from '../../../components/globalComponents';
 import { AppCenterModal, AvatarMenu } from '.';
 import { toast } from 'react-toastify';
 import { getJsCookies, removeJsCookies, setJsCookies } from '@/config/jsCookie';
-import clientAxiosRequest from '@/hooks/clientAxiosRequest';
-import * as API from '@/config/endpoints';
+import { useUserStore } from '@/stores';
 
 const AppNavBar = ({ 
   bannerExist,
@@ -19,6 +18,10 @@ const AppNavBar = ({
   bannerExist: boolean;
   canToggleMode: boolean;
 }) => {
+  // Get data from Zustand store instead of fetching
+  const profile = useUserStore((state) => state.profile);
+  const companyDetails = useUserStore((state) => state.companyDetails);
+  const getAvatarAlt = useUserStore((state) => state.getAvatarAlt);
 
   const [openModal, setOpenModal] = useState(false);
   const [isLive, setToggleMode] = useState(false);
@@ -29,10 +32,6 @@ const AppNavBar = ({
   const router = useRouter();
   const { get } = useSearchParams();
   const slug = get('slug');
-  const [businessDetails, setBusinessDetails] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  // const getUserProfile = getJsCookies('aperta-user-profile');
-  // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
 
   useEffect(() => {
     const enviromentMode = canToggleMode ? getJsCookies('environment') : 'development';
@@ -40,40 +39,10 @@ const AppNavBar = ({
     setToggleMode(enviromentMode == 'production' ? true : false);
   }, [canToggleMode]);
 
-  const fetchProfile = async() => {
-    const result: any = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getProfile(),
-      method: 'GET',
-      data: null,
-      noToast: true
-    });
-
-    setProfile(result?.data);
-  }
-
-  const fetchDetails = async () => {
-    const result : any = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getCompanyDetails(),
-      method: 'GET',
-      data: null,
-      noToast: true
-    });
-
-    setBusinessDetails(result?.data);
-  }
-
-  useEffect(() => {
-    fetchProfile();
-    fetchDetails();
-  }, []);
-
-  let firstName = profile?.firstName;
-  let lastName = profile?.lastName;
-  let avatarAlt = (firstName || lastName) ? 
-    `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}` :
-    businessDetails?.name ? businessDetails?.name[0] : '';
+  // Get computed values from store
+  const firstName = profile?.firstName;
+  const lastName = profile?.lastName;
+  const avatarAlt = getAvatarAlt();
 
   // const unReadNotifications = NOTIFICATIONS_DATA;
   // const notifications = NOTIFICATIONS_DATA?.slice(0, 5);

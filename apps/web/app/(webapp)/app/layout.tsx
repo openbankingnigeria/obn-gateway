@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
-import { AppLeftSideBar, AppNavBar, KybBanner } from '../(components)'
 import { redirect } from 'next/navigation'
 import { getCookies } from '@/config/cookies'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import { RefreshStoredToken } from '@/components/globalComponents'
-import LogoutTimer from '@/components/globalComponents/LogoutTimer'
+import AppLayoutClient from './AppLayoutClient'
 
 export const metadata: Metadata = {
   title: 'Aperta - App',
@@ -76,7 +75,7 @@ export default async function RootLayout({
       || profile?.user?.role?.parent?.slug === 'api-provider');
 
     return (
-      <section className='max-w-full min-h-screen relative bg-[#FCFDFD]'>
+      <>
         {/* REFRESH TOKEN SECTION */}
         {
           refreshTokenRes?.data &&
@@ -85,31 +84,17 @@ export default async function RootLayout({
           />
         }
 
-        { 
-          profile?.user?.role?.parent?.slug == 'api-consumer' && 
-          showBanner && 
-          <KybBanner rawData={details} /> 
-        }
-        <AppNavBar 
-          bannerExist={showBanner} 
+        <AppLayoutClient
+          profile={profile}
+          companyDetails={details}
+          settings={settings}
+          showBanner={showBanner}
           canToggleMode={canToggleMode}
-        />
-        <AppLeftSideBar bannerExist={showBanner} />
-
-        {/* INACTIVITY LOGOUT TIMER */}
-        {
-          settings?.inactivityTimeout?.value && 
-          <LogoutTimer 
-            timeout={1000 * 60 * Number(settings?.inactivityTimeout?.value)} 
-          />
-        }
-
-        <main className={`w-full min-h-screen flex flex-col ${showBanner ? 'pt-[168px]' : 'pt-[112px]'} pb-[25px] wide:pl-[360px] pl-[330px] wide:pr-[80px] pr-[25px] overflow-auto`}>
-          <section className='w-full h-full flex flex-col'>
-            {children}
-          </section>
-        </main>
-      </section>
+          refreshTokenData={refreshTokenRes?.data}
+        >
+          {children}
+        </AppLayoutClient>
+      </>
     )
   }
 }
