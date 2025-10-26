@@ -205,7 +205,9 @@ const TableElement = memo(({
     prevProps.page === nextProps.page &&
     prevProps.rows === nextProps.rows &&
     prevProps.totalElements === nextProps.totalElements &&
-    prevProps.totalPages === nextProps.totalPages
+    prevProps.totalPages === nextProps.totalPages &&
+    Boolean(prevProps.actionColumn) === Boolean(nextProps.actionColumn) &&
+    Boolean(prevProps.redirect) === Boolean(nextProps.redirect)
   );
 });
 
