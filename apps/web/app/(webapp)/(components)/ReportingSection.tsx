@@ -9,7 +9,7 @@ import * as API from '@/config/endpoints';
 import { searchParamsProps } from '@/types/webappTypes/appTypes';
 import { REPORTING_DATA } from '@/data/dashboardData';
 import { DashboardMetricCard } from '../app/home/dashboard/(components)';
-import moment from 'moment';
+import { endOfDayIso, startOfDayIso } from '@/utils/dateUtils'
 import { getJsCookies } from '@/config/jsCookie';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
 
@@ -95,8 +95,8 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
         environment: environment || 'development', 
         companyId: apiConsumer ? alt_data?.id : consumers,
         apiId: api,
-        createdAt_gt: from ? moment(from).startOf('day').format()?.split('+')[0] + '.000Z' : '',
-        createdAt_l: to ? moment(to).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+  createdAt_gt: from ? startOfDayIso(from) : '',
+  createdAt_l: to ? endOfDayIso(to) : '',
       }),
       method: 'GET',
       data: null,
@@ -168,8 +168,8 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
             environment: environment || 'development', 
             companyId: apiConsumer ? alt_data?.id : consumers,
             apiId: api,
-            createdAt_gt: from ? moment(from).startOf('day').format()?.split('+')[0] + '.000Z' : '',
-            createdAt_l: to ? moment(to).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+            createdAt_gt: from ? startOfDayIso(from) : '',
+            createdAt_l: to ? endOfDayIso(to) : '',
           }),
           method: 'GET',
           data: {}

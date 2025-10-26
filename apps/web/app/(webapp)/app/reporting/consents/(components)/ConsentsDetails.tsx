@@ -4,7 +4,7 @@ import { ActionsSelector, AppCenterModal, StatusBox, ViewData } from '@/app/(web
 import { CONSENT_ACTIONS_DATA } from '@/data/consentData';
 import { updateSearchParams } from '@/utils/searchParams'
 import { timestampFormatter } from '@/utils/timestampFormatter';
-import moment from 'moment';
+import { formatDateLabel } from '@/utils/dateUtils';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -154,11 +154,11 @@ const ConsentsDetails = ( ) => {
 
             <ViewData 
               label='Valid From'
-              value={`${moment('2023-09-25').format('ll')}`}
+              value={`${formatDateLabel('2023-09-25')}`}
             />
             <ViewData 
               label='Valid Until'
-              value={`${moment('2023-09-25').format('ll')}`}
+              value={`${formatDateLabel('2023-09-25')}`}
             />
           </div>
         </div>

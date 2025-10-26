@@ -13,7 +13,7 @@ import { Pagination } from '@/components/globalComponents'
 import { timestampFormatter } from '@/utils/timestampFormatter'
 import BooleanBox from './BooleanBox'
 import { useRouter } from 'next/navigation'
-import moment from 'moment'
+import { formatDateForTable } from '@/utils/dateUtils'
 import { addEllipsis } from '@/utils/addEllipsisToStrings'
 import StatusCodeBox from './StatusCodeBox'
 
@@ -139,7 +139,7 @@ const TableElement = memo(({
                   >
                     {
                       (cell.id?.includes('date_created') || cell.id?.includes('date_invited')) ? 
-                        moment(cell.getValue() || '').format('LLL') 
+                        formatDateForTable(cell.getValue()) 
                         :
                         cell.id?.includes('timestamp') ? 
                           timestampFormatter(cell.getValue()) 
