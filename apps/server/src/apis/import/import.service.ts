@@ -6,6 +6,7 @@ import slugify from 'slugify';
 import * as yaml from 'js-yaml';
 import { ImportedApiSpec } from '@common/database/entities/importedapispec.entity';
 import { Collection } from '@common/database/entities/collection.entity';
+import { User } from '@common/database/entities/user.entity';
 import { OpenApiV3Parser } from './parsers/openapi-v3.parser';
 import { SwaggerV2Parser } from './parsers/swagger-v2.parser';
 import { PostmanV2Parser } from './parsers/postman-v2.parser';
@@ -15,7 +16,7 @@ import {
   ParsedSpecResult,
   ImportEndpointsResult,
 } from './interfaces/parser.interface';
-import { ImportApiSpecDto, ImportHistoryItemDto, ImportDetailDto, ImportResultDto, ImportErrorDto } from './dto/import.dto';
+import { ImportApiSpecDto, ImportHistoryItemDto, ImportDetailDto, ImportResultDto, ImportErrorDto, ImportUserDto, ImportCollectionDto } from './dto/import.dto';
 import { CreateAPIDto } from '../dto/index.dto';
 import { RequestContext } from '@common/utils/request/request-context';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
@@ -33,8 +34,10 @@ export class ApiSpecImportService {
   constructor(
     @InjectRepository(ImportedApiSpec)
     private readonly importedSpecRepo: Repository<ImportedApiSpec>,
-    @InjectRepository(Collection)
-    private readonly collectionRepo: Repository<Collection>,
+  @InjectRepository(Collection)
+  private readonly collectionRepo: Repository<Collection>,
+  @InjectRepository(User)
+  private readonly userRepository: Repository<User>,
     private readonly openApiV3Parser: OpenApiV3Parser,
     private readonly swaggerV2Parser: SwaggerV2Parser,
     private readonly postmanV2Parser: PostmanV2Parser,
@@ -301,15 +304,27 @@ export class ApiSpecImportService {
   ) {
     const [imports, totalNumberOfRecords] = await this.importedSpecRepo.findAndCount({
       where: { environment },
-      relations: ['collection'],
+      relations: ['collection', 'importedBy'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
 
     // Transform to DTOs for proper serialization
-    const importDtos = imports.map(imp => 
-      Object.assign(new ImportHistoryItemDto(), {
+    const importDtos = await Promise.all(
+      imports.map(async (imp) => {
+        if (!imp.importedBy && imp.importedById) {
+          const importer = await this.userRepository.findOne({
+            where: { id: Equal(imp.importedById) },
+            withDeleted: true,
+          });
+
+          if (importer) {
+            imp.importedBy = importer;
+          }
+        }
+
+        return Object.assign(new ImportHistoryItemDto(), {
         id: imp.id,
         name: imp.name,
         specFormat: imp.specFormat,
@@ -321,7 +336,14 @@ export class ApiSpecImportService {
         environment: imp.environment,
         createdAt: imp.createdAt,
         updatedAt: imp.updatedAt,
-      })
+          importedBy: imp.importedBy
+            ? Object.assign(new ImportUserDto(), {
+                id: imp.importedBy.id,
+                email: imp.importedBy.email,
+              })
+            : undefined,
+        });
+      }),
     );
 
     return ResponseFormatter.success(
@@ -340,13 +362,25 @@ export class ApiSpecImportService {
     ctx: RequestContext,
     importId: string,
   ) {
-    const importRecord = await this.importedSpecRepo
-      .createQueryBuilder('import')
-      .leftJoinAndSelect('import.collection', 'collection')
-      .leftJoinAndSelect('import.importedBy', 'user')
-      .leftJoinAndSelect('user.profile', 'profile')
-      .where('import.id = :importId', { importId })
-      .getOne();
+    const importRecord = await this.importedSpecRepo.findOne({
+      where: { id: Equal(importId) },
+      relations: { 
+        collection: true, 
+        importedBy: { profile: true } 
+      },
+    });
+
+    if (!importRecord?.importedBy && importRecord?.importedById) {
+      const importer = await this.userRepository.findOne({
+        where: { id: Equal(importRecord.importedById) },
+        relations: { profile: true },
+        withDeleted: true,
+      });
+
+      if (importRecord && importer) {
+        importRecord.importedBy = importer;
+      }
+    }
 
     if (!importRecord) {
       throw new INotFoundException({
@@ -354,7 +388,7 @@ export class ApiSpecImportService {
       });
     }
 
-    const importDto = Object.assign(new ImportDetailDto(), {
+    const responseData = Object.assign(new ImportDetailDto(), {
       id: importRecord.id,
       name: importRecord.name,
       specFormat: importRecord.specFormat,
@@ -365,26 +399,36 @@ export class ApiSpecImportService {
       collectionId: importRecord.collectionId,
       environment: importRecord.environment,
       parsedMetadata: importRecord.parsedMetadata,
-      errorLog: importRecord.errorLog || [],
+      errorLog: (importRecord.errorLog || []).map((error) =>
+        Object.assign(new ImportErrorDto(), error),
+      ),
       originalSpec: importRecord.originalSpec,
       createdAt: importRecord.createdAt,
       updatedAt: importRecord.updatedAt,
-      importedBy: importRecord.importedBy ? {
-        id: importRecord.importedBy.id,
-        email: importRecord.importedBy.email,
-        firstName: importRecord.importedBy.profile?.firstName,
-        lastName: importRecord.importedBy.profile?.lastName,
-      } : undefined,
-      collection: importRecord.collection ? {
-        id: importRecord.collection.id,
-        name: importRecord.collection.name,
-        slug: importRecord.collection.slug,
-      } : undefined,
+      importedBy: importRecord.importedBy
+        ? Object.assign(new ImportUserDto(), {
+            id: importRecord.importedBy.id,
+            email: importRecord.importedBy.email,
+            firstName: importRecord.importedBy.profile?.firstName || null,
+            lastName: importRecord.importedBy.profile?.lastName || null,
+          })
+        : null,
+      collection: importRecord.collection
+        ? Object.assign(new ImportCollectionDto(), {
+            id: importRecord.collection.id,
+            name: importRecord.collection.name,
+            slug: importRecord.collection.slug,
+          })
+        : null,
     });
+
+    console.log('Import record collection:', importRecord.collection);
+    console.log('Import record importedBy:', importRecord.importedBy);
+    console.log('Response data:', JSON.stringify(responseData, null, 2));
 
     return ResponseFormatter.success(
       'Import details retrieved successfully',
-      importDto,
+      responseData,
     );
   }
 

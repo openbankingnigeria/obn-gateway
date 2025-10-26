@@ -76,6 +76,13 @@ const ImportDetailPage = async ({ params }: ImportDetailPageProps) => {
     })
   }
 
+  const getImporterDisplayName = (importedBy: ImportedSpecDetailProps['importedBy']) => {
+    if (!importedBy) return ''
+
+    const fullName = `${importedBy.firstName ?? ''} ${importedBy.lastName ?? ''}`.trim()
+    return fullName || importedBy.email
+  }
+
   return (
     <div className='w-full flex flex-col gap-[20px]'>
       {/* REFRESH TOKEN SECTION */}
@@ -101,14 +108,28 @@ const ImportDetailPage = async ({ params }: ImportDetailPageProps) => {
       <div className='flex flex-col gap-[8px] pb-[16px] border-b border-o-border'>
         <div className='flex items-start justify-between'>
           <div className='flex flex-col gap-[6px]'>
-            <h1 className='text-f20 font-[600] text-o-text-dark'>{importDetail.name}</h1>
+            {importDetail.collection ? (
+              <Link
+                href={`/app/api-management/collections/${importDetail.collection.id}`}
+                className='text-f20 font-[600] text-o-blue hover:text-o-blue-hover hover:underline'
+              >
+                {importDetail.name}
+              </Link>
+            ) : (
+              <h1 className='text-f20 font-[600] text-o-text-dark'>{importDetail.name}</h1>
+            )}
             <p className='text-f13 text-o-text-medium3'>
               Imported {formatDate(importDetail.createdAt)}
-              {importDetail.importedBy && ` by ${importDetail.importedBy.firstName} ${importDetail.importedBy.lastName}`}
+              {importDetail.importedBy && (
+                <>
+                  {' by '}
+                  <span>{getImporterDisplayName(importDetail.importedBy)}</span>
+                </>
+              )}
             </p>
           </div>
           <span className={`px-[12px] py-[6px] rounded-[6px] text-f12 font-[500] ${statusColors[importDetail.importStatus]}`}>
-            {importDetail.importStatus.toUpperCase()}
+            {importDetail.importStatus?.toUpperCase() || 'UNKNOWN'}
           </span>
         </div>
       </div>
@@ -118,7 +139,7 @@ const ImportDetailPage = async ({ params }: ImportDetailPageProps) => {
         <div className='flex flex-col gap-[6px] p-[16px] bg-white border border-o-border rounded-[8px]'>
           <p className='text-f12 text-o-text-medium3'>Spec Format</p>
           <p className='text-f18 font-[600] text-o-text-dark'>
-            {importDetail.specFormat.toUpperCase().replace('_', ' ')}
+            {importDetail.specFormat?.toUpperCase().replace('_', ' ') || 'N/A'}
           </p>
         </div>
         <div className='flex flex-col gap-[6px] p-[16px] bg-white border border-o-border rounded-[8px]'>
@@ -140,19 +161,6 @@ const ImportDetailPage = async ({ params }: ImportDetailPageProps) => {
           </p>
         </div>
       </div>
-
-      {/* Collection Info */}
-      {importDetail.collection && (
-        <div className='flex flex-col gap-[12px] p-[20px] bg-white border border-o-border rounded-[8px]'>
-          <h3 className='text-f14 font-[600] text-o-text-dark'>Collection</h3>
-          <Link
-            href={`/app/api-management/collections/${importDetail.collection.id}`}
-            className='text-f14 text-o-blue hover:text-o-blue-hover hover:underline'
-          >
-            {importDetail.collection.name}
-          </Link>
-        </div>
-      )}
 
       {/* Parsed Metadata */}
       {importDetail.parsedMetadata && Object.keys(importDetail.parsedMetadata).length > 0 && (

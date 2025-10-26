@@ -184,6 +184,12 @@ export interface ImportedSpecDataProps {
   environment: string;
   createdAt: string;
   updatedAt: string;
+  importedBy?: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
 }
 
 export interface ImportedSpecDetailProps extends ImportedSpecDataProps {

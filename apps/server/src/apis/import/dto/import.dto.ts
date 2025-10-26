@@ -9,7 +9,7 @@ import {
   IsEnum,
   IsObject,
 } from 'class-validator';
-import { Expose, Transform } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { HTTP_METHODS } from '../../types';
 
 export class ImportApiSpecDto {
@@ -135,6 +135,31 @@ export class ImportErrorDto {
   details?: any;
 }
 
+export class ImportUserDto {
+  @Expose()
+  id: string;
+
+  @Expose()
+  email: string;
+
+  @Expose()
+  firstName?: string;
+
+  @Expose()
+  lastName?: string;
+}
+
+export class ImportCollectionDto {
+  @Expose()
+  id: string;
+
+  @Expose()
+  name: string;
+
+  @Expose()
+  slug: string;
+}
+
 export class ImportHistoryItemDto {
   @Expose()
   id: string;
@@ -168,6 +193,10 @@ export class ImportHistoryItemDto {
 
   @Expose()
   updatedAt: Date;
+
+  @Expose()
+  @Type(() => ImportUserDto)
+  importedBy?: ImportUserDto;
 }
 
 export class ImportDetailDto extends ImportHistoryItemDto {
@@ -175,23 +204,17 @@ export class ImportDetailDto extends ImportHistoryItemDto {
   parsedMetadata: any;
 
   @Expose()
+  @Type(() => ImportErrorDto)
   errorLog: ImportErrorDto[];
 
   @Expose()
   originalSpec?: string;
 
   @Expose()
-  importedBy?: {
-    id: string;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-  };
+  @Type(() => ImportUserDto)
+  importedBy?: ImportUserDto;
 
   @Expose()
-  collection?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
+  @Type(() => ImportCollectionDto)
+  collection?: ImportCollectionDto;
 }

@@ -6,10 +6,11 @@ import { ApiSpecImportService } from './import.service';
 import { OpenApiV3Parser } from './parsers/openapi-v3.parser';
 import { SwaggerV2Parser } from './parsers/swagger-v2.parser';
 import { PostmanV2Parser } from './parsers/postman-v2.parser';
+import { User } from '@common/database/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ImportedApiSpec, Collection]),
+    TypeOrmModule.forFeature([ImportedApiSpec, Collection, User]),
   ],
   providers: [
     ApiSpecImportService,

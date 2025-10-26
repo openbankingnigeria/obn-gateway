@@ -23,6 +23,10 @@ const tableHeaders: TableHeaderProps[] = [
     header: 'Status'
   },
   {
+    accessor: 'importedBy',
+    header: 'Imported By'
+  },
+  {
     accessor: 'counts',
     header: 'Imported / Failed'
   },
@@ -102,6 +106,7 @@ const ImportHistoryPage = async ({ searchParams }: ImportHistoryPageProps) => {
     importStatus: item.importStatus,
     importedCount: item.importedCount,
     failedCount: item.failedCount,
+    importedBy: item.importedBy?.email || '—',
   }))
 
   return (

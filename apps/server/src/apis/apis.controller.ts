@@ -235,7 +235,7 @@ export class APIController {
 
   @Get('imports')
   @UsePipes(IValidationPipe)
-  @RequiredPermission(PERMISSIONS.LIST_API_ENDPOINTS)
+  @RequiredPermission(PERMISSIONS.LIST_API_IMPORTS)
   async listImports(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -246,7 +246,7 @@ export class APIController {
 
   @Get('imports/:importId')
   @UsePipes(IValidationPipe)
-  @RequiredPermission(PERMISSIONS.VIEW_API_ENDPOINT)
+  @RequiredPermission(PERMISSIONS.VIEW_API_IMPORT)
   async getImport(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
@@ -258,7 +258,7 @@ export class APIController {
   @Post('imports/:importId/retry')
   @HttpCode(200)
   @UsePipes(IValidationPipe)
-  @RequiredPermission(PERMISSIONS.IMPORT_API_SPEC)
+  @RequiredPermission(PERMISSIONS.RETRY_API_IMPORT)
   async retryImport(
     @Ctx() ctx: RequestContext,
     @Param() params: APIParam,
