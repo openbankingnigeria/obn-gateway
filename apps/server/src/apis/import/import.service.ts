@@ -422,10 +422,6 @@ export class ApiSpecImportService {
         : null,
     });
 
-    console.log('Import record collection:', importRecord.collection);
-    console.log('Import record importedBy:', importRecord.importedBy);
-    console.log('Response data:', JSON.stringify(responseData, null, 2));
-
     return ResponseFormatter.success(
       'Import details retrieved successfully',
       responseData,
