@@ -125,6 +125,7 @@ export class ApiSpecImportService {
       originalSpec: JSON.stringify(parsedSpec.spec),
       parsedMetadata: parsedSpec.parsed.metadata,
       importStatus: ImportStatus.PROCESSING,
+      collection: collection,
       collectionId: collection.id,
       environment,
       importedById: ctx.activeUser.id,
@@ -271,15 +272,15 @@ export class ApiSpecImportService {
   private extractHeaders(parameters: any[]): any[] {
     if (!parameters) return [];
     return parameters
-      .filter((p) => p.in === 'header')
-      .map((p) => ({ name: p.name, value: p.schema?.default || '' }));
+      .filter((p) => p.in === 'header' && p.schema?.default)
+      .map((p) => ({ name: p.name, value: p.schema.default }));
   }
 
   private extractQueryParams(parameters: any[]): any[] {
     if (!parameters) return [];
     return parameters
-      .filter((p) => p.in === 'query')
-      .map((p) => ({ name: p.name, value: p.schema?.default || '' }));
+      .filter((p) => p.in === 'query' && p.schema?.default)
+      .map((p) => ({ name: p.name, value: p.schema.default }));
   }
 
   private extractBodyParams(requestBody: any): any[] {
@@ -339,10 +340,13 @@ export class ApiSpecImportService {
     ctx: RequestContext,
     importId: string,
   ) {
-    const importRecord = await this.importedSpecRepo.findOne({
-      where: { id: Equal(importId) },
-      relations: ['collection', 'importedBy', 'importedBy.profile'],
-    });
+    const importRecord = await this.importedSpecRepo
+      .createQueryBuilder('import')
+      .leftJoinAndSelect('import.collection', 'collection')
+      .leftJoinAndSelect('import.importedBy', 'user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('import.id = :importId', { importId })
+      .getOne();
 
     if (!importRecord) {
       throw new INotFoundException({
@@ -350,7 +354,6 @@ export class ApiSpecImportService {
       });
     }
 
-    // Transform to DTO for proper serialization
     const importDto = Object.assign(new ImportDetailDto(), {
       id: importRecord.id,
       name: importRecord.name,

@@ -348,14 +348,32 @@ export class APIService {
       },
     );
 
-    if (company.tier) {
-      // TODO optimize
-      await this.kongConsumerService
-        .updateConsumerAcl(environment, {
-          aclAllowedGroupName: `tier-${company.tier}`,
-          consumerId: response.id,
-        })
-        .catch(console.error);
+    if (company.tier !== undefined && company.tier !== null) {
+      const tierGroupName = `tier-${company.tier}`;
+      
+      // Check if consumer already has this tier ACL
+      try {
+        const existingAcls = await this.kongConsumerService.getConsumerAcls(
+          environment,
+          response.id,
+        );
+        
+        const hasTierAcl = existingAcls.data.some(
+          (acl) => acl.group === tierGroupName,
+        );
+        
+        if (!hasTierAcl) {
+          await this.kongConsumerService.updateConsumerAcl(environment, {
+            aclAllowedGroupName: tierGroupName,
+            consumerId: response.id,
+          });
+        }
+      } catch (error) {
+        this.logger.error(
+          `Failed to update consumer ACL for tier ${company.tier}:`,
+          error,
+        );
+      }
     }
 
     return response.id;
