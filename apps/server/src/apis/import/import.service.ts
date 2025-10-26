@@ -16,7 +16,7 @@ import {
   ParsedSpecResult,
   ImportEndpointsResult,
 } from './interfaces/parser.interface';
-import { ImportApiSpecDto, ImportHistoryItemDto, ImportDetailDto, ImportResultDto, ImportErrorDto, ImportUserDto, ImportCollectionDto } from './dto/import.dto';
+import { ImportApiSpecDto, ImportHistoryItemDto, ImportDetailDto, ImportErrorDto, ImportUserDto, ImportCollectionDto } from './dto/import.dto';
 import { CreateAPIDto } from '../dto/index.dto';
 import { RequestContext } from '@common/utils/request/request-context';
 import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
