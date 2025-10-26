@@ -1,10 +1,11 @@
 'use client'
 
-import { getJsCookies, setJsCookies, removeJsCookies } from "@/config/jsCookie";
+import { getJsCookies } from "@/config/jsCookie";
 import { applyAxiosRequest } from ".";
 import { HttpRequestProps } from "@/types/configTypes";
 import { toast } from "react-toastify";
 import * as API from '@/config/endpoints';
+import { useAuthStore } from '@/stores';
 
 const clientAxiosRequest = async ({
   headers,
@@ -13,8 +14,9 @@ const clientAxiosRequest = async ({
   data,
   noToast,
 }: HttpRequestProps) => {
-  let token = getJsCookies('aperta-user-accessToken');
-  const refreshToken = getJsCookies('aperta-user-refreshToken');
+  const authState = useAuthStore.getState();
+  let token = authState.accessToken || getJsCookies('aperta-user-accessToken');
+  let refreshToken = authState.refreshToken || getJsCookies('aperta-user-refreshToken');
 
   try {
     let res: any = await applyAxiosRequest({
@@ -43,8 +45,12 @@ const clientAxiosRequest = async ({
 
         if (refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201) {
           token = refreshTokenRes?.data?.accessToken;
-          setJsCookies('aperta-user-accessToken', token);
-          setJsCookies('aperta-user-refreshToken', refreshTokenRes?.data?.refreshToken);
+          refreshToken = refreshTokenRes?.data?.refreshToken;
+
+          useAuthStore.getState().setTokens({
+            accessToken: token,
+            refreshToken,
+          });
 
           res = await applyAxiosRequest({
             headers: {
@@ -64,7 +70,7 @@ const clientAxiosRequest = async ({
             typeof refreshTokenRes?.message == 'string' ?
             refreshTokenRes?.message : JSON.stringify(refreshTokenRes?.message)
           );
-          removeJsCookies('aperta-user-accessToken');
+          useAuthStore.getState().clearTokens();
           window.location.href = '/';
         }
     } else {
@@ -80,6 +86,7 @@ const clientAxiosRequest = async ({
       typeof err?.message == 'string' ?
       err?.message : JSON.stringify(err?.message)
     );
+    useAuthStore.getState().clearTokens(false);
     return ({
       message: err?.message || err,
       status: null,

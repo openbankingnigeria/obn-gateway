@@ -1,11 +1,30 @@
 'use client'
 
-import { setJsCookies } from '@/config/jsCookie';
+import { useEffect } from 'react';
+import { useAuthStore } from '@/stores';
 
-const RefreshStoredToken = ({ data }: { data: any }) => {
-  setJsCookies('aperta-user-accessToken', data?.accessToken);
-  setJsCookies('aperta-user-refreshToken', data?.refreshToken);
-  return null
+interface RefreshStoredTokenProps {
+  data: {
+    accessToken?: string | null;
+    refreshToken?: string | null;
+  } | null;
+}
+
+const RefreshStoredToken = ({ data }: RefreshStoredTokenProps) => {
+  const setTokens = useAuthStore((state) => state.setTokens);
+
+  useEffect(() => {
+    if (!data?.accessToken && !data?.refreshToken) {
+      return;
+    }
+
+    setTokens({
+      accessToken: data?.accessToken ?? null,
+      refreshToken: data?.refreshToken ?? null,
+    });
+  }, [data, setTokens]);
+
+  return null;
 }
 
 export default RefreshStoredToken

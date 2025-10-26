@@ -1,11 +1,16 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getCookies } from '@/config/cookies'
-import { applyAxiosRequest } from '@/hooks'
-import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import { RefreshStoredToken } from '@/components/globalComponents'
 import AppLayoutClient from './AppLayoutClient'
+import { getUserBootstrapData } from '@/server/getUserBootstrapData'
+import { QueryClient, dehydrate } from '@tanstack/react-query'
+import {
+  primeCompanyDetailsQuery,
+  primeProfileQuery,
+  primeSettingsQuery,
+} from '@/hooks/queries/userQueries'
 
 export const metadata: Metadata = {
   title: 'Aperta - App',
@@ -19,50 +24,22 @@ export default async function RootLayout({
   if (!await getCookies('aperta-user-accessToken')) {
     redirect('/signin')
   } else {
-    const fetchedDetails : any = await applyAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getCompanyDetails(),
-      method: 'GET',
-      data: null
-    });
+    const bootstrap = await getUserBootstrapData();
 
-    const fetchedProfile: any = await applyAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getProfile(),
-      method: 'GET',
-      data: null
-    });
-
-    const fetchSettings : any = await applyAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getSettings({
-        type: 'general'
-      }),
-      method: 'GET',
-      data: null
-    });
-
-    /** REFRESH TOKEN CHECK */
-    let refreshTokenRes = null; 
-  
-    if (fetchedDetails?.status == 401) {
-      refreshTokenRes = await applyAxiosRequest({
-        headers: { },
-        apiEndpoint: API?.refreshToken(),
-        method: 'POST',
-        data: {
-          refreshToken: `${await getCookies('aperta-user-refreshToken')}`
-        }
-      });
-
-      if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
-        return <Logout />
-      }
+    if (bootstrap.shouldLogout) {
+      return <Logout />
     }
-  
-    let details = fetchedDetails?.data;
-    let profile = fetchedProfile?.data;
-    let settings = fetchSettings?.data;
+
+    const queryClient = new QueryClient();
+    primeCompanyDetailsQuery(queryClient, bootstrap.companyDetails);
+    primeProfileQuery(queryClient, bootstrap.profile);
+    primeSettingsQuery(queryClient, bootstrap.settings);
+
+    const dehydratedState = dehydrate(queryClient);
+
+    const details = bootstrap.companyDetails;
+    const profile = bootstrap.profile;
+    const settings = bootstrap.settings;
     let showBanner = Boolean(
       profile?.user?.role?.parent?.slug == 'api-consumer' && 
       !details?.isVerified
@@ -78,9 +55,9 @@ export default async function RootLayout({
       <>
         {/* REFRESH TOKEN SECTION */}
         {
-          refreshTokenRes?.data &&
+          bootstrap.refreshTokenData &&
           <RefreshStoredToken 
-            data={refreshTokenRes?.data} 
+            data={bootstrap.refreshTokenData} 
           />
         }
 
@@ -90,7 +67,7 @@ export default async function RootLayout({
           settings={settings}
           showBanner={showBanner}
           canToggleMode={canToggleMode}
-          refreshTokenData={refreshTokenRes?.data}
+          dehydratedState={dehydratedState}
         >
           {children}
         </AppLayoutClient>
