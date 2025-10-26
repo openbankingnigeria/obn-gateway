@@ -10,6 +10,11 @@ axios.interceptors.request.use(
     if (!request.headers.Authorization) {
       request.headers.Authorization = `Bearer ${token}`;
     }
+    
+    if (request.method?.toLowerCase() === 'get') {
+      request.headers['Cache-Control'] = 'max-age=180, stale-while-revalidate=300'; // 3 min fresh, 5 min stale
+    }
+    
     return request;
   },
   (error) => {
