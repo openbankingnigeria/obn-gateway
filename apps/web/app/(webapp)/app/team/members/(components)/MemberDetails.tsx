@@ -4,7 +4,7 @@ import { ActionsSelector, AppCenterModal, AppRightModal, StatusBox, TwoFactorAut
 import { MEMBERS_ACTIONS_DATA, MEMBERS_ROLES } from '@/data/membersData'
 import { updateSearchParams } from '@/utils/searchParams'
 import { useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import * as API from '@/config/endpoints';
 import { ActivateDeactivateMember } from '.'
@@ -46,7 +46,7 @@ const MemberDetails = ({
   useEffect(() => {
     const slug = updateSearchParams('slug', memberName);
     router.push(slug);
-  }, [router]);
+  }, [memberName, router]);
 
   const closeModal = () => {
     setOpenModal('');
@@ -57,7 +57,7 @@ const MemberDetails = ({
     setOpenModal('');
   }
 
-  const handleActivateDeactivateMember = async () => {
+  const handleActivateDeactivateMember = useCallback(async () => {
     setLoading(true);
     const result: any = await clientAxiosRequest({
       headers: {},
@@ -76,9 +76,10 @@ const MemberDetails = ({
       setOpenModal('');
       // setOpen2FA(true);
     }
-  }
+      setLoading(false);
+    }, [member?.email, member?.id, member?.profile?.firstName, member?.profile?.lastName, openModal]);
 
-  const handle2FA = () => {
+  const handle2FA = useCallback(() => {
     close2FAModal();
     toast.success(
       openModal == 'deactivate' ?
@@ -87,13 +88,9 @@ const MemberDetails = ({
           '[memberName] has been activated and access restored.' :
           null
     )
-  };
+  }, [openModal]);
 
-  useEffect(() => {
-    (role != member?.role?.id) && changeRole(role);
-  }, [role]);
-
-  const changeRole = async (value: string) => {
+  const changeRole = useCallback(async (value: string) => {
     setLoadingRole(true);
     const result: any = await clientAxiosRequest({
       headers: {},
@@ -103,19 +100,25 @@ const MemberDetails = ({
         email: member?.email,
         firstName: member?.profile?.firstName,
         lastName: member?.profile?.lastName,
-        roleId: role,
+        roleId: value,
         status: member?.status
       }
     });
 
     if (result?.message) {
       setOpenModal('');
-      setLoadingRole(false);
       toast.success(`You have successfully change ${memberName} role`);
       // router.refresh();
       // setOpen2FA(true);
     }
-  }
+    setLoadingRole(false);
+  }, [member?.email, member?.id, member?.profile?.firstName, member?.profile?.lastName, member?.status, memberName]);
+
+  useEffect(() => {
+    if (role !== member?.role?.id) {
+      changeRole(role);
+    }
+  }, [changeRole, member?.role?.id, role]);
 
   return (
     <>

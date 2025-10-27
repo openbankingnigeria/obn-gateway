@@ -1,12 +1,15 @@
-import { useQuery, type QueryClient } from '@tanstack/react-query';
+"use client";
+
+import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
 import * as API from '@/config/endpoints';
 import { useUserStore } from '@/stores';
-
-export const profileQueryKey = ['user', 'profile'] as const;
-export const companyDetailsQueryKey = ['user', 'company-details'] as const;
-export const settingsQueryKey = (type: string = 'general') => ['user', 'settings', type] as const;
+import {
+  profileQueryKey,
+  companyDetailsQueryKey,
+  settingsQueryKey,
+} from './userQueryKeys';
 
 async function fetchProfile(): Promise<any> {
   const response = await clientAxiosRequest({
@@ -104,20 +107,4 @@ export function useSettingsQuery(type: string = 'general') {
   }, [query.data, setSettings, type]);
 
   return query;
-}
-
-export function primeProfileQuery(queryClient: QueryClient, data: any) {
-  queryClient.setQueryData(profileQueryKey, data ?? null);
-}
-
-export function primeCompanyDetailsQuery(queryClient: QueryClient, data: any) {
-  queryClient.setQueryData(companyDetailsQueryKey, data ?? null);
-}
-
-export function primeSettingsQuery(
-  queryClient: QueryClient,
-  data: any,
-  type: string = 'general'
-) {
-  queryClient.setQueryData(settingsQueryKey(type), data ?? null);
 }

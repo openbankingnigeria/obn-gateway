@@ -34,31 +34,29 @@ const TableElement = memo(({
   tdStyle
 }: TabelElmentProps) => {
   const router = useRouter();
-  const columnHelper = createColumnHelper<any>()
+  const columnHelper = useMemo(() => createColumnHelper<any>(), [])
   
-  const rawColumns = tableHeaders?.map(item => {
-    return (
+  const rawColumns = useMemo(() => {
+    return tableHeaders?.map((item) =>
       columnHelper.accessor(item?.accessor, {
         header: () => item?.header,
         cell: ({ column, cell, renderValue }) => {
-          if(column.id === 'status' || column.id === 'user_type' || column.id === 'kyb_status') {
-            return <StatusBox status={cell.getValue()} />
+          if (column.id === 'status' || column.id === 'user_type' || column.id === 'kyb_status') {
+            return <StatusBox status={cell.getValue()} />;
           } else if (column.id == 'status_code') {
-            return <StatusCodeBox status={cell.getValue()} />
+            return <StatusCodeBox status={cell.getValue()} />;
           } else {
             return renderValue();
           }
-        }
+        },
       })
-    );
-  });
+    ) ?? [];
+  }, [columnHelper, tableHeaders]);
 
   const columns = useMemo(
-    () => actionColumn ? [
-      ...rawColumns,
-      actionColumn
-    ] : [ ...rawColumns ],
-    [...filters, rawColumns]
+    () =>
+      actionColumn ? [...rawColumns, actionColumn] : [...rawColumns],
+    [actionColumn, rawColumns]
   );
 
   const data = useMemo(

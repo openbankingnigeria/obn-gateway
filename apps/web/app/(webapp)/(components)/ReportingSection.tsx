@@ -4,7 +4,7 @@ import { DatePicker } from '@/app/(webapp)/(components)';
 import { SelectElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import * as API from '@/config/endpoints';
 import { REPORTING_DATA } from '@/data/dashboardData';
 import { DashboardMetricCard } from '../app/home/dashboard/(components)';
@@ -35,13 +35,9 @@ const ReportingSection = () => {
   const viewReport = findPermissionSlug(userPermissions || [], 'view-report');
   const apiConsumer = profileData?.user?.role?.parent?.slug === 'api-consumer';
 
-  if (!profileData || !companyDetails) {
-    return null;
-  }
-
   // console.log('Company details >>>>>>', alt_data);
 
-  const fetchConsumers = async () => {
+  const fetchConsumers = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getCompanies({
@@ -53,9 +49,9 @@ const ReportingSection = () => {
       noToast: true
     })
     setConsumerList(result?.data);
-  }
+  }, []);
 
-  const fetchCollections = async () => {
+  const fetchCollections = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getCollections(),
@@ -64,9 +60,9 @@ const ReportingSection = () => {
       noToast: true
     })
     setCollections(result?.data);
-  }
+  }, []);
 
-  const fetchAPIs = async () => {
+  const fetchAPIs = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getAPIsForCompany({
@@ -77,9 +73,9 @@ const ReportingSection = () => {
       noToast: true
     })
     setApis(result?.data);
-  }
+  }, [environment]);
 
-  const fetchCollectionAPIs = async () => {
+  const fetchCollectionAPIs = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getAPIs({
@@ -93,37 +89,59 @@ const ReportingSection = () => {
       noToast: true
     })
     setApis(result?.data);
-  }
+  }, [collection, environment]);
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getAPILogStats({
         page: '1',
         limit: '10000',
-        environment: environment || 'development', 
+        environment: environment || 'development',
         companyId: apiConsumer ? companyDetails?.id : consumers,
         apiId: api,
-  createdAt_gt: from ? startOfDayIso(from) : '',
-  createdAt_l: to ? endOfDayIso(to) : '',
+        createdAt_gt: from ? startOfDayIso(from) : '',
+        createdAt_l: to ? endOfDayIso(to) : '',
       }),
       method: 'GET',
       data: null,
-      noToast: true
-    })
+      noToast: true,
+    });
     setLogStats(result?.data);
-  }
+  }, [api, apiConsumer, companyDetails?.id, consumers, environment, from, to]);
 
   useEffect(() => {
+    if (!profileData || !companyDetails) {
+      return;
+    }
+
     if (apiConsumer) {
       fetchAPIs();
       fetchReports();
     } else {
       fetchConsumers();
       fetchCollections();
-      collection && fetchCollectionAPIs();
+      if (collection) {
+        fetchCollectionAPIs();
+      } else {
+        setApis([]);
+      }
     }
-  }, [collection]);
+  }, [
+    apiConsumer,
+    collection,
+    companyDetails,
+    fetchAPIs,
+    fetchCollectionAPIs,
+    fetchCollections,
+    fetchConsumers,
+    fetchReports,
+    profileData,
+  ]);
+
+  if (!profileData || !companyDetails) {
+    return null;
+  }
 
   const allObject = [{ label: 'All', value: ''}]
 

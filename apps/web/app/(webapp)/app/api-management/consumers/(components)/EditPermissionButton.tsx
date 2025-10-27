@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/globalComponents'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
-import React, { FormEvent, useEffect, useState } from 'react'
+import React, { FormEvent, useCallback, useEffect, useState } from 'react'
 import * as API from '@/config/endpoints';
 import { AppCenterModal, AppRightModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ const EditPermissionButton = ({
   const environment = getJsCookies('environment');
   const [refresh, setRefresh] = useState(false);
 
-  const fetchConsumerAPIs = async () => {
+  const fetchConsumerAPIs = useCallback(async () => {
     const result: any = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getCompanyAPIs({
@@ -41,9 +41,9 @@ const EditPermissionButton = ({
       return api?.id;
     }) : [];
     setApiIds([...sanitizedAPIs]);
-  }
+  }, [environment, rawData?.id]);
 
-  const fetchAPICollections = async () => {
+  const fetchAPICollections = useCallback(async () => {
     const result: any = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getCollections(),
@@ -52,9 +52,9 @@ const EditPermissionButton = ({
       noToast: true
     });
     setCollections(result?.data);
-  }
+  }, []);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     const result: any = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getProfile(),
@@ -63,7 +63,7 @@ const EditPermissionButton = ({
       noToast: true
     });
     setProfile(result?.data);
-  }
+  }, []);
 
   useEffect(() => {
     fetchProfile();

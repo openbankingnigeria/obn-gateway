@@ -5,7 +5,7 @@ import { Button } from '@/components/globalComponents'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
 import { InviteMembersProps } from '@/types/webappTypes/appTypes'
 import { dataToPermissions } from '@/utils/dataToPermissions'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import * as API from '@/config/endpoints';
 import { validateEmail } from '@/utils/globalValidations'
 
@@ -22,7 +22,7 @@ const InviteMemberPage = ({
   const [permissions, setPermissions] = useState<any[]>([]);
   const [show_role, setShowRole] = useState(false);
 
-  async function FetchData(id: string) {
+  const fetchRolePermissions = useCallback(async (id: string) => {
     const result: any = id && await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getRolePermission({ id: id }),
@@ -33,12 +33,16 @@ const InviteMemberPage = ({
 
     let permits = dataToPermissions(result?.data?.map((data: any) => data), 'string');
     setPermissions(permits);
-  }
+  }, []);
 
   useEffect(() => {
     let role_details = roles?.find(data => data?.id == role);
-    FetchData(role_details?.id);
-  }, [role, FetchData, roles])
+    if (role_details?.id) {
+      fetchRolePermissions(role_details.id);
+    } else {
+      setPermissions([]);
+    }
+  }, [fetchRolePermissions, role, roles])
 
   const incorrect = (
     !role ||

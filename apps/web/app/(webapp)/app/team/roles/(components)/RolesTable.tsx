@@ -5,7 +5,7 @@ import { ROLES_ACTIONS_DATA } from '@/data/rolesData'
 import { TableProps } from '@/types/webappTypes/appTypes'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
-import React, { FormEvent, useEffect, useState } from 'react'
+import React, { FormEvent, useCallback, useEffect, useState } from 'react'
 import * as API from '@/config/endpoints';
 import { ActivateDeactivateRole, EditRolePage, ViewRolePage } from '.'
 import clientAxiosRequest from '@/hooks/clientAxiosRequest'
@@ -50,7 +50,7 @@ const RolesTable = ({
     setPermissions([]);
   };
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     const result: any = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getProfile(),
@@ -59,13 +59,13 @@ const RolesTable = ({
       noToast: true
     });
     setProfile(result?.data);
-  }
+  }, []);
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
-  async function FetchData() {
+  const fetchRolePermissions = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getRolePermission({ id: role?.id }),
@@ -76,11 +76,15 @@ const RolesTable = ({
 
     let permits = dataToPermissions(result?.data?.map((data: any) => data), 'answer');
     setPermissions(permits);
-  }
+  }, [role?.id]);
 
   useEffect(() => {
-    role?.id && FetchData();
-  }, [role, refresh]);
+    if (role?.id) {
+      fetchRolePermissions();
+    } else {
+      setPermissions([]);
+    }
+  }, [fetchRolePermissions, refresh, role?.id]);
 
   const getAction = (status: string) => {
     return actions.filter(action => {

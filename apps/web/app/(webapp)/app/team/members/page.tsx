@@ -10,6 +10,7 @@ import * as API from '@/config/endpoints';
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
 import { getCookies } from '@/config/cookies'
 import { RefreshStoredToken } from '@/components/globalComponents'
+import { getUserBootstrapData } from '@/server/getUserBootstrapData'
 
 const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -20,15 +21,15 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
 
   const filters = [search_query, status, role];
 
-  const fetchedProfile: any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getProfile(),
-    method: 'GET',
-    data: null
-  });
+  const bootstrap = await getUserBootstrapData();
 
-  let profile = fetchedProfile?.data;
-  let userPermissions = profile?.user?.role?.permissions
+  if (bootstrap.shouldLogout) {
+    return <Logout />
+  }
+
+  const profile = bootstrap.profile;
+  const userPermissions = profile?.user?.role?.permissions;
+  let refreshTokenPayload = bootstrap.refreshTokenData ?? null;
 
   const fetchedMembers: any = await applyAxiosRequest({
     headers: {},
@@ -63,10 +64,12 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
   });
 
   /** REFRESH TOKEN CHECK */
-  let refreshTokenRes = null; 
-  
-  if (fetchedMembers?.status == 401 || fetchedRoles?.status == 401) {
-    refreshTokenRes = await applyAxiosRequest({
+  if (
+    fetchedMembers?.status == 401 ||
+    fetchedRoles?.status == 401 ||
+    fetchedStats?.status == 401
+  ) {
+    const refreshResponse = await applyAxiosRequest({
       headers: { },
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
@@ -75,9 +78,11 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
       }
     });
 
-    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+    if (!(refreshResponse?.status == 200 || refreshResponse?.status == 201)) {
       return <Logout />
     }
+
+    refreshTokenPayload = refreshResponse?.data ?? refreshTokenPayload;
   }
 
   let roles = fetchedRoles?.data;
@@ -150,11 +155,11 @@ const MembersPage = async ({ searchParams }: UrlParamsProps) => {
     <section className='flex flex-col h-full  w-full pt-[56px]'>
       {/* REFRESH TOKEN SECTION */}
       {
-          refreshTokenRes?.data &&
-          <RefreshStoredToken 
-            data={refreshTokenRes?.data} 
-          />
-        }
+        refreshTokenPayload &&
+        <RefreshStoredToken 
+          data={refreshTokenPayload} 
+        />
+      }
 
       {
         /* SSR TOAST ERROR */

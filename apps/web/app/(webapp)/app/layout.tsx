@@ -10,7 +10,7 @@ import {
   primeCompanyDetailsQuery,
   primeProfileQuery,
   primeSettingsQuery,
-} from '@/hooks/queries/userQueries'
+} from '@/hooks/queries/userQueryKeys'
 
 export const metadata: Metadata = {
   title: 'Aperta - App',

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react'
 import { InputElement } from '@/components/forms'
 import { Button } from '@/components/globalComponents'
 import { CLIENT_ID_DATA } from '@/data/systemSettingsData'
@@ -17,7 +17,7 @@ const ClientIdPage = ({ profileData }: APIConfigurationProps) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  async function fetchClientId() {
+  const fetchClientId = useCallback(async () => {
     const result: any = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getClientId({
@@ -29,11 +29,11 @@ const ClientIdPage = ({ profileData }: APIConfigurationProps) => {
     });
 
     setClient(result?.data);
-  }
+  }, [environment]);
 
   useEffect(() => {
     fetchClientId();
-  }, []);
+  }, [fetchClientId]);
 
   const incorrect = (
     !clientId
