@@ -11,6 +11,8 @@ import TransformationForm from "./TransformationForm";
 import UpstreamForm from "./UpstreamForm";
 import KeyValueContainer from "./KeyValueContainer";
 import EnabledToggle from "./EnabledToggle";
+import CollectionsHeader from "./CollectionsHeader";
+import ImportSpecModal from "./ImportSpecModal";
 
 export {
   CollectionsTable,
@@ -25,5 +27,7 @@ export {
   TransformationForm,
   UpstreamForm,
   KeyValueContainer,
-  EnabledToggle
+  EnabledToggle,
+  CollectionsHeader,
+  ImportSpecModal
 }

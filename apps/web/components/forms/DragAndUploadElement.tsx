@@ -15,6 +15,8 @@ const DragAndUploadElement = ({
   value,
   containerStyle,
   labelStyle,
+  allowedTypes,
+  maxSizeMB
 }: DragAndUploadElementProps) => {
   return (
     <section className={`w-full flex flex-col ${containerStyle}`}>
@@ -36,6 +38,8 @@ const DragAndUploadElement = ({
         fileType={fileType}
         disabled={disabled}
         setSelectedFile={changeValue}
+        allowedTypes={allowedTypes}
+        maxSizeMB={maxSizeMB}
       />
     </section>
   )

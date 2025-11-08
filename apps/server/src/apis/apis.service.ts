@@ -291,6 +291,21 @@ export class APIService {
     );
   }
 
+  async getActualImportSuccessCount(
+    collectionId: string,
+    endpointNames: string[],
+  ): Promise<number> {
+    // Count how many of these endpoints actually exist in the database
+    const count = await this.routeRepository.count({
+      where: {
+        collectionId: Equal(collectionId),
+        name: In(endpointNames),
+      },
+    });
+
+    return count;
+  }
+
   async deleteAPI(
     ctx: RequestContext,
     environment: KONG_ENVIRONMENT,
@@ -333,20 +348,67 @@ export class APIService {
       },
     );
 
-    if (company.tier) {
-      // TODO optimize
-      await this.kongConsumerService
-        .updateConsumerAcl(environment, {
-          aclAllowedGroupName: `tier-${company.tier}`,
-          consumerId: response.id,
-        })
-        .catch(console.error);
+    if (company.tier !== undefined && company.tier !== null) {
+      const tierGroupName = `tier-${company.tier}`;
+      
+      // Check if consumer already has this tier ACL
+      try {
+        const existingAcls = await this.kongConsumerService.getConsumerAcls(
+          environment,
+          response.id,
+        );
+        
+        const hasTierAcl = existingAcls.data.some(
+          (acl) => acl.group === tierGroupName,
+        );
+        
+        if (!hasTierAcl) {
+          await this.kongConsumerService.updateConsumerAcl(environment, {
+            aclAllowedGroupName: tierGroupName,
+            consumerId: response.id,
+          });
+        }
+      } catch (error) {
+        this.logger.error(
+          `Failed to update consumer ACL for tier ${company.tier}:`,
+          error,
+        );
+      }
     }
 
     return response.id;
   }
 
+  /**
+   * Convert Kong regex path back to user-friendly OpenAPI format
+   * Example: ~/users/(?<userId>[^/]+) -> /users/{userId}
+   */
+  private convertKongPathToClean(path: string): string {
+    let cleanPath = path;
+    
+    // Remove Kong regex prefix
+    if (cleanPath.startsWith('~')) {
+      cleanPath = cleanPath.slice(1);
+    }
+    
+    // Convert Kong named capture groups back to OpenAPI format
+    // (?<paramName>[^/]+) -> {paramName}
+    cleanPath = cleanPath.replace(/\(\?<(\w+)>[^)]+\)/g, '{$1}');
+    
+    // Remove any trailing $ anchor
+    if (cleanPath.endsWith('$')) {
+      cleanPath = cleanPath.slice(0, -1);
+    }
+    
+    return cleanPath;
+  }
+
   private generateJSONSchema(data: CreateAPIDto['downstream']['request']) {
+    // Return null if description is missing or not a string
+    if (!data?.description || typeof data.description !== 'string') {
+      return null;
+    }
+
     const $ = cheerio.load(data.description, null, false);
 
     const tablesData: any[] = [];
@@ -535,18 +597,18 @@ export class APIService {
           },
         );
         // Update API provider consumer to allow access to this new route
-        await this.kongConsumerService.updateConsumerAcl(environment, {
-          aclAllowedGroupName: `route-${routeId}`,
-          consumerId: apiProviderConsumerId,
-        });
+        await this.kongConsumerService
+          .updateConsumerAcl(environment, {
+            aclAllowedGroupName: `route-${routeId}`,
+            consumerId: apiProviderConsumerId,
+          })
+          .catch(console.error);
       }
     }
 
-    let cleanPath = data.downstream.path.replace(/\([^)]*\)\$/, '');
-    if (cleanPath.startsWith('~')) cleanPath = cleanPath.slice(1);
-    if (cleanPath.endsWith('$')) {
-      cleanPath = cleanPath.slice(0, cleanPath.length - 1);
-    }
+    // Convert Kong regex path back to user-friendly format for URL storage
+    // ~/path/(?<param>[^/]+) -> /path/{param}
+    const cleanPath = this.convertKongPathToClean(data.downstream.path);
 
     const createdRoute = await this.routeRepository.save(
       this.routeRepository.create({
@@ -626,7 +688,8 @@ export class APIService {
       upstream.querystring ||
       upstream.body ||
       upstream.method ||
-      upstream.url
+      upstream.url ||
+      upstream.transformations
     ) {
       const config: {
         http_method: string | undefined;
@@ -640,37 +703,90 @@ export class APIService {
           querystring: string[];
           body: string[];
         };
+        rename?: {
+          headers: string[];
+          body: string[];
+        };
         replace: {
           uri?: string;
+          headers?: string[];
         };
       } = {
-        http_method: upstream.method?.toUpperCase(),
+        http_method:
+          upstream.transformations?.method?.toUpperCase() ||
+          upstream.method?.toUpperCase(),
         remove: {
-          headers: upstream.headers?.map((h) => `${h.key}:${h.value}`) || [],
-          querystring:
-            upstream.querystring?.map((h) => `${h.key}:${h.value}`) || [],
-          body: upstream.body?.map((h) => `${h.key}:${h.value}`) || [],
+          headers: this.buildHeaderRemovals(
+            upstream.transformations?.headerMappings,
+          ),
+          querystring: [],
+          body: this.buildBodyRemovals(upstream.transformations?.bodyMappings),
         },
         add: {
-          headers: upstream.headers?.map((h) => `${h.key}:${h.value}`) || [],
-          querystring:
-            upstream.querystring?.map((h) => `${h.key}:${h.value}`) || [],
-          body: upstream.body?.map((h) => `${h.key}:${h.value}`) || [],
+          headers: this.buildHeaderAdditions(
+            upstream.headers || [],
+            upstream.transformations?.headerMappings,
+          ),
+          querystring: [],
+          body: this.buildBodyAdditions(
+            upstream.body || [],
+            upstream.transformations?.bodyMappings,
+          ),
         },
         replace: {},
       };
 
+      // Add rename operations if they exist
+      const headerRenames = this.buildHeaderRenames(
+        upstream.transformations?.headerMappings,
+      );
+      const bodyRenames = this.buildBodyRenames(
+        upstream.transformations?.bodyMappings,
+      );
+      if (headerRenames.length > 0 || bodyRenames.length > 0) {
+        config.rename = {
+          headers: headerRenames,
+          body: bodyRenames,
+        };
+      }
+
+      // Add header replacements if they exist
+      const headerReplacements = this.buildHeaderReplacements(
+        upstream.transformations?.headerMappings,
+      );
+      if (headerReplacements.length > 0) {
+        config.replace.headers = headerReplacements;
+      }
+
+      // Collect URL searchParams first
+      const urlParams: { key: string; value: string }[] = [];
       if (upstream.url) {
         const { pathname, searchParams } = new URL(upstream.url);
         config.replace.uri = pathname.replace(
           /(?:^|[:<])(\w+)(>|)/gi,
           '$(uri_captures["$1"])',
         );
+
+        // Collect URL searchParams
         searchParams.forEach((value, key) => {
-          config.add.querystring.push(`${key}:${value}`);
-          config.remove.querystring.push(`${key}:${value}`);
+          urlParams.push({ key, value });
         });
       }
+
+      // Build all querystring additions (URL params + static + mappings)
+      const allQueryParams = [
+        ...urlParams.map((p) => `${p.key}:${p.value}`),
+        ...this.buildQuerystringAdditions(
+          upstream.querystring || [],
+          upstream.transformations?.querystringMappings,
+        ),
+      ];
+      
+      // Remove duplicates
+      config.add.querystring = Array.from(new Set(allQueryParams));
+      config.remove.querystring = this.buildQuerystringRemovals(
+        upstream.transformations?.querystringMappings,
+      );
 
       await this.kongRouteService.updateOrCreatePlugin(
         environment,
@@ -711,6 +827,98 @@ export class APIService {
         ctx,
       ),
     );
+  }
+
+  private buildHeaderRemovals(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'remove')
+      .map((m) => m.from);
+  }
+
+  private buildHeaderAdditions(
+    headers: any[],
+    mappings?: any[],
+  ): string[] {
+    const staticHeaders = headers?.map((h) => `${h.key}:${h.value}`) || [];
+    const mappedHeaders =
+      mappings
+        ?.filter((m) => m.operation === 'add' && m.value) // Only include if value exists
+        .map((m) => `${m.from}:${m.value}`) || [];
+    return [...staticHeaders, ...mappedHeaders];
+  }
+
+  private buildHeaderRenames(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'rename')
+      .map((m) => `${m.from}:${m.to}`);
+  }
+
+  private buildHeaderReplacements(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'replace')
+      .map((m) => `${m.from}:${m.value || m.to || ''}`);
+  }
+
+  private buildBodyRemovals(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'remove')
+      .map((m) => m.from);
+  }
+
+  private buildBodyAdditions(
+    body: any[],
+    mappings?: any[],
+  ): string[] {
+    const staticBody = body?.map((b) => `${b.key}:${b.value}`) || [];
+    const mappedBody =
+      mappings
+        ?.filter((m) => m.operation === 'add' && m.value) // Only include if value exists
+        .map((m) => `${m.from}:${m.value}`) || [];
+    return [...staticBody, ...mappedBody];
+  }
+
+  private buildBodyRenames(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'rename')
+      .map((m) => `${m.from}:${m.to}`);
+  }
+
+  private buildQuerystringRemovals(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'remove')
+      .map((m) => m.from);
+  }
+
+  private buildQuerystringAdditions(
+    query: any[],
+    mappings?: any[],
+  ): string[] {
+    const staticQs = query?.map((q) => `${q.key}:${q.value}`) || [];
+    const mappedQs =
+      mappings
+        ?.filter((m) => m.operation === 'add' && m.value) // Only include if value exists
+        .map((m) => `${m.from}:${m.value}`) || [];
+    return [...staticQs, ...mappedQs];
+  }
+
+  private buildQuerystringRenames(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'rename')
+      .map((m) => `${m.from}:${m.to}`);
+  }
+
+  private buildQuerystringReplacements(mappings?: any[]): string[] {
+    if (!mappings) return [];
+    return mappings
+      .filter((m) => m.operation === 'replace')
+      .map((m) => `${m.from}:${m.value || m.to || ''}`);
   }
 
   async assignAPIs(
@@ -1022,21 +1230,29 @@ export class APIService {
       );
     }
 
+    // Build update object conditionally - only include fields that are being changed
+    const updateData: any = {
+      serviceId: gatewayService.id,
+    };
+
+    if (name !== undefined) updateData.name = name;
+    if (gatewayRoute?.name !== undefined) updateData.slug = gatewayRoute.name;
+    if (introspectAuthorization !== undefined) updateData.introspectAuthorization = introspectAuthorization;
+    if (gatewayRoute?.id !== undefined) updateData.routeId = gatewayRoute.id;
+    if (enabled !== undefined) updateData.enabled = enabled;
+    if (tiers !== undefined) updateData.tiers = tiers;
+    
+    // Only update downstream fields if downstream object is provided
+    if (downstream) {
+      if (downstream.url !== undefined) updateData.url = downstream.url;
+      if (downstream.method !== undefined) updateData.method = downstream.method;
+      if (downstream.request !== undefined) updateData.request = downstream.request;
+      if (downstream.response !== undefined) updateData.response = downstream.response;
+    }
+
     await this.routeRepository.update(
       { id: route.id, environment },
-      {
-        name,
-        slug: gatewayRoute?.name,
-        introspectAuthorization,
-        serviceId: gatewayService.id,
-        routeId: gatewayRoute?.id,
-        enabled,
-        url: downstream?.url,
-        method: downstream?.method,
-        request: downstream?.request,
-        response: downstream?.response,
-        tiers,
-      },
+      updateData,
     );
 
     if (gatewayRoute) {
@@ -1113,7 +1329,8 @@ export class APIService {
         upstream?.headers ||
         upstream?.querystring ||
         upstream?.body ||
-        upstream?.url
+        upstream?.url ||
+        upstream?.transformations
       ) {
         const plugins = await this.kongRouteService.getPlugins(
           environment,
@@ -1124,33 +1341,64 @@ export class APIService {
           (plugin) => plugin.name === KONG_PLUGINS.REQUEST_TRANSFORMER,
         );
 
-        const config = {
-          http_method: upstream.method?.toUpperCase(),
+        const config: {
+          http_method: string | undefined;
+          remove: {
+            headers: string[];
+            querystring: string[];
+            body: string[];
+          };
+          add: {
+            headers: string[];
+            querystring: string[];
+            body: string[];
+          };
+          rename?: {
+            headers: string[];
+            body: string[];
+          };
+          replace: {
+            uri?: string;
+            headers?: string[];
+          };
+        } = {
+          http_method:
+            upstream.transformations?.method?.toUpperCase() ||
+            upstream.method?.toUpperCase() ||
+            plugin?.config.http_method,
           remove: {
             headers:
-              upstream.headers?.map((h) => `${h.key}:${h.value}`) ||
+              this.buildHeaderRemovals(
+                upstream.transformations?.headerMappings,
+              ) ||
               plugin?.config.remove?.headers ||
               [],
-            querystring:
-              upstream.querystring?.map((q) => `${q.key}:${q.value}`) ||
-              plugin?.config.remove?.querystring ||
-              [],
+            querystring: this.buildQuerystringRemovals(
+              upstream.transformations?.querystringMappings,
+            ) || plugin?.config.remove?.querystring || [],
             body:
-              upstream.body?.map((b) => `${b.key}:${b.value}`) ||
+              this.buildBodyRemovals(upstream.transformations?.bodyMappings) ||
               plugin?.config.remove?.body ||
               [],
           },
           add: {
             headers:
-              upstream.headers?.map((h) => `${h.key}:${h.value}`) ||
+              this.buildHeaderAdditions(
+                upstream.headers || [],
+                upstream.transformations?.headerMappings,
+              ) ||
               plugin?.config.add?.headers ||
               [],
             querystring:
-              upstream.querystring?.map((q) => `${q.key}:${q.value}`) ||
-              plugin?.config.add?.querystring ||
-              [],
+              this.buildQuerystringAdditions(
+                upstream.querystring || [],
+                upstream.transformations?.querystringMappings,
+              ) || plugin?.config.add?.querystring || [],
             body:
-              upstream.body?.map((b) => `${b.key}:${b.value}`) ||
+              this.buildBodyAdditions(
+                upstream.body || [],
+                upstream.transformations?.bodyMappings,
+              ) ||
               plugin?.config.add?.body ||
               [],
           },
@@ -1159,16 +1407,43 @@ export class APIService {
           },
         };
 
+        // Add rename operations if they exist
+        const headerRenames = this.buildHeaderRenames(
+          upstream.transformations?.headerMappings,
+        );
+        const bodyRenames = this.buildBodyRenames(
+          upstream.transformations?.bodyMappings,
+        );
+        if (headerRenames.length > 0 || bodyRenames.length > 0) {
+          config.rename = {
+            headers: headerRenames,
+            body: bodyRenames,
+          };
+        }
+
+        // Add header replacements if they exist
+        const headerReplacements = this.buildHeaderReplacements(
+          upstream.transformations?.headerMappings,
+        );
+        if (headerReplacements.length > 0) {
+          config.replace.headers = headerReplacements;
+        }
+
         if (upstream.url) {
           const { pathname, searchParams } = new URL(upstream.url);
           config.replace.uri = pathname.replace(
             /(?:^|[:<])(\w+)(>|)/gi,
             '$(uri_captures["$1"])',
           );
+
+          // Add querystring from URL searchParams (explicit URL params)
+          const urlParams: string[] = [];
           searchParams.forEach((value, key) => {
-            config.add.querystring.push(`${key}:${value}`);
-            config.remove.querystring.push(`${key}:${value}`);
+            urlParams.push(`${key}:${value}`);
           });
+          
+          // Merge with existing querystring additions and remove duplicates
+          config.add.querystring = Array.from(new Set([...config.add.querystring, ...urlParams]));
         }
 
         await this.kongRouteService.updateOrCreatePlugin(

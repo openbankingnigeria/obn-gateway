@@ -1,8 +1,7 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { COLLECTIONS_TABLE_HEADERS } from '@/data/collectionDatas'
-import { SearchBar } from '@/components/forms'
-import { CollectionsTable } from './(components)'
+import { CollectionsTable, CollectionsHeader } from './(components)'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
@@ -134,12 +133,11 @@ const CollectionsPage = async ({ searchParams }: UrlParamsProps) => {
         </h2>
 
         <section className='w-full h-full flex-col flex gap-[20px]'>
-          <div className='w-full flex-wrap flex items-center'>
-            <SearchBar 
-              placeholder='Search collections'
-              searchQuery={search_query}
-            />
-          </div>
+          <CollectionsHeader 
+            searchQuery={search_query}
+            collections={fetchedCollections?.data || []}
+            userType={userType}
+          />
 
           <section className='w-full min-h-full flex flex-col items-center'>
             <CollectionsTable 

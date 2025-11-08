@@ -205,9 +205,24 @@ export interface DragAndUploadFileProps {
   file?: string;
   disabled?: boolean;
   setSelectedFile: Dispatch<SetStateAction<any>>;
+  allowedTypes?: string[];
+  maxSizeMB?: number;
 }
 
 export interface EmptyStateButtonProps {
   title: string;
   effect: any;
+}
+
+export interface ImportSpecModalProps {
+  close: () => void;
+  collectionId?: string;
+  environment: string;
+  collections?: Array<{ id: string; name: string }>;
+}
+
+export interface CollectionsHeaderProps {
+  searchQuery?: string;
+  collections?: Array<{ id: string; name: string }>;
+  userType?: string;
 }

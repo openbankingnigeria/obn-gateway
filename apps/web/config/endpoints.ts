@@ -106,6 +106,18 @@ export const getAPILogStats = ({ page, limit, environment, companyId, apiId, cre
 	`${BASE_URL}/apis/${environment}/logs/stats?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${companyId ? `&filter[companyId]=${companyId}` : ''}`
 export const getAPILogStatsAggregate = ({ page, limit, environment, companyId, apiId, createdAt_gt, createdAt_l }: GetEnvironmentProps) => 
 	`${BASE_URL}/apis/${environment}/logs/stats/periodic-aggregate?page=${page}${limit ? `&limit=${limit}`: ''}${apiId ? `&filter[apiId]=${apiId}` : ''}${createdAt_gt ? `&filter[createdAt][gt]=${createdAt_gt}`: ''}${createdAt_l ? `&filter[createdAt][lt]=${createdAt_l}`: ''}${companyId ? `&filter[companyId]=${companyId}` : ''}`
+
+// API SPEC IMPORTS
+export const postImportAPISpec = ({ environment }: GetSingleEnvironmentProps) =>
+  `${BASE_URL}/apis/${environment}/import`;
+export const getAPIImports = ({ page, limit, environment }: GetEnvironmentProps) =>
+  `${BASE_URL}/apis/${environment}/imports?page=${page}${limit ? `&limit=${limit}`: ''}`;
+export const getAPIImport = ({ environment, id }: GetSingleEnvironmentProps) =>
+  `${BASE_URL}/apis/${environment}/imports/${id}`;
+export const deleteAPIImport = ({ environment, id }: GetSingleEnvironmentProps) =>
+  `${BASE_URL}/apis/${environment}/imports/${id}`;
+export const retryAPIImport = ({ environment, id }: GetSingleEnvironmentProps) =>
+  `${BASE_URL}/apis/${environment}/imports/${id}/retry`;
   
 
 // COMPANY
