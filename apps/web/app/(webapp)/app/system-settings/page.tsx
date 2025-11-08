@@ -9,54 +9,33 @@ import Logout from '@/components/globalComponents/Logout';
 import { RefreshStoredToken } from '@/components/globalComponents';
 import { getCookies } from '@/config/cookies';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
+import { getUserBootstrapData } from '@/server/getUserBootstrapData';
 
 const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   const getMode = await getCookies('environment');
   const path = searchParams?.path || '';
 
-  const fetchedDetails : any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getCompanyDetails(),
-    method: 'GET',
-    data: null
-  });
-
-  let details = fetchedDetails?.data;
-
-  const fetchedProfile: any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getProfile(),
-    method: 'GET',
-    data: null
-  });
-
   const environment = getMode || '';
+  const bootstrap = await getUserBootstrapData();
 
-  /** REFRESH TOKEN CHECK */
-  let refreshTokenRes = null; 
-  
-  if (fetchedProfile?.status == 401) {
-    refreshTokenRes = await applyAxiosRequest({
-      headers: { },
-      apiEndpoint: API?.refreshToken(),
-      method: 'POST',
-      data: {
-        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
-      }
-    });
-
-    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
-      return <Logout />
-    }
+  if (bootstrap.shouldLogout) {
+    return <Logout />
   }
 
-  let profile = fetchedProfile?.data;
+  const details = bootstrap.companyDetails;
+  const profile = bootstrap.profile;
+  const defaultSettings = bootstrap.settings;
+  const refreshTokenRes = bootstrap.refreshTokenData
+    ? { data: bootstrap.refreshTokenData }
+    : null;
 
   const apiProvider = profile?.user?.role?.parent?.slug == 'api-provider'
   let userPermissions = profile?.user?.role?.permissions;
   let viewRestriction = findPermissionSlug(userPermissions, 'view-api-restrictions')
 
-  const fetchedSettings : any = apiProvider ? await applyAxiosRequest({
+  const isGeneralPath = !path || path === 'general';
+
+  const fetchedSettings : any = apiProvider && !isGeneralPath ? await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getSettings({
       type: path || 'general'
@@ -102,7 +81,9 @@ const SystemSettingsPage = async ({ searchParams }: UrlParamsProps) => {
   let companyTypes = fetchedTypes?.data?.companySubtypes;
   let ips = fetchedIps?.data;
   let apiKey = fetchedAPI?.data;
-  let settings = fetchedSettings?.data;
+  const settings = apiProvider
+    ? (isGeneralPath ? defaultSettings : fetchedSettings?.data)
+    : null;
   let clientId = fetchedClientId?.data
 
   const rawPanel = SYSTEM_SETTINGS_PATHS?.filter((path: any) => 

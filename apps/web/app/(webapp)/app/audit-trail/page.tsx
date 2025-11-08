@@ -7,7 +7,7 @@ import { DatePicker, ToastMessage } from '@/app/(webapp)/(components)'
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
-import moment from 'moment'
+import { endOfDayIso, startOfDayIso } from '@/utils/dateUtils'
 import { RefreshStoredToken } from '@/components/globalComponents'
 import { getCookies } from '@/config/cookies'
 
@@ -28,8 +28,8 @@ const AuditTrailPage = async ({ searchParams }: UrlParamsProps) => {
       limit: `${rows}`,
       name: search_query,
       event: type,
-      createdAt_gt: moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z',
-      createdAt_l: moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z'
+  createdAt_gt: startOfDayIso(dateFilter?.start_date),
+  createdAt_l: endOfDayIso(dateFilter?.end_date)
     }),
     method: 'GET',
     data: null

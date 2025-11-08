@@ -1,12 +1,16 @@
 import type { Metadata } from 'next'
-import { AppLeftSideBar, AppNavBar, KybBanner } from '../(components)'
 import { redirect } from 'next/navigation'
 import { getCookies } from '@/config/cookies'
-import { applyAxiosRequest } from '@/hooks'
-import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
 import { RefreshStoredToken } from '@/components/globalComponents'
-import LogoutTimer from '@/components/globalComponents/LogoutTimer'
+import AppLayoutClient from './AppLayoutClient'
+import { getUserBootstrapData } from '@/server/getUserBootstrapData'
+import { QueryClient, dehydrate } from '@tanstack/react-query'
+import {
+  primeCompanyDetailsQuery,
+  primeProfileQuery,
+  primeSettingsQuery,
+} from '@/hooks/queries/userQueryKeys'
 
 export const metadata: Metadata = {
   title: 'Aperta - App',
@@ -20,50 +24,22 @@ export default async function RootLayout({
   if (!await getCookies('aperta-user-accessToken')) {
     redirect('/signin')
   } else {
-    const fetchedDetails : any = await applyAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getCompanyDetails(),
-      method: 'GET',
-      data: null
-    });
+    const bootstrap = await getUserBootstrapData();
 
-    const fetchedProfile: any = await applyAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getProfile(),
-      method: 'GET',
-      data: null
-    });
-
-    const fetchSettings : any = await applyAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getSettings({
-        type: 'general'
-      }),
-      method: 'GET',
-      data: null
-    });
-
-    /** REFRESH TOKEN CHECK */
-    let refreshTokenRes = null; 
-  
-    if (fetchedDetails?.status == 401) {
-      refreshTokenRes = await applyAxiosRequest({
-        headers: { },
-        apiEndpoint: API?.refreshToken(),
-        method: 'POST',
-        data: {
-          refreshToken: `${await getCookies('aperta-user-refreshToken')}`
-        }
-      });
-
-      if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
-        return <Logout />
-      }
+    if (bootstrap.shouldLogout) {
+      return <Logout />
     }
-  
-    let details = fetchedDetails?.data;
-    let profile = fetchedProfile?.data;
-    let settings = fetchSettings?.data;
+
+    const queryClient = new QueryClient();
+    primeCompanyDetailsQuery(queryClient, bootstrap.companyDetails);
+    primeProfileQuery(queryClient, bootstrap.profile);
+    primeSettingsQuery(queryClient, bootstrap.settings);
+
+    const dehydratedState = dehydrate(queryClient);
+
+    const details = bootstrap.companyDetails;
+    const profile = bootstrap.profile;
+    const settings = bootstrap.settings;
     let showBanner = Boolean(
       profile?.user?.role?.parent?.slug == 'api-consumer' && 
       !details?.isVerified
@@ -76,40 +52,26 @@ export default async function RootLayout({
       || profile?.user?.role?.parent?.slug === 'api-provider');
 
     return (
-      <section className='max-w-full min-h-screen relative bg-[#FCFDFD]'>
+      <>
         {/* REFRESH TOKEN SECTION */}
         {
-          refreshTokenRes?.data &&
+          bootstrap.refreshTokenData &&
           <RefreshStoredToken 
-            data={refreshTokenRes?.data} 
+            data={bootstrap.refreshTokenData} 
           />
         }
 
-        { 
-          profile?.user?.role?.parent?.slug == 'api-consumer' && 
-          showBanner && 
-          <KybBanner rawData={details} /> 
-        }
-        <AppNavBar 
-          bannerExist={showBanner} 
+        <AppLayoutClient
+          profile={profile}
+          companyDetails={details}
+          settings={settings}
+          showBanner={showBanner}
           canToggleMode={canToggleMode}
-        />
-        <AppLeftSideBar bannerExist={showBanner} />
-
-        {/* INACTIVITY LOGOUT TIMER */}
-        {
-          settings?.inactivityTimeout?.value && 
-          <LogoutTimer 
-            timeout={1000 * 60 * Number(settings?.inactivityTimeout?.value)} 
-          />
-        }
-
-        <main className={`w-full min-h-screen flex flex-col ${showBanner ? 'pt-[168px]' : 'pt-[112px]'} pb-[25px] wide:pl-[360px] pl-[330px] wide:pr-[80px] pr-[25px] overflow-auto`}>
-          <section className='w-full h-full flex flex-col'>
-            {children}
-          </section>
-        </main>
-      </section>
+          dehydratedState={dehydratedState}
+        >
+          {children}
+        </AppLayoutClient>
+      </>
     )
   }
 }

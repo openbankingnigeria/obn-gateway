@@ -2,7 +2,7 @@
 
 import { InputElement, SelectElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { 
   greaterThan8, validateEmail, validateLowercase, validateName, 
   validateNumber, validatePhoneNumber, validateSymbol, validateUppercase 
@@ -39,7 +39,7 @@ const SignupFullForm = () => {
   const [companyTypes, setCompanyTypes] = useState<any>(null);
 
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getAgreements(),
@@ -48,9 +48,9 @@ const SignupFullForm = () => {
       noToast: true
     })
     setAgreements(result?.data);
-  }
+  }, []);
 
-  const fetchTypes = async () => {
+  const fetchTypes = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getCompanyTypes(),
@@ -59,9 +59,9 @@ const SignupFullForm = () => {
       noToast: true
     })
     setCompanyTypes(result?.data);
-  }
+  }, []);
 
-  const fetchRequiredFields = async () => {
+  const fetchRequiredFields = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getCompanyRequiredFields({
@@ -72,16 +72,16 @@ const SignupFullForm = () => {
       noToast: true
     })
     setRequiredFields(result?.data);
-  }
+  }, [userType]);
 
   useEffect(() => {
     fetchTypes();
-  }, []);
+  }, [fetchTypes]);
 
   useEffect(() => {
     fetchSettings();
     userType && fetchRequiredFields();
-  }, [userType]);
+  }, [fetchRequiredFields, fetchSettings, userType]);
 
   const upperAndLowerCase = validateUppercase(password) && validateLowercase(password);
   const number = validateNumber(password);

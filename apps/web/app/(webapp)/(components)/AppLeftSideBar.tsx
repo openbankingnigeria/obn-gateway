@@ -3,62 +3,27 @@
 import { LEFT_SIDE_BAR_BOTTOM_DATA, LEFT_SIDE_BAR_TOP_DATA } from '@/data/leftSideBarData'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
-import clientAxiosRequest from '@/hooks/clientAxiosRequest'
-import * as API from '@/config/endpoints';
 import { findPermissionSlug } from '@/utils/findPermissionSlug'
 import { truncateString } from '@/utils/truncateString'
+import { useUserStore } from '@/stores'
 
 const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
   const pathname = usePathname();
-  const [profile, setProfile] = useState<any>();
-  const [businessDetails, setBusinessDetails] = useState<any>(null);
-  let userPermissions = profile?.user?.role?.permissions
-
-  async function fetchProfile() {
-    const result: any = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getProfile(),
-      method: 'GET',
-      data: null,
-      noToast: true
-    });
-
-    setProfile(result?.data);
-    // setJsCookies('aperta-user-profile', JSON.stringify({
-    //   name: `${result?.data?.firstName} ${result?.data?.lastName}`,
-    //   companyRole: result?.data?.companyRole?.toLowerCase()?.replace(/_/g, ' '),
-    //   userType: result?.data?.user?.role?.parent?.slug
-    // }))
-  }
-
-  const fetchDetails = async () => {
-    const result : any = await clientAxiosRequest({
-      headers: {},
-      apiEndpoint: API.getCompanyDetails(),
-      method: 'GET',
-      data: null,
-      noToast: true
-    });
-
-    setBusinessDetails(result?.data);
-  }
-
-  useEffect(() => {
-    fetchProfile();
-    fetchDetails();
-  }, []);
+  
+  // Get data from Zustand store instead of fetching
+  const profile = useUserStore((state) => state.profile);
+  const companyDetails = useUserStore((state) => state.companyDetails);
+  const getAvatarAlt = useUserStore((state) => state.getAvatarAlt);
+  
+  const userPermissions = profile?.user?.role?.permissions;
+  const firstName = profile?.firstName;
+  const avatarAlt = getAvatarAlt();
 
   const isActive = (path: string): boolean => {
     return pathname?.includes(path);
-  }
-
-  let firstName = profile?.firstName;
-  let lastName = profile?.lastName;
-  let avatarAlt = (firstName || lastName) ? 
-    `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}` :
-    businessDetails?.name ? businessDetails?.name[0] : '';
+  };
 
   return (
     <aside className={`fixed w-[280px] z-[100] left-0 bottom-0 ${bannerExist ? 'h-[calc(100vh-56px)]' : 'h-screen'} border-r border-o-border bg-white flex flex-col gap-[24px] py-[24px]`}>
@@ -74,8 +39,8 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
               {
                 firstName ? 
                   truncateString(`${firstName}`, 22) : 
-                  businessDetails?.name ? 
-                    truncateString(businessDetails?.name, 22) :
+                  companyDetails?.name ? 
+                    truncateString(companyDetails?.name, 22) :
                     ''
               }
             </h3>
@@ -108,7 +73,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
         <div className='w-full h-fit flex flex-col gap-[20px]'>
           {
             LEFT_SIDE_BAR_TOP_DATA?.map((data: any) => (
-              findPermissionSlug(userPermissions, data?.permit) &&
+              findPermissionSlug(userPermissions || [], data?.permit) &&
               (
                 data?.access == profile?.user?.role?.parent?.slug ||
                 data?.access == 'all'
@@ -124,7 +89,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
                 <div className='w-full flex flex-col gap-[4px]'>
                   {
                     data?.links?.map((link: any) => (
-                      findPermissionSlug(userPermissions, link?.permit) &&
+                      findPermissionSlug(userPermissions || [], link?.permit) &&
                       (
                         link?.access == profile?.user?.role?.parent?.slug ||
                         link?.access == 'all'
@@ -164,7 +129,7 @@ const AppLeftSideBar = ({ bannerExist }: { bannerExist: boolean }) => {
           <div className='w-full flex flex-col pt-[24px] border-t border-o-border'>
             {
               LEFT_SIDE_BAR_BOTTOM_DATA?.map((link) => (
-                findPermissionSlug(userPermissions, link?.permit) &&
+                findPermissionSlug(userPermissions || [], link?.permit) &&
                 <div
                   key={link?.id}
                   className='w-full relative h-fit'

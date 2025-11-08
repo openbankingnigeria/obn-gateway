@@ -8,7 +8,7 @@ import { DatePicker, ExportButton, ToastMessage } from '@/app/(webapp)/(componen
 import { applyAxiosRequest } from '@/hooks'
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout'
-import moment from 'moment'
+import { endOfDayIso, startOfDayIso } from '@/utils/dateUtils'
 import { getCookies } from '@/config/cookies'
 import { RefreshStoredToken } from '@/components/globalComponents'
 
@@ -32,8 +32,8 @@ const ActivityPage = async({ searchParams }: UrlParamsProps) => {
       referenceId: search_query,
       status: status,
       apiId: search_apis,
-      createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
-      createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+  createdAt_gt: dateFilter?.start_date ? startOfDayIso(dateFilter?.start_date) : '',
+  createdAt_l: dateFilter?.end_date ? endOfDayIso(dateFilter?.end_date) : '',
       environment: environment || 'development'
     }),
     method: 'GET',

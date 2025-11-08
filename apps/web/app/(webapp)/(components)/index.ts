@@ -10,7 +10,6 @@ import NotificationCard from "./NotificationCard";
 import TopPanel from "./TopPanel";
 import TableElement from "./TableElement";
 import StatusBox from "./StatusBox";
-import TablePagination from "./TablePagination";
 import TwoFactorAuthModal from "./TwoFactorAuthModal";
 import TwoFactorAuthForm from "./TwoFactorAuthForm";
 import MultipleSelectOptions from "./MultipleSelectOptions";
@@ -48,7 +47,6 @@ export {
   TableElement,
   KybBanner,
   StatusBox,
-  TablePagination,
   TwoFactorAuthModal,
   TwoFactorAuthForm,
   MultipleSelectOptions,

@@ -4,7 +4,8 @@ import { InputElement } from '@/components/forms'
 import { SearchBarProps } from '@/types/componentsTypes/forms';
 import { deleteSearchParams, updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useDebounce } from '@/hooks';
 
 const SearchBar = ({
   placeholder,
@@ -16,17 +17,24 @@ const SearchBar = ({
 
   const router = useRouter();
   const [search, setSearch] = useState(searchQuery);
+  const debouncedSearch = useDebounce(search, 500);
+
+  // Effect to handle URL updates when debounced value changes
+  useEffect(() => {
+    // Only update if the debounced value is different from the initial searchQuery
+    if (debouncedSearch !== searchQuery) {
+      if (debouncedSearch) {
+        const url = updateSearchParams((name || 'search_query'), debouncedSearch);
+        router.push(url);
+      } else {
+        const url = deleteSearchParams((name || 'search_query'));
+        router.push(url);
+      }
+    }
+  }, [debouncedSearch, name, router, searchQuery]);
 
   const handleChange = (value: string) => {
-    if (value) {
-      setSearch(value);
-      const url = updateSearchParams((name || 'search_query'), value);
-      router.push(url);
-    } else {
-      setSearch(value);
-      const url = deleteSearchParams((name || 'search_query'));
-      router.push(url)
-    }
+    setSearch(value);
   };
 
   return (

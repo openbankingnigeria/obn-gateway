@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, memo } from 'react'
 import { 
   createColumnHelper,
   flexRender,
@@ -8,15 +8,16 @@ import {
   useReactTable, 
 } from '@tanstack/react-table'
 import { TabelElmentProps } from '@/types/webappTypes/componentsTypes'
-import { ConfigurationBox, RequestMethodText, StatusBox, TablePagination, TierBox } from '.'
+import { ConfigurationBox, RequestMethodText, StatusBox, TierBox } from '.'
+import { Pagination } from '@/components/globalComponents'
 import { timestampFormatter } from '@/utils/timestampFormatter'
 import BooleanBox from './BooleanBox'
 import { useRouter } from 'next/navigation'
-import moment from 'moment'
+import { formatDateForTable } from '@/utils/dateUtils'
 import { addEllipsis } from '@/utils/addEllipsisToStrings'
 import StatusCodeBox from './StatusCodeBox'
 
-const TableElement = ({
+const TableElement = memo(({
   tableHeaders,
   rawData,
   filters,
@@ -33,31 +34,29 @@ const TableElement = ({
   tdStyle
 }: TabelElmentProps) => {
   const router = useRouter();
-  const columnHelper = createColumnHelper<any>()
+  const columnHelper = useMemo(() => createColumnHelper<any>(), [])
   
-  const rawColumns = tableHeaders?.map(item => {
-    return (
+  const rawColumns = useMemo(() => {
+    return tableHeaders?.map((item) =>
       columnHelper.accessor(item?.accessor, {
         header: () => item?.header,
         cell: ({ column, cell, renderValue }) => {
-          if(column.id === 'status' || column.id === 'user_type' || column.id === 'kyb_status') {
-            return <StatusBox status={cell.getValue()} />
+          if (column.id === 'status' || column.id === 'user_type' || column.id === 'kyb_status') {
+            return <StatusBox status={cell.getValue()} />;
           } else if (column.id == 'status_code') {
-            return <StatusCodeBox status={cell.getValue()} />
+            return <StatusCodeBox status={cell.getValue()} />;
           } else {
             return renderValue();
           }
-        }
+        },
       })
-    );
-  });
+    ) ?? [];
+  }, [columnHelper, tableHeaders]);
 
   const columns = useMemo(
-    () => actionColumn ? [
-      ...rawColumns,
-      actionColumn
-    ] : [ ...rawColumns ],
-    [...filters, rawColumns]
+    () =>
+      actionColumn ? [...rawColumns, actionColumn] : [...rawColumns],
+    [actionColumn, rawColumns]
   );
 
   const data = useMemo(
@@ -81,16 +80,14 @@ const TableElement = ({
       <div className="relative border overflow-y-visible overflow-x-auto border-o-border rounded-[8px] w-full min-h-[150px]">
         <table className='min-w-fit w-full'>
           <thead>
-            {getHeaderGroups().map((headerGroup, index) => (
+            {getHeaderGroups().map((headerGroup) => (
               <tr 
-                key={index}
-                // key={headerGroup.id}
+                key={headerGroup.id}
                 className='h-[40px] w-full bg-o-bg2 py-[10px]'
               >
-                {headerGroup.headers.map((header, index) => (
+                {headerGroup.headers.map((header) => (
                   <th 
-                    key={index}
-                    // key={header.id}
+                    key={header.id}
                     className={`whitespace-nowrap min-w-[220px] w-fit max-w-[500px] text-left 
                     first-of-type:rounded-tl-[8px] last-of-type:rounded-tr-[8px] 
                     text-o-text-medium px-[16px] text-f12 font-[500] 
@@ -122,10 +119,9 @@ const TableElement = ({
             ))}
           </thead>
           <tbody>
-            {getRowModel().rows.map((row, index) => (
+            {getRowModel().rows.map((row) => (
               <tr 
-                // key={row.id}
-                key={index}
+                key={row.id}
                 onClick={() => redirect && router.push(redirect(
                   module == 'collections' ? 
                     row.original.id :
@@ -133,16 +129,15 @@ const TableElement = ({
                 ))}
                 className={`bg-white group`}
               >
-                {row.getVisibleCells().map((cell, index) => (
+                {row.getVisibleCells().map((cell) => (
                   <td 
-                    // key={cell.id}
-                    key={index}
+                    key={cell.id}
                     className={`bg-white border-b border-o-border vertical-align-start px-[12px] py-[18px] 
                     text-o-text-medium3 text-f14 ${redirect && 'cursor-pointer group-hover:bg-[#FCFDFD]'} ${tdStyle}`}
                   >
                     {
                       (cell.id?.includes('date_created') || cell.id?.includes('date_invited')) ? 
-                        moment(cell.getValue() || '').format('LLL') 
+                        formatDateForTable(cell.getValue()) 
                         :
                         cell.id?.includes('timestamp') ? 
                           timestampFormatter(cell.getValue()) 
@@ -192,16 +187,28 @@ const TableElement = ({
 
       {
         !removePagination &&
-        <TablePagination 
-          rows={rows}
-          page={page}
-          totalElements={totalElements}
-          totalElementsInPage={totalElementsInPage}
+        <Pagination 
+          currentPage={page}
           totalPages={totalPages}
+          totalItems={totalElements || 0}
+          itemsPerPage={rows}
+          itemsInCurrentPage={totalElementsInPage || 0}
         />
       }
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.rawData === nextProps.rawData &&
+    prevProps.page === nextProps.page &&
+    prevProps.rows === nextProps.rows &&
+    prevProps.totalElements === nextProps.totalElements &&
+    prevProps.totalPages === nextProps.totalPages &&
+    Boolean(prevProps.actionColumn) === Boolean(nextProps.actionColumn) &&
+    Boolean(prevProps.redirect) === Boolean(nextProps.redirect)
+  );
+});
+
+TableElement.displayName = 'TableElement';
 
 export default TableElement
