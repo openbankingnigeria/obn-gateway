@@ -9,7 +9,7 @@ import Logout from '@/components/globalComponents/Logout'
 import { applyAxiosRequest } from '@/hooks'
 import { StatDataProps } from '@/types/dataTypes'
 import { getCookies } from '@/config/cookies'
-import moment from 'moment'
+import { endOfDayIso, startOfDayIso } from '@/utils/dateUtils'
 import { RefreshStoredToken } from '@/components/globalComponents'
 
 const APIProviderDashboardPage = async ({ date_filter, alt_data, details_data }: searchParamsProps) => {
@@ -19,8 +19,8 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data, details_data }:
   const fetchedConsumerStat : any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCompanyStats({
-      createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
-      createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+  createdAt_gt: dateFilter?.start_date ? startOfDayIso(dateFilter?.start_date) : '',
+  createdAt_l: dateFilter?.end_date ? endOfDayIso(dateFilter?.end_date) : '',
     }),
     method: 'GET',
     data: null
@@ -29,8 +29,8 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data, details_data }:
   const fetchedKybStats: any = await applyAxiosRequest({
     headers: {},
     apiEndpoint: API.getCompanyKybStats({
-      createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
-      createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+  createdAt_gt: dateFilter?.start_date ? startOfDayIso(dateFilter?.start_date) : '',
+  createdAt_l: dateFilter?.end_date ? endOfDayIso(dateFilter?.end_date) : '',
     }),
     method: 'GET',
     data: null
@@ -42,8 +42,8 @@ const APIProviderDashboardPage = async ({ date_filter, alt_data, details_data }:
       page: '1',
       limit: '1000',
       environment: environment || 'development',
-      createdAt_gt: dateFilter?.start_date ? moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z' : '',
-      createdAt_l: dateFilter?.end_date ? moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+  createdAt_gt: dateFilter?.start_date ? startOfDayIso(dateFilter?.start_date) : '',
+  createdAt_l: dateFilter?.end_date ? endOfDayIso(dateFilter?.end_date) : '',
     }),
     method: 'GET',
     data: null

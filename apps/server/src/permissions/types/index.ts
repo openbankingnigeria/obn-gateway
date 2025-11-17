@@ -61,6 +61,12 @@ export const PROVIDER_PERMISSIONS = {
   LIST_API_ENDPOINTS: 'list-api-endpoints',
   VIEW_ASSIGNED_API_ENDPOINTS: 'view-assigned-api-endpoints',
 
+  IMPORT_API_SPEC: 'import-api-spec',
+  LIST_API_IMPORTS: 'list-api-imports',
+  VIEW_API_IMPORT: 'view-api-import',
+  DELETE_API_IMPORT: 'delete-api-import',
+  RETRY_API_IMPORT: 'retry-api-import',
+
   UPDATE_COMPANY_TYPES: 'update-company-types',
 
   LIST_COMPANIES: 'list-companies',

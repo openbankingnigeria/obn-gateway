@@ -1,69 +1,22 @@
 import React from 'react'
 import { UrlParamsProps } from '@/types/webappTypes/appTypes'
 import { APIConsumerDashboardPage, APIProviderDashboardPage } from './(components)'
-import { getCookies } from '@/config/cookies';
-import { applyAxiosRequest } from '@/hooks';
-import * as API from '@/config/endpoints';
-import Logout from '@/components/globalComponents/Logout';
-import { RefreshStoredToken } from '@/components/globalComponents';
+import { getUserBootstrapData } from '@/server/getUserBootstrapData'
 
 const DashboardPage = async ({ searchParams }: UrlParamsProps) => {
   const date_filter = searchParams?.date_filter || '';
-  // const search_query = searchParams?.search_query || '';
-  // const request_method = searchParams?.request_method || '';
-  // const tier = searchParams?.tier || '';
-  // const rows = Number(searchParams?.rows) || 10
-  // const page = Number(searchParams?.page) || 1
 
-  const fetchedProfile: any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getProfile(),
-    method: 'GET',
-    data: null
-  });
+  const bootstrap = await getUserBootstrapData();
 
-  const fetchedDetails: any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getCompanyDetails(),
-    method: 'GET',
-    data: null
-  });
-
-  /** REFRESH TOKEN CHECK */
-  let refreshTokenRes = null; 
-  
-  if (fetchedProfile?.status == 401) {
-    refreshTokenRes = await applyAxiosRequest({
-      headers: { },
-      apiEndpoint: API?.refreshToken(),
-      method: 'POST',
-      data: {
-        refreshToken: `${await getCookies('aperta-user-refreshToken')}`
-      }
-    });
-
-    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
-      return <Logout />
-    }
+  if (bootstrap.shouldLogout) {
+    return null;
   }
 
-  let profile = fetchedProfile?.data;
-  let companyDetails = fetchedDetails?.data;
-
-  // const getUserProfile = await getCookies('aperta-user-profile');
-  // const userProfile = getUserProfile ? JSON.parse(getUserProfile) : null;
-  // const userType = userProfile?.userType;
+  const profile = bootstrap.profile;
+  const companyDetails = bootstrap.companyDetails;
   
   return (
     <>
-    {/* REFRESH TOKEN SECTION */}
-    {
-          refreshTokenRes?.data &&
-          <RefreshStoredToken 
-            data={refreshTokenRes?.data} 
-          />
-        }
-    
     {
       // userType == 'api-provider' ?
       (profile?.user?.role?.parent?.slug == 'api-provider') ?

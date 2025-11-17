@@ -143,3 +143,73 @@ export interface APICallsProps {
   total: any;
   failed: any;
 }
+
+export interface ImportApiSpecDataProps {
+  specName?: string;
+  specFile: string;
+  collectionId?: string;
+  collectionName?: string;
+  upstreamBaseUrl?: string;
+  downstreamBaseUrl?: string;
+  enableByDefault?: boolean;
+  defaultTiers?: string[];
+  requireAuth?: boolean;
+}
+
+export interface ImportResultDataProps {
+  importId: string;
+  collectionId: string;
+  totalEndpoints: number;
+  successCount: number;
+  failedCount: number;
+  status: 'completed' | 'partial' | 'failed';
+  errors: ImportErrorDataProps[];
+}
+
+export interface ImportErrorDataProps {
+  endpoint: string;
+  error: string;
+  details?: any;
+}
+
+export interface ImportedSpecDataProps {
+  id: string;
+  name: string;
+  specFormat: 'openapi_v2' | 'openapi_v3' | 'postman_v2' | 'postman_v21';
+  specVersion: string;
+  importStatus: 'pending' | 'processing' | 'completed' | 'failed' | 'partial';
+  importedCount: number;
+  failedCount: number;
+  collectionId: string;
+  environment: string;
+  createdAt: string;
+  updatedAt: string;
+  importedBy?: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
+}
+
+export interface ImportedSpecDetailProps extends ImportedSpecDataProps {
+  parsedMetadata?: any;
+  errorLog?: Array<{
+    endpoint: string;
+    error: string;
+    details?: any;
+  }>;
+
+  originalSpec?: string;
+  importedBy?: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  collection?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+}

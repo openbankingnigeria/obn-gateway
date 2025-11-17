@@ -32,6 +32,8 @@ export interface DragAndUploadElementProps extends FieldsProps {
   changeValue?: any;
   file?: string;
   fileType?: string;
+  allowedTypes?: string[];
+  maxSizeMB?: number;
 }
 
 export interface TextareaElementProps extends FieldsProps {

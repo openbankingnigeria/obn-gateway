@@ -54,6 +54,7 @@
       "./test/utils"
     ]
   },
+  "files": ["global.d.ts"],
   "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules"],
   "references": [

@@ -1,6 +1,6 @@
 'use client'
 
-import { InputElement } from '@/components/forms'
+import { InputElement, SelectElement } from '@/components/forms'
 import { APIConfigurationProps } from '@/types/webappTypes/appTypes';
 import React, { ChangeEvent, useEffect, useState } from 'react'
 import { motion } from 'framer-motion';
@@ -85,6 +85,7 @@ const DownStreamForm = ({
           "downstream": {
             ...rawData?.downstream,
             path,
+            method: request_method,
           }
         }
       });
@@ -267,13 +268,20 @@ const DownStreamForm = ({
                 value={api_name}
                 required
               />
-              <InputElement 
+              <SelectElement
                 name='request_method'
-                type='text'
-                placeholder=''
                 label='Method'
-                disabled
                 value={request_method}
+                changeValue={setRequestMethod}
+                options={[
+                  { value: 'GET', label: 'GET' },
+                  { value: 'POST', label: 'POST' },
+                  { value: 'PUT', label: 'PUT' },
+                  { value: 'PATCH', label: 'PATCH' },
+                  { value: 'DELETE', label: 'DELETE' },
+                  { value: 'OPTIONS', label: 'OPTIONS' },
+                  { value: 'HEAD', label: 'HEAD' },
+                ]}
                 required
               />
               {/* <InputElement 

@@ -3,7 +3,7 @@
 import { updateSearchParams } from '@/utils/searchParams';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
-import moment from 'moment';
+import { formatDateLabel, formatDateRangeLabel } from '@/utils/dateUtils'
 import Datepicker, { DateType, DateValueType } from 'react-tailwindcss-datepicker';
 import { DatePickerProps } from '@/types/webappTypes/componentsTypes';
 
@@ -96,11 +96,11 @@ const DatePicker = ({
               (changeValue && start_date) ?
                 `${start_date}` :
                   (start_date && end_date) ?
-                    `${moment(start_date).format('ll')} - ${moment(end_date).format('ll')}` :
+                    formatDateRangeLabel(start_date, end_date) :
                     start_date ? 
-                      moment(start_date).format('ll') :
+                      formatDateLabel(start_date) :
                       end_date ? 
-                        moment(end_date).format('ll') :
+                        formatDateLabel(end_date) :
                         placeholder ?
                           <div className='text-f14 text-o-text-muted'>
                             {placeholder}

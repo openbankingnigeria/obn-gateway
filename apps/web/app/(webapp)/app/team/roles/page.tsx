@@ -10,6 +10,7 @@ import { ToastMessage } from '@/app/(webapp)/(components)';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
 import { RefreshStoredToken } from '@/components/globalComponents';
 import { getCookies } from '@/config/cookies';
+import { getUserBootstrapData } from '@/server/getUserBootstrapData';
 
 const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const status = searchParams?.status || ''
@@ -19,12 +20,15 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   const page = Number(searchParams?.page) || 1
   const role = searchParams?.role || ''
 
-  const fetchedProfile: any = await applyAxiosRequest({
-    headers: {},
-    apiEndpoint: API.getProfile(),
-    method: 'GET',
-    data: null
-  });
+  const bootstrap = await getUserBootstrapData();
+
+  if (bootstrap.shouldLogout) {
+    return <Logout />
+  }
+
+  const profile = bootstrap.profile;
+  const userPermissions = profile?.user?.role?.permissions;
+  let refreshTokenPayload = bootstrap.refreshTokenData ?? null;
 
   const roles: any = await applyAxiosRequest({
     headers: {},
@@ -46,10 +50,8 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
   });
 
   /** REFRESH TOKEN CHECK */
-  let refreshTokenRes = null; 
-  
   if (permissions?.status == 401 || roles?.status == 401) {
-    refreshTokenRes = await applyAxiosRequest({
+    const refreshResponse = await applyAxiosRequest({
       headers: { },
       apiEndpoint: API?.refreshToken(),
       method: 'POST',
@@ -58,13 +60,13 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
       }
     });
 
-    if (!(refreshTokenRes?.status == 200 || refreshTokenRes?.status == 201)) {
+    if (!(refreshResponse?.status == 200 || refreshResponse?.status == 201)) {
       return <Logout />
     }
+
+    refreshTokenPayload = refreshResponse?.data ?? refreshTokenPayload;
   }
 
-  let profile = fetchedProfile?.data;
-  let userPermissions = profile?.user?.role?.permissions;
   let createRolePermit = findPermissionSlug(userPermissions, 'create-role')
   let permission_list = permissions?.data;
   let meta_data = roles?.meta_data;
@@ -103,11 +105,11 @@ const RolesPage = async ({ searchParams }: UrlParamsProps) => {
     <section className='flex flex-col h-full w-full'>
       {/* REFRESH TOKEN SECTION */}
       {
-          refreshTokenRes?.data &&
-          <RefreshStoredToken 
-            data={refreshTokenRes?.data} 
-          />
-        }
+        refreshTokenPayload &&
+        <RefreshStoredToken 
+          data={refreshTokenPayload} 
+        />
+      }
       {
         /* SSR TOAST ERROR */
         (roles?.status != 200 && roles?.status != 201) && 

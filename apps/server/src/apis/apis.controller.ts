@@ -10,8 +10,13 @@ import {
   Query,
   UseInterceptors,
   UsePipes,
+  UploadedFile,
+  BadRequestException,
+  HttpCode,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { APIService } from './apis.service';
+import { ApiSpecImportService } from './import/import.service';
 import { IValidationPipe } from '@common/utils/pipes/validation/validation.pipe';
 import {
   APIParam,
@@ -21,12 +26,17 @@ import {
   SetAPITransformationDTO,
   UpdateCompanyAPIAccessDto,
 } from './dto/index.dto';
+import { ImportApiSpecDto, ImportResultDto, ImportErrorDto, ImportHistoryItemDto, ImportDetailDto } from './import/dto/import.dto';
 import {
   PaginationParameters,
   PaginationPipe,
 } from '@common/utils/pipes/query/pagination.pipe';
 import { FilterPipe } from '@common/utils/pipes/query/filter.pipe';
 import { APIFilters } from './apis.filter';
+import {
+  IBadRequestException,
+  INotFoundException,
+} from '@common/utils/exceptions/exceptions';
 import {
   Ctx,
   RequireTwoFA,
@@ -35,11 +45,20 @@ import {
 import { RequestContext } from '@common/utils/request/request-context';
 import { PERMISSIONS } from '@permissions/types';
 import { APIInterceptor } from './apis.interceptor';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { ResponseFormatter } from '@common/utils/response/response.formatter';
+import { apiSuccessMessages } from './apis.constants';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ImportApiSpecEvent } from '@shared/events/api.event';
 
 @Controller('apis/:environment')
 @UseInterceptors(APIInterceptor)
 export class APIController {
-  constructor(private readonly apiService: APIService) {}
+  constructor(
+    private readonly apiService: APIService,
+    private readonly importService: ApiSpecImportService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   @Get('')
   @UsePipes(IValidationPipe)
@@ -68,6 +87,277 @@ export class APIController {
   ) {
     return this.apiService.createAPI(ctx, params.environment, data);
   }
+
+  @Post('import')
+  @HttpCode(200)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 },
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(json|yaml|yml)$/)) {
+          return cb(new BadRequestException('Only JSON and YAML files are allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  @RequiredPermission(PERMISSIONS.IMPORT_API_SPEC)
+  async importApiSpec(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() data: any,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
+    // Transform multipart form data to DTO
+    const importDto: ImportApiSpecDto = {
+      specName: data.specName,
+      specFile: file.buffer.toString('utf-8'),
+      collectionId: data.collectionId,
+      collectionName: data.collectionName,
+      upstreamBaseUrl: data.upstreamBaseUrl,
+      downstreamBaseUrl: data.downstreamBaseUrl,
+      enableByDefault: data.enableByDefault === 'true' || data.enableByDefault === true,
+      defaultTiers: this.parseArrayField(data.defaultTiers),
+      requireAuth: data.requireAuth === 'true' || data.requireAuth === true,
+    };
+
+    const parsedSpec = await this.importService.parseAndValidateSpec(
+      ctx,
+      params.environment,
+      importDto,
+    );
+
+    const importRecord = await this.importService.createImportRecord(
+      ctx,
+      params.environment,
+      parsedSpec,
+      importDto,
+    );
+
+    const results = await this.importEndpoints(
+      ctx,
+      params.environment,
+      parsedSpec.parsed.endpoints,
+      importRecord.collectionId,
+      importDto,
+      parsedSpec.parsed.metadata,
+    );
+
+    // Calculate actual success/failure counts from database 
+    const endpointNames = parsedSpec.parsed.endpoints.map(ep => ep.name);
+    const actualSuccessCount = await this.apiService.getActualImportSuccessCount(
+      importRecord.collectionId,
+      endpointNames,
+    );
+    const actualFailedCount = parsedSpec.parsed.endpoints.length - actualSuccessCount;
+    const importStatus = actualFailedCount === 0 ? 'completed' : 
+                        actualSuccessCount > 0 ? 'partial' : 'failed';
+
+    await this.importService.finalizeImport(
+      importRecord.id,
+      importRecord.collectionId,
+      {
+        successCount: actualSuccessCount,
+        failedCount: actualFailedCount,
+        errors: results.errors,
+      },
+      ctx,
+    );
+
+    // Create DTO instance for proper serialization
+    const resultDto = Object.assign(new ImportResultDto(), {
+      importId: importRecord.id,
+      collectionId: importRecord.collectionId,
+      totalEndpoints: parsedSpec.parsed.endpoints.length,
+      successCount: actualSuccessCount,
+      failedCount: actualFailedCount,
+      status: importStatus,
+      errors: results.errors,
+    });
+
+    return ResponseFormatter.success(
+      apiSuccessMessages.importedAPISpec,
+      resultDto,
+    );
+  }
+
+  private async importEndpoints(
+    ctx: RequestContext,
+    environment: KONG_ENVIRONMENT,
+    endpoints: any[],
+    collectionId: string,
+    options: ImportApiSpecDto,
+    metadata: any,
+  ) {
+    const errors: ImportErrorDto[] = [];
+
+    for (const endpoint of endpoints) {
+      try {
+        const apiDto = this.importService.transformEndpointToApiDto(
+          endpoint,
+          collectionId,
+          metadata,
+          options,
+        );
+
+        await this.apiService.createAPI(ctx, environment, apiDto);
+      } catch (error: any) {
+        console.error(`Failed to import endpoint ${endpoint?.method} ${endpoint?.path}:`, error);
+        
+        // Create proper DTO instance for serialization
+        const errorDto = Object.assign(new ImportErrorDto(), {
+          endpoint: `${endpoint?.method || 'UNKNOWN'} ${endpoint?.path || 'UNKNOWN'}`,
+          error: error.message || error.toString() || 'Unknown error',
+        });
+        errors.push(errorDto);
+      }
+    }
+
+    return { errors };
+  }
+
+  private parseArrayField(value: any): string[] | undefined {
+    if (!value) return undefined;
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value.split(',').map(v => v.trim()).filter(v => v);
+      }
+    }
+    return undefined;
+  }
+
+  @Get('imports')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.LIST_API_IMPORTS)
+  async listImports(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Query(PaginationPipe) pagination: PaginationParameters,
+  ) {
+    return this.importService.listImports(ctx, params.environment, pagination);
+  }
+
+  @Get('imports/:importId')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.VIEW_API_IMPORT)
+  async getImport(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('importId') importId: string,
+  ) {
+    return this.importService.getImport(ctx, importId);
+  }
+
+  @Post('imports/:importId/retry')
+  @HttpCode(200)
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.RETRY_API_IMPORT)
+  async retryImport(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('importId') importId: string,
+  ) {
+    const environment = params.environment;
+
+    // Get import record and validate
+    const importRecord = await this.importService.getImportForRetry(importId);
+
+    // Parse the original spec
+    const parsedSpec = await this.importService.parseAndValidateSpec(
+      ctx,
+      environment,
+      {
+        specFile: importRecord.originalSpec,
+        collectionId: importRecord.collectionId,
+      } as ImportApiSpecDto,
+    );
+
+    // Filter to only failed endpoints
+    const failedEndpointPaths = importRecord.errorLog.map((err: any) => err.endpoint);
+    const endpointsToRetry = parsedSpec.parsed.endpoints.filter((endpoint: any) => 
+      failedEndpointPaths.includes(`${endpoint.method} ${endpoint.path}`)
+    );
+
+    // Re-import the failed endpoints
+    const { errors } = await this.importEndpoints(
+      ctx,
+      environment,
+      endpointsToRetry,
+      importRecord.collectionId,
+      {} as ImportApiSpecDto, // Empty options for retry
+      parsedSpec.parsed.metadata,
+    );
+
+    const successCount = endpointsToRetry.length - errors.length;
+
+    // Update import record
+    const updatedRecord = await this.importService.updateImportAfterRetry(
+      importId,
+      successCount,
+      errors,
+    );
+
+    if (!updatedRecord) {
+      throw new INotFoundException({
+        message: `Import record ${importId} not found after update`,
+      });
+    }
+
+    // Emit event
+    this.eventEmitter.emit(
+      'import.retried',
+      new ImportApiSpecEvent(
+        ctx.activeUser,
+        {
+          importId: updatedRecord.id,
+          collectionId: updatedRecord.collectionId,
+          environment: updatedRecord.environment,
+          totalEndpoints: endpointsToRetry.length,
+          successCount,
+          failedCount: errors.length,
+          status: updatedRecord.importStatus,
+        },
+      ),
+    );
+
+    // Return results
+    const resultDto = Object.assign(new ImportResultDto(), {
+      importId: updatedRecord.id,
+      collectionId: updatedRecord.collectionId,
+      totalEndpoints: endpointsToRetry.length,
+      successCount,
+      failedCount: errors.length,
+      status: updatedRecord.importStatus,
+      errors,
+    });
+
+    return ResponseFormatter.success(
+      'Import retry completed',
+      resultDto,
+    );
+  }
+
+  // DELETE endpoint commented out - import history should be immutable for audit purposes
+  // Soft delete is still available via database if needed for admin cleanup
+  /*
+  @Delete('imports/:importId')
+  @UsePipes(IValidationPipe)
+  @RequiredPermission(PERMISSIONS.DELETE_API_ENDPOINT)
+  async deleteImport(
+    @Ctx() ctx: RequestContext,
+    @Param() params: APIParam,
+    @Param('importId') importId: string,
+  ) {
+    return this.importService.deleteImport(ctx, importId);
+  }
+  */
 
   @Put('company/:companyId')
   @UsePipes(IValidationPipe)

@@ -4,16 +4,18 @@ import { DatePicker } from '@/app/(webapp)/(components)';
 import { SelectElement } from '@/components/forms';
 import { Button } from '@/components/globalComponents';
 import clientAxiosRequest from '@/hooks/clientAxiosRequest';
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import * as API from '@/config/endpoints';
-import { searchParamsProps } from '@/types/webappTypes/appTypes';
 import { REPORTING_DATA } from '@/data/dashboardData';
 import { DashboardMetricCard } from '../app/home/dashboard/(components)';
-import moment from 'moment';
+import { endOfDayIso, startOfDayIso } from '@/utils/dateUtils'
 import { getJsCookies } from '@/config/jsCookie';
 import { findPermissionSlug } from '@/utils/findPermissionSlug';
+import { useCompanyDetailsQuery, useProfileQuery } from '@/hooks';
 
-const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
+const ReportingSection = () => {
+  const { data: profileData } = useProfileQuery();
+  const { data: companyDetails } = useCompanyDetailsQuery();
   const [from, setFrom] = useState<string | undefined>('');
   const [to, setTo] = useState<string | undefined>('');
   const [consumers, setConsumers] = useState<string>('');
@@ -26,13 +28,16 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
   const [consumersList, setConsumerList] = useState<any[]>([]);
   const [logStats, setLogStats] = useState<any>(null);
   const environment = getJsCookies('environment');
-  let userPermissions = profile_data?.user?.role?.permissions;
-  let viewReport = findPermissionSlug(userPermissions, 'view-report')
-  const apiConsumer = profile_data?.user?.role?.parent?.slug == 'api-consumer';
+  const userPermissions = useMemo(
+    () => profileData?.user?.role?.permissions,
+    [profileData?.user?.role?.permissions]
+  );
+  const viewReport = findPermissionSlug(userPermissions || [], 'view-report');
+  const apiConsumer = profileData?.user?.role?.parent?.slug === 'api-consumer';
 
   // console.log('Company details >>>>>>', alt_data);
 
-  const fetchConsumers = async () => {
+  const fetchConsumers = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getCompanies({
@@ -44,9 +49,9 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
       noToast: true
     })
     setConsumerList(result?.data);
-  }
+  }, []);
 
-  const fetchCollections = async () => {
+  const fetchCollections = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getCollections(),
@@ -55,9 +60,9 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
       noToast: true
     })
     setCollections(result?.data);
-  }
+  }, []);
 
-  const fetchAPIs = async () => {
+  const fetchAPIs = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getAPIsForCompany({
@@ -68,9 +73,9 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
       noToast: true
     })
     setApis(result?.data);
-  }
+  }, [environment]);
 
-  const fetchCollectionAPIs = async () => {
+  const fetchCollectionAPIs = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getAPIs({
@@ -84,37 +89,59 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
       noToast: true
     })
     setApis(result?.data);
-  }
+  }, [collection, environment]);
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     const result = await clientAxiosRequest({
       headers: {},
       apiEndpoint: API.getAPILogStats({
         page: '1',
         limit: '10000',
-        environment: environment || 'development', 
-        companyId: apiConsumer ? alt_data?.id : consumers,
+        environment: environment || 'development',
+        companyId: apiConsumer ? companyDetails?.id : consumers,
         apiId: api,
-        createdAt_gt: from ? moment(from).startOf('day').format()?.split('+')[0] + '.000Z' : '',
-        createdAt_l: to ? moment(to).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+        createdAt_gt: from ? startOfDayIso(from) : '',
+        createdAt_l: to ? endOfDayIso(to) : '',
       }),
       method: 'GET',
       data: null,
-      noToast: true
-    })
+      noToast: true,
+    });
     setLogStats(result?.data);
-  }
+  }, [api, apiConsumer, companyDetails?.id, consumers, environment, from, to]);
 
   useEffect(() => {
+    if (!profileData || !companyDetails) {
+      return;
+    }
+
     if (apiConsumer) {
       fetchAPIs();
       fetchReports();
     } else {
       fetchConsumers();
       fetchCollections();
-      collection && fetchCollectionAPIs();
+      if (collection) {
+        fetchCollectionAPIs();
+      } else {
+        setApis([]);
+      }
     }
-  }, [collection]);
+  }, [
+    apiConsumer,
+    collection,
+    companyDetails,
+    fetchAPIs,
+    fetchCollectionAPIs,
+    fetchCollections,
+    fetchConsumers,
+    fetchReports,
+    profileData,
+  ]);
+
+  if (!profileData || !companyDetails) {
+    return null;
+  }
 
   const allObject = [{ label: 'All', value: ''}]
 
@@ -166,10 +193,10 @@ const ReportingSection = ({ alt_data, profile_data }: searchParamsProps) => {
             page: '1',
             limit: '10000',
             environment: environment || 'development', 
-            companyId: apiConsumer ? alt_data?.id : consumers,
+        companyId: apiConsumer ? companyDetails?.id : consumers,
             apiId: api,
-            createdAt_gt: from ? moment(from).startOf('day').format()?.split('+')[0] + '.000Z' : '',
-            createdAt_l: to ? moment(to).endOf('day').format()?.split('+')[0] + '.000Z' : '',
+            createdAt_gt: from ? startOfDayIso(from) : '',
+            createdAt_l: to ? endOfDayIso(to) : '',
           }),
           method: 'GET',
           data: {}

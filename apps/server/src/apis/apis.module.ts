@@ -16,6 +16,7 @@ import {
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
+import { ApiImportModule } from './import/import.module';
 
 @Module({
   controllers: [APIController],
@@ -33,6 +34,8 @@ import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer
       useFactory: async (config: ConfigService) => config.get('elasticsearch')!,
       inject: [ConfigService],
     }),
+    ApiImportModule,
   ],
+  exports: [APIService],
 })
 export class APIModule {}

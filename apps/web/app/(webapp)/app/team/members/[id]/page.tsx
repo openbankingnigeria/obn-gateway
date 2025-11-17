@@ -5,7 +5,7 @@ import { MEMBER_RECENT_ACTIVITIES, MEMBER_RECENT_ACTIVITIES_HEADER } from '@/dat
 import { applyAxiosRequest } from '@/hooks';
 import * as API from '@/config/endpoints';
 import Logout from '@/components/globalComponents/Logout';
-import moment from 'moment';
+import { endOfDayIso, startOfDayIso } from '@/utils/dateUtils';
 import { ToastMessage } from '@/app/(webapp)/(components)';
 import { RefreshStoredToken } from '@/components/globalComponents';
 import { getCookies } from '@/config/cookies';
@@ -68,8 +68,8 @@ const MemberPage = async ({ params, searchParams }: UrlParamsProps) => {
       limit: `${rows}`,
       name: member?.profile?.firstName,
       event: search_query,
-      createdAt_gt: moment(dateFilter?.start_date).startOf('day').format()?.split('+')[0] + '.000Z',
-      createdAt_l: moment(dateFilter?.end_date).endOf('day').format()?.split('+')[0] + '.000Z'
+  createdAt_gt: startOfDayIso(dateFilter?.start_date),
+  createdAt_l: endOfDayIso(dateFilter?.end_date)
     }),
     method: 'GET',
     data: null

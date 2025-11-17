@@ -28,6 +28,64 @@ import {
 } from '@common/utils/request/request.decorator';
 import { CompanyTiers } from '@company/types';
 
+class MappingOperationDTO {
+  @IsString()
+  @IsNotEmpty()
+  from: string;
+
+  @IsString()
+  @IsOptional()
+  to?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['add', 'remove', 'rename', 'replace'])
+  operation: 'add' | 'remove' | 'rename' | 'replace';
+
+  @IsString()
+  @IsOptional()
+  value?: string;
+}
+
+class TransformationsDTO {
+  @IsOptional()
+  @IsString()
+  @IsEnum(HTTP_METHODS)
+  method?: HTTP_METHODS;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MappingOperationDTO)
+  headerMappings?: MappingOperationDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MappingOperationDTO)
+  querystringMappings?: MappingOperationDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MappingOperationDTO)
+  bodyMappings?: MappingOperationDTO[];
+}
+
+class ResponseTransformationsDTO {
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MappingOperationDTO)
+  headerMappings?: MappingOperationDTO[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MappingOperationDTO)
+  bodyMappings?: MappingOperationDTO[];
+}
+
 class CreateAPIDownstreamDTO {
   @IsString()
   @IsNotEmpty()
@@ -50,6 +108,12 @@ class CreateAPIDownstreamDTO {
   @Type(() => Map)
   @IsOptional()
   response?: any[];
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ResponseTransformationsDTO)
+  responseTransformations?: ResponseTransformationsDTO;
 }
 
 class CreateAPIUpstreamDTO {
@@ -79,6 +143,12 @@ class CreateAPIUpstreamDTO {
   @ValidateNested({ each: true })
   @Type(() => KVDTO)
   body?: KVDTO[];
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => TransformationsDTO)
+  transformations?: TransformationsDTO;
 }
 
 export class CreateAPIDto {
@@ -138,6 +208,12 @@ class UpdateAPIDownstreamDTO {
   @Type(() => Map)
   @IsOptional()
   response?: any[];
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ResponseTransformationsDTO)
+  responseTransformations?: ResponseTransformationsDTO;
 }
 
 class KVDTO {
@@ -177,6 +253,12 @@ class UpdateAPIUpstreamDTO {
   @ValidateNested({ each: true })
   @Type(() => KVDTO)
   body?: KVDTO[];
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => TransformationsDTO)
+  transformations?: TransformationsDTO;
 }
 
 export class UpdateAPIDto {

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { AppCenterModal, TwoFactorAuthModal } from '@/app/(webapp)/(components)';
 import { HeadersContainer, KeyValueContainer } from '.';
 import { getJsCookies } from '@/config/jsCookie';
+import { MethodMapper } from './MethodMapper';
 
 const UpStreamForm = ({
   rawData,
@@ -18,16 +19,26 @@ const UpStreamForm = ({
 }: APIConfigurationProps) => {
   // const [enable, setEnable] = useState(rawData?.enabled || false);
   const [headers, setHeaders] = useState<KeyValueProps[]>(
-    rawData?.upstream?.headers ? [...rawData?.upstream?.headers] : []
+    rawData?.upstream?.headers 
+      ? rawData.upstream.headers.map((h: any, idx: number) => ({ ...h, id: h.id ?? idx }))
+      : []
   );
   const [body, setBody] = useState<KeyValueProps[]>(
-    rawData?.upstream?.body ? [...rawData?.upstream?.body] : []
+    rawData?.upstream?.body 
+      ? rawData.upstream.body.map((b: any, idx: number) => ({ ...b, id: b.id ?? idx }))
+      : []
   );
   const [querystring, setQueryString] = useState<KeyValueProps[]>(
-    rawData?.upstream?.querystring ? [...rawData?.upstream?.querystring] : []
+    rawData?.upstream?.querystring 
+      ? rawData.upstream.querystring.map((q: any, idx: number) => ({ ...q, id: q.id ?? idx }))
+      : []
   );
   const [endpointUrl, setEndpointUrl] = useState(rawData?.upstream?.url || '');
   const [tiers, setTiers] = useState(rawData?.tiers?.join(',') || '');
+  const [upstreamMethod, setUpstreamMethod] = useState(
+    rawData?.upstream?.transformations?.method || rawData?.upstream?.method || rawData?.downstream?.method || 'GET'
+  );
+  const [downstreamMethod, setDownstreamMethod] = useState(rawData?.downstream?.method || 'GET');
   // const [open2FA, setOpen2FA] = useState(false);
   const [loading, setLoading] = useState(false);
   const environment = getJsCookies('environment');
@@ -35,11 +46,13 @@ const UpStreamForm = ({
   const previewPage = preview == 'true';
 
   const handleRemove = (type: string, value: string | number) => {
-    type == 'body' ?
-      setBody([...body].filter((item) => item.id !== value)) :
-      type == 'headers' ?
-        setHeaders([...headers].filter((item) => item.id !== value)) :
-        setQueryString([...querystring].filter((item) => item.id !== value));
+    if (type === 'body') {
+      setBody(body.filter((item) => item.id !== value));
+    } else if (type === 'headers') {
+      setHeaders(headers.filter((item) => item.id !== value));
+    } else {
+      setQueryString(querystring.filter((item) => item.id !== value));
+    }
   };
 
   const handleInputChange = (value: string, obj: any, key: any, type: string) => {
@@ -75,7 +88,7 @@ const UpStreamForm = ({
       setBody(prev => [
         ...prev,
         {
-          id: prev?.length,
+          id: prev.length > 0 ? Math.max(...prev.map(item => item.id)) + 1 : 0,
           key: '',
           value: ''
         } 
@@ -84,7 +97,7 @@ const UpStreamForm = ({
         setQueryString(prev => [
           ...prev,
           {
-            id: prev?.length,
+            id: prev.length > 0 ? Math.max(...prev.map(item => item.id)) + 1 : 0,
             key: '',
             value: ''
           } 
@@ -92,7 +105,7 @@ const UpStreamForm = ({
         setHeaders(prev => [
           ...prev, 
           {
-            id: prev?.length,
+            id: prev.length > 0 ? Math.max(...prev.map(item => item.id)) + 1 : 0,
             key: '',
             value: ''
           }
@@ -127,10 +140,11 @@ const UpStreamForm = ({
           data: {
             "name": rawData?.name,
             "enabled": rawData?.enabled,
-            "tiers": tiers?.split(','),
+            "tiers": tiers?.split(',').filter((t: string) => t.trim() !== ''),
             "upstream": {
               ...rawData?.upstream,
               url: endpointUrl,
+              method: upstreamMethod,
               headers: headers?.map((header) => {
                 return({
                   key: header?.key,
@@ -149,6 +163,9 @@ const UpStreamForm = ({
                   value: qs?.value
                 })
               }),
+              transformations: {
+                method: upstreamMethod,
+              }
             },
           }
         });
@@ -231,6 +248,17 @@ const UpStreamForm = ({
               changeValue={(value: any) => handleTiers(value)}
               required
             />
+
+            {/* Method Mapping */}
+            {!previewPage && (
+              <MethodMapper
+                downstreamMethod={downstreamMethod}
+                upstreamMethod={upstreamMethod}
+                onDownstreamChange={setDownstreamMethod}
+                onUpstreamChange={setUpstreamMethod}
+                disabled={previewPage}
+              />
+            )}
 
           <div className='w-full flex flex-col gap-[12px]'>
             <KeyValueContainer 

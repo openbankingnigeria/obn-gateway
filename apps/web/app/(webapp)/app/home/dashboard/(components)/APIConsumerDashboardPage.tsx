@@ -207,10 +207,7 @@ const APIConsumerDashboardPage = async ({ alt_data, profile_data }: searchParams
             Reporting
           </h3>
 
-          <ReportingSection 
-            profile_data={profile_data}
-            alt_data={alt_data}
-          />
+          <ReportingSection />
         </section>
       }
     </section>

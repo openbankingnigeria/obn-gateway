@@ -8,6 +8,7 @@ export * from './permission.entity';
 export * from './settings.entity';
 export * from './collection.entity';
 export * from './collectionroute.entity';
+export * from './importedapispec.entity';
 export * from './emailtemplate.entity';
 export * from './twofabackupcode.entity';
 export * from './company-kyb.entity';
