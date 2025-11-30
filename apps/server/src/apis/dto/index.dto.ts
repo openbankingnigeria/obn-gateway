@@ -1,3 +1,14 @@
+import { CompanyTypes } from '@common/database/constants';
+import { RequestContext } from '@common/utils/request/request-context';
+import {
+  IsNumberOrArrayOfNumbers,
+  IsStringOrArrayOfStrings,
+} from '@common/utils/request/request.decorator';
+import { GetCompanyResponseDTO } from '@company/dto/index.dto';
+import { CompanyTiers } from '@company/types';
+import { PERMISSIONS } from '@permissions/types';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { Expose, Transform, Type } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
@@ -14,19 +25,8 @@ import {
   IsUrl,
   ValidateNested,
 } from 'class-validator';
-import { HTTP_METHODS } from '../types';
-import { Expose, Transform, Type } from 'class-transformer';
-import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
-import { GetCompanyResponseDTO } from '@company/dto/index.dto';
 import moment from 'moment';
-import { RequestContext } from '@common/utils/request/request-context';
-import { PERMISSIONS } from '@permissions/types';
-import { CompanyTypes } from '@common/database/constants';
-import {
-  IsNumberOrArrayOfNumbers,
-  IsStringOrArrayOfStrings,
-} from '@common/utils/request/request.decorator';
-import { CompanyTiers } from '@company/types';
+import { HTTP_METHODS } from '../types';
 
 class MappingOperationDTO {
   @IsString()

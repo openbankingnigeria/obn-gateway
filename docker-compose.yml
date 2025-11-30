@@ -57,6 +57,12 @@ x-obn-server-config: &obn_server_config
     DATABASE_NAME: ${DATABASE_NAME:-obn}
     DATABASE_PORT: ${DATABASE_PORT:-3306}
     DATABASE_TYPE: mysql
+    TEST_DATABASE_HOST: ${TEST_DATABASE_HOST:-test-mysql}
+    TEST_DATABASE_USERNAME: ${TEST_DATABASE_USERNAME:-test_user}
+    TEST_DATABASE_PASSWORD_FILE: /run/secrets/test_mysql_password
+    TEST_DATABASE_NAME: ${TEST_DATABASE_NAME:-test_db}
+    TEST_DATABASE_PORT: ${TEST_DATABASE_PORT:-3306}
+    TEST_DATABASE_TYPE: mysql
     JWT_SECRET_FILE: /run/secrets/jwt_secret
     JWT_EXPIRES: ${JWT_EXPIRES}
     SERVER_PORT: ${SERVER_PORT:-4000}

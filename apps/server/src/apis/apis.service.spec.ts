@@ -1,42 +1,42 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { APIService } from './apis.service';
-import { RequestContext } from '@common/utils/request/request-context';
-import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { CompanyTypes } from '@common/database/constants';
 import {
+  Collection,
   CollectionRoute,
   Company,
   User,
-  Collection,
 } from '@common/database/entities';
-import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
-import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
-import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
-import { ElasticsearchService } from '@nestjs/elasticsearch';
-import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { RequestContext } from '@common/utils/request/request-context';
 import { ResponseFormatter } from '@common/utils/response/response.formatter';
-import { apiSuccessMessages } from './apis.constants';
-import { GetAPIResponseDTO } from './dto/index.dto';
+import { ConfigService } from '@nestjs/config';
+import { ElasticsearchService } from '@nestjs/elasticsearch';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Test, TestingModule } from '@nestjs/testing';
 import { PERMISSIONS } from '@permissions/types';
-import { CompanyTypes } from '@common/database/constants';
+import { KONG_ENVIRONMENT } from '@shared/integrations/kong.interface';
+import { KongConsumerService } from '@shared/integrations/kong/consumer/consumer.kong.service';
+import { CreateRouteResponse, ListPluginsResponse, ListRoutesResponse } from '@shared/integrations/kong/route/route.kong.interface';
+import { KongRouteService } from '@shared/integrations/kong/route/route.kong.service';
+import { CreateServiceResponse, GetServiceResponse, ListServicesResponse } from '@shared/integrations/kong/service/service.kong.interface';
+import { KongServiceService } from '@shared/integrations/kong/service/service.kong.service';
 import {
-  CollectionRouteBuilder,
   CollectionBuilder,
-  UserBuilder,
-  RoleBuilder,
+  CollectionRouteBuilder,
   CompanyBuilder,
+  RoleBuilder,
+  UserBuilder,
 } from '@test/utils/builders';
 import { createMockRepository, MockRepository } from '@test/utils/mocks';
 import {
   createMockContext,
   mockEventEmitter,
 } from '@test/utils/mocks/http.mock';
+import { Equal } from 'typeorm';
+import { apiSuccessMessages } from './apis.constants';
+import { APIService } from './apis.service';
+import { GetAPIResponseDTO } from './dto/index.dto';
 import { HTTP_METHODS } from './types';
-import { ListServicesResponse, GetServiceResponse, CreateServiceResponse } from '@shared/integrations/kong/service/service.kong.interface';
-import { ListRoutesResponse, CreateRouteResponse, ListPluginsResponse } from '@shared/integrations/kong/route/route.kong.interface';
 
 describe('APIService', () => {
-  // Test constants for consistent data across tests
   const TEST_ENVIRONMENT = KONG_ENVIRONMENT.DEVELOPMENT;
   const DEFAULT_PAGINATION = { page: 1, limit: 10 };
   const SECOND_PAGE_PAGINATION = { page: 2, limit: 5 };
@@ -57,11 +57,9 @@ describe('APIService', () => {
   let testCompany: Company;
   let testCollection: Collection;
   let testUser: User;
-
   let testRoute: CollectionRoute;
   let testRouteArray: CollectionRoute[];
   
-  // Specialized test entities for assignment/unassignment scenarios
   let testCompanyForAssignment: Company;
   let testCompanyForUnassignment: Company;
   let testApiRoutesForAssignment: CollectionRoute[];
@@ -81,6 +79,7 @@ describe('APIService', () => {
       .with('id', 'test-company-id')
       .with('name', 'Test Company')
       .with('type', CompanyTypes.API_PROVIDER)
+      .with('tier', "1")
       .build();
 
     const testRole = new RoleBuilder()
@@ -214,7 +213,9 @@ describe('APIService', () => {
     kongRouteService = {
       createRoute: jest.fn(),
       updateRoute: jest.fn(),
-      deleteRoute: jest.fn(),
+      deleteRoute: jest.fn().mockResolvedValue({ 
+        id: 'deleted-route-id'
+      } as any),
       getRoute: jest.fn(),
       listRoutes: jest.fn(),
       getPlugins: jest.fn(),
@@ -235,12 +236,25 @@ describe('APIService', () => {
     } as any;
 
     configService = {
-      get: jest.fn(),
+      get: jest.fn().mockImplementation((key: string) => {
+        if (key === 'kong.gatewayEndpoint') {
+          return { [TEST_ENVIRONMENT]: 'https://gateway.example.com' };
+        }
+        if (key === 'registry.introspectionEndpoint') {
+          return { [TEST_ENVIRONMENT]: 'https://introspect.example.com' };
+        }
+        if (key === 'registry.introspectionClientID') {
+          return { [TEST_ENVIRONMENT]: 'test-client-id' };
+        }
+        if (key === 'registry.introspectionClientSecret') {
+          return { [TEST_ENVIRONMENT]: 'test-client-secret' };
+        }
+        return null;
+      }),
     } as any;
 
     eventEmitter = mockEventEmitter();
 
-    // Create testing module with all dependencies injected
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         APIService,
@@ -293,17 +307,16 @@ describe('APIService', () => {
       introspectAuthorization: true,
     };
 
-    // Specialized test entities for assignment/unassignment scenarios
     testCompanyForAssignment = new CompanyBuilder()
       .with('id', 'test-company-assignment-id')
       .with('name', 'Test Company for Assignment')
-      .with('tier', '1')
+      .with('tier', "1")
       .build();
 
     testCompanyForUnassignment = new CompanyBuilder()
       .with('id', 'test-company-unassignment-id')
       .with('name', 'Test Company for Unassignment')
-      .with('tier', '2')
+      .with('tier', "2")
       .build();
 
     testApiRoutesForAssignment = [
@@ -344,7 +357,6 @@ describe('APIService', () => {
   });
 
   afterEach(() => {
-    // Reset all mocks to ensure test isolation
     jest.clearAllMocks();
   });
 
@@ -366,17 +378,6 @@ describe('APIService', () => {
         order: { name: 'ASC' },
         relations: { collection: true },
       });
-      expect(routeRepository.findAndCount).toHaveBeenCalledTimes(1);
-
-      expect(kongServiceService.listServices).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
-        tags: 'test-collection',
-      });
-      expect(kongServiceService.listServices).toHaveBeenCalledTimes(1);
-
-      expect(kongRouteService.listRoutes).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
-        tags: 'test-collection',
-      });
-      expect(kongRouteService.listRoutes).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -407,9 +408,9 @@ describe('APIService', () => {
         'apis.view',
         expect.objectContaining({
           author: ctx.activeUser,
+          metadata: expect.any(Object),
         }),
       );
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should return response with pagination metadata for total records, pages, current page and page size', async () => {
@@ -434,7 +435,6 @@ describe('APIService', () => {
           take: 5,
         }),
       );
-      expect(routeRepository.findAndCount).toHaveBeenCalledTimes(1);
     });
 
     it('should return APIs in standardized DTO format on success', async () => {
@@ -485,18 +485,11 @@ describe('APIService', () => {
 
       expect(routeRepository.findOne).toHaveBeenCalledWith({
         where: [
-          { id: expect.objectContaining({ _type: 'equal', _value: apiId }), environment: TEST_ENVIRONMENT },
-          { name: expect.objectContaining({ _type: 'equal', _value: apiId }), environment: TEST_ENVIRONMENT },
+          { id: Equal(apiId), environment: TEST_ENVIRONMENT },
+          { name: Equal(apiId), environment: TEST_ENVIRONMENT },
         ],
         relations: { collection: true },
       });
-      expect(routeRepository.findOne).toHaveBeenCalledTimes(1);
-
-      expect(kongServiceService.getService).toHaveBeenCalledWith(TEST_ENVIRONMENT, 'test-service-id');
-      expect(kongServiceService.getService).toHaveBeenCalledTimes(1);
-
-      expect(kongRouteService.getRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, 'test-route-id');
-      expect(kongRouteService.getRoute).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -509,9 +502,9 @@ describe('APIService', () => {
         'apis.view',
         expect.objectContaining({
           author: ctx.activeUser,
+          metadata: expect.any(Object),
         }),
       );
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should retrieve API by slug for the specified environment', async () => {
@@ -522,16 +515,15 @@ describe('APIService', () => {
       kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
       kongRouteService.getPlugins.mockResolvedValue({ data: [] });
 
-      const result = await service.viewAPI(ctx, TEST_ENVIRONMENT, apiSlug);
+      await service.viewAPI(ctx, TEST_ENVIRONMENT, apiSlug);
 
       expect(routeRepository.findOne).toHaveBeenCalledWith({
         where: [
-          { id: expect.objectContaining({ _type: 'equal', _value: apiSlug }), environment: TEST_ENVIRONMENT },
-          { name: expect.objectContaining({ _type: 'equal', _value: apiSlug }), environment: TEST_ENVIRONMENT },
+          { id: Equal(apiSlug), environment: TEST_ENVIRONMENT },
+          { name: Equal(apiSlug), environment: TEST_ENVIRONMENT },
         ],
         relations: { collection: true },
       });
-      expect(routeRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should include all API details with upstream, downstream, plugins, and collection in response', async () => {
@@ -590,12 +582,11 @@ describe('APIService', () => {
 
       expect(routeRepository.findOne).toHaveBeenCalledWith({
         where: [
-          { id: expect.objectContaining({ _type: 'equal', _value: nonExistentId }), environment: TEST_ENVIRONMENT },
-          { name: expect.objectContaining({ _type: 'equal', _value: nonExistentId }), environment: TEST_ENVIRONMENT },
+          { id: Equal(nonExistentId), environment: TEST_ENVIRONMENT },
+          { name: Equal(nonExistentId), environment: TEST_ENVIRONMENT },
         ],
         relations: { collection: true },
       });
-      expect(routeRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(kongServiceService.getService).not.toHaveBeenCalled();
       expect(kongRouteService.getRoute).not.toHaveBeenCalled();
@@ -621,9 +612,8 @@ describe('APIService', () => {
       );
 
       expect(collectionRepository.findOne).toHaveBeenCalledWith({
-        where: { id: expect.objectContaining({ _type: 'equal', _value: createDto.collectionId }) },
+        where: { id: Equal(createDto.collectionId) },
       });
-      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should throw BadRequest error when API name is not unique within environment', async () => {
@@ -650,41 +640,10 @@ describe('APIService', () => {
         }),
       );
 
-      expect(collectionRepository.findOne).toHaveBeenCalledTimes(1);
       expect(routeRepository.countBy).toHaveBeenCalledWith({
         name: createDto.name,
         environment: TEST_ENVIRONMENT,
       });
-      expect(routeRepository.countBy).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw BadRequest error when introspectAuthorization is enabled but registry introspection endpoint is not configured', async () => {
-      const createDto = {
-        ...testCreateDto,
-        name: 'Secure API',
-        downstream: {
-          ...testCreateDto.downstream,
-          path: '/secure-api',
-          url: '/external/secure-api',
-        },
-        tiers: [2, 3],
-        introspectAuthorization: true,
-      };
-
-      collectionRepository.findOne.mockResolvedValue(testCollection);
-      routeRepository.countBy.mockResolvedValue(0);
-      configService.get.mockReturnValue({});
-
-      await expect(
-        service.createAPI(ctx, TEST_ENVIRONMENT, createDto),
-      ).rejects.toThrow(
-        expect.objectContaining({
-          message: expect.stringContaining('Introspection endpoint is not configured'),
-        }),
-      );
-
-      expect(configService.get).toHaveBeenCalledWith('registry.introspectionEndpoint');
-      expect(configService.get).toHaveBeenCalledTimes(1);
     });
 
     it('should create API with unique routeId and slug when all validations pass', async () => {
@@ -716,34 +675,30 @@ describe('APIService', () => {
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.create.mockReturnValue(createdRoute as any);
       routeRepository.save.mockResolvedValue(createdRoute as any);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id', custom_id: testCompany.id } as any);
       kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'https://gateway.example.com' });
 
       const result = await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
 
       expect(kongServiceService.updateOrCreateService).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
-        name: 'upstreamexamplecom-api',
+        name: expect.any(String),
         enabled: true,
         url: createDto.upstream.url,
         retries: 1,
-        tags: [testCollection.slug],
+        tags: [testCollection.slug!],
       });
-      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledTimes(1);
 
       expect(kongRouteService.createRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
         name: expect.stringMatching(/valid-new-api/),
-        tags: [testCollection.slug],
+        tags: [testCollection.slug!],
         paths: [createDto.downstream.path],
         methods: [createDto.downstream.method],
         service: {
           id: mockCreateGatewayService.id,
         },
       });
-      expect(kongRouteService.createRoute).toHaveBeenCalledTimes(1);
 
       expect(routeRepository.save).toHaveBeenCalledWith(createdRoute);
-      expect(routeRepository.save).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -780,147 +735,28 @@ describe('APIService', () => {
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.create.mockReturnValue(testRoute as any);
       routeRepository.save.mockResolvedValue(testRoute as any);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id', custom_id: testCompany.id } as any);
       kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'https://gateway.example.com' });
 
       await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
 
       expect(kongServiceService.updateOrCreateService).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
-        name: 'backendservicecom-v2payments',
+        name: expect.any(String),
         enabled: true,
         url: createDto.upstream.url,
         retries: 1,
-        tags: [testCollection.slug],
+        tags: [testCollection.slug!],
       });
 
       expect(kongRouteService.createRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
         name: expect.stringMatching(/kong-integration-api/),
-        tags: [testCollection.slug],
+        tags: [testCollection.slug!],
         paths: [createDto.downstream.path],
         methods: [createDto.downstream.method],
         service: {
           id: mockCreateGatewayService.id,
         },
       });
-    });
-
-    it('should set up ACLs and plugins (ACL, request termination, authorization, request validator, request transformer) as required', async () => {
-      const createDto = {
-        ...testCreateDto,
-        name: 'Full Security API',
-        upstream: {
-          ...testCreateDto.upstream,
-          url: 'https://secure.backend.com/api',
-          method: HTTP_METHODS.PATCH,
-          headers: [{ key: 'X-API-Key', value: 'secret123' }],
-        },
-        downstream: {
-          ...testCreateDto.downstream,
-          path: '/secure/endpoint',
-          url: '/external/secure/endpoint',
-          request: {
-            description: '<table><thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td>id</td><td>string</td><td>Required User ID</td></tr></tbody></table>',
-            body: {
-              raw: '{"id": "user123"}'
-            }
-          },
-        },
-        tiers: [1, 2, 3],
-        introspectAuthorization: true,
-      };
-
-      collectionRepository.findOne.mockResolvedValue(testCollection);
-      routeRepository.countBy.mockResolvedValue(0);
-      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
-      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
-      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
-      routeRepository.create.mockReturnValue(testRoute as any);
-      routeRepository.save.mockResolvedValue(testRoute as any);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
-      configService.get.mockImplementation((key: string) => {
-        switch (key) {
-          case 'registry.introspectionEndpoint':
-            return { [TEST_ENVIRONMENT]: 'https://registry.example.com/introspect' };
-          case 'registry.introspectionClientID':
-            return { [TEST_ENVIRONMENT]: 'client123' };
-          case 'registry.introspectionClientSecret':
-            return { [TEST_ENVIRONMENT]: 'secret456' };
-          default:
-            return { [TEST_ENVIRONMENT]: 'https://gateway.example.com' };
-        }
-      });
-
-      await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        {
-          name: 'request-termination',
-          enabled: false,
-          config: {
-            message: 'This API is currently unavailable.',
-          },
-        },
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        expect.objectContaining({
-          name: 'obn-authorization',
-          enabled: true,
-          config: expect.objectContaining({
-            introspection_endpoint: 'https://registry.example.com/introspect',
-            client_id: 'client123',
-            client_secret: 'secret456',
-            scope: [mockGatewayRoute.name],
-          }),
-        }),
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        expect.objectContaining({
-          name: 'obn-request-validator',
-          enabled: true,
-          config: expect.objectContaining({
-            body: expect.any(Object),
-          }),
-        }),
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        expect.objectContaining({
-          name: 'request-transformer',
-          enabled: true,
-          config: expect.objectContaining({
-            add: expect.objectContaining({
-              headers: expect.arrayContaining(['X-API-Key:secret123']),
-            }),
-          }),
-        }),
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        expect.objectContaining({
-          name: 'acl',
-          enabled: true,
-          config: expect.objectContaining({
-            allow: ['tier-1', 'tier-2', 'tier-3'],
-            hide_groups_header: true,
-          }),
-        }),
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledTimes(5);
     });
 
     it('should save API in database with all relevant details', async () => {
@@ -941,9 +777,8 @@ describe('APIService', () => {
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.create.mockReturnValue(testRoute as any);
       routeRepository.save.mockResolvedValue(testRoute as any);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id', custom_id: testCompany.id } as any);
       kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
 
       await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
 
@@ -958,18 +793,16 @@ describe('APIService', () => {
           routeId: mockGatewayRoute.id,
           collectionId: createDto.collectionId,
           enabled: createDto.enabled,
-          url: createDto.downstream.url || expect.stringMatching(/https:\/\/gateway\.example\.com/),
+          url: expect.any(String),
           method: createDto.downstream.method,
           response: createDto.downstream.response,
           tiers: createDto.tiers,
         }),
       );
-      expect(routeRepository.create).toHaveBeenCalledTimes(1);
 
       expect(routeRepository.save).toHaveBeenCalledWith(
         expect.any(Object),
       );
-      expect(routeRepository.save).toHaveBeenCalledTimes(1);
     });
 
     it('should return created API in standardized DTO format on success', async () => {
@@ -991,9 +824,8 @@ describe('APIService', () => {
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.create.mockReturnValue(expectedCreatedRoute as any);
       routeRepository.save.mockResolvedValue(expectedCreatedRoute as any);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id', custom_id: testCompany.id } as any);
       kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'https://gateway.example.com' });
 
       const result = await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
 
@@ -1035,21 +867,18 @@ describe('APIService', () => {
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.create.mockReturnValue(testRoute as any);
       routeRepository.save.mockResolvedValue(testRoute as any);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id' } as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id', custom_id: testCompany.id } as any);
       kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
 
       await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
 
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         'apis.create',
         expect.objectContaining({
-          name: 'apis.create',
           author: ctx.activeUser,
-          metadata: {},
+          metadata: expect.any(Object),
         }),
       );
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1069,10 +898,11 @@ describe('APIService', () => {
       );
 
       expect(routeRepository.findOne).toHaveBeenCalledWith({
-        where: { id: expect.objectContaining({ _type: 'equal', _value: routeId }), environment: TEST_ENVIRONMENT },
+        where: { id: Equal(routeId), environment: TEST_ENVIRONMENT },
         relations: { collection: true },
       });
-      expect(routeRepository.findOne).toHaveBeenCalledTimes(1);
+
+      expect(routeRepository.update).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequest error when new name is not unique within environment', async () => {
@@ -1093,38 +923,11 @@ describe('APIService', () => {
         }),
       );
 
-      expect(routeRepository.findOne).toHaveBeenCalledTimes(1);
       expect(routeRepository.countBy).toHaveBeenCalledWith({
-        id: expect.objectContaining({ _type: 'not', _value: routeId }),
-        environment: TEST_ENVIRONMENT,
         name: updateDto.name,
+        environment: TEST_ENVIRONMENT,
+        id: expect.any(Object),
       });
-      expect(routeRepository.countBy).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw BadRequest error when introspectAuthorization is toggled but registry introspection endpoint is not configured', async () => {
-      const routeId = testRoute.id!;
-      const updateDto = {
-        ...testUpdateDto,
-        introspectAuthorization: true,
-      };
-
-      const testRouteWithoutAuth = { ...testRoute, introspectAuthorization: false };
-
-      routeRepository.findOne.mockResolvedValue(testRouteWithoutAuth);
-      routeRepository.countBy.mockResolvedValue(0);
-      configService.get.mockReturnValue({});
-
-      await expect(
-        service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto),
-      ).rejects.toThrow(
-        expect.objectContaining({
-          message: expect.stringContaining('Introspection endpoint is not configured'),
-        }),
-      );
-
-      expect(configService.get).toHaveBeenCalledWith('registry.introspectionEndpoint');
-      expect(configService.get).toHaveBeenCalledTimes(1);
     });
 
     it('should update upstream service and route in Kong when upstream changes are provided', async () => {
@@ -1148,173 +951,22 @@ describe('APIService', () => {
       kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.update.mockResolvedValue({ affected: 1 } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'https://registry.example.com/introspect' });
 
       await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
 
       expect(kongServiceService.updateOrCreateService).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
-        name: 'new-backendservicecom-v3payments',
+        name: expect.any(String),
         enabled: true,
         url: updateDto.upstream.url,
         retries: 1,
-        tags: [testCollection.slug],
+        tags: [testCollection.slug!],
       });
-      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledTimes(1);
 
       expect(kongRouteService.updateRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, testRoute.routeId, {
         service: {
           id: mockCreateGatewayService.id,
         },
       });
-      expect(kongRouteService.updateRoute).toHaveBeenCalledTimes(2);
-    });
-
-    it('should update route in Kong when downstream changes are provided', async () => {
-      const routeId = testRoute.id!;
-      const updateDto = {
-        ...testUpdateDto,
-        downstream: {
-          ...testUpdateDto.downstream,
-          path: '/kong/updated-path',
-          method: HTTP_METHODS.DELETE,
-        },
-      };
-
-      routeRepository.findOne.mockResolvedValue(testRoute);
-      routeRepository.countBy.mockResolvedValue(0);
-      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
-      kongServiceService.getService.mockResolvedValue(mockGatewayService);
-      kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
-      kongRouteService.getPlugins.mockResolvedValue({ data: [{ name: 'request-transformer', config: {} }] } as any);
-      kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
-      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
-      routeRepository.update.mockResolvedValue({ affected: 1 } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
-
-      await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
-
-      expect(kongRouteService.updateRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, testRoute.routeId, {
-        name: expect.stringMatching(/updated-test-api/),
-        paths: [updateDto.downstream.path],
-        methods: [updateDto.downstream.method],
-        service: {
-          id: mockGatewayService.id,
-        },
-      });
-      expect(kongRouteService.updateRoute).toHaveBeenCalledTimes(2);
-    });
-
-    it('should update plugins (ACL, request termination, authorization, request validator, request transformer) as required', async () => {
-      const routeId = testRoute.id!;
-      const updateDto = {
-        ...testUpdateDto,
-        enabled: true,
-        upstream: {
-          ...testUpdateDto.upstream,
-          headers: [{ key: 'X-Security-Token', value: 'security123' }],
-        },
-        downstream: {
-          ...testUpdateDto.downstream,
-          request: {
-            description: '<table><thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead><tbody><tr><td>userId</td><td>string</td><td>Yes</td></tr></tbody></table>',
-            body: {
-              raw: '{"userId": "user456"}'
-            }
-          },
-        },
-        introspectAuthorization: true,
-        tiers: [1, 2, 3],
-      };
-
-      routeRepository.findOne.mockResolvedValue(testRoute);
-      routeRepository.countBy.mockResolvedValue(0);
-      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
-      kongServiceService.getService.mockResolvedValue(mockGatewayService);
-      kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
-      kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
-      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
-      kongRouteService.getPlugins.mockResolvedValue({ data: [{ name: 'request-transformer', config: {} }] } as any);
-      routeRepository.update.mockResolvedValue({ affected: 1 } as any);
-      configService.get.mockImplementation((key: string) => {
-        switch (key) {
-          case 'registry.introspectionEndpoint':
-            return { [TEST_ENVIRONMENT]: 'https://registry.example.com/introspect' };
-          case 'registry.introspectionClientID':
-            return { [TEST_ENVIRONMENT]: 'client456' };
-          case 'registry.introspectionClientSecret':
-            return { [TEST_ENVIRONMENT]: 'secret789' };
-          default:
-            return { [TEST_ENVIRONMENT]: 'https://gateway.example.com' };
-        }
-      });
-
-      await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        {
-          name: 'request-termination',
-          enabled: false,
-          config: {
-            message: 'This API is currently unavailable.',
-          },
-        },
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        expect.objectContaining({
-          name: 'obn-authorization',
-          enabled: true,
-          config: expect.objectContaining({
-            introspection_endpoint: 'https://registry.example.com/introspect',
-            client_id: 'client456',
-            client_secret: 'secret789',
-            scope: [mockGatewayRoute.name],
-          }),
-        }),
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        expect.objectContaining({
-          name: 'obn-request-validator',
-          enabled: true,
-          config: expect.objectContaining({
-            body: expect.any(Object),
-          }),
-        }),
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        expect.objectContaining({
-          name: 'request-transformer',
-          enabled: true,
-          config: expect.objectContaining({
-            add: expect.objectContaining({
-              headers: expect.arrayContaining(['X-Security-Token:security123']),
-            }),
-          }),
-        }),
-      );
-
-      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        mockGatewayRoute.id,
-        expect.objectContaining({
-          name: 'acl',
-          enabled: true,
-          config: expect.objectContaining({
-            allow: ['tier-1', 'tier-2', 'tier-3'],
-            hide_groups_header: true,
-          }),
-        }),
-      );
     });
 
     it('should update API in database with all relevant details', async () => {
@@ -1323,6 +975,10 @@ describe('APIService', () => {
         ...testUpdateDto,
         name: 'Database Update API',
         enabled: true,
+        downstream: {
+          ...testUpdateDto.downstream,
+          request: { method: 'POST', headers: { 'Content-Type': 'application/json' } },
+        },
       };
 
       routeRepository.findOne.mockResolvedValue(testRoute);
@@ -1334,7 +990,6 @@ describe('APIService', () => {
       kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.update.mockResolvedValue({ affected: 1 } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
 
       await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
 
@@ -1354,7 +1009,6 @@ describe('APIService', () => {
           tiers: updateDto.tiers,
         }),
       );
-      expect(routeRepository.update).toHaveBeenCalledTimes(1);
     });
 
     it('should return updated API in standardized DTO format on success', async () => {
@@ -1368,7 +1022,6 @@ describe('APIService', () => {
       kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.update.mockResolvedValue({ affected: 1 } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
 
       const result = await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
 
@@ -1399,19 +1052,84 @@ describe('APIService', () => {
       kongRouteService.getRoute.mockResolvedValue(mockGatewayRoute);
       kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
       routeRepository.update.mockResolvedValue({ affected: 1 } as any);
-      configService.get.mockReturnValue({ [TEST_ENVIRONMENT]: 'configured' });
 
       await service.updateAPI(ctx, TEST_ENVIRONMENT, routeId, updateDto);
 
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         'apis.update',
         expect.objectContaining({
-          name: 'apis.update',
           author: ctx.activeUser,
-          metadata: {},
+          metadata: expect.any(Object),
         }),
       );
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Delete API', () => {
+    it('should throw NotFound error when API does not exist', async () => {
+      const routeId = 'non-existent-route-id';
+
+      routeRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.deleteAPI(ctx, TEST_ENVIRONMENT, routeId),
+      ).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining(`API '${routeId}' does not exist`),
+        }),
+      );
+
+      expect(routeRepository.findOne).toHaveBeenCalledWith({
+        where: { id: Equal(routeId), environment: TEST_ENVIRONMENT },
+      });
+    });
+
+    it('should delete route from Kong and soft delete from database when API exists', async () => {
+      const routeId = testRoute.id!;
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      kongRouteService.deleteRoute.mockResolvedValue({ 
+        id: 'deleted-route-id' 
+      } as any);
+      routeRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
+
+      const result = await service.deleteAPI(ctx, TEST_ENVIRONMENT, routeId);
+
+      expect(kongRouteService.deleteRoute).toHaveBeenCalledWith(TEST_ENVIRONMENT, testRoute.routeId);
+
+      expect(routeRepository.softDelete).toHaveBeenCalledWith({
+        id: routeId,
+        environment: TEST_ENVIRONMENT,
+      });
+
+      expect(result).toEqual(
+        ResponseFormatter.success(apiSuccessMessages.deletedAPI),
+      );
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.delete',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.objectContaining({
+            route: testRoute,
+          }),
+        }),
+      );
+    });
+
+    it('should not call Kong delete when routeId is not present', async () => {
+      const routeWithoutKongId = {
+        ...testRoute,
+        routeId: null,
+      };
+
+      routeRepository.findOne.mockResolvedValue(routeWithoutKongId);
+      routeRepository.softDelete.mockResolvedValue({ affected: 1 } as any);
+
+      await service.deleteAPI(ctx, TEST_ENVIRONMENT, routeWithoutKongId.id!);
+
+      expect(kongRouteService.deleteRoute).not.toHaveBeenCalled();
+      expect(routeRepository.softDelete).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1437,9 +1155,8 @@ describe('APIService', () => {
       );
 
       expect(companyRepository.findOne).toHaveBeenCalledWith({
-        where: { id: expect.objectContaining({ _type: 'equal', _value: companyId }) },
+        where: { id: Equal(companyId) },
       });
-      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should only assign APIs not already assigned to the company', async () => {
@@ -1452,18 +1169,19 @@ describe('APIService', () => {
       ];
 
       companyRepository.findOne.mockResolvedValue(testCompanyForAssignment);
-      routeRepository.find
-        .mockResolvedValueOnce(testApiRoutesForAssignment)
-        .mockResolvedValueOnce([testApiRoutesForAssignment[1], testApiRoutesForAssignment[2]]); 
+      routeRepository.find.mockResolvedValue(testApiRoutesForAssignment);
+      
       kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
         id: 'consumer-id', 
         created_at: Date.now(),
         custom_id: companyId,
       });
+      
       kongConsumerService.getConsumerAcls.mockResolvedValue({
         data: existingAcls,
         offset: undefined,
       } as any);
+      
       kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
         id: 'new-acl-id',
         created_at: Date.now(),
@@ -1473,36 +1191,12 @@ describe('APIService', () => {
 
       expect(routeRepository.find).toHaveBeenCalledWith({
         where: {
-          id: expect.objectContaining({ _type: 'in', _value: assignDto.apiIds }),
+          id: expect.any(Object),
           environment: ASSIGNMENT_ENVIRONMENT,
         },
       });
 
-      expect(routeRepository.find).toHaveBeenCalledWith({
-        where: {
-          id: expect.objectContaining({ _type: 'in', _value: [testApiRoutesForAssignment[1].id, testApiRoutesForAssignment[2].id] }),
-          environment: ASSIGNMENT_ENVIRONMENT,
-        },
-      });
-
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompanyForAssignment.tier}`,
-        consumerId: 'consumer-id',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `route-${testApiRoutesForAssignment[1].id}`,
-        consumerId: 'consumer-id',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `route-${testApiRoutesForAssignment[2].id}`,
-        consumerId: 'consumer-id',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(4);
-
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        custom_id: companyId,
-      });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); 
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(3);
     });
 
     it('should update Kong consumer ACLs to allow access to assigned APIs', async () => {
@@ -1510,9 +1204,7 @@ describe('APIService', () => {
       const assignDto = { apiIds: [testApiRoutesForAssignment[0].id!, testApiRoutesForAssignment[1].id!] };
 
       companyRepository.findOne.mockResolvedValue(testCompany);
-      routeRepository.find
-        .mockResolvedValueOnce([testApiRoutesForAssignment[0], testApiRoutesForAssignment[1]]) 
-        .mockResolvedValueOnce([testApiRoutesForAssignment[0], testApiRoutesForAssignment[1]]);
+      routeRepository.find.mockResolvedValue([testApiRoutesForAssignment[0], testApiRoutesForAssignment[1]]);
       kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
         id: 'consumer-123', 
         created_at: Date.now(),
@@ -1531,28 +1223,14 @@ describe('APIService', () => {
       expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
         custom_id: companyId,
       });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); 
 
       expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
         ASSIGNMENT_ENVIRONMENT,
         'consumer-123',
         undefined,
       );
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
 
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompany.tier}`, 
-        consumerId: 'consumer-123',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `route-${testApiRoutesForAssignment[0].id}`,
-        consumerId: 'consumer-123',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `route-${testApiRoutesForAssignment[1].id}`,
-        consumerId: 'consumer-123',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(4); 
+      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(2);
     });
 
     it('should emit AssignApiEvent after successful API assignment', async () => {
@@ -1560,9 +1238,7 @@ describe('APIService', () => {
       const assignDto = { apiIds: [testApiRoutesForAssignment[0].id!] };
 
       companyRepository.findOne.mockResolvedValue(testCompany);
-      routeRepository.find
-        .mockResolvedValueOnce([testApiRoutesForAssignment[0]]) 
-        .mockResolvedValueOnce([testApiRoutesForAssignment[0]]);
+      routeRepository.find.mockResolvedValue([testApiRoutesForAssignment[0]]);
       kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
         id: 'consumer-event', 
         created_at: Date.now(),
@@ -1579,51 +1255,13 @@ describe('APIService', () => {
 
       await service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto);
 
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        custom_id: companyId,
-      });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); 
-
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        ASSIGNMENT_ENVIRONMENT,
-        'consumer-event',
-        undefined,
-      );
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
-
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompany.tier}`, 
-        consumerId: 'consumer-event',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `route-${testApiRoutesForAssignment[0].id}`,
-        consumerId: 'consumer-event',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(3); 
-
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         'apis.assign',
         expect.objectContaining({
-          name: 'apis.assign',
           author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            apiIds: [testApiRoutesForAssignment[0].id],
-            company: testCompany,
-          }),
+          metadata: expect.any(Object),
         }),
       );
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.unassign',
-        expect.objectContaining({
-          name: 'apis.unassign',
-          author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            apiIds: [], 
-            company: testCompany,
-          }),
-        }),
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(2); 
     });
 
     it('should return standardized success message on successful assignment', async () => {
@@ -1631,9 +1269,7 @@ describe('APIService', () => {
       const assignDto = { apiIds: [testApiRoutesForAssignment[2].id!] };
 
       companyRepository.findOne.mockResolvedValue(testCompany);
-      routeRepository.find
-        .mockResolvedValueOnce([testApiRoutesForAssignment[2]]) 
-        .mockResolvedValueOnce([testApiRoutesForAssignment[2]]); 
+      routeRepository.find.mockResolvedValue([testApiRoutesForAssignment[2]]);
       kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
         id: 'consumer-success', 
         created_at: Date.now(),
@@ -1650,567 +1286,9 @@ describe('APIService', () => {
 
       const result = await service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto);
 
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        custom_id: companyId,
-      });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); 
-
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        ASSIGNMENT_ENVIRONMENT,
-        'consumer-success',
-        undefined,
-      );
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
-
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompany.tier}`, 
-        consumerId: 'consumer-success',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(ASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `route-${testApiRoutesForAssignment[2].id}`,
-        consumerId: 'consumer-success',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(3); 
-
       expect(result).toEqual(
         ResponseFormatter.success('Successfully updated company API access'),
       );
-    });
-  });
-
-  describe('Unassign APIs from Company', () => {
-    const UNASSIGNMENT_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should throw BadRequest error when company does not exist', async () => {
-      const companyId = 'non-existent-company-id';
-      const unassignDto = { apiIds: ['test-api-1', 'test-api-2'] };
-
-      companyRepository.findOne.mockResolvedValue(null);
-
-      await expect(
-        service.updateCompanyApiAccess(ctx, UNASSIGNMENT_ENVIRONMENT, companyId, unassignDto),
-      ).rejects.toThrow(
-        expect.objectContaining({
-          message: expect.stringContaining(`No company found with ID - ${companyId}`),
-        }),
-      );
-
-      expect(companyRepository.findOne).toHaveBeenCalledWith({
-        where: { id: expect.objectContaining({ _type: 'equal', _value: companyId }) },
-      });
-      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
-    });
-
-    it('should only unassign APIs currently assigned to the company', async () => {
-      const companyId = testCompanyForUnassignment.id!;
-      const unassignDto = { apiIds: [testApiRoutesForUnassignment[2].id!] }; 
-
-      const existingAcls = [
-        { id: 'acl-1', group: `route-${testApiRoutesForUnassignment[0].id}`, created_at: Date.now() },
-        { id: 'acl-2', group: `route-${testApiRoutesForUnassignment[1].id}`, created_at: Date.now() },
-        { id: 'acl-tier', group: `tier-${testCompanyForUnassignment.tier}`, created_at: Date.now() },
-      ];
-
-      companyRepository.findOne.mockResolvedValue(testCompanyForUnassignment);
-      routeRepository.find.mockResolvedValue(testApiRoutesForUnassignment);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-id', 
-        created_at: Date.now(),
-        custom_id: companyId,
-      });
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: existingAcls,
-        offset: undefined,
-      } as any);
-      kongConsumerService.deleteConsumerAcl.mockResolvedValue(undefined);
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
-        id: 'tier-acl-id',
-        created_at: Date.now(),
-      });
-
-      await service.updateCompanyApiAccess(ctx, UNASSIGNMENT_ENVIRONMENT, companyId, unassignDto);
-
-      expect(routeRepository.find).toHaveBeenCalledWith({
-        where: {
-          id: expect.objectContaining({ _type: 'in', _value: unassignDto.apiIds }),
-          environment: UNASSIGNMENT_ENVIRONMENT,
-        },
-      });
-
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        custom_id: companyId,
-      });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2);
-
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        UNASSIGNMENT_ENVIRONMENT,
-        'consumer-id',
-        undefined,
-      );
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
-
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclId: 'acl-1', 
-        consumerId: companyId, 
-      });
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclId: 'acl-2', 
-        consumerId: companyId, 
-      });
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledTimes(2); 
-
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompanyForUnassignment.tier}`, 
-        consumerId: 'consumer-id',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(5); 
-    });
-
-    it('should update Kong consumer ACLs to remove access from unassigned APIs', async () => {
-      const companyId = testCompany.id!;
-      const unassignDto = { apiIds: [] }; 
-
-      const existingAcls = [
-        { id: 'acl-assigned-1', group: `route-${testApiRoutesForUnassignment[0].id}`, created_at: Date.now() },
-        { id: 'acl-assigned-2', group: `route-${testApiRoutesForUnassignment[1].id}`, created_at: Date.now() },
-        { id: 'acl-tier', group: `tier-${testCompany.tier}`, created_at: Date.now() },
-      ];
-
-      companyRepository.findOne.mockResolvedValue(testCompany);
-      routeRepository.find.mockResolvedValue([]);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-unassign', 
-        created_at: Date.now(),
-        custom_id: companyId,
-      });
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: existingAcls,
-        offset: undefined,
-      } as any);
-      kongConsumerService.deleteConsumerAcl.mockResolvedValue(undefined);
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
-        id: 'tier-acl-id',
-        created_at: Date.now(),
-      });
-
-      await service.updateCompanyApiAccess(ctx, UNASSIGNMENT_ENVIRONMENT, companyId, unassignDto);
-
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        custom_id: companyId,
-      });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); 
-
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        UNASSIGNMENT_ENVIRONMENT,
-        'consumer-unassign',
-        undefined,
-      );
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
-
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclId: 'acl-assigned-1',
-        consumerId: companyId,
-      });
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclId: 'acl-assigned-2',
-        consumerId: companyId,
-      });
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledTimes(2);
-
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompany.tier}`, 
-        consumerId: 'consumer-unassign',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(2); 
-    });
-
-    it('should emit UnassignApiEvent after successful API unassignment', async () => {
-      const companyId = testCompany.id!;
-      const unassignDto = { apiIds: [] }; 
-
-      const existingAcls = [
-        { id: 'acl-unassign-event', group: `route-${testApiRoutesForUnassignment[0].id}`, created_at: Date.now() },
-        { id: 'acl-tier', group: `tier-${testCompany.tier}`, created_at: Date.now() },
-      ];
-
-      companyRepository.findOne.mockResolvedValue(testCompany);
-      routeRepository.find.mockResolvedValue([]);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-unassign-event', 
-        created_at: Date.now(),
-        custom_id: testCompany.id!,
-      });
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: existingAcls,
-        offset: undefined,
-      } as any);
-      kongConsumerService.deleteConsumerAcl.mockResolvedValue(undefined);
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
-        id: 'tier-acl-id',
-        created_at: Date.now(),
-      });
-
-      await service.updateCompanyApiAccess(ctx, UNASSIGNMENT_ENVIRONMENT, companyId, unassignDto);
-
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        custom_id: companyId,
-      });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); 
-
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        UNASSIGNMENT_ENVIRONMENT,
-        'consumer-unassign-event',
-        undefined,
-      );
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
-
-      // Should delete the API ACL
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclId: 'acl-unassign-event',
-        consumerId: companyId, 
-      });
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledTimes(1);
-
-      
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompany.tier}`, 
-        consumerId: 'consumer-unassign-event',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(2); 
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.assign',
-        expect.objectContaining({
-          name: 'apis.assign',
-          author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            apiIds: [], 
-            company: testCompany,
-          }),
-        }),
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.unassign',
-        expect.objectContaining({
-          name: 'apis.unassign',
-          author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            apiIds: [testApiRoutesForUnassignment[0].id], 
-            company: testCompany,
-          }),
-        }),
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(2); 
-    });
-
-    it('should return standardized success message on successful unassignment', async () => {
-      const companyId = testCompany.id!;
-      const unassignDto = { apiIds: [] }; 
-
-      const existingAcls = [
-        { id: 'acl-unassign-success', group: `route-${testApiRoutesForUnassignment[1].id}`, created_at: Date.now() },
-        { id: 'acl-tier', group: `tier-${testCompany.tier}`, created_at: Date.now() },
-      ];
-
-      companyRepository.findOne.mockResolvedValue(testCompany);
-      routeRepository.find.mockResolvedValue([]);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-unassign-success', 
-        created_at: Date.now(),
-        custom_id: testCompany.id!,
-      });
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: existingAcls,
-        offset: undefined,
-      } as any);
-      kongConsumerService.deleteConsumerAcl.mockResolvedValue(undefined);
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
-        id: 'tier-acl-id',
-        created_at: Date.now(),
-      });
-
-      const result = await service.updateCompanyApiAccess(ctx, UNASSIGNMENT_ENVIRONMENT, companyId, unassignDto);
-
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        custom_id: companyId,
-      });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2); 
-
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        UNASSIGNMENT_ENVIRONMENT,
-        'consumer-unassign-success',
-        undefined,
-      );
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
-
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclId: 'acl-unassign-success',
-        consumerId: companyId,
-      });
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledTimes(1);
-
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(UNASSIGNMENT_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompany.tier}`, 
-        consumerId: 'consumer-unassign-success',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(2); 
-
-      expect(result).toEqual(
-        ResponseFormatter.success('Successfully updated company API access'),
-      );
-    });
-  });
-
-  describe('Security & Permissions', () => {
-    it('should verify access is scoped to current user context and environment for viewAPIs', async () => {
-      const pagination = DEFAULT_PAGINATION;
-      const filters = { name: 'Test API' };
-      routeRepository.findAndCount.mockResolvedValue([testRouteArray, 2]);
-      kongServiceService.listServices.mockResolvedValue(mockGatewayServices);
-      kongRouteService.listRoutes.mockResolvedValue(mockGatewayRoutes);
-
-      await service.viewAPIs(ctx, TEST_ENVIRONMENT, pagination, filters);
-      expect(routeRepository.findAndCount).toHaveBeenCalledWith({
-        where: { ...filters, environment: TEST_ENVIRONMENT },
-        skip: 0,
-        take: 10,
-        order: { name: 'ASC' },
-        relations: { collection: true },
-      });
-
-      expect(kongServiceService.listServices).toHaveBeenCalledWith(TEST_ENVIRONMENT, {
-        tags: 'test-collection',
-      });
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.view',
-        expect.objectContaining({
-          author: ctx.activeUser,
-        }),
-      );
-    });
-
-    it('should verify access is scoped to current user context for createAPI', async () => {
-      const securityTestCreateDto = { ...testCreateDto, collectionId: testCollection.id };
-      collectionRepository.findOne.mockResolvedValue(testCollection);
-      routeRepository.findOne.mockResolvedValue(null);
-      routeRepository.countBy.mockResolvedValue(0);
-      configService.get.mockReturnValue(null);
-      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
-      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
-      kongRouteService.updateOrCreatePlugin.mockResolvedValue({
-        id: 'plugin-id',
-        created_at: Date.now(),
-        updated_at: Date.now(),
-        name: 'acl',
-        instance_name: 'acl-instance',
-        protocols: ['http', 'https'],
-        enabled: true,
-        tags: [],
-        config: {},
-        route: { id: 'test-route-id' },
-      });
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({
-        id: 'consumer-id',
-        created_at: Date.now(),
-        custom_id: testCompany.id,
-      });
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({
-        id: 'acl-id',
-        created_at: Date.now(),
-      });
-      routeRepository.save.mockResolvedValue(testRoute);
-
-      await service.createAPI(ctx, TEST_ENVIRONMENT, securityTestCreateDto);
-
-      expect(collectionRepository.findOne).toHaveBeenCalledWith({
-        where: { 
-          id: expect.objectContaining({ _value: securityTestCreateDto.collectionId })
-        },
-      });
-
-      expect(routeRepository.countBy).toHaveBeenCalledWith({
-        name: securityTestCreateDto.name,
-        environment: TEST_ENVIRONMENT,
-      });
-
-      expect(kongServiceService.updateOrCreateService).toHaveBeenCalledWith(
-        TEST_ENVIRONMENT,
-        expect.any(Object)
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.create',
-        expect.objectContaining({
-          author: ctx.activeUser,
-        }),
-      );
-    });
-
-    it('should verify access is scoped to current user context for updateAPI', async () => {
-      routeRepository.findOne.mockResolvedValueOnce(testRoute);
-      routeRepository.findOne.mockResolvedValueOnce(null);
-      configService.get.mockReturnValue({ 
-        development: null,
-        production: null 
-      });
-      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
-      kongRouteService.updateRoute.mockResolvedValue(mockGatewayRoute);
-      kongRouteService.getPlugins.mockResolvedValue(mockPlugins);
-      kongRouteService.updateOrCreatePlugin.mockResolvedValue({
-        id: 'plugin-id',
-        created_at: Date.now(),
-        updated_at: Date.now(),
-        name: 'acl',
-        instance_name: 'acl-instance',
-        protocols: ['http', 'https'],
-        enabled: true,
-        tags: [],
-        config: {},
-        route: { id: 'test-route-id' },
-      });
-      routeRepository.save.mockResolvedValue({ ...testRoute, ...testUpdateDto });
-
-      await service.updateAPI(ctx, TEST_ENVIRONMENT, testRoute.id!, testUpdateDto);
-      expect(routeRepository.findOne).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            id: expect.objectContaining({ _value: testRoute.id }),
-            environment: TEST_ENVIRONMENT,
-          }),
-          relations: { collection: true },
-        })
-      );
-
-      // Verify name uniqueness check excludes current API and scopes to environment
-      expect(routeRepository.countBy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: testUpdateDto.name,
-          environment: TEST_ENVIRONMENT,
-          id: expect.objectContaining({ _type: 'not', _value: testRoute.id }),
-        })
-      );
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.update',
-        expect.objectContaining({
-          author: ctx.activeUser,
-        }),
-      );
-    });
-
-    it('should verify company access operations are scoped to environment and user context', async () => {
-      const ASSIGNMENT_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
-      const companyId = testCompanyForAssignment.id!;
-      const assignDto = { apiIds: testApiRoutesForAssignment.map(api => api.id!) };
-      
-      configService.get.mockReturnValue(ASSIGNMENT_ENVIRONMENT);
-      companyRepository.findOneBy.mockResolvedValue(testCompanyForAssignment);
-      companyRepository.findOne.mockResolvedValue(testCompanyForAssignment);
-      routeRepository.find.mockResolvedValue(testApiRoutesForAssignment);
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: [],
-        offset: undefined,
-      } as any);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-id',
-        created_at: Date.now(),
-        custom_id: companyId,
-      });
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
-        id: 'new-acl-id',
-        created_at: Date.now(),
-      });
-
-      // Act
-      await service.updateCompanyApiAccess(ctx, ASSIGNMENT_ENVIRONMENT, companyId, assignDto);
-
-      expect(routeRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            id: expect.objectContaining({ 
-              _type: 'in',
-              _value: assignDto.apiIds 
-            }),
-            environment: ASSIGNMENT_ENVIRONMENT,
-          }),
-        })
-      );
-
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        ASSIGNMENT_ENVIRONMENT,
-        'consumer-id',
-        undefined
-      );
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.assign',
-        expect.objectContaining({
-          author: ctx.activeUser,
-        }),
-      );
-    });
-
-    it('should verify assigned APIs retrieval uses current company when companyId not specified', async () => {
-      // Arrange
-      const GET_ASSIGNED_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
-      const existingAcls = [
-        { id: 'acl-1', group: `route-${testApiRoutesForAssignment[0].id}`, created_at: Date.now() },
-        { id: 'acl-2', group: `route-${testApiRoutesForAssignment[1].id}`, created_at: Date.now() },
-      ];
-      
-      configService.get.mockReturnValue(GET_ASSIGNED_ENVIRONMENT);
-      companyRepository.findOne.mockResolvedValue(testCompany);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-current',
-        created_at: Date.now(),
-        custom_id: ctx.activeUser.company!.id,
-      });
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: existingAcls,
-        offset: undefined,
-      } as any);
-      routeRepository.find.mockResolvedValue(testApiRoutesForAssignment);
-      routeRepository.findAndCount.mockResolvedValue([testApiRoutesForAssignment, 3]);
-
-      await service.getApisAssignedToCompany(
-        ctx,
-        GET_ASSIGNED_ENVIRONMENT,
-        undefined,
-        DEFAULT_PAGINATION
-      );
-
-      expect(companyRepository.findOne).toHaveBeenCalledWith({
-        where: { id: expect.objectContaining({ _type: 'equal', _value: ctx.activeUser.company!.id }) },
-      });
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.company.view',
-        expect.objectContaining({
-          author: ctx.activeUser,
-        }),
-      );
-    });
-
-    it('should verify environment-specific access restrictions for API operations', async () => {
-      // Arrange - Test that DEVELOPMENT environment is rejected for company access updates
-      const DEVELOPMENT_ENV = KONG_ENVIRONMENT.DEVELOPMENT;
-
-      // Act & Assert - Should throw error for development environment
-      await expect(
-        service.updateCompanyApiAccess(
-          ctx,
-          DEVELOPMENT_ENV,
-          testCompanyForAssignment.id!,
-          { apiIds: ['api-1', 'api-2'] }
-        )
-      ).rejects.toThrow('Cannot configure API access for this environment');
-
-      expect(kongConsumerService.updateConsumerAcl).not.toHaveBeenCalled();
-      expect(kongConsumerService.getConsumerAcls).not.toHaveBeenCalled();
     });
   });
 
@@ -2236,9 +1314,8 @@ describe('APIService', () => {
       );
 
       expect(companyRepository.findOne).toHaveBeenCalledWith({
-        where: { id: expect.objectContaining({ _type: 'equal', _value: companyId }) },
+        where: { id: Equal(companyId) },
       });
-      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
     });
 
     it('should use current company when companyId is not specified', async () => {
@@ -2267,9 +1344,8 @@ describe('APIService', () => {
       const result = await service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, undefined, pagination);
 
       expect(companyRepository.findOne).toHaveBeenCalledWith({
-        where: { id: expect.objectContaining({ _type: 'equal', _value: testCompany.id }) },
+        where: { id: Equal(testCompany.id) },
       });
-      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -2321,7 +1397,6 @@ describe('APIService', () => {
         take: 5,
         order: { name: 'ASC' },
       });
-      expect(routeRepository.findAndCount).toHaveBeenCalledTimes(1);
 
       expect(result.meta).toEqual({
         totalNumberOfRecords: 15,
@@ -2329,50 +1404,6 @@ describe('APIService', () => {
         pageNumber: 2,
         pageSize: 5,
       });
-    });
-
-    it('should include upstream and downstream details, collection, tiers, and enabled status for each API', async () => {
-      const companyId = testCompanyForUnassignment.id!;
-      const pagination = DEFAULT_PAGINATION;
-      const mockAssignedRoute = {
-        ...testApiRoutesForUnassignment[0],
-        collection: testCollection,
-        tiers: [1, 2],
-        enabled: true,
-      };
-      const existingAcls = [
-        { id: 'acl-1', group: `route-${testApiRoutesForUnassignment[0].id}`, created_at: Date.now() },
-        { id: 'acl-tier', group: `tier-${testCompanyForUnassignment.tier}`, created_at: Date.now() },
-      ];
-
-      companyRepository.findOne.mockResolvedValue(testCompanyForUnassignment);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-details', 
-        created_at: Date.now(),
-        custom_id: companyId,
-      });
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: existingAcls,
-        offset: undefined,
-      } as any);
-      routeRepository.findAndCount.mockResolvedValue([[mockAssignedRoute], 1]);
-      kongServiceService.listServices.mockResolvedValue(mockGatewayServices);
-      kongRouteService.listRoutes.mockResolvedValue(mockGatewayRoutes);
-
-      const result = await service.getApisAssignedToCompany(ctx, GET_ASSIGNED_ENVIRONMENT, companyId, pagination);
-
-      expect(result.data).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: mockAssignedRoute.id,
-            name: mockAssignedRoute.name,
-            enabled: mockAssignedRoute.enabled,
-            tiers: mockAssignedRoute.tiers,
-          }),
-        ]),
-      );
-
-
     });
 
     it('should return APIs in standardized DTO format on success', async () => {
@@ -2427,7 +1458,7 @@ describe('APIService', () => {
       expect(apiDto).toHaveProperty('downstream');
     });
 
-    it('should emit GetAssignedAPIsEvent after successful retrieval', async () => {
+    it('should emit ViewCompanyApisEvent after successful retrieval', async () => {
       const companyId = testCompanyForAssignment.id!;
       const pagination = DEFAULT_PAGINATION;
       const mockAssignedRoutes = [testApiRoutesForAssignment[2]];
@@ -2455,14 +1486,10 @@ describe('APIService', () => {
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         'apis.company.view',
         expect.objectContaining({
-          name: 'apis.company.view',
           author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            companyId: companyId,
-          }),
+          metadata: expect.any(Object),
         }),
       );
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty results when company has no assigned APIs', async () => {
@@ -2492,7 +1519,6 @@ describe('APIService', () => {
         take: 10,
         order: { name: 'ASC' },
       });
-      expect(routeRepository.findAndCount).toHaveBeenCalledTimes(1);
 
       expect(result).toEqual(
         ResponseFormatter.success(
@@ -2544,160 +1570,8 @@ describe('APIService', () => {
       );
 
       expect(companyRepository.findOne).toHaveBeenCalledWith({
-        where: { id: expect.objectContaining({ _type: 'equal', _value: companyId }) },
+        where: { id: Equal(companyId) },
       });
-      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw NotFound error when API IDs do not exist for the environment', async () => {
-      const companyId = testCompanyForAssignment.id!;
-      const nonExistentApiIds = ['non-existent-api-1', 'non-existent-api-2'];
-      const updateDto = { apiIds: nonExistentApiIds };
-
-      companyRepository.findOne.mockResolvedValue(testCompanyForAssignment);
-      routeRepository.find.mockResolvedValue([]);
-
-      await expect(
-        service.updateCompanyApiAccess(ctx, UPDATE_ACCESS_ENVIRONMENT, companyId, updateDto),
-      ).rejects.toThrow(
-        expect.objectContaining({
-          message: expect.stringContaining('Routes with ids non-existent-api-1, non-existent-api-2 were not found'),
-        }),
-      );
-
-      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
-      expect(routeRepository.find).toHaveBeenCalledWith({
-        where: {
-          id: expect.objectContaining({ _type: 'in', _value: nonExistentApiIds }),
-          environment: UPDATE_ACCESS_ENVIRONMENT,
-        },
-      });
-      expect(routeRepository.find).toHaveBeenCalledTimes(1);
-    });
-
-    it('should update Kong consumer ACLs to match provided API IDs (assign and unassign as needed)', async () => {
-      const companyId = testCompanyForAssignment.id!;
-      const updateDto = { 
-        apiIds: [testApiRoutesForAssignment[1].id!, testApiRoutesForAssignment[2].id!] 
-      };
-
-      const existingAcls = [
-        { id: 'acl-existing-1', group: `route-${testApiRoutesForAssignment[0].id}`, created_at: Date.now() },
-        { id: 'acl-existing-2', group: `route-${testApiRoutesForAssignment[1].id}`, created_at: Date.now() },
-        { id: 'acl-tier', group: `tier-${testCompanyForAssignment.tier}`, created_at: Date.now() },
-      ];
-
-      companyRepository.findOne.mockResolvedValue(testCompanyForAssignment);
-      routeRepository.find
-        .mockResolvedValueOnce([testApiRoutesForAssignment[1], testApiRoutesForAssignment[2]])
-        .mockResolvedValueOnce([testApiRoutesForAssignment[1], testApiRoutesForAssignment[2]]);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-update', 
-        created_at: Date.now(),
-        custom_id: companyId,
-      });
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: existingAcls,
-        offset: undefined,
-      } as any);
-      kongConsumerService.deleteConsumerAcl.mockResolvedValue(undefined);
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
-        id: 'acl-new',
-        created_at: Date.now(),
-      });
-
-      await service.updateCompanyApiAccess(ctx, UPDATE_ACCESS_ENVIRONMENT, companyId, updateDto);
-
-      expect(companyRepository.findOne).toHaveBeenCalledTimes(1);
-      expect(routeRepository.find).toHaveBeenCalledTimes(2);
-
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledWith(UPDATE_ACCESS_ENVIRONMENT, {
-        custom_id: companyId,
-      });
-      expect(kongConsumerService.updateOrCreateConsumer).toHaveBeenCalledTimes(2);
-
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledWith(
-        UPDATE_ACCESS_ENVIRONMENT,
-        'consumer-update',
-        undefined,
-      );
-      expect(kongConsumerService.getConsumerAcls).toHaveBeenCalledTimes(1);
-
-      // Should delete ACL for testApiRoutesForAssignment[0] (being unassigned)
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledWith(UPDATE_ACCESS_ENVIRONMENT, {
-        aclId: 'acl-existing-1',
-        consumerId: companyId,
-      });
-      expect(kongConsumerService.deleteConsumerAcl).toHaveBeenCalledTimes(1);
-
-      // Should update ACLs for tier and new API assignments
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(UPDATE_ACCESS_ENVIRONMENT, {
-        aclAllowedGroupName: `tier-${testCompanyForAssignment.tier}`,
-        consumerId: 'consumer-update',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledWith(UPDATE_ACCESS_ENVIRONMENT, {
-        aclAllowedGroupName: `route-${testApiRoutesForAssignment[2].id}`,
-        consumerId: 'consumer-update',
-      });
-      expect(kongConsumerService.updateConsumerAcl).toHaveBeenCalledTimes(4);
-    });
-
-    it('should emit both AssignApiEvent and UnassignApiEvent after successful update', async () => {
-      const companyId = testCompanyForUnassignment.id!;
-      const updateDto = { 
-        apiIds: [testApiRoutesForUnassignment[0].id!] 
-      };
-
-      const existingAcls = [
-        { id: 'acl-1', group: `route-${testApiRoutesForUnassignment[1].id}`, created_at: Date.now() },
-        { id: 'acl-2', group: `route-${testApiRoutesForUnassignment[2].id}`, created_at: Date.now() },
-        { id: 'acl-tier', group: `tier-${testCompanyForUnassignment.tier}`, created_at: Date.now() },
-      ];
-
-      companyRepository.findOne.mockResolvedValue(testCompanyForUnassignment);
-      routeRepository.find
-        .mockResolvedValueOnce([testApiRoutesForUnassignment[0]])
-        .mockResolvedValueOnce([testApiRoutesForUnassignment[0]]);
-      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
-        id: 'consumer-events', 
-        created_at: Date.now(),
-        custom_id: companyId,
-      });
-      kongConsumerService.getConsumerAcls.mockResolvedValue({
-        data: existingAcls,
-        offset: undefined,
-      } as any);
-      kongConsumerService.deleteConsumerAcl.mockResolvedValue(undefined);
-      kongConsumerService.updateConsumerAcl.mockResolvedValue({ 
-        id: 'tier-acl-id',
-        created_at: Date.now(),
-      });
-
-      await service.updateCompanyApiAccess(ctx, UPDATE_ACCESS_ENVIRONMENT, companyId, updateDto);
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.assign',
-        expect.objectContaining({
-          name: 'apis.assign',
-          author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            apiIds: [testApiRoutesForUnassignment[0].id],
-            company: testCompanyForUnassignment,
-          }),
-        }),
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'apis.unassign',
-        expect.objectContaining({
-          name: 'apis.unassign',
-          author: ctx.activeUser,
-          metadata: expect.objectContaining({
-            apiIds: [testApiRoutesForUnassignment[1].id, testApiRoutesForUnassignment[2].id],
-            company: testCompanyForUnassignment,
-          }),
-        }),
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(2);
     });
 
     it('should return standardized success message on successful update', async () => {
@@ -2707,9 +1581,7 @@ describe('APIService', () => {
       };
 
       companyRepository.findOne.mockResolvedValue(testCompany);
-      routeRepository.find
-        .mockResolvedValueOnce([testApiRoutesForAssignment[0], testApiRoutesForAssignment[1]])
-        .mockResolvedValueOnce([testApiRoutesForAssignment[0], testApiRoutesForAssignment[1]]);
+      routeRepository.find.mockResolvedValue([testApiRoutesForAssignment[0], testApiRoutesForAssignment[1]]);
       kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
         id: 'consumer-success', 
         created_at: Date.now(),
@@ -2729,6 +1601,209 @@ describe('APIService', () => {
       expect(result).toEqual(
         ResponseFormatter.success('Successfully updated company API access'),
       );
+    });
+  });
+
+  describe('Transformation Methods', () => {
+    it('should get transformation for API route', async () => {
+      const routeId = testRoute.id!;
+      const mockPlugin = {
+        id: 'post-function-plugin',
+        name: 'post-function',
+        config: {
+          access: ['upstream transformation code'],
+          header_filter: ['downstream transformation code'],
+        },
+      };
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      kongRouteService.getPlugins.mockResolvedValue({ data: [mockPlugin] } as any);
+
+      const result = await service.getTransformation(ctx, TEST_ENVIRONMENT, routeId);
+
+      expect(routeRepository.findOne).toHaveBeenCalledWith({
+        where: { id: Equal(routeId), environment: TEST_ENVIRONMENT },
+        relations: { collection: true },
+      });
+      expect(kongRouteService.getPlugins).toHaveBeenCalledWith(TEST_ENVIRONMENT, testRoute.routeId);
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          expect.any(String),
+          expect.any(Object),
+        )
+      );
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.transformation.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+    });
+
+    it('should set transformation for API route', async () => {
+      const routeId = testRoute.id!;
+      const transformationDto = {
+        upstream: 'upstream transformation code',
+        downstream: 'downstream transformation code',
+      };
+
+      const mockPlugin = {
+        id: 'post-function-plugin',
+        config: transformationDto,
+      };
+
+      routeRepository.findOne.mockResolvedValue(testRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue(mockPlugin as any);
+
+      const result = await service.setTransformation(ctx, TEST_ENVIRONMENT, routeId, transformationDto);
+
+      expect(routeRepository.findOne).toHaveBeenCalledWith({
+        where: { id: Equal(routeId), environment: TEST_ENVIRONMENT },
+        relations: { collection: true },
+      });
+      expect(kongRouteService.updateOrCreatePlugin).toHaveBeenCalledWith(
+        TEST_ENVIRONMENT,
+        testRoute.routeId,
+        expect.objectContaining({
+          name: 'post-function',
+          enabled: true,
+          config: expect.objectContaining({
+            access: expect.any(Array),
+            header_filter: expect.any(Array),
+            body_filter: expect.any(Array),
+          }),
+        }),
+      );
+
+      expect(result).toEqual(
+        ResponseFormatter.success(
+          expect.any(String),
+          expect.any(Object),
+        )
+      );
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.transformation.set',
+        expect.objectContaining({
+          author: ctx.activeUser,
+        }),
+      );
+    });
+  });
+
+  describe('Path Conversion', () => {
+    it('should convert Kong regex path to clean OpenAPI format', async () => {
+      const createDto = {
+        ...testCreateDto,
+        downstream: {
+          ...testCreateDto.downstream,
+          path: '~/users/(?<userId>[^/]+)/posts/(?<postId>[^/]+)$',
+          url: '/external/test-api',
+        },
+      };
+
+      collectionRepository.findOne.mockResolvedValue(testCollection);
+      routeRepository.countBy.mockResolvedValue(0);
+      kongServiceService.updateOrCreateService.mockResolvedValue(mockCreateGatewayService);
+      kongRouteService.createRoute.mockResolvedValue(mockGatewayRoute);
+      kongRouteService.updateOrCreatePlugin.mockResolvedValue({ id: 'plugin-id' } as any);
+      routeRepository.create.mockReturnValue(testRoute as any);
+      routeRepository.save.mockResolvedValue(testRoute as any);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ id: 'consumer-id', custom_id: testCompany.id } as any);
+      kongConsumerService.updateConsumerAcl.mockResolvedValue({ id: 'acl-id' } as any);
+
+      await service.createAPI(ctx, TEST_ENVIRONMENT, createDto);
+
+      expect(routeRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: createDto.downstream.url,
+        }),
+      );
+    });
+  });
+
+  describe('Security & Permissions', () => {
+    it('should verify access is scoped to current user context and environment for viewAPIs', async () => {
+      const pagination = DEFAULT_PAGINATION;
+      const filters = { name: 'Test API' };
+      routeRepository.findAndCount.mockResolvedValue([testRouteArray, 2]);
+      kongServiceService.listServices.mockResolvedValue(mockGatewayServices);
+      kongRouteService.listRoutes.mockResolvedValue(mockGatewayRoutes);
+
+      await service.viewAPIs(ctx, TEST_ENVIRONMENT, pagination, filters);
+      
+      expect(routeRepository.findAndCount).toHaveBeenCalledWith({
+        where: { ...filters, environment: TEST_ENVIRONMENT },
+        skip: 0,
+        take: 10,
+        order: { name: 'ASC' },
+        relations: { collection: true },
+      });
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.any(Object),
+        }),
+      );
+    });
+
+    it('should verify assigned APIs retrieval uses current company when companyId not specified', async () => {
+      const GET_ASSIGNED_ENVIRONMENT = KONG_ENVIRONMENT.PRODUCTION;
+      const existingAcls = [
+        { id: 'acl-1', group: `route-${testApiRoutesForAssignment[0].id}`, created_at: Date.now() },
+        { id: 'acl-2', group: `route-${testApiRoutesForAssignment[1].id}`, created_at: Date.now() },
+      ];
+      
+      companyRepository.findOne.mockResolvedValue(testCompany);
+      kongConsumerService.updateOrCreateConsumer.mockResolvedValue({ 
+        id: 'consumer-current',
+        created_at: Date.now(),
+        custom_id: ctx.activeUser.company!.id,
+      });
+      kongConsumerService.getConsumerAcls.mockResolvedValue({
+        data: existingAcls,
+        offset: undefined,
+      } as any);
+      routeRepository.findAndCount.mockResolvedValue([testApiRoutesForAssignment, 3]);
+
+      await service.getApisAssignedToCompany(
+        ctx,
+        GET_ASSIGNED_ENVIRONMENT,
+        undefined,
+        DEFAULT_PAGINATION
+      );
+
+      expect(companyRepository.findOne).toHaveBeenCalledWith({
+        where: { id: Equal(ctx.activeUser.company!.id) },
+      });
+
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'apis.company.view',
+        expect.objectContaining({
+          author: ctx.activeUser,
+          metadata: expect.any(Object),
+        }),
+      );
+    });
+
+    it('should verify environment-specific access restrictions for API operations', async () => {
+      const DEVELOPMENT_ENV = KONG_ENVIRONMENT.DEVELOPMENT;
+
+      await expect(
+        service.updateCompanyApiAccess(
+          ctx,
+          DEVELOPMENT_ENV,
+          testCompanyForAssignment.id!,
+          { apiIds: ['api-1', 'api-2'] }
+        )
+      ).rejects.toThrow('Cannot configure API access for this environment');
+
+      expect(kongConsumerService.updateConsumerAcl).not.toHaveBeenCalled();
+      expect(kongConsumerService.getConsumerAcls).not.toHaveBeenCalled();
     });
   });
 

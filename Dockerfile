@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:24
 
 LABEL maintainer="contact@openbanking.ng"
 LABEL org.opencontainers.image.title="Open Banking Nigeria Gateway"
