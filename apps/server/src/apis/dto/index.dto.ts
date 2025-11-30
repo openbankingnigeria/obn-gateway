@@ -179,6 +179,13 @@ export class CreateAPIDto {
 
   @IsArray()
   @IsString({ each: true })
+  @Transform(({ value }) => {
+    // Handle comma-separated string input
+    if (typeof value === 'string') {
+      return value.split(',').map((v) => v.trim());
+    }
+    return value;
+  })
   @IsEnum(CompanyTiers, { each: true })
   tiers: (number | `${number}`)[];
 

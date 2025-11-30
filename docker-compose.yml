@@ -58,6 +58,7 @@ x-obn-server-config: &obn_server_config
     DATABASE_PORT: ${DATABASE_PORT:-3306}
     DATABASE_TYPE: mysql
     JWT_SECRET_FILE: /run/secrets/jwt_secret
+    JWT_EXPIRES: ${JWT_EXPIRES}
     SERVER_PORT: ${SERVER_PORT:-4000}
     EMAIL_HOST: ${EMAIL_HOST}
     EMAIL_PORT: ${EMAIL_PORT}
@@ -461,7 +462,7 @@ services:
           "-c",
           '(echo -e "GET /app/health HTTP/1.1\r\nhost: 127.0.0.1\r\n\r\n"; sleep 0.5) | nc 127.0.0.1 4000 | head -n 1 | grep -q "200" -s -m 1'
         ]
-      interval: 1s
+      interval: 5s
       timeout: 5s
       retries: 30
     profiles:
@@ -490,7 +491,7 @@ services:
 
 secrets:
   kong_postgres_password:
-    environment: KONG_PG_PASSWORD
+    environment: KONG_POSTGRES_PASSWORD
   mysql_root_password:
     environment: MYSQL_ROOT_PASSWORD
   mysql_password:
