@@ -127,11 +127,11 @@ cd obn-gateway
 
 ### 3. Configure Environment Variables
 
-Same as step 3 for Docker installation
+Same as [step 3 for Docker installation](#3-configure-environment-variables)
 
 ### 4. Email service  
 
-Same as step 4 for Docker installation
+Same as [step 5 for Docker installation](#5-email-service)
 
 ### 5. Local Setup
 
@@ -139,12 +139,29 @@ If you prefer to set up the project locally, install and run the project depende
 
 ```bash  
 pnpm install  
+```
+
+### 6. Run Migrations and Setup
+
+Before starting the server, you need to run database migrations and the initial setup script. These steps are handled automatically in Docker but must be run manually for local installation:
+
+```bash
+pnpm --filter server migration:run
+pnpm --filter server setup
+```
+
+- `migration:run` applies database schema migrations
+- `setup` initializes the application with default data and configurations
+
+### 7. Start the Application
+
+```bash
 pnpm dev  
 ```  
 
-### 6. Accessing the Services  
+### 8. Accessing the Services  
 
-Same as step 7 for Docker installation
+Same as [step 7 for Docker installation](#7-accessing-the-services)
 
 ## Troubleshooting  
 

@@ -137,6 +137,8 @@ services:
     depends_on:
       kong-dev-db:
         condition: service_healthy
+      kong-dev-migrations:
+        condition: service_completed_successfully
     profiles:
       - dev
       - kong
@@ -190,6 +192,8 @@ services:
     depends_on:
       kong-prod-db:
         condition: service_healthy
+      kong-prod-migrations:
+        condition: service_completed_successfully
     profiles:
       - prod
       - kong

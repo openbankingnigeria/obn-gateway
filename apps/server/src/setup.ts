@@ -229,6 +229,7 @@ async function performSetupTasks(): Promise<void> {
                 throw e;
               });
             if (api) continue;
+            if (!request.urlObject.path) continue;
 
             const regexPath =
               '~' +
@@ -293,7 +294,7 @@ async function performSetupTasks(): Promise<void> {
             );
             const transformationData = {
               upstream: `
-local function transform_upstream_request()
+local function transform_request_to_upstream()
   	local ok, err = pcall(function()
 		-- Read the request body
 		kong.service.request.enable_buffering()  -- Enable buffering to read body
@@ -318,11 +319,12 @@ local function transform_upstream_request()
 		return kong.response.error(500, "An unexpected error occurred")
 	end
 end
-return transform_upstream_request`,
+return transform_request_to_upstream`,
               downstream: `
 local cjson = require 'cjson.safe'
+local gzip = require 'kong.tools.gzip'
 
-local function transform_downstream_response()
+local function transform_response_to_downstream()
   	local ok, err = pcall(function()
 		${
       (response?.[0]?.body &&
@@ -330,14 +332,23 @@ local function transform_downstream_response()
 		if kong.service.response.get_status() == nil then
 			return
 		end
-		local data = kong.service.response.get_body()
-		data = cjson.decode(data)
+		local data = kong.service.response.get_raw_body()
+    if kong.service.response.get_header("Content-Encoding") == "gzip" then
+        data = cjson.decode(gzip.inflate_gzip(data))
+    else
+        data = cjson.decode(data)
+    end
+    if data == nil then
+      return kong.response.error(500, "failed parsing json body")
+    end
 		if kong.service.response.get_status() >= 400 then
+      kong.ctx.shared.downstream_response = {
+        ["status"] = tostring(data.status),
+        ["message"] = tostring(data.message),
+      }
 			return
 		end
-		if data then
-			kong.ctx.shared.downstream_response = ${jsonToLua(response?.[0]?.body)}
-		end`) ||
+		kong.ctx.shared.downstream_response = ${jsonToLua(response?.[0]?.body)}`) ||
       ''
     }
 	end)
@@ -346,7 +357,7 @@ local function transform_downstream_response()
 		return kong.response.error(500, "An unexpected error occurred")
 	end
 end
-return transform_downstream_response`,
+return transform_response_to_downstream`,
             };
             await apiService.setTransformation(
               ctx,
