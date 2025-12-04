@@ -48,7 +48,8 @@ export class Migration1699268232421 implements MigrationInterface {
                 \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                 \`deleted_at\` datetime(6) NULL,
                 UNIQUE INDEX \`REL_e850707b5c70fa49ea50ef2f59\` (\`profile\`),
-                PRIMARY KEY (\`id\`, \`email\`)
+                UNIQUE INDEX \`IDX_97672ac88f789774dd47f7c8be\` (\`email\`),
+                PRIMARY KEY (\`id\`)
             ) ENGINE = InnoDB
         `);
     await queryRunner.query(`

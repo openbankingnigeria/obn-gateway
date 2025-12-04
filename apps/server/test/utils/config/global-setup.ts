@@ -1,6 +1,4 @@
 import 'tsconfig-paths/register';
-import { DataSource } from 'typeorm';
-import { getTestDbConfig } from './test-db-config';
 
 const setUpEnv = () => {
   process.env.COMPANY_NAME = 'My Fintech App';

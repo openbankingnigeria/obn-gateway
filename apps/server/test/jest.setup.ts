@@ -1,6 +1,6 @@
 import 'jest-extended/all';
 import { DataSource } from 'typeorm';
-import { getTestDbConfig } from './utils/config/test-db-config';
+import { getTestDbConfig } from './utils/config/test-db';
 import 'jest-chain';
 
 let testDataSource: DataSource;
