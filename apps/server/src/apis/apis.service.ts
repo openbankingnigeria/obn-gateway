@@ -2055,22 +2055,81 @@ export class APIService {
       });
     }
 
+    // Kong plugin phases for request/response transformation with gzip handling:
+    //
+    // The transformation flow uses Kong's shared context (kong.ctx.shared) to pass
+    // transformed bodies between phases. User-defined transformations store their
+    // results in `upstream_request` (for requests) and `downstream_response` (for responses).
+    //
+    // GZIP HANDLING:
+    // Kong does NOT automatically decompress responses - the user's downstream transformation
+    // must manually decompress gzipped data using gzip.inflate_gzip() before manipulating it
+    // (see setup.ts for example). After transformation, we re-compress for clients expecting gzip.
+    //
+    // The workaround here ensures:
+    // 1. We normalize Accept-Encoding so upstream only sends gzip (which we handle) or uncompressed
+    // 2. We clear Content-Length since transformed body size differs from original
+    // 3. We re-compress the transformed response if client expects gzip
+    //
+    // Phase execution order:
+    // 1. access: Transform request → normalize Accept-Encoding → apply transformed body
+    // 2. header_filter: Transform response (includes manual gzip decompression) → clear stale headers
+    // 3. body_filter: Re-encode and re-compress the transformed response if needed
     const plugin = await this.kongRouteService.updateOrCreatePlugin(
       environment,
       route.routeId!,
       {
         config: {
           access: [
+            // User's upstream transformation runs first, stores result in kong.ctx.shared.upstream_request
             data.upstream,
+            // Normalize Accept-Encoding: We only support gzip decompression, so we either
+            // pass gzip, clear the header (for identity/*), or reject unsupported encodings
+            `
+            encoding = kong.request.get_header("Accept-Encoding")
+            if not encoding then
+              return
+            end
+            if encoding:lower():find("gzip") then
+              return kong.service.request.set_header("Accept-Encoding", "gzip")
+            end
+            if encoding:lower() == "identity" or encoding:lower() == "*" then
+              return kong.service.request.clear_header("Accept-Encoding")
+            end
+            return kong.response.error(400, "Unsupported encoding. Only gzip encoding is supported.")
+            `,
+            // Apply the transformed request body if the upstream transformation produced one
             `if kong.ctx.shared.upstream_request ~= nil then kong.service.request.set_body(kong.ctx.shared.upstream_request) end`,
           ],
-          // this is required to ensure that we dont send an invalid content length to the downstream/client
           header_filter: [
+            // User's downstream transformation runs here - it must manually decompress gzipped
+            // responses using gzip.inflate_gzip() before manipulation, then store the result
+            // in kong.ctx.shared.downstream_response
             data.downstream,
-            'kong.response.clear_header("Content-Length")',
+            // Clear Content-Length since transformed body size differs from original.
+            // Also clear Transfer-Encoding/Content-Encoding for non-gzip responses to
+            // prevent clients from attempting to decompress plain JSON.
+            `
+            kong.response.clear_header("Content-Length")
+            if kong.response.get_header("Content-Encoding") ~= "gzip" then
+              kong.response.clear_header("Transfer-Encoding")
+              kong.response.clear_header("Content-Encoding")
+            end
+            `,
           ],
           body_filter: [
-            `local cjson = require 'cjson.safe'\nif kong.ctx.shared.downstream_response ~= nil then kong.response.set_raw_body(cjson.encode(kong.ctx.shared.downstream_response)) end`,
+            // Re-encode the transformed response as JSON, with gzip compression if the
+            // client expects it (based on Content-Encoding header we preserved above)
+            `
+            local cjson = require 'cjson.safe'
+            local gzip = require 'kong.tools.gzip'
+            if kong.ctx.shared.downstream_response ~= nil then
+              if kong.response.get_header("Content-Encoding") == "gzip" then
+                kong.response.set_raw_body(gzip.deflate_gzip(cjson.encode(kong.ctx.shared.downstream_response)))
+              else
+                kong.response.set_raw_body(cjson.encode(kong.ctx.shared.downstream_response))
+              end
+            end`,
           ],
         },
         name: KONG_PLUGINS.POST_FUNCTION,

@@ -10,7 +10,7 @@ x-kong-config: &kong-env
   KONG_PROXY_ACCESS_LOG: /dev/stdout
   KONG_PROXY_ERROR_LOG: /dev/stderr
   KONG_PREFIX: /var/run/kong
-  KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: cjson.safe
+  KONG_UNTRUSTED_LUA_SANDBOX_REQUIRES: cjson.safe, kong.tools.gzip
   KONG_ADMIN_LISTEN: "0.0.0.0:8001 reuseport backlog=16384, 0.0.0.0:8444 http2 ssl reuseport backlog=16384"
   KONG_PLUGINS: "bundled,obn-authorization,obn-request-validator"
   KONG_SSL_CERT: ${KONG_SSL_CERT}
@@ -27,7 +27,9 @@ services:
       POSTGRES_USER: ${KONG_PG_USER:-kong}
       POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
     secrets:
-      - kong_postgres_password
+      - source: kong_postgres_password
+        target: kong_postgres_password
+        mode: 0444
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${KONG_PG_USER:-kong}" ]
       interval: 1s
@@ -40,7 +42,7 @@ services:
       - kong-net
 
   kong-migrations:
-    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
+    image: "${KONG_DOCKER_TAG:-kong:3.9}"
     command:
       [
         "/bin/sh",
@@ -50,7 +52,9 @@ services:
     environment:
       <<: *kong-env
     secrets:
-      - kong_postgres_password
+      - source: kong_postgres_password
+        target: kong_postgres_password
+        mode: 0444
     networks:
       - kong-net
     restart: on-failure
@@ -60,7 +64,7 @@ services:
       - ./config/certs/kong:/opt/kong
 
   kong-migrations-up:
-    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
+    image: "${KONG_DOCKER_TAG:-kong:3.9}"
     command:
       [
         "/bin/sh",
@@ -70,7 +74,9 @@ services:
     environment:
       <<: *kong-env
     secrets:
-      - kong_postgres_password
+      - source: kong_postgres_password
+        target: kong_postgres_password
+        mode: 0444
     networks:
       - kong-net
     restart: on-failure
@@ -80,12 +86,14 @@ services:
       - ./config/certs/kong:/opt/kong
 
   kong:
-    image: "${KONG_DOCKER_TAG:-kong:3.5.0}"
+    image: "${KONG_DOCKER_TAG:-kong:3.9}"
     user: "${KONG_USER:-kong}"
     environment:
       <<: *kong-env
     secrets:
-      - kong_postgres_password
+      - source: kong_postgres_password
+        target: kong_postgres_password
+        mode: 0444
     command:
       [
         "/bin/sh",
